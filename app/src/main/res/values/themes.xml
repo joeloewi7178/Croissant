@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <style name="Theme.Croissant" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.AppSplash" parent="Theme.SplashScreen">
+        <item name="android:statusBarColor">@android:color/white</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
+        <item name="postSplashScreenTheme">@style/Theme.Croissant</item>
+        <item name="windowSplashScreenBackground">@android:color/white</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+    </style>
+</resources>
