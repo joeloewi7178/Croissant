@@ -5,32 +5,39 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.TaskAlt
+import androidx.compose.material.icons.outlined.Event
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.TaskAlt
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.joeloewi.croissant.R
 
 sealed class CroissantNavigation(
     val route: String,
-    val imageVector: ImageVector,
+    val filledIcon: ImageVector,
+    val outlinedIcon: ImageVector,
     @StringRes val resourceId: Int
 ) {
     object Attendances :
         CroissantNavigation(
             route = "attendances",
-            imageVector = Icons.Default.TaskAlt,
+            filledIcon = Icons.Filled.TaskAlt,
+            outlinedIcon = Icons.Outlined.TaskAlt,
             resourceId = R.string.navigation_label_attendance
         )
 
     object Reminders :
         CroissantNavigation(
             route = "reminders",
-            imageVector = Icons.Default.Event,
+            filledIcon = Icons.Filled.Event,
+            outlinedIcon = Icons.Outlined.Event,
             resourceId = R.string.navigation_label_reminder
         )
 
     object Settings :
         CroissantNavigation(
             route = "settings",
-            imageVector = Icons.Default.Settings,
+            filledIcon = Icons.Filled.Settings,
+            outlinedIcon = Icons.Outlined.Settings,
             resourceId = R.string.navigation_label_settings
         )
 }

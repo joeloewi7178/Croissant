@@ -5,9 +5,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.EventAvailable
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
@@ -29,11 +26,16 @@ import com.google.accompanist.insets.rememberInsetsPaddingValues
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.joeloewi.croissant.ui.navigation.CroissantNavigation
 import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
+import com.joeloewi.croissant.ui.navigation.attendances.AttendancesScreen
 import com.joeloewi.croissant.ui.navigation.reminders.RemindersDestination
+import com.joeloewi.croissant.ui.navigation.reminders.screen.RemindersScreen
 import com.joeloewi.croissant.ui.navigation.settings.SettingsDestination
+import com.joeloewi.croissant.ui.navigation.settings.screen.SettingsScreen
 import com.joeloewi.croissant.ui.theme.CroissantTheme
+import dagger.hilt.android.AndroidEntryPoint
 
-@OptIn(ExperimentalMaterial3Api::class)
+@ExperimentalMaterial3Api
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,7 +69,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@ExperimentalMaterial3Api
 @Composable
 fun CroissantApp() {
     val navController = rememberNavController()
@@ -98,18 +100,29 @@ fun CroissantApp() {
                     val currentDestination = navBackStackEntry?.destination
 
                     croissantNavigations.forEach { croissantNavigation ->
+                        val isSelected = currentDestination?.hierarchy?.any {
+                            it.route == croissantNavigation.route
+                        } == true
+
                         NavigationBarItem(
                             icon = {
-                                Icon(
-                                    painter = rememberVectorPainter(
-                                        image = croissantNavigation.imageVector
-                                    ),
-                                    contentDescription = Icons.Default.EventAvailable.name
-                                )
+                                if (isSelected) {
+                                    Icon(
+                                        painter = rememberVectorPainter(
+                                            image = croissantNavigation.filledIcon
+                                        ),
+                                        contentDescription = croissantNavigation.filledIcon.name
+                                    )
+                                } else {
+                                    Icon(
+                                        painter = rememberVectorPainter(
+                                            image = croissantNavigation.outlinedIcon
+                                        ),
+                                        contentDescription = croissantNavigation.outlinedIcon.name
+                                    )
+                                }
                             },
-                            selected = currentDestination?.hierarchy?.any {
-                                it.route == croissantNavigation.route
-                            } == true,
+                            selected = isSelected,
                             label = {
                                 Text(text = stringResource(id = croissantNavigation.resourceId))
                             },
@@ -131,14 +144,6 @@ fun CroissantApp() {
                         .fillMaxWidth()
                 )
             }
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = { }) {
-                Icon(
-                    painter = rememberVectorPainter(image = Icons.Default.Add),
-                    contentDescription = Icons.Default.Add.name
-                )
-            }
         }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
@@ -151,7 +156,7 @@ fun CroissantApp() {
                     route = CroissantNavigation.Attendances.route
                 ) {
                     composable(route = AttendancesDestination.AttendancesScreen.route) {
-
+                        AttendancesScreen(navController = navController)
                     }
                 }
 
@@ -160,7 +165,7 @@ fun CroissantApp() {
                     route = CroissantNavigation.Reminders.route
                 ) {
                     composable(route = RemindersDestination.RemindersScreen.route) {
-
+                        RemindersScreen(navController = navController)
                     }
                 }
 
@@ -169,7 +174,7 @@ fun CroissantApp() {
                     route = CroissantNavigation.Settings.route
                 ) {
                     composable(route = SettingsDestination.SettingsScreen.route) {
-
+                        SettingsScreen(navController = navController)
                     }
                 }
             }
