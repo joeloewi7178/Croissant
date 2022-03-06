@@ -19,10 +19,8 @@ import androidx.core.view.WindowCompat
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.*
-import com.google.accompanist.insets.LocalWindowInsets
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.google.accompanist.insets.navigationBarsHeight
-import com.google.accompanist.insets.rememberInsetsPaddingValues
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.joeloewi.croissant.ui.navigation.CroissantNavigation
 import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
@@ -80,19 +78,6 @@ fun CroissantApp() {
     )
 
     Scaffold(
-        topBar = {
-            SmallTopAppBar(
-                modifier = Modifier.padding(
-                    rememberInsetsPaddingValues(
-                        LocalWindowInsets.current.statusBars,
-                        applyBottom = false,
-                    )
-                ),
-                title = {
-                    Text(text = "TEST")
-                }
-            )
-        },
         bottomBar = {
             Column {
                 NavigationBar {

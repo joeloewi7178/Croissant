@@ -9,6 +9,7 @@ data class Attendance(
     val id : Long = 0,
     val title: String = "",
     val description: String = "",
+    val createdAt: Long = System.currentTimeMillis(),
     val sessionToken: String = "",
     val attendCheckInEventWorkerName: String = "",
     val checkSessionWorkerName: String = ""
