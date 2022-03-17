@@ -1,6 +1,7 @@
 package com.joeloewi.croissant.data.local.model
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity
@@ -10,7 +11,7 @@ data class Attendance(
     val title: String = "",
     val description: String = "",
     val createdAt: Long = System.currentTimeMillis(),
-    val sessionToken: String = "",
+    val cookie: String = "",
     val attendCheckInEventWorkerName: String = "",
     val checkSessionWorkerName: String = ""
 )

@@ -35,7 +35,7 @@ android {
 
     buildTypes {
         debug {
-            isMinifyEnabled = true
+            isMinifyEnabled = false
             isDebuggable = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -74,7 +74,7 @@ android {
 dependencies {
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.compose.ui:ui:${Versions.compose}")
-    implementation("androidx.compose.material3:material3:1.0.0-alpha06")
+    implementation("androidx.compose.material3:material3:1.0.0-alpha07")
     implementation("androidx.compose.ui:ui-tooling-preview:${Versions.compose}")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.1")
     implementation("androidx.activity:activity-compose:1.4.0")
@@ -109,6 +109,7 @@ dependencies {
 
     //compose
     implementation("androidx.navigation:navigation-compose:2.4.1")
+    implementation("androidx.compose.runtime:runtime-livedata:${Versions.compose}")
     implementation("androidx.compose.material:material-icons-extended:${Versions.compose}")
 
     //accompanist
@@ -116,7 +117,9 @@ dependencies {
     implementation("com.google.accompanist:accompanist-pager:${Versions.accompanist}")
     implementation("com.google.accompanist:accompanist-placeholder:${Versions.accompanist}")
     implementation("com.google.accompanist:accompanist-systemuicontroller:${Versions.accompanist}")
-    implementation ("com.google.accompanist:accompanist-insets:${Versions.accompanist}")
+    implementation("com.google.accompanist:accompanist-insets:${Versions.accompanist}")
+    implementation("com.google.accompanist:accompanist-webview:${Versions.accompanist}")
+    implementation("com.google.accompanist:accompanist-pager-indicators:${Versions.accompanist}")
 
     //work
     implementation("androidx.work:work-runtime-ktx:${Versions.work}")

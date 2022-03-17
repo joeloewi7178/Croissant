@@ -5,13 +5,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -21,10 +22,13 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.*
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.google.accompanist.insets.navigationBarsHeight
+import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.joeloewi.croissant.ui.navigation.CroissantNavigation
 import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
-import com.joeloewi.croissant.ui.navigation.attendances.AttendancesScreen
+import com.joeloewi.croissant.ui.navigation.attendances.screen.AttendancesScreen
+import com.joeloewi.croissant.ui.navigation.attendances.screen.CreateAttendanceScreen
+import com.joeloewi.croissant.ui.navigation.attendances.screen.LoginHoYoLABScreen
 import com.joeloewi.croissant.ui.navigation.reminders.RemindersDestination
 import com.joeloewi.croissant.ui.navigation.reminders.screen.RemindersScreen
 import com.joeloewi.croissant.ui.navigation.settings.SettingsDestination
@@ -32,7 +36,10 @@ import com.joeloewi.croissant.ui.navigation.settings.screen.SettingsScreen
 import com.joeloewi.croissant.ui.theme.CroissantTheme
 import dagger.hilt.android.AndroidEntryPoint
 
+@ExperimentalMaterialApi
+@ExperimentalPagerApi
 @ExperimentalMaterial3Api
+@ExperimentalComposeUiApi
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -67,7 +74,10 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@ExperimentalMaterialApi
+@ExperimentalPagerApi
 @ExperimentalMaterial3Api
+@ExperimentalComposeUiApi
 @Composable
 fun CroissantApp() {
     val navController = rememberNavController()
@@ -93,16 +103,12 @@ fun CroissantApp() {
                             icon = {
                                 if (isSelected) {
                                     Icon(
-                                        painter = rememberVectorPainter(
-                                            image = croissantNavigation.filledIcon
-                                        ),
+                                        imageVector = croissantNavigation.filledIcon,
                                         contentDescription = croissantNavigation.filledIcon.name
                                     )
                                 } else {
                                     Icon(
-                                        painter = rememberVectorPainter(
-                                            image = croissantNavigation.outlinedIcon
-                                        ),
+                                        imageVector = croissantNavigation.outlinedIcon,
                                         contentDescription = croissantNavigation.outlinedIcon.name
                                     )
                                 }
@@ -142,6 +148,16 @@ fun CroissantApp() {
                 ) {
                     composable(route = AttendancesDestination.AttendancesScreen.route) {
                         AttendancesScreen(navController = navController)
+                    }
+
+                    composable(route = AttendancesDestination.CreateAttendanceScreen.route) {
+                        CreateAttendanceScreen(navController = navController)
+                    }
+
+                    composable(
+                        route = AttendancesDestination.LoginHoYoLabScreen.route,
+                    ) {
+                        LoginHoYoLABScreen(navController = navController)
                     }
                 }
 

@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.joeloewi.croissant">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:name=".CroissantApplication"
         android:allowBackup="true"
@@ -34,7 +36,6 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.AppSplash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
