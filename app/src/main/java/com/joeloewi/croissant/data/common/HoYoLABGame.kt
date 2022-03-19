@@ -1,19 +1,26 @@
 package com.joeloewi.croissant.data.common
 
-enum class HoYoLABGame {
-    //from hoyolab
-    //honkai impact 3rd game id = 1
-    //genshin impact game id = 2
+import androidx.annotation.StringRes
+import com.joeloewi.croissant.R
 
-    //In this project, uses enum class's ordinal and values()[index] to achieve converting between gameId and enum class
-    //ex) convert id to enum class
-    //HoYoLABGame.values()[gameId - 1]
-    //--> maybe causes exception
-    //
-    //ex) convert enum class to id
-    //val gameId = HoYoLAB.HonkaiImpact3rd.ordinal + 1
-
-    HonkaiImpact3rd,
-    GenshinImpact,
-    Unknown;
+enum class HoYoLABGame(
+    val gameId: Int,
+    @StringRes val gameNameResourceId: Int,
+    val gameIconUrl: String
+) {
+    HonkaiImpact3rd(
+        gameId = 1,
+        gameNameResourceId = R.string.honkai_impact_3rd_game_name,
+        gameIconUrl = "https://webstatic-sea.hoyolab.com/communityweb/business/bh3_hoyoverse.png"
+    ),
+    GenshinImpact(
+        gameId = 2,
+        gameNameResourceId = R.string.genshin_impact_game_name,
+        gameIconUrl = "https://webstatic-sea.hoyolab.com/communityweb/business/ys_hoyoverse.png"
+    ),
+    Unknown(
+        gameId = -1,
+        gameNameResourceId = R.string.unknown_game_name,
+        gameIconUrl = ""
+    );
 }

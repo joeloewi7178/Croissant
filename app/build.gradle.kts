@@ -76,7 +76,7 @@ dependencies {
     implementation("androidx.compose.ui:ui:${Versions.compose}")
     implementation("androidx.compose.material3:material3:1.0.0-alpha07")
     implementation("androidx.compose.ui:ui-tooling-preview:${Versions.compose}")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:${Versions.lifecycle}")
     implementation("androidx.activity:activity-compose:1.4.0")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.3")
@@ -97,6 +97,7 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:${Versions.retrofit}")
     implementation("com.squareup.retrofit2:converter-moshi:${Versions.retrofit}")
     implementation("com.squareup.retrofit2:converter-scalars:${Versions.retrofit}")
+    implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.2")
 
     //hilt
     implementation("com.google.dagger:hilt-android:${Versions.hilt}")
@@ -117,7 +118,6 @@ dependencies {
     implementation("com.google.accompanist:accompanist-pager:${Versions.accompanist}")
     implementation("com.google.accompanist:accompanist-placeholder:${Versions.accompanist}")
     implementation("com.google.accompanist:accompanist-systemuicontroller:${Versions.accompanist}")
-    implementation("com.google.accompanist:accompanist-insets:${Versions.accompanist}")
     implementation("com.google.accompanist:accompanist-webview:${Versions.accompanist}")
     implementation("com.google.accompanist:accompanist-pager-indicators:${Versions.accompanist}")
 
@@ -135,6 +135,11 @@ dependencies {
 
     //splashscreen
     implementation("androidx.core:core-splashscreen:1.0.0-beta01")
+
+    //image load
+    implementation("io.coil-kt:coil-compose:${Versions.coil}")
+
+    implementation("androidx.webkit:webkit:1.4.0")
 }
 
 kapt {

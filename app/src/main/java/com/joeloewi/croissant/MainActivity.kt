@@ -10,31 +10,38 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.*
-import com.google.accompanist.insets.ProvideWindowInsets
-import com.google.accompanist.insets.navigationBarsHeight
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.joeloewi.croissant.ui.navigation.CroissantNavigation
 import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
 import com.joeloewi.croissant.ui.navigation.attendances.screen.AttendancesScreen
-import com.joeloewi.croissant.ui.navigation.attendances.screen.CreateAttendanceScreen
 import com.joeloewi.croissant.ui.navigation.attendances.screen.LoginHoYoLABScreen
+import com.joeloewi.croissant.ui.navigation.attendances.screen.createattendance.CreateAttendanceScreen
 import com.joeloewi.croissant.ui.navigation.reminders.RemindersDestination
 import com.joeloewi.croissant.ui.navigation.reminders.screen.RemindersScreen
 import com.joeloewi.croissant.ui.navigation.settings.SettingsDestination
 import com.joeloewi.croissant.ui.navigation.settings.screen.SettingsScreen
 import com.joeloewi.croissant.ui.theme.CroissantTheme
+import com.joeloewi.croissant.viewmodel.CreateAttendanceViewModel
+import com.joeloewi.croissant.viewmodel.LoginHoYoLABViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.Flow
 
 @ExperimentalMaterialApi
 @ExperimentalPagerApi
@@ -61,13 +68,11 @@ class MainActivity : ComponentActivity() {
             }
 
             CroissantTheme {
-                ProvideWindowInsets {
-                    Surface(
-                        modifier = Modifier.fillMaxSize(),
-                        color = MaterialTheme.colorScheme.background
-                    ) {
-                        CroissantApp()
-                    }
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    CroissantApp()
                 }
             }
         }
@@ -131,7 +136,7 @@ fun CroissantApp() {
                 }
                 Spacer(
                     Modifier
-                        .navigationBarsHeight()
+                        .windowInsetsBottomHeight(WindowInsets.navigationBars)
                         .fillMaxWidth()
                 )
             }
@@ -151,13 +156,23 @@ fun CroissantApp() {
                     }
 
                     composable(route = AttendancesDestination.CreateAttendanceScreen.route) {
-                        CreateAttendanceScreen(navController = navController)
+                        val createAttendanceViewModel: CreateAttendanceViewModel = hiltViewModel()
+
+                        CreateAttendanceScreen(
+                            navController = navController,
+                            createAttendanceViewModel = createAttendanceViewModel
+                        )
                     }
 
                     composable(
                         route = AttendancesDestination.LoginHoYoLabScreen.route,
                     ) {
-                        LoginHoYoLABScreen(navController = navController)
+                        val loginHoYoLABViewModel: LoginHoYoLABViewModel = hiltViewModel()
+
+                        LoginHoYoLABScreen(
+                            navController = navController,
+                            loginHoYoLABViewModel = loginHoYoLABViewModel
+                        )
                     }
                 }
 
@@ -181,6 +196,17 @@ fun CroissantApp() {
             }
         }
     }
+}
+
+@Composable
+fun <T> rememberFlow(
+    flow: Flow<T>,
+    lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
+): Flow<T> {
+    return remember(
+        key1 = flow,
+        key2 = lifecycleOwner
+    ) { flow.flowWithLifecycle(lifecycleOwner.lifecycle, Lifecycle.State.STARTED) }
 }
 
 @Composable

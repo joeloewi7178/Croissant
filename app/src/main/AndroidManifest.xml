@@ -28,6 +28,10 @@
             tools:node="merge">
 
             <meta-data
+                android:name="com.joeloewi.croissant.initializer.CoilInitializer"
+                android:value="androidx.startup" />
+
+            <meta-data
                 android:name="androidx.work.WorkManagerInitializer"
                 android:value="androidx.startup"
                 tools:node="remove" />
@@ -36,7 +40,8 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.AppSplash">
+            android:theme="@style/Theme.AppSplash"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
