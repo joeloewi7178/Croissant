@@ -23,16 +23,19 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.os.bundleOf
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavController
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebSettingsCompat.FORCE_DARK_ON
 import androidx.webkit.WebViewFeature
 import com.joeloewi.croissant.viewmodel.LoginHoYoLABViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -64,6 +67,7 @@ fun LoginHoYoLABContent(
     onClickClose: () -> Unit,
     onCatchCookie: (String) -> Unit
 ) {
+    val localLifecycleOwner = LocalLifecycleOwner.current
     val hoyolabUrl = "https://m.hoyolab.com/#/home"
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -76,6 +80,27 @@ fun LoginHoYoLABContent(
         mutableStateOf<Pair<SslErrorHandler?, SslError?>?>(
             null
         )
+    }
+
+    LaunchedEffect(localLifecycleOwner.lifecycle.currentState, webView) {
+        when (localLifecycleOwner.lifecycle.currentState) {
+
+            Lifecycle.State.CREATED -> {
+                webView?.pauseTimers()
+            }
+
+            Lifecycle.State.STARTED -> {
+                webView?.resumeTimers()
+            }
+
+            Lifecycle.State.RESUMED -> {
+                webView?.resumeTimers()
+            }
+
+            else -> {
+
+            }
+        }
     }
 
     fun String?.checkContainsHoYoLABCookies(): Boolean =
@@ -186,7 +211,7 @@ fun LoginHoYoLABContent(
         val (canGoBack, onCanGoBackChange) = remember { mutableStateOf(false) }
         var navigateUpJob: Job? = remember { null }
         val localContext = LocalContext.current
-        val mihoyoUrl = "www.webstatic-sea.mihoyo.com"
+        val excludedUrls = listOf("www.webstatic-sea.mihoyo.com", "www.webstatic-sea.hoyolab.com")
         val (webViewState, onWebViewStateChange) = rememberSaveable { mutableStateOf<Bundle?>(null) }
         val darkTheme = isSystemInDarkTheme()
 
@@ -250,8 +275,17 @@ fun LoginHoYoLABContent(
                             val currentCookie =
                                 CookieManager.getInstance().getCookie(hoyolabUrl)
 
+                            //in this block, codes are executed in io thread.
+                            //onCatchCookie callback's role is to execute navController.navigateUp()
+                            //which is must executed in main thread.
+                            //also shouldInterceptRequest() callback is called many times
+                            //but navController.navigateUp() has to be called only once
+
+                            //so, after switching context to main thread, store that job in variable
+                            //if the variable is null
+
                             if (currentCookie.checkContainsHoYoLABCookies() && navigateUpJob == null) {
-                                navigateUpJob = coroutineScope.launch {
+                                navigateUpJob = coroutineScope.launch(Dispatchers.Main) {
                                     onCatchCookie(currentCookie)
                                 }
                             }
@@ -265,9 +299,10 @@ fun LoginHoYoLABContent(
                         ): Boolean {
                             request?.url?.toString()?.let(onCurrentUrlChange)
                             return if (
-                                listOf(hoyolabUrl, mihoyoUrl).map {
-                                    request?.url?.toString()?.contains(it)
-                                }.all { it == false }
+                                mutableListOf(hoyolabUrl)
+                                    .apply { addAll(excludedUrls) }
+                                    .map { request?.url?.toString()?.contains(it) }
+                                    .all { it == false }
                             ) {
                                 coroutineScope.launch {
                                     request?.url?.let {

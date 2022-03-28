@@ -7,10 +7,8 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,7 +18,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -41,8 +38,10 @@ import com.joeloewi.croissant.ui.theme.CroissantTheme
 import com.joeloewi.croissant.viewmodel.CreateAttendanceViewModel
 import com.joeloewi.croissant.viewmodel.LoginHoYoLABViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 
+@ObsoleteCoroutinesApi
 @ExperimentalMaterialApi
 @ExperimentalPagerApi
 @ExperimentalMaterial3Api
@@ -79,6 +78,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@ObsoleteCoroutinesApi
 @ExperimentalMaterialApi
 @ExperimentalPagerApi
 @ExperimentalMaterial3Api
@@ -91,54 +91,68 @@ fun CroissantApp() {
         CroissantNavigation.Reminders,
         CroissantNavigation.Settings
     )
+    val fullScreenDestinations = listOf(
+        AttendancesDestination.CreateAttendanceScreen.route,
+        AttendancesDestination.LoginHoYoLabScreen.route
+    )
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
+    val (isFullScreenDestination, onIsFullScreenDestinationChange) = rememberSaveable {
+        mutableStateOf(
+            false
+        )
+    }
+
+    LaunchedEffect(currentDestination) {
+        onIsFullScreenDestinationChange(fullScreenDestinations.contains(currentDestination?.route))
+    }
 
     Scaffold(
         bottomBar = {
-            Column {
-                NavigationBar {
-                    val navBackStackEntry by navController.currentBackStackEntryAsState()
-                    val currentDestination = navBackStackEntry?.destination
+            if (!isFullScreenDestination) {
+                Column {
+                    NavigationBar {
+                        croissantNavigations.forEach { croissantNavigation ->
+                            val isSelected = currentDestination?.hierarchy?.any {
+                                it.route == croissantNavigation.route
+                            } == true
 
-                    croissantNavigations.forEach { croissantNavigation ->
-                        val isSelected = currentDestination?.hierarchy?.any {
-                            it.route == croissantNavigation.route
-                        } == true
-
-                        NavigationBarItem(
-                            icon = {
-                                if (isSelected) {
-                                    Icon(
-                                        imageVector = croissantNavigation.filledIcon,
-                                        contentDescription = croissantNavigation.filledIcon.name
-                                    )
-                                } else {
-                                    Icon(
-                                        imageVector = croissantNavigation.outlinedIcon,
-                                        contentDescription = croissantNavigation.outlinedIcon.name
-                                    )
-                                }
-                            },
-                            selected = isSelected,
-                            label = {
-                                Text(text = stringResource(id = croissantNavigation.resourceId))
-                            },
-                            onClick = {
-                                navController.navigate(croissantNavigation.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
+                            NavigationBarItem(
+                                icon = {
+                                    if (isSelected) {
+                                        Icon(
+                                            imageVector = croissantNavigation.filledIcon,
+                                            contentDescription = croissantNavigation.filledIcon.name
+                                        )
+                                    } else {
+                                        Icon(
+                                            imageVector = croissantNavigation.outlinedIcon,
+                                            contentDescription = croissantNavigation.outlinedIcon.name
+                                        )
                                     }
-                                    launchSingleTop = true
-                                    restoreState = true
+                                },
+                                selected = isSelected,
+                                label = {
+                                    Text(text = stringResource(id = croissantNavigation.resourceId))
+                                },
+                                onClick = {
+                                    navController.navigate(croissantNavigation.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
+                    Spacer(
+                        Modifier
+                            .windowInsetsBottomHeight(WindowInsets.navigationBars)
+                            .fillMaxWidth()
+                    )
                 }
-                Spacer(
-                    Modifier
-                        .windowInsetsBottomHeight(WindowInsets.navigationBars)
-                        .fillMaxWidth()
-                )
             }
         }
     ) { innerPadding ->
@@ -206,7 +220,7 @@ fun <T> rememberFlow(
     return remember(
         key1 = flow,
         key2 = lifecycleOwner
-    ) { flow.flowWithLifecycle(lifecycleOwner.lifecycle, Lifecycle.State.STARTED) }
+    ) { flow.flowWithLifecycle(lifecycleOwner.lifecycle) }
 }
 
 @Composable

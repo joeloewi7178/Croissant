@@ -74,6 +74,7 @@ android {
 dependencies {
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.compose.ui:ui:${Versions.compose}")
+    implementation("com.google.android.material:material:1.6.0-beta01")
     implementation("androidx.compose.material3:material3:1.0.0-alpha07")
     implementation("androidx.compose.ui:ui-tooling-preview:${Versions.compose}")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:${Versions.lifecycle}")
