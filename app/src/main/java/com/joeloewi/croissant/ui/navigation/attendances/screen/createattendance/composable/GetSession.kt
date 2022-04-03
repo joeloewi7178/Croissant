@@ -44,10 +44,11 @@ fun GetSession(
                 }
             }
         }
-    ) {
+    ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
-                .fillMaxSize(),
+                .fillMaxSize()
+                .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(space = 16.dp)
         ) {
             item {

@@ -6,9 +6,8 @@ import com.joeloewi.croissant.data.local.model.Reminder
 
 @Dao
 interface ReminderDao {
-
     @Query("SELECT * FROM Reminder")
-    suspend fun getAllPaged(): PagingSource<Int, Reminder>
+    fun getAllPaged(): PagingSource<Int, Reminder>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(reminder: Reminder): Long

@@ -3,6 +3,7 @@ package com.joeloewi.croissant.ui.navigation.attendances.screen.createattendance
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -11,7 +12,7 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ListItem
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Done
+import androidx.compose.material.icons.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -34,6 +35,7 @@ import com.joeloewi.croissant.data.remote.model.common.GameRecord
 import com.joeloewi.croissant.state.Lce
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 
+@ExperimentalFoundationApi
 @ObsoleteCoroutinesApi
 @ExperimentalMaterial3Api
 @ExperimentalMaterialApi
@@ -114,37 +116,47 @@ fun SelectGames(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.Done,
-                            contentDescription = Icons.Outlined.Done.name
+                            imageVector = Icons.Outlined.ArrowForward,
+                            contentDescription = Icons.Outlined.ArrowForward.name
                         )
-                        Text(text = "${checkedGames.values.filter { it }.size} 개 선택됨")
+                        Text(text = "다음 단계로")
                     }
                 }
             }
         }
-    ) {
+    ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
-                .fillMaxSize(),
+                .fillMaxSize()
+                .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(space = 16.dp)
         ) {
-            item {
+            item(
+                key = "headline"
+            ) {
                 Text(
+                    modifier = Modifier.animateItemPlacement(),
                     text = "출석할 게임 선택하기",
                     style = MaterialTheme.typography.headlineMedium
                 )
             }
 
-            item {
+            item(
+                key = "title"
+            ) {
                 Text(
+                    modifier = Modifier.animateItemPlacement(),
                     text = "HoYoLAB 게임 선택하기",
                     style = MaterialTheme.typography.titleMedium
                 )
             }
 
 
-            item {
+            item(
+                key = "description"
+            ) {
                 Text(
+                    modifier = Modifier.animateItemPlacement(),
                     text = "계정과 연동된 게임 목록 중에서 출석하고자 하는 게임을 선택해주세요.",
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -153,9 +165,13 @@ fun SelectGames(
             when (connectedGames) {
                 is Lce.Content -> {
                     if (connectedGames.content.isEmpty()) {
-                        item {
+                        item(
+                            key = "contentIsEmpty"
+                        ) {
                             Column(
-                                modifier = Modifier.fillMaxSize(),
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .animateItemPlacement(),
                                 verticalArrangement = Arrangement.Center,
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
@@ -181,13 +197,29 @@ fun SelectGames(
                 }
 
                 is Lce.Error -> {
-
+                    item(
+                        key = "error"
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .animateItemPlacement(),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Warning,
+                                contentDescription = Icons.Outlined.Warning.name
+                            )
+                            Text(text = "오류가 발생했습니다. 다시 시도해주세요.")
+                        }
+                    }
                 }
 
                 Lce.Loading -> {
                     items(
                         items = IntArray(5) { it }.toTypedArray(),
-                        key = { it }
+                        key = { "placeholder${it}" }
                     ) {
                         ConnectedGamesLoadingListItem()
                     }

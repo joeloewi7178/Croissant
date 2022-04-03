@@ -207,7 +207,7 @@ fun LoginHoYoLABContent(
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         }
-    ) {
+    ) { innerPadding ->
         val (canGoBack, onCanGoBackChange) = remember { mutableStateOf(false) }
         var navigateUpJob: Job? = remember { null }
         val localContext = LocalContext.current
@@ -226,7 +226,9 @@ fun LoginHoYoLABContent(
         }
 
         AndroidView(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
             factory = { androidViewContext ->
                 WebView(androidViewContext).apply {
 

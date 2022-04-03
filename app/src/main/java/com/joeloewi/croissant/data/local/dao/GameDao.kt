@@ -7,7 +7,7 @@ import com.joeloewi.croissant.data.local.model.Game
 interface GameDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(game: Game): Long
+    suspend fun insert(vararg game: Game): List<Long>
 
     @Update
     suspend fun update(vararg games: Game): Int

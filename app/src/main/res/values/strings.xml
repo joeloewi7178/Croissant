@@ -6,4 +6,8 @@
     <string name="honkai_impact_3rd_game_name">붕괴 3rd</string>
     <string name="genshin_impact_game_name">원신</string>
     <string name="unknown_game_name">알 수 없음</string>
+    <string name="attendance_notification_channel_id">attendance_notification_channel_id</string>
+    <string name="attendance_notification_channel_name">출석 알림</string>
+    <string name="reminder_notification_channel_id">reminder_notification_channel_id</string>
+    <string name="reminder_notification_channel_name">리마인더 알림</string>
 </resources>

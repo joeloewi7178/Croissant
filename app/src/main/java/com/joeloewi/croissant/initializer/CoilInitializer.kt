@@ -16,5 +16,7 @@ class CoilInitializer : Initializer<Unit> {
         }
     }
 
-    override fun dependencies(): MutableList<Class<out Initializer<*>>> = mutableListOf()
+    override fun dependencies(): MutableList<Class<out Initializer<*>>> = mutableListOf(
+        NotificationChannelInitializer::class.java
+    )
 }

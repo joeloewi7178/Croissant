@@ -3,6 +3,7 @@ package com.joeloewi.croissant
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.ExperimentalMaterialApi
@@ -41,6 +42,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 
+@ExperimentalFoundationApi
 @ObsoleteCoroutinesApi
 @ExperimentalMaterialApi
 @ExperimentalPagerApi
@@ -78,6 +80,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@ExperimentalFoundationApi
 @ObsoleteCoroutinesApi
 @ExperimentalMaterialApi
 @ExperimentalPagerApi
@@ -95,22 +98,22 @@ fun CroissantApp() {
         AttendancesDestination.CreateAttendanceScreen.route,
         AttendancesDestination.LoginHoYoLabScreen.route
     )
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentDestination = navBackStackEntry?.destination
-    val (isFullScreenDestination, onIsFullScreenDestinationChange) = rememberSaveable {
-        mutableStateOf(
-            false
-        )
-    }
-
-    LaunchedEffect(currentDestination) {
-        onIsFullScreenDestinationChange(fullScreenDestinations.contains(currentDestination?.route))
-    }
 
     Scaffold(
         bottomBar = {
-            if (!isFullScreenDestination) {
-                Column {
+            Column {
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentDestination = navBackStackEntry?.destination
+                val (isFullScreenDestination, onIsFullScreenDestinationChange) = rememberSaveable {
+                    mutableStateOf(
+                        false
+                    )
+                }
+
+                LaunchedEffect(currentDestination) {
+                    onIsFullScreenDestinationChange(fullScreenDestinations.contains(currentDestination?.route))
+                }
+                if (!isFullScreenDestination) {
                     NavigationBar {
                         croissantNavigations.forEach { croissantNavigation ->
                             val isSelected = currentDestination?.hierarchy?.any {
@@ -147,12 +150,12 @@ fun CroissantApp() {
                             )
                         }
                     }
-                    Spacer(
-                        Modifier
-                            .windowInsetsBottomHeight(WindowInsets.navigationBars)
-                            .fillMaxWidth()
-                    )
                 }
+                Spacer(
+                    Modifier
+                        .windowInsetsBottomHeight(WindowInsets.navigationBars)
+                        .fillMaxWidth()
+                )
             }
         }
     ) { innerPadding ->

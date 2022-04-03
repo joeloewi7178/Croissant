@@ -1,59 +1,72 @@
 package com.joeloewi.croissant.ui.navigation.attendances.screen.createattendance.composable
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ArrowForward
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
-import com.joeloewi.croissant.R
 
+@ExperimentalFoundationApi
 @ExperimentalMaterialApi
 @ExperimentalMaterial3Api
 @Composable
-fun SetDetail() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize(),
-    ) {
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Column(
-                modifier = Modifier.padding(8.dp)
+fun SetDetail(
+    onNextButtonClick: () -> Unit
+) {
+    Scaffold(
+        bottomBar = {
+            FilledTonalButton(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = onNextButtonClick
             ) {
                 Row(
-                    modifier = Modifier.padding(all = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(
+                        space = 8.dp,
+                        alignment = Alignment.CenterHorizontally
+                    ),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    AsyncImage(
-                        modifier = Modifier.size(24.dp),
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(R.drawable.ic_launcher_foreground)
-                            .build(),
-                        contentDescription = null
+                    Icon(
+                        imageVector = Icons.Outlined.ArrowForward,
+                        contentDescription = Icons.Outlined.ArrowForward.name
                     )
-
-                    Spacer(modifier = Modifier.padding(horizontal = 8.dp))
-
-                    Text(text = stringResource(id = R.string.app_name))
+                    Text(text = "다음 단계로")
                 }
-
+            }
+        }
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            verticalArrangement = Arrangement.spacedBy(space = 16.dp)
+        ) {
+            item(
+                key = "headline"
+            ) {
                 Text(
-                    modifier = Modifier.padding(8.dp),
-                    text = "아무개의 (게임이름) 출석 "
-                )
-
-                Text(
-                    modifier = Modifier.padding(8.dp),
-                    text = "메시지"
+                    modifier = Modifier.animateItemPlacement(),
+                    text = "세부 사항 설정하기",
+                    style = MaterialTheme.typography.headlineMedium
                 )
             }
+
+            item(
+                key = "title"
+            ) {
+                Text(
+                    modifier = Modifier.animateItemPlacement(),
+                    text = "알림 및 추가 기능 설정",
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
+
         }
     }
 }

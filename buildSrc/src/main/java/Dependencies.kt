@@ -1,5 +1,5 @@
 object Versions {
-    const val compose = "1.1.1"
+    const val compose = "1.2.0-alpha06"
     const val hilt = "2.41"
     const val paging = "3.0.1"
     const val lifecycle = "2.4.1"

@@ -1,10 +1,10 @@
 package com.joeloewi.croissant.data.remote.dao
 
+import com.joeloewi.croissant.data.remote.model.response.AttendanceResponse
 import com.joeloewi.croissant.data.remote.model.response.GameRecordCardResponse
 import com.joeloewi.croissant.data.remote.model.response.UserFullInfoResponse
-import retrofit2.http.GET
-import retrofit2.http.Header
-import retrofit2.http.Query
+import com.joeloewi.croissant.data.remote.model.response.base.BaseResponse
+import retrofit2.http.*
 
 interface HoYoLABService {
 
@@ -16,4 +16,16 @@ interface HoYoLABService {
         @Header("Cookie") cookie: String,
         @Query("uid") uid: Long
     ): GameRecordCardResponse
+
+    @POST
+    suspend fun attendCheckInGenshinImpact(
+        @Url url: String = "https://hk4e-api-os.mihoyo.com/event/sol/sign?act_id=e202102251931481&lang=ko-kr",
+        @Header("Cookie") cookie: String
+    ): AttendanceResponse
+
+    @POST
+    suspend fun attendCheckInHonkaiImpact3rd(
+        @Url url: String = "https://api-os-takumi.mihoyo.com/event/mani/sign?act_id=e202110291205111&lang=ko-kr",
+        @Header("Cookie") cookie: String
+    ): AttendanceResponse
 }

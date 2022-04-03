@@ -5,6 +5,7 @@ import android.widget.TimePicker
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.Done
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.*
@@ -27,22 +28,23 @@ import java.util.*
 @ExperimentalMaterial3Api
 @Composable
 fun SetTime(
-    createAttendanceViewModel: CreateAttendanceViewModel = hiltViewModel(),
-    onNextButtonClick: () -> Unit
+    hourOfDay: Int,
+    minute: Int,
+    tickerCalendar: Calendar,
+    onNextButtonClick: () -> Unit,
+    onHourOfDayChange: (Int) -> Unit,
+    onMinuteChange: (Int) -> Unit
 ) {
-    val hourOfDay by rememberFlow(flow = createAttendanceViewModel.hourOfDay).collectAsState(initial = Calendar.getInstance()[Calendar.HOUR_OF_DAY])
-    val minute by rememberFlow(flow = createAttendanceViewModel.minute).collectAsState(initial = Calendar.getInstance()[Calendar.MINUTE])
-    val tickerCalendar by rememberFlow(flow = createAttendanceViewModel.tickerCalendar).collectAsState(
-        initial = Calendar.getInstance()
-    )
-    val (timePicker, onTimePickerChange) = remember { mutableStateOf<TimePicker?>(null) }
+    val (timePicker, onTimePickerChange) = remember {
+        mutableStateOf<TimePicker?>(
+            null
+        )
+    }
 
     DisposableEffect(timePicker) {
         timePicker?.setOnTimeChangedListener { _, hourOfDay, minute ->
-            createAttendanceViewModel.apply {
-                setHourOfDay(hourOfDay)
-                setMinute(minute)
-            }
+            onHourOfDayChange(hourOfDay)
+            onMinuteChange(minute)
         }
 
         onDispose {
@@ -67,14 +69,15 @@ fun SetTime(
                         imageVector = Icons.Outlined.Done,
                         contentDescription = Icons.Outlined.Done.name
                     )
-                    Text(text = "시간 설정 완료")
+                    Text(text = "작성 완료")
                 }
             }
         }
-    ) {
+    ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
-                .fillMaxSize(),
+                .fillMaxSize()
+                .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(space = 16.dp)
         ) {
             item {

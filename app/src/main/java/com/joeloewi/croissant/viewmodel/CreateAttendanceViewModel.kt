@@ -1,12 +1,18 @@
 package com.joeloewi.croissant.viewmodel
 
+import android.app.Application
 import androidx.compose.runtime.mutableStateMapOf
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.*
 import com.joeloewi.croissant.data.common.HoYoLABGame
+import com.joeloewi.croissant.data.local.CroissantDatabase
+import com.joeloewi.croissant.data.local.model.Attendance
+import com.joeloewi.croissant.data.local.model.Game
 import com.joeloewi.croissant.data.remote.dao.HoYoLABService
 import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.worker.AttendCheckInEventWorker
+import com.joeloewi.croissant.worker.CheckSessionWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ObsoleteCoroutinesApi
@@ -14,17 +20,20 @@ import kotlinx.coroutines.channels.ticker
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.*
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @ObsoleteCoroutinesApi
 @HiltViewModel
 class CreateAttendanceViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
-    private val hoYoLABService: HoYoLABService
+    private val application: Application,
+    private val hoYoLABService: HoYoLABService,
+    private val croissantDatabase: CroissantDatabase
 ) : ViewModel() {
     private val _cookie = MutableStateFlow("")
     private val _hourOfDay = MutableStateFlow(Calendar.getInstance()[Calendar.HOUR_OF_DAY])
     private val _minute = MutableStateFlow(Calendar.getInstance()[Calendar.MINUTE])
+    private val _createAttendanceState = MutableStateFlow<Lce<List<Long>>>(Lce.Content(listOf()))
 
     val cookie = _cookie
     val userInfo = _cookie
@@ -56,15 +65,16 @@ class CreateAttendanceViewModel @Inject constructor(
                     pair.first.content!!.uid
                 ).data!!
             }.fold(
-                onSuccess = {
-                    val games = it.list.map { gameRecord ->
+                onSuccess = { gameRecordCardData ->
+                    gameRecordCardData.list.map { gameRecord ->
                         gameRecord.copy(
                             hoYoLABGame = HoYoLABGame.values()
                                 .find { hoYoLABGame -> hoYoLABGame.gameId == gameRecord.gameId }
                                 ?: HoYoLABGame.Unknown
                         )
+                    }.let { gameRecords ->
+                        Lce.Content(gameRecords)
                     }
-                    Lce.Content(games)
                 },
                 onFailure = {
                     Lce.Error(it)
@@ -76,9 +86,17 @@ class CreateAttendanceViewModel @Inject constructor(
             initialValue = Lce.Loading
         )
     val checkedGames = mutableStateMapOf<HoYoLABGame, Boolean>()
-    val tickerCalendar = ticker(delayMillis = 1000).receiveAsFlow().map { Calendar.getInstance() }
+    val tickerCalendar = ticker(delayMillis = 1000).receiveAsFlow()
+        .map { Calendar.getInstance() }
+        .flowOn(Dispatchers.IO)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(),
+            initialValue = Calendar.getInstance()
+        )
     val hourOfDay = _hourOfDay.asStateFlow()
     val minute = _minute.asStateFlow()
+    val createAttendanceState = _createAttendanceState.asStateFlow()
 
     fun setCookie(cookie: String) {
         viewModelScope.launch {
@@ -92,5 +110,96 @@ class CreateAttendanceViewModel @Inject constructor(
 
     fun setMinute(minute: Int) {
         _minute.value = minute
+    }
+
+    fun createAttendance() {
+        _createAttendanceState.value = Lce.Loading
+
+        viewModelScope.launch(Dispatchers.IO) {
+            _createAttendanceState.value = croissantDatabase.attendanceDao().runCatching {
+                val hourOfDay = _hourOfDay.value
+                val minute = _minute.value
+                val attendance = Attendance(
+                    cookie = _cookie.value,
+                    nickname = userInfo.value.content!!.nickname,
+                    hourOfDay = hourOfDay,
+                    minute = minute
+                )
+
+                insert(attendance = attendance).also { attendanceId ->
+                    val now = Calendar.getInstance()
+                    val canExecuteToday =
+                        (now[Calendar.HOUR_OF_DAY] < hourOfDay) || (now[Calendar.HOUR_OF_DAY] == hourOfDay && now[Calendar.MINUTE] < minute)
+
+                    val targetTime = now.apply {
+                        if (!canExecuteToday) {
+                            add(Calendar.DATE, 1)
+                        }
+
+                        set(Calendar.HOUR_OF_DAY, hourOfDay)
+                        set(Calendar.MINUTE, minute)
+                    }
+
+                    val periodicCheckSessionWork = PeriodicWorkRequest.Builder(
+                        CheckSessionWorker::class.java,
+                        6L,
+                        TimeUnit.HOURS
+                    )
+                        .setInputData(workDataOf(CheckSessionWorker.ATTENDANCE_ID to attendanceId))
+                        .setConstraints(
+                            Constraints.Builder()
+                                .setRequiredNetworkType(NetworkType.CONNECTED)
+                                .build()
+                        )
+                        .build()
+
+                    WorkManager.getInstance(application)
+                        .enqueueUniquePeriodicWork(
+                            attendance.checkSessionWorkerName,
+                            ExistingPeriodicWorkPolicy.REPLACE,
+                            periodicCheckSessionWork
+                        )
+
+                    val periodicAttendanceCheckInEventWork = PeriodicWorkRequest.Builder(
+                        AttendCheckInEventWorker::class.java,
+                        24L,
+                        TimeUnit.HOURS
+                    )
+                        .setInitialDelay(
+                            targetTime.timeInMillis - now.timeInMillis,
+                            TimeUnit.MILLISECONDS
+                        )
+                        .setInputData(workDataOf(AttendCheckInEventWorker.ATTENDANCE_ID to attendanceId))
+                        .setConstraints(
+                            Constraints.Builder()
+                                .setRequiredNetworkType(NetworkType.CONNECTED)
+                                .build()
+                        )
+                        .build()
+
+                    WorkManager.getInstance(application)
+                        .enqueueUniquePeriodicWork(
+                            attendance.attendCheckInEventWorkerName,
+                            ExistingPeriodicWorkPolicy.REPLACE,
+                            periodicAttendanceCheckInEventWork
+                        )
+                }
+            }.mapCatching { attendanceId ->
+                croissantDatabase.gameDao()
+                    .insert(*checkedGames.filter { it.value }.map { hoYoLABGame ->
+                        Game(
+                            attendanceId = attendanceId,
+                            name = hoYoLABGame.key
+                        )
+                    }.toTypedArray())
+            }.fold(
+                onSuccess = {
+                    Lce.Content(it)
+                },
+                onFailure = {
+                    Lce.Error(it)
+                }
+            )
+        }
     }
 }
