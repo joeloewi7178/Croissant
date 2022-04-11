@@ -10,7 +10,7 @@ import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
-object HoYoLABServiceModule {
+object RemoteServiceModule {
 
     @Singleton
     @Provides

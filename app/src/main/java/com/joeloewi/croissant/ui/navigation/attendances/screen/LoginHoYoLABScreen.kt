@@ -114,10 +114,6 @@ fun LoginHoYoLABContent(
         topBar = {
             Column {
                 SmallTopAppBar(
-                    modifier = Modifier.padding(
-                        WindowInsets.statusBars.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
-                            .asPaddingValues()
-                    ),
                     navigationIcon = {
                         IconButton(onClick = onClickClose) {
                             Icon(

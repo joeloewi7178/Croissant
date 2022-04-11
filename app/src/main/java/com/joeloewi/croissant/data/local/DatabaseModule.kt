@@ -14,9 +14,12 @@ object DatabaseModule {
 
     @Singleton
     @Provides
-    fun provideCroissantDatabase(application: Application): CroissantDatabase = Room.databaseBuilder(
-        application,
-        CroissantDatabase::class.java,
-        "croissant"
-    ).build()
+    fun provideCroissantDatabase(application: Application): CroissantDatabase =
+        Room.databaseBuilder(
+            application,
+            CroissantDatabase::class.java,
+            "croissant"
+        )
+            .enableMultiInstanceInvalidation()
+            .build()
 }

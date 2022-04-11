@@ -74,7 +74,7 @@ android {
 dependencies {
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("com.google.android.material:material:1.6.0-beta01")
-    implementation("androidx.compose.material3:material3:1.0.0-alpha07")
+    implementation("androidx.compose.material3:material3:1.0.0-alpha09")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:${Versions.lifecycle}")
     implementation("androidx.activity:activity-compose:1.4.0")
     testImplementation("junit:junit:4.13.2")
@@ -109,7 +109,7 @@ dependencies {
     //compose
     implementation("androidx.compose.ui:ui:${Versions.compose}")
     implementation("androidx.compose.foundation:foundation:${Versions.compose}")
-    implementation("androidx.navigation:navigation-compose:2.4.1")
+    implementation("androidx.navigation:navigation-compose:2.4.2")
     implementation("androidx.compose.runtime:runtime:${Versions.compose}")
     implementation("androidx.compose.ui:ui-tooling-preview:${Versions.compose}")
     implementation("androidx.compose.runtime:runtime-livedata:${Versions.compose}")
@@ -137,12 +137,13 @@ dependencies {
     implementation("androidx.room:room-paging:${Versions.room}")
 
     //splashscreen
-    implementation("androidx.core:core-splashscreen:1.0.0-beta01")
+    implementation("androidx.core:core-splashscreen:1.0.0-beta02")
 
     //image load
     implementation("io.coil-kt:coil-compose:${Versions.coil}")
 
     implementation("androidx.webkit:webkit:1.4.0")
+    implementation("androidx.paging:paging-compose:1.0.0-alpha14")
 }
 
 kapt {

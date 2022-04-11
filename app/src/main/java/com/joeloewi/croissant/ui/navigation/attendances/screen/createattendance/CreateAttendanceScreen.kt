@@ -147,10 +147,6 @@ fun CreateAttendanceContent(
     Scaffold(
         topBar = {
             SmallTopAppBar(
-                modifier = Modifier.padding(
-                    WindowInsets.statusBars.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
-                        .asPaddingValues()
-                ),
                 title = {
                     Text(text = "출석 작업 만들기")
                 }

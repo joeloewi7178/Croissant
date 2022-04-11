@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -36,6 +35,7 @@ import com.joeloewi.croissant.ui.navigation.reminders.screen.RemindersScreen
 import com.joeloewi.croissant.ui.navigation.settings.SettingsDestination
 import com.joeloewi.croissant.ui.navigation.settings.screen.SettingsScreen
 import com.joeloewi.croissant.ui.theme.CroissantTheme
+import com.joeloewi.croissant.viewmodel.AttendancesViewModel
 import com.joeloewi.croissant.viewmodel.CreateAttendanceViewModel
 import com.joeloewi.croissant.viewmodel.LoginHoYoLABViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -100,6 +100,14 @@ fun CroissantApp() {
     )
 
     Scaffold(
+        topBar = {
+            Spacer(
+                modifier = Modifier.padding(
+                    WindowInsets.statusBars.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
+                        .asPaddingValues()
+                )
+            )
+        },
         bottomBar = {
             Column {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -111,7 +119,11 @@ fun CroissantApp() {
                 }
 
                 LaunchedEffect(currentDestination) {
-                    onIsFullScreenDestinationChange(fullScreenDestinations.contains(currentDestination?.route))
+                    onIsFullScreenDestinationChange(
+                        fullScreenDestinations.contains(
+                            currentDestination?.route
+                        )
+                    )
                 }
                 if (!isFullScreenDestination) {
                     NavigationBar {
@@ -169,7 +181,12 @@ fun CroissantApp() {
                     route = CroissantNavigation.Attendances.route
                 ) {
                     composable(route = AttendancesDestination.AttendancesScreen.route) {
-                        AttendancesScreen(navController = navController)
+                        val attendancesViewModel: AttendancesViewModel = hiltViewModel()
+
+                        AttendancesScreen(
+                            navController = navController,
+                            attendancesViewModel = attendancesViewModel
+                        )
                     }
 
                     composable(route = AttendancesDestination.CreateAttendanceScreen.route) {
@@ -229,12 +246,4 @@ fun <T> rememberFlow(
 @Composable
 fun Greeting(name: String) {
     Text(text = "Hello $name!")
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    CroissantTheme {
-        Greeting("Android")
-    }
 }

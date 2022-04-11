@@ -36,7 +36,7 @@ class CreateAttendanceViewModel @Inject constructor(
     private val _createAttendanceState = MutableStateFlow<Lce<List<Long>>>(Lce.Content(listOf()))
 
     val cookie = _cookie
-    val userInfo = _cookie
+    private val userInfo = _cookie
         .filter { it.isNotEmpty() }
         .map { cookie ->
             hoYoLABService.runCatching {
@@ -122,68 +122,79 @@ class CreateAttendanceViewModel @Inject constructor(
                 val attendance = Attendance(
                     cookie = _cookie.value,
                     nickname = userInfo.value.content!!.nickname,
+                    uid = userInfo.value.content!!.uid,
                     hourOfDay = hourOfDay,
                     minute = minute
                 )
 
-                insert(attendance = attendance).also { attendanceId ->
-                    val now = Calendar.getInstance()
-                    val canExecuteToday =
-                        (now[Calendar.HOUR_OF_DAY] < hourOfDay) || (now[Calendar.HOUR_OF_DAY] == hourOfDay && now[Calendar.MINUTE] < minute)
+                insert(attendance = attendance)
+            }.mapCatching { attendanceId ->
+                val attendance = croissantDatabase.attendanceDao().getOne(attendanceId).attendance
+                val now = Calendar.getInstance()
+                val canExecuteToday =
+                    (now[Calendar.HOUR_OF_DAY] < attendance.hourOfDay) || (now[Calendar.HOUR_OF_DAY] == attendance.hourOfDay && now[Calendar.MINUTE] < attendance.minute)
 
-                    val targetTime = now.apply {
-                        if (!canExecuteToday) {
-                            add(Calendar.DATE, 1)
-                        }
-
-                        set(Calendar.HOUR_OF_DAY, hourOfDay)
-                        set(Calendar.MINUTE, minute)
+                val targetTime = Calendar.getInstance().apply {
+                    if (!canExecuteToday) {
+                        add(Calendar.DATE, 1)
                     }
 
-                    val periodicCheckSessionWork = PeriodicWorkRequest.Builder(
-                        CheckSessionWorker::class.java,
-                        6L,
-                        TimeUnit.HOURS
-                    )
-                        .setInputData(workDataOf(CheckSessionWorker.ATTENDANCE_ID to attendanceId))
-                        .setConstraints(
-                            Constraints.Builder()
-                                .setRequiredNetworkType(NetworkType.CONNECTED)
-                                .build()
-                        )
-                        .build()
-
-                    WorkManager.getInstance(application)
-                        .enqueueUniquePeriodicWork(
-                            attendance.checkSessionWorkerName,
-                            ExistingPeriodicWorkPolicy.REPLACE,
-                            periodicCheckSessionWork
-                        )
-
-                    val periodicAttendanceCheckInEventWork = PeriodicWorkRequest.Builder(
-                        AttendCheckInEventWorker::class.java,
-                        24L,
-                        TimeUnit.HOURS
-                    )
-                        .setInitialDelay(
-                            targetTime.timeInMillis - now.timeInMillis,
-                            TimeUnit.MILLISECONDS
-                        )
-                        .setInputData(workDataOf(AttendCheckInEventWorker.ATTENDANCE_ID to attendanceId))
-                        .setConstraints(
-                            Constraints.Builder()
-                                .setRequiredNetworkType(NetworkType.CONNECTED)
-                                .build()
-                        )
-                        .build()
-
-                    WorkManager.getInstance(application)
-                        .enqueueUniquePeriodicWork(
-                            attendance.attendCheckInEventWorkerName,
-                            ExistingPeriodicWorkPolicy.REPLACE,
-                            periodicAttendanceCheckInEventWork
-                        )
+                    set(Calendar.HOUR_OF_DAY, attendance.hourOfDay)
+                    set(Calendar.MINUTE, attendance.minute)
                 }
+
+                val periodicCheckSessionWork = PeriodicWorkRequest.Builder(
+                    CheckSessionWorker::class.java,
+                    6L,
+                    TimeUnit.HOURS
+                )
+                    .setInputData(workDataOf(CheckSessionWorker.ATTENDANCE_ID to attendanceId))
+                    .setConstraints(
+                        Constraints.Builder()
+                            .setRequiredNetworkType(NetworkType.CONNECTED)
+                            .build()
+                    )
+                    .build()
+
+                WorkManager.getInstance(application)
+                    .enqueueUniquePeriodicWork(
+                        attendance.checkSessionWorkerName.toString(),
+                        ExistingPeriodicWorkPolicy.REPLACE,
+                        periodicCheckSessionWork
+                    )
+
+                val periodicAttendanceCheckInEventWork = PeriodicWorkRequest.Builder(
+                    AttendCheckInEventWorker::class.java,
+                    24L,
+                    TimeUnit.HOURS
+                )
+                    .setInitialDelay(
+                        targetTime.timeInMillis - now.timeInMillis,
+                        TimeUnit.MILLISECONDS
+                    )
+                    .setInputData(workDataOf(AttendCheckInEventWorker.ATTENDANCE_ID to attendanceId))
+                    .setConstraints(
+                        Constraints.Builder()
+                            .setRequiredNetworkType(NetworkType.CONNECTED)
+                            .build()
+                    )
+                    .build()
+
+                WorkManager.getInstance(application)
+                    .enqueueUniquePeriodicWork(
+                        attendance.attendCheckInEventWorkerName.toString(),
+                        ExistingPeriodicWorkPolicy.REPLACE,
+                        periodicAttendanceCheckInEventWork
+                    )
+
+                croissantDatabase.attendanceDao().update(
+                    attendance.copy(
+                        attendCheckInEventWorkerId = periodicAttendanceCheckInEventWork.id,
+                        checkSessionWorkerId = periodicCheckSessionWork.id
+                    )
+                )
+
+                attendance.id
             }.mapCatching { attendanceId ->
                 croissantDatabase.gameDao()
                     .insert(*checkedGames.filter { it.value }.map { hoYoLABGame ->

@@ -11,8 +11,12 @@ data class Attendance(
     val createdAt: Long = System.currentTimeMillis(),
     val cookie: String = "",
     val nickname: String = "",
+    val uid: Long = 0,
     val hourOfDay: Int = 0,
     val minute: Int = 0,
-    val attendCheckInEventWorkerName: String = UUID.randomUUID().toString(),
-    val checkSessionWorkerName: String = UUID.randomUUID().toString()
+    val attendCheckInEventWorkerName: UUID = UUID.randomUUID(),
+    val attendCheckInEventWorkerId: UUID = UUID.randomUUID(),
+    val checkSessionWorkerName: UUID = UUID.randomUUID(),
+    val checkSessionWorkerId: UUID = UUID.randomUUID(),
+    val oneTimeAttendCheckInEventWorkerName: UUID = UUID.randomUUID(),
 )

@@ -8,12 +8,13 @@ import androidx.work.workDataOf
 import com.joeloewi.croissant.data.local.CroissantDatabase
 import com.joeloewi.croissant.data.remote.dao.HoYoLABService
 import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltWorker
-class CheckSessionWorker @Inject constructor(
+class CheckSessionWorker @AssistedInject constructor(
     @Assisted val context: Context,
     @Assisted val params: WorkerParameters,
     private val croissantDatabase: CroissantDatabase,
@@ -22,8 +23,10 @@ class CheckSessionWorker @Inject constructor(
     appContext = context,
     params = params
 ) {
+    private val attendanceId = inputData.getLong(ATTENDANCE_ID, Long.MIN_VALUE)
+
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
-        inputData.getLong(ATTENDANCE_ID, Long.MIN_VALUE).runCatching {
+        attendanceId.runCatching {
             takeIf { it != Long.MIN_VALUE }!!
         }.mapCatching { attendanceId ->
             croissantDatabase.attendanceDao().getOne(attendanceId)
@@ -32,13 +35,8 @@ class CheckSessionWorker @Inject constructor(
                 cookie = attendanceWithAllValues.attendance.cookie
             ).data!!.userInfo
         }.fold(
-            onSuccess = { userInfo ->
-                Result.success(
-                    workDataOf(
-                        AttendCheckInEventWorker.NICKNAME to userInfo.nickname,
-                        AttendCheckInEventWorker.UID to userInfo.uid
-                    )
-                )
+            onSuccess = {
+                Result.success()
             },
             onFailure = {
                 Result.failure()

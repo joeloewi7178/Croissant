@@ -6,7 +6,7 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class UserFullInfoResponse(
-    override val retCode: Int = Int.MIN_VALUE,
+    override val retcode: Int = Int.MIN_VALUE,
     override val message: String = "",
     override val data: UserFullInfoData?
 ) : BaseResponse

@@ -20,7 +20,7 @@ class NotificationChannelInitializer : Initializer<List<NotificationChannelCompa
             NotificationChannelCompat
                 .Builder(
                     pair.first,
-                    NotificationManagerCompat.IMPORTANCE_DEFAULT
+                    NotificationManagerCompat.IMPORTANCE_HIGH
                 )
                 .setName(pair.second)
                 .build()

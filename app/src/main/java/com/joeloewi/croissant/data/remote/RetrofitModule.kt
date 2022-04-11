@@ -1,5 +1,6 @@
 package com.joeloewi.croissant.data.remote
 
+import com.joeloewi.croissant.data.remote.model.response.AttendanceResponse
 import com.joeloewi.croissant.data.remote.model.response.GameRecordCardResponse
 import com.joeloewi.croissant.data.remote.model.response.UserFullInfoResponse
 import com.joeloewi.croissant.data.remote.model.response.base.BaseResponse
@@ -29,11 +30,15 @@ object RetrofitModule {
         )
             .withSubtype(
                 UserFullInfoResponse::class.java,
-                UserFullInfoResponse::class.java.name
+                UserFullInfoResponse::class.java.simpleName
             )
             .withSubtype(
                 GameRecordCardResponse::class.java,
-                GameRecordCardResponse::class.java.name
+                GameRecordCardResponse::class.java.simpleName
+            )
+            .withSubtype(
+                AttendanceResponse::class.java,
+                AttendanceResponse::class.java.simpleName
             )
     ).build()
 
