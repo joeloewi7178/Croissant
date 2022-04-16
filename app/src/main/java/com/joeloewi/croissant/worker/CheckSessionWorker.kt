@@ -4,14 +4,17 @@ import android.content.Context
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import androidx.work.workDataOf
+import com.joeloewi.croissant.data.common.CroissantWorker
+import com.joeloewi.croissant.data.common.WorkerExecutionLogState
 import com.joeloewi.croissant.data.local.CroissantDatabase
+import com.joeloewi.croissant.data.local.model.FailureLog
+import com.joeloewi.croissant.data.local.model.SuccessLog
+import com.joeloewi.croissant.data.local.model.WorkerExecutionLog
 import com.joeloewi.croissant.data.remote.dao.HoYoLABService
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
 
 @HiltWorker
 class CheckSessionWorker @AssistedInject constructor(
@@ -33,12 +36,48 @@ class CheckSessionWorker @AssistedInject constructor(
         }.mapCatching { attendanceWithAllValues ->
             hoYoLABService.getUserFullInfo(
                 cookie = attendanceWithAllValues.attendance.cookie
-            ).data!!.userInfo
+            )
+        }.mapCatching { userFullInfoData ->
+            if (userFullInfoData.data == null) {
+                throw NullPointerException()
+            }
+
+            val executionLogId = croissantDatabase.workerExecutionLogDao().insert(
+                WorkerExecutionLog(
+                    attendanceId = attendanceId,
+                    state = WorkerExecutionLogState.SUCCESS,
+                    worker = CroissantWorker.CHECK_SESSION
+                )
+            )
+
+            croissantDatabase.successLogDao().insert(
+                SuccessLog(
+                    executionLogId = executionLogId,
+                    retCode = userFullInfoData.retcode,
+                    message = userFullInfoData.message
+                )
+            )
         }.fold(
             onSuccess = {
                 Result.success()
             },
-            onFailure = {
+            onFailure = { cause ->
+                val executionLogId = croissantDatabase.workerExecutionLogDao().insert(
+                    WorkerExecutionLog(
+                        attendanceId = attendanceId,
+                        state = WorkerExecutionLogState.FAILURE,
+                        worker = CroissantWorker.CHECK_SESSION
+                    )
+                )
+
+                croissantDatabase.failureLogDao().insert(
+                    FailureLog(
+                        executionLogId = executionLogId,
+                        failureMessage = cause.message ?: "",
+                        failureStackTrace = cause.stackTraceToString()
+                    )
+                )
+
                 Result.failure()
             }
         )

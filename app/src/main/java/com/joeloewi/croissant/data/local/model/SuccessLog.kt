@@ -7,22 +7,21 @@ import androidx.room.PrimaryKey
 import com.joeloewi.croissant.data.common.HoYoLABGame
 
 @Entity(
-    indices = [Index("attendanceId")],
+    indices = [Index("executionLogId")],
     foreignKeys = [
         ForeignKey(
-            entity = Attendance::class,
+            entity = WorkerExecutionLog::class,
             parentColumns = arrayOf("id"),
-            childColumns = arrayOf("attendanceId"),
+            childColumns = arrayOf("executionLogId"),
             onDelete = ForeignKey.CASCADE
         )
     ]
 )
-data class ExecutionLog(
+data class SuccessLog(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    val attendanceId: Long = 0,
-    val createdAt: Long = System.currentTimeMillis(),
+    val executionLogId: Long = 0,
     val gameName: HoYoLABGame = HoYoLABGame.Unknown,
-    val code: Int = 0,
+    val retCode: Int = 0,
     val message: String = ""
 )

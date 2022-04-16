@@ -11,9 +11,14 @@ import androidx.work.WorkerParameters
 import coil.ImageLoader
 import coil.request.ImageRequest
 import com.joeloewi.croissant.R
+import com.joeloewi.croissant.data.common.CroissantWorker
 import com.joeloewi.croissant.data.common.HoYoLABGame
 import com.joeloewi.croissant.data.common.NotSupportedGameException
+import com.joeloewi.croissant.data.common.WorkerExecutionLogState
 import com.joeloewi.croissant.data.local.CroissantDatabase
+import com.joeloewi.croissant.data.local.model.FailureLog
+import com.joeloewi.croissant.data.local.model.SuccessLog
+import com.joeloewi.croissant.data.local.model.WorkerExecutionLog
 import com.joeloewi.croissant.data.remote.dao.HoYoLABService
 import com.joeloewi.croissant.data.remote.model.response.AttendanceResponse
 import dagger.assisted.Assisted
@@ -45,7 +50,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
     ): Notification = NotificationCompat
         .Builder(context, channelId)
         .setContentTitle("${nickname}의 출석 작업 - ${context.getString(hoYoLABGame.gameNameResourceId)}")
-        .setContentText("(${attendanceResponse.retcode}) ${attendanceResponse.message}")
+        .setContentText("${attendanceResponse.message} (${attendanceResponse.retcode})")
         .setSmallIcon(R.drawable.ic_launcher_foreground)
         .apply {
             ImageLoader(context).execute(
@@ -72,6 +77,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
 
             //attend check in events
             attendanceWithGames.games.map { game ->
+                //do parallel jobs
                 async {
                     when (game.name) {
                         HoYoLABGame.HonkaiImpact3rd -> {
@@ -83,13 +89,13 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                         HoYoLABGame.Unknown -> {
                             throw NotSupportedGameException()
                         }
-                    }.let {
+                    }.also { response ->
                         createAttendanceNotification(
                             context = context,
                             channelId = context.getString(R.string.attendance_notification_channel_id),
                             nickname = attendanceWithGames.attendance.nickname,
                             hoYoLABGame = game.name,
-                            attendanceResponse = it
+                            attendanceResponse = response
                         ).let { notification ->
                             NotificationManagerCompat.from(context).notify(
                                 UUID.randomUUID().toString(),
@@ -97,6 +103,23 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                                 notification
                             )
                         }
+                    }.also { response ->
+                        val executionLogId = croissantDatabase.workerExecutionLogDao().insert(
+                            WorkerExecutionLog(
+                                attendanceId = attendanceId,
+                                state = WorkerExecutionLogState.SUCCESS,
+                                worker = CroissantWorker.ATTEND_CHECK_IN_EVENT
+                            )
+                        )
+
+                        croissantDatabase.successLogDao().insert(
+                            SuccessLog(
+                                executionLogId = executionLogId,
+                                gameName = game.name,
+                                retCode = response.retcode,
+                                message = response.message
+                            )
+                        )
                     }
                 }
             }.awaitAll()
@@ -104,7 +127,23 @@ class AttendCheckInEventWorker @AssistedInject constructor(
             onSuccess = {
                 Result.success()
             },
-            onFailure = {
+            onFailure = { cause ->
+                val executionLogId = croissantDatabase.workerExecutionLogDao().insert(
+                    WorkerExecutionLog(
+                        attendanceId = attendanceId,
+                        state = WorkerExecutionLogState.FAILURE,
+                        worker = CroissantWorker.ATTEND_CHECK_IN_EVENT
+                    )
+                )
+
+                croissantDatabase.failureLogDao().insert(
+                    FailureLog(
+                        executionLogId = executionLogId,
+                        failureMessage = cause.message ?: "",
+                        failureStackTrace = cause.stackTraceToString()
+                    )
+                )
+
                 Result.failure()
             }
         )
@@ -112,7 +151,5 @@ class AttendCheckInEventWorker @AssistedInject constructor(
 
     companion object {
         const val ATTENDANCE_ID = "attendanceId"
-        const val UID = "uid"
-        const val NICKNAME = "nickname"
     }
 }

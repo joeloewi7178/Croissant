@@ -3,7 +3,7 @@ package com.joeloewi.croissant.data.local.dao
 import androidx.paging.PagingSource
 import androidx.room.*
 import com.joeloewi.croissant.data.local.model.Attendance
-import com.joeloewi.croissant.data.local.model.AttendanceWithGames
+import com.joeloewi.croissant.data.local.model.relational.AttendanceWithGames
 
 @Dao
 interface AttendanceDao {

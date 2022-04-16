@@ -52,9 +52,10 @@ import kotlinx.coroutines.flow.Flow
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        installSplashScreen()
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        installSplashScreen()
 
         setContent {
             val systemUiController = rememberSystemUiController()
