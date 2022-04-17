@@ -10,7 +10,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import com.joeloewi.croissant.ui.theme.DefaultDp
+import com.joeloewi.croissant.ui.theme.DoubleDp
 
 @ExperimentalFoundationApi
 @ExperimentalMaterialApi
@@ -27,7 +28,7 @@ fun SetDetail(
             ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(
-                        space = 8.dp,
+                        space = DefaultDp,
                         alignment = Alignment.CenterHorizontally
                     ),
                     verticalAlignment = Alignment.CenterVertically
@@ -45,7 +46,7 @@ fun SetDetail(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            verticalArrangement = Arrangement.spacedBy(space = 16.dp)
+            verticalArrangement = Arrangement.spacedBy(space = DoubleDp)
         ) {
             item(
                 key = "headline"

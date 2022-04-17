@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,13 +17,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshots.SnapshotStateMap
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
@@ -33,6 +30,9 @@ import com.google.accompanist.placeholder.placeholder
 import com.joeloewi.croissant.data.common.HoYoLABGame
 import com.joeloewi.croissant.data.remote.model.common.GameRecord
 import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.ui.theme.DefaultDp
+import com.joeloewi.croissant.ui.theme.DoubleDp
+import com.joeloewi.croissant.ui.theme.IconDp
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 
 @ExperimentalFoundationApi
@@ -41,7 +41,7 @@ import kotlinx.coroutines.ObsoleteCoroutinesApi
 @ExperimentalMaterialApi
 @Composable
 fun SelectGames(
-    checkedGames: SnapshotStateMap<HoYoLABGame, Boolean>,
+    checkedGames: SnapshotStateList<HoYoLABGame>,
     connectedGames: Lce<List<GameRecord>>,
     onNextButtonClick: () -> Unit
 ) {
@@ -82,7 +82,7 @@ fun SelectGames(
             SnackbarHost(hostState = snackbarHostState)
         },
         bottomBar = {
-            val noGamesSelected = checkedGames.values.all { !it }
+            val noGamesSelected = checkedGames.isEmpty()
 
             AnimatedVisibility(
                 visible = connectedGames.content?.isNotEmpty() == true,
@@ -110,7 +110,7 @@ fun SelectGames(
                 ) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(
-                            space = 8.dp,
+                            space = DefaultDp,
                             alignment = Alignment.CenterHorizontally
                         ),
                         verticalAlignment = Alignment.CenterVertically
@@ -129,7 +129,7 @@ fun SelectGames(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            verticalArrangement = Arrangement.spacedBy(space = 16.dp)
+            verticalArrangement = Arrangement.spacedBy(space = DoubleDp)
         ) {
             item(
                 key = "headline"
@@ -179,7 +179,7 @@ fun SelectGames(
                                     imageVector = Icons.Outlined.Warning,
                                     contentDescription = Icons.Outlined.Warning.name
                                 )
-                                Spacer(modifier = Modifier.padding(vertical = 8.dp))
+                                Spacer(modifier = Modifier.padding(vertical = DefaultDp))
                                 Text(text = "HoYoLAB에 연동된 게임이 없습니다. 연동 후 다시 시도 해주세요.")
                             }
                         }
@@ -239,7 +239,7 @@ fun ConnectedGamesLoadingListItem() {
         icon = {
             AsyncImage(
                 modifier = Modifier
-                    .size(24.dp)
+                    .size(IconDp)
                     .placeholder(
                         visible = true,
                         color = MaterialTheme.colorScheme.outline,
@@ -300,29 +300,30 @@ fun ConnectedGamesLoadingListItem() {
 @ExperimentalMaterialApi
 @Composable
 fun ConnectedGamesContentListItem(
-    checkedGames: SnapshotStateMap<HoYoLABGame, Boolean>,
+    checkedGames: SnapshotStateList<HoYoLABGame>,
     gameRecord: GameRecord
 ) {
     ListItem(
         modifier = Modifier
             .fillMaxWidth()
             .toggleable(
-                value = checkedGames.getOrDefault(
-                    gameRecord.hoYoLABGame,
-                    false
+                value = checkedGames.contains(
+                    gameRecord.hoYoLABGame
                 ),
                 onValueChange = { checked ->
-                    checkedGames[gameRecord.hoYoLABGame] =
-                        checked
+                    if (checked) {
+                        checkedGames.add(gameRecord.hoYoLABGame)
+                    } else {
+                        checkedGames.remove(gameRecord.hoYoLABGame)
+                    }
                 }
             ),
         icon = {
             Row(
-                modifier = Modifier.background(color = Color.Green),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 AsyncImage(
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier.size(IconDp),
                     model = ImageRequest.Builder(
                         LocalContext.current
                     )
@@ -334,9 +335,8 @@ fun ConnectedGamesContentListItem(
         },
         trailing = {
             Checkbox(
-                checked = checkedGames.getOrDefault(
-                    gameRecord.hoYoLABGame,
-                    false
+                checked = checkedGames.contains(
+                    gameRecord.hoYoLABGame
                 ),
                 onCheckedChange = null
             )

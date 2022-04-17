@@ -11,6 +11,7 @@ data class Reminder(
     val title: String = "",
     val description: String = "",
     val createdAt: Long = System.currentTimeMillis(),
+    val modifiedAt: Long = System.currentTimeMillis(),
     val scheduledHour: Int = 0,
     val remindWorkerId: String = "",
     val clickToPlay: HoYoLABGame = HoYoLABGame.Unknown

@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -50,6 +51,10 @@ import com.google.accompanist.placeholder.placeholder
 import com.joeloewi.croissant.data.local.model.Attendance
 import com.joeloewi.croissant.data.local.model.relational.AttendanceWithGames
 import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
+import com.joeloewi.croissant.ui.theme.DefaultDp
+import com.joeloewi.croissant.ui.theme.DoubleDp
+import com.joeloewi.croissant.ui.theme.HalfDp
+import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.viewmodel.AttendancesViewModel
 import com.joeloewi.croissant.worker.AttendCheckInEventWorker
 
@@ -69,7 +74,10 @@ fun AttendancesScreen(
         onCreateAttendanceClick = {
             navController.navigate(AttendancesDestination.CreateAttendanceScreen.route)
         },
-        onDeleteAttendance = attendancesViewModel::deleteAttendance
+        onDeleteAttendance = attendancesViewModel::deleteAttendance,
+        onClickAttendance = {
+            navController.navigate("${AttendancesDestination.AttendanceDetailScreen().plainRoute}/${it.id}")
+        }
     )
 }
 
@@ -80,7 +88,8 @@ fun AttendancesScreen(
 fun AttendancesContent(
     pagedAttendancesWithGames: LazyPagingItems<AttendanceWithGames>,
     onCreateAttendanceClick: () -> Unit,
-    onDeleteAttendance: (Attendance) -> Unit
+    onDeleteAttendance: (Attendance) -> Unit,
+    onClickAttendance: (Attendance) -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -113,7 +122,8 @@ fun AttendancesContent(
                     AttendanceWithGamesItem(
                         modifier = Modifier.animateItemPlacement(),
                         item = item,
-                        onDeleteAttendance = onDeleteAttendance
+                        onDeleteAttendance = onDeleteAttendance,
+                        onClickAttendance = onClickAttendance
                     )
                 } else {
                     AttendanceWithGamesItemPlaceholder(
@@ -131,7 +141,8 @@ fun AttendancesContent(
 fun AttendanceWithGamesItem(
     modifier: Modifier,
     item: AttendanceWithGames,
-    onDeleteAttendance: (Attendance) -> Unit
+    onDeleteAttendance: (Attendance) -> Unit,
+    onClickAttendance: (Attendance) -> Unit
 ) {
     val dismissState = rememberDismissState()
     val isDismissedEndToStart = dismissState.isDismissed(DismissDirection.EndToStart)
@@ -146,7 +157,7 @@ fun AttendanceWithGamesItem(
     SwipeToDismiss(
         state = dismissState,
         modifier = modifier
-            .padding(vertical = 4.dp),
+            .padding(vertical = HalfDp),
         directions = setOf(DismissDirection.EndToStart),
         dismissThresholds = { direction ->
             FractionalThreshold(if (direction == DismissDirection.EndToStart) 0.25f else 0.5f)
@@ -157,10 +168,10 @@ fun AttendanceWithGamesItem(
         dismissContent = {
             DismissContent(
                 elevation = animateDpAsState(
-                    if (dismissState.dismissDirection != null) 4.dp else 0.dp
+                    if (dismissState.dismissDirection != null) HalfDp else 0.dp
                 ).value,
                 attendanceWithGames = item,
-                onOneTimeAttendClick = {
+                onClickOneTimeAttend = {
                     val attendance = item.attendance
                     val oneTimeWork = OneTimeWorkRequestBuilder<AttendCheckInEventWorker>()
                         .setInputData(workDataOf(AttendCheckInEventWorker.ATTENDANCE_ID to attendance.id))
@@ -176,7 +187,8 @@ fun AttendanceWithGamesItem(
                         ExistingWorkPolicy.APPEND_OR_REPLACE,
                         oneTimeWork
                     ).enqueue()
-                }
+                },
+                onClickAttendance = onClickAttendance
             )
         }
     )
@@ -219,7 +231,7 @@ internal fun SwipeToDismissBackground(
         modifier = Modifier
             .fillMaxSize()
             .background(color)
-            .padding(horizontal = 20.dp),
+            .padding(horizontal = DoubleDp),
         contentAlignment = alignment
     ) {
         Icon(
@@ -236,11 +248,13 @@ internal fun SwipeToDismissBackground(
 internal fun DismissContent(
     elevation: Dp,
     attendanceWithGames: AttendanceWithGames,
-    onOneTimeAttendClick: () -> Unit
+    onClickAttendance: (Attendance) -> Unit,
+    onClickOneTimeAttend: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .shadow(elevation = elevation)
+            .clickable { onClickAttendance(attendanceWithGames.attendance) }
             .background(MaterialTheme.colorScheme.background)
             .fillMaxWidth(),
     ) {
@@ -252,7 +266,7 @@ internal fun DismissContent(
         ) {
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+                verticalArrangement = Arrangement.spacedBy(space = DefaultDp)
             ) {
                 Text(
                     text = "${attendanceWithGames.attendance.nickname}의 출석 작업",
@@ -261,7 +275,7 @@ internal fun DismissContent(
 
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(
-                        space = 8.dp,
+                        space = DefaultDp,
                     ),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -280,7 +294,7 @@ internal fun DismissContent(
                 }
 
                 LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(space = 8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(space = DefaultDp)
                 ) {
                     items(
                         items = attendanceWithGames.games,
@@ -289,7 +303,7 @@ internal fun DismissContent(
                         AsyncImage(
                             modifier = Modifier
                                 .animateItemPlacement()
-                                .size(24.dp),
+                                .size(IconDp),
                             model = ImageRequest.Builder(LocalContext.current)
                                 .data(game.name.gameIconUrl)
                                 .build(),
@@ -311,7 +325,7 @@ internal fun DismissContent(
 
                 IconButton(
                     enabled = isRunning == false,
-                    onClick = onOneTimeAttendClick
+                    onClick = onClickOneTimeAttend
                 ) {
                     AnimatedVisibility(
                         visible = isRunning == false,
@@ -353,7 +367,7 @@ fun AttendanceWithGamesItemPlaceholder(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+            verticalArrangement = Arrangement.spacedBy(space = DefaultDp)
         ) {
             Text(
                 modifier = Modifier
@@ -370,7 +384,7 @@ fun AttendanceWithGamesItemPlaceholder(
 
             Row(
                 horizontalArrangement = Arrangement.spacedBy(
-                    space = 8.dp,
+                    space = DefaultDp,
                 ),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -389,7 +403,7 @@ fun AttendanceWithGamesItemPlaceholder(
 
                 AsyncImage(
                     modifier = Modifier
-                        .size(24.dp)
+                        .size(IconDp)
                         .placeholder(
                             visible = true,
                             color = MaterialTheme.colorScheme.outline,
@@ -405,7 +419,7 @@ fun AttendanceWithGamesItemPlaceholder(
             }
 
             LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(space = 8.dp)
+                horizontalArrangement = Arrangement.spacedBy(space = DefaultDp)
             ) {
                 items(
                     items = IntArray(3) { it }.toTypedArray(),
@@ -414,7 +428,7 @@ fun AttendanceWithGamesItemPlaceholder(
                     AsyncImage(
                         modifier = Modifier
                             .animateItemPlacement()
-                            .size(24.dp),
+                            .size(IconDp),
                         model = ImageRequest.Builder(LocalContext.current)
                             .build(),
                         contentDescription = null
@@ -429,7 +443,7 @@ fun AttendanceWithGamesItemPlaceholder(
         ) {
             AsyncImage(
                 modifier = Modifier
-                    .size(24.dp)
+                    .size(IconDp)
                     .placeholder(
                         visible = true,
                         color = MaterialTheme.colorScheme.outline,

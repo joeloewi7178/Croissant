@@ -1,7 +1,7 @@
 package com.joeloewi.croissant.viewmodel
 
 import android.app.Application
-import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.*
@@ -85,7 +85,7 @@ class CreateAttendanceViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(),
             initialValue = Lce.Loading
         )
-    val checkedGames = mutableStateMapOf<HoYoLABGame, Boolean>()
+    val checkedGames = mutableStateListOf<HoYoLABGame>()
     val tickerCalendar = ticker(delayMillis = 1000).receiveAsFlow()
         .map { Calendar.getInstance() }
         .flowOn(Dispatchers.IO)
@@ -197,10 +197,10 @@ class CreateAttendanceViewModel @Inject constructor(
                 attendance.id
             }.mapCatching { attendanceId ->
                 croissantDatabase.gameDao()
-                    .insert(*checkedGames.filter { it.value }.map { hoYoLABGame ->
+                    .insert(*checkedGames.map { hoYoLABGame ->
                         Game(
                             attendanceId = attendanceId,
-                            name = hoYoLABGame.key
+                            name = hoYoLABGame
                         )
                     }.toTypedArray())
             }.fold(

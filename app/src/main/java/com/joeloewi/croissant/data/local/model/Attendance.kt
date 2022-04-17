@@ -9,6 +9,7 @@ data class Attendance(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val createdAt: Long = System.currentTimeMillis(),
+    val modifiedAt: Long = System.currentTimeMillis(),
     val cookie: String = "",
     val nickname: String = "",
     val uid: Long = 0,

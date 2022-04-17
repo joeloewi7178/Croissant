@@ -14,6 +14,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -30,7 +31,7 @@ class AttendancesViewModel @Inject constructor(
         pagingSourceFactory = {
             croissantDatabase.attendanceDao().getAllPaged()
         }
-    ).flow.cachedIn(viewModelScope)
+    ).flow.flowOn(Dispatchers.IO).cachedIn(viewModelScope)
 
     fun deleteAttendance(attendance: Attendance) {
         viewModelScope.launch(Dispatchers.IO) {

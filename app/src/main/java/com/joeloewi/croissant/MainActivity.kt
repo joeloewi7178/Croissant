@@ -13,20 +13,19 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.*
+import androidx.navigation.navArgument
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.joeloewi.croissant.ui.navigation.CroissantNavigation
 import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
+import com.joeloewi.croissant.ui.navigation.attendances.screen.AttendanceDetailScreen
 import com.joeloewi.croissant.ui.navigation.attendances.screen.AttendancesScreen
 import com.joeloewi.croissant.ui.navigation.attendances.screen.LoginHoYoLABScreen
 import com.joeloewi.croissant.ui.navigation.attendances.screen.createattendance.CreateAttendanceScreen
@@ -35,12 +34,12 @@ import com.joeloewi.croissant.ui.navigation.reminders.screen.RemindersScreen
 import com.joeloewi.croissant.ui.navigation.settings.SettingsDestination
 import com.joeloewi.croissant.ui.navigation.settings.screen.SettingsScreen
 import com.joeloewi.croissant.ui.theme.CroissantTheme
+import com.joeloewi.croissant.viewmodel.AttendanceDetailViewModel
 import com.joeloewi.croissant.viewmodel.AttendancesViewModel
 import com.joeloewi.croissant.viewmodel.CreateAttendanceViewModel
 import com.joeloewi.croissant.viewmodel.LoginHoYoLABViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ObsoleteCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 
 @ExperimentalFoundationApi
 @ObsoleteCoroutinesApi
@@ -209,6 +208,23 @@ fun CroissantApp() {
                             loginHoYoLABViewModel = loginHoYoLABViewModel
                         )
                     }
+
+                    composable(
+                        route = AttendancesDestination.AttendanceDetailScreen().route,
+                        arguments = AttendancesDestination.AttendanceDetailScreen().arguments.map { argument ->
+                            navArgument(argument.first) {
+                                type = argument.second
+                            }
+                        }
+                    ) { navBackStackEntry ->
+                        val attendanceDetailViewModel: AttendanceDetailViewModel =
+                            hiltViewModel(navBackStackEntry)
+
+                        AttendanceDetailScreen(
+                            navController = navController,
+                            attendanceDetailViewModel = attendanceDetailViewModel
+                        )
+                    }
                 }
 
                 navigation(
@@ -231,20 +247,4 @@ fun CroissantApp() {
             }
         }
     }
-}
-
-@Composable
-fun <T> rememberFlow(
-    flow: Flow<T>,
-    lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
-): Flow<T> {
-    return remember(
-        key1 = flow,
-        key2 = lifecycleOwner
-    ) { flow.flowWithLifecycle(lifecycleOwner.lifecycle) }
-}
-
-@Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name!")
 }

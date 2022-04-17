@@ -8,13 +8,13 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Pending
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -23,12 +23,14 @@ import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
 import com.joeloewi.croissant.data.remote.model.common.GameRecord
-import com.joeloewi.croissant.rememberFlow
 import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.ui.common.navigationIconButton
+import com.joeloewi.croissant.ui.common.rememberFlow
 import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
 import com.joeloewi.croissant.ui.navigation.attendances.screen.createattendance.composable.GetSession
 import com.joeloewi.croissant.ui.navigation.attendances.screen.createattendance.composable.SelectGames
 import com.joeloewi.croissant.ui.navigation.attendances.screen.createattendance.composable.SetTime
+import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.viewmodel.CreateAttendanceViewModel
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.launch
@@ -48,7 +50,7 @@ fun CreateAttendanceScreen(
     val connectedGames by createAttendanceViewModel.connectedGames.collectAsState()
     val createAttendanceState by createAttendanceViewModel.createAttendanceState.collectAsState()
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(createAttendanceViewModel) {
         navController.currentBackStackEntry?.savedStateHandle?.apply {
             get<String>("cookie")?.let {
                 createAttendanceViewModel.setCookie(it)
@@ -58,6 +60,7 @@ fun CreateAttendanceScreen(
     }
 
     CreateAttendanceContent(
+        navController = navController,
         cookie = cookie,
         connectedGames = connectedGames,
         createAttendanceState = createAttendanceState,
@@ -78,6 +81,7 @@ fun CreateAttendanceScreen(
 @ExperimentalMaterial3Api
 @Composable
 fun CreateAttendanceContent(
+    navController: NavController,
     cookie: String,
     connectedGames: Lce<List<GameRecord>>,
     createAttendanceState: Lce<List<Long>>,
@@ -149,7 +153,13 @@ fun CreateAttendanceContent(
             SmallTopAppBar(
                 title = {
                     Text(text = "출석 작업 만들기")
-                }
+                },
+                navigationIcon = navigationIconButton(
+                    navController = navController,
+                    onClick = {
+                        onShowCancelConfirmationDialogChange(true)
+                    }
+                )
             )
         },
         bottomBar = {
@@ -161,7 +171,7 @@ fun CreateAttendanceContent(
                 HorizontalPagerIndicator(
                     pagerState = pagerState,
                     activeColor = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(8.dp)
+                    modifier = Modifier.padding(DefaultDp)
                 )
             }
         }
@@ -188,8 +198,8 @@ fun CreateAttendanceContent(
                 HorizontalPager(
                     state = pagerState,
                     count = pages.size,
-                    itemSpacing = 8.dp,
-                    contentPadding = PaddingValues(8.dp),
+                    itemSpacing = DefaultDp,
+                    contentPadding = PaddingValues(DefaultDp),
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth(),
@@ -223,7 +233,7 @@ fun CreateAttendanceContent(
                                 LaunchedEffect(connectedGames) {
                                     if (connectedGames is Lce.Content) {
                                         connectedGames.content.onEach { gameRecord ->
-                                            checkedGames[gameRecord.hoYoLABGame] = true
+                                            checkedGames.add(gameRecord.hoYoLABGame)
                                         }
                                     }
                                 }
@@ -319,7 +329,10 @@ fun CreateAttendanceContent(
                 },
                 confirmButton = {},
                 icon = {
-                    CircularProgressIndicator()
+                    Icon(
+                        imageVector = Icons.Outlined.Pending,
+                        contentDescription = Icons.Outlined.Pending.name
+                    )
                 },
                 title = {
                     Text(text = "저장 중")

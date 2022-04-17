@@ -1,7 +1,26 @@
 package com.joeloewi.croissant.ui.navigation.attendances
 
+import androidx.navigation.NavType
+
 sealed class AttendancesDestination(val route: String) {
     object AttendancesScreen : AttendancesDestination(route = "attendancesScreen")
     object CreateAttendanceScreen : AttendancesDestination(route = "createAttendanceScreen")
     object LoginHoYoLabScreen : AttendancesDestination(route = "loginHoYoLabScreen")
+    data class AttendanceDetailScreen(
+        val arguments: List<Pair<String, NavType<*>>> = listOf(
+            ATTENDANCE_ID to NavType.LongType
+        ),
+        val plainRoute: String = "attendanceDetailScreen"
+    ) : AttendancesDestination(
+        route = "${plainRoute}${
+            arguments.map { it.first }.joinToString(
+                separator = "/",
+                prefix = "/"
+            ) { "{$it}" }
+        }"
+    ) {
+        companion object {
+            const val ATTENDANCE_ID = "attendanceId"
+        }
+    }
 }
