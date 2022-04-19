@@ -68,9 +68,7 @@ class CreateAttendanceViewModel @Inject constructor(
                 onSuccess = { gameRecordCardData ->
                     gameRecordCardData.list.map { gameRecord ->
                         gameRecord.copy(
-                            hoYoLABGame = HoYoLABGame.values()
-                                .find { hoYoLABGame -> hoYoLABGame.gameId == gameRecord.gameId }
-                                ?: HoYoLABGame.Unknown
+                            hoYoLABGame = HoYoLABGame.findByGameId(gameId = gameRecord.gameId)
                         )
                     }.let { gameRecords ->
                         Lce.Content(gameRecords)
@@ -85,7 +83,7 @@ class CreateAttendanceViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(),
             initialValue = Lce.Loading
         )
-    val checkedGames = mutableStateListOf<HoYoLABGame>()
+    val checkedGames = mutableStateListOf<Game>()
     val tickerCalendar = ticker(delayMillis = 1000).receiveAsFlow()
         .map { Calendar.getInstance() }
         .flowOn(Dispatchers.IO)
@@ -197,12 +195,11 @@ class CreateAttendanceViewModel @Inject constructor(
                 attendance.id
             }.mapCatching { attendanceId ->
                 croissantDatabase.gameDao()
-                    .insert(*checkedGames.map { hoYoLABGame ->
-                        Game(
-                            attendanceId = attendanceId,
-                            name = hoYoLABGame
-                        )
-                    }.toTypedArray())
+                    .insert(
+                        *checkedGames.map {
+                            it.copy(attendanceId = attendanceId)
+                        }.toTypedArray()
+                    )
             }.fold(
                 onSuccess = {
                     Lce.Content(it)

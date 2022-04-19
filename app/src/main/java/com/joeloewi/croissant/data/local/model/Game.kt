@@ -21,5 +21,6 @@ data class Game(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val attendanceId: Long = 0,
-    val name: HoYoLABGame = HoYoLABGame.Unknown
+    val name: HoYoLABGame = HoYoLABGame.Unknown,
+    val region: String = ""
 )

@@ -50,6 +50,7 @@ import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
 import com.joeloewi.croissant.data.local.model.Attendance
 import com.joeloewi.croissant.data.local.model.relational.AttendanceWithGames
+import com.joeloewi.croissant.ui.common.isEmpty
 import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
@@ -110,25 +111,47 @@ fun AttendancesContent(
             }
         },
     ) { innerPadding ->
-
-        LazyColumn(
-            modifier = Modifier.padding(innerPadding)
-        ) {
-            items(
-                items = pagedAttendancesWithGames,
-                key = { item -> item.attendance.id }
-            ) { item ->
-                if (item != null) {
-                    AttendanceWithGamesItem(
-                        modifier = Modifier.animateItemPlacement(),
-                        item = item,
-                        onDeleteAttendance = onDeleteAttendance,
-                        onClickAttendance = onClickAttendance
-                    )
-                } else {
-                    AttendanceWithGamesItemPlaceholder(
-                        modifier = Modifier.animateItemPlacement(),
-                    )
+        if (pagedAttendancesWithGames.isEmpty()) {
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    modifier = Modifier.fillMaxSize(0.3f),
+                    imageVector = Icons.Outlined.Warning,
+                    contentDescription = Icons.Outlined.Warning.name,
+                    tint = MaterialTheme.colorScheme.primaryContainer
+                )
+                Text(
+                    text = "저장된 출석 작업이 없습니다.",
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+            ) {
+                items(
+                    items = pagedAttendancesWithGames,
+                    key = { item -> item.attendance.id }
+                ) { item ->
+                    if (item != null) {
+                        AttendanceWithGamesItem(
+                            modifier = Modifier.animateItemPlacement(),
+                            item = item,
+                            onDeleteAttendance = onDeleteAttendance,
+                            onClickAttendance = onClickAttendance
+                        )
+                    } else {
+                        AttendanceWithGamesItemPlaceholder(
+                            modifier = Modifier.animateItemPlacement(),
+                        )
+                    }
                 }
             }
         }

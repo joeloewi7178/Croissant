@@ -67,7 +67,7 @@ class AttendanceDetailViewModel @Inject constructor(
             )
         }.flowOn(Dispatchers.IO).stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(),
+            started = SharingStarted.Lazily,
             initialValue = Lce.Loading
         )
 
@@ -127,20 +127,28 @@ class AttendanceDetailViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            with(croissantDatabase.attendanceDao().getOne(attendanceId)) {
-                with(attendance) {
-                    _cookie.value = cookie
-                    _hourOfDay.value = hourOfDay
-                    _minute.value = minute
-                    _nickname.value = nickname
-                    _uid.value = uid
-                }
+            croissantDatabase.attendanceDao().runCatching {
+                getOne(attendanceId)
+            }.mapCatching { attendanceWithGames ->
+                with(attendanceWithGames) {
+                    with(attendance) {
+                        _cookie.value = cookie
+                        _hourOfDay.value = hourOfDay
+                        _minute.value = minute
+                        _nickname.value = nickname
+                        _uid.value = uid
+                    }
 
-                with(games) {
-                    withContext(Dispatchers.Main) {
-                        checkedGames.addAll(map { it.name })
+                    with(games) {
+                        withContext(Dispatchers.Main) {
+                            checkedGames.addAll(map { it.name })
+                        }
                     }
                 }
+            }.onSuccess {
+
+            }.onFailure {
+
             }
         }
     }

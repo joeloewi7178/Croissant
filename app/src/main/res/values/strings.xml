@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">Croissant</string>
+    <string name="deep_link_scheme">app://</string>
     <string name="navigation_label_attendance">출석 작업</string>
     <string name="navigation_label_reminder">미리 알림</string>
     <string name="navigation_label_settings">설정</string>
@@ -8,6 +9,8 @@
     <string name="unknown_game_name">알 수 없음</string>
     <string name="attendance_notification_channel_id">attendance_notification_channel_id</string>
     <string name="attendance_notification_channel_name">출석 알림</string>
+    <string name="check_session_notification_channel_id">check_session_notification_channel_id</string>
+    <string name="check_session_notification_channel_name">접속 정보 유효성 알림</string>
     <string name="reminder_notification_channel_id">reminder_notification_channel_id</string>
     <string name="reminder_notification_channel_name">리마인더 알림</string>
 </resources>

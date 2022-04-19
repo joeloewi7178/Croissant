@@ -26,16 +26,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
+import com.joeloewi.croissant.data.common.CroissantWorker
 import com.joeloewi.croissant.data.common.HoYoLABGame
 import com.joeloewi.croissant.data.remote.model.common.GameRecord
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.common.navigationIconButton
+import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.viewmodel.AttendanceDetailViewModel
@@ -59,7 +62,10 @@ fun AttendanceDetailScreen(
     val attendCheckInEventWorkerSuccessLogCount by attendanceDetailViewModel.attendCheckInEventWorkerSuccessLogCount.collectAsState()
     val attendCheckInEventWorkerFailureLogCount by attendanceDetailViewModel.attendCheckInEventWorkerFailureLogCount.collectAsState()
 
+    val attendanceId = attendanceDetailViewModel.attendanceId
+
     AttendanceDetailContent(
+        previousBackStackEntry = navController.previousBackStackEntry,
         cookie = cookie,
         hourOfDay = hourOfDay,
         minute = minute,
@@ -73,7 +79,12 @@ fun AttendanceDetailScreen(
         attendCheckInEventWorkerFailureLogCount = attendCheckInEventWorkerFailureLogCount,
         onHourOfDayChange = attendanceDetailViewModel::setHourOfDay,
         onMinuteChange = attendanceDetailViewModel::setMinute,
-        navigationIconButton = navigationIconButton(navController = navController)
+        onNavigateUp = {
+            navController.navigateUp()
+        },
+        onClickLogSummary = {
+            navController.navigate("${AttendancesDestination.AttendanceLogsScreen().plainRoute}/${attendanceId}/${it}")
+        }
     )
 }
 
@@ -81,6 +92,7 @@ fun AttendanceDetailScreen(
 @ExperimentalMaterial3Api
 @Composable
 fun AttendanceDetailContent(
+    previousBackStackEntry: NavBackStackEntry?,
     cookie: String,
     hourOfDay: Int,
     minute: Int,
@@ -94,7 +106,8 @@ fun AttendanceDetailContent(
     attendCheckInEventWorkerFailureLogCount: Long,
     onHourOfDayChange: (Int) -> Unit,
     onMinuteChange: (Int) -> Unit,
-    navigationIconButton: @Composable () -> Unit
+    onNavigateUp: () -> Unit,
+    onClickLogSummary: (CroissantWorker) -> Unit
 ) {
     val scrollableState = rememberScrollState()
     val (timePicker, onTimePickerChange) = remember {
@@ -120,7 +133,10 @@ fun AttendanceDetailContent(
                 title = {
                     Text(text = "${nickname}의 출석 작업")
                 },
-                navigationIcon = navigationIconButton
+                navigationIcon = navigationIconButton(
+                    previousBackStackEntry = previousBackStackEntry,
+                    onClick = onNavigateUp
+                )
             )
         }
     ) { innerPadding ->
@@ -193,6 +209,7 @@ fun AttendanceDetailContent(
                 }
 
                 LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(space = DefaultDp)
                 ) {
                     when (connectedGames) {
@@ -218,7 +235,7 @@ fun AttendanceDetailContent(
                                 items = IntArray(5) { it }.toTypedArray(),
                                 key = { "placeholder${it}" }
                             ) {
-                                ConnectedGameLoadingItem(modifier = Modifier.animateItemPlacement())
+                                ConnectedGameItemPlaceHolder(modifier = Modifier.animateItemPlacement())
                             }
                         }
                     }
@@ -227,7 +244,7 @@ fun AttendanceDetailContent(
                 FilledTonalButton(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
-                        
+
                     }
                 ) {
                     Row(
@@ -269,13 +286,15 @@ fun AttendanceDetailContent(
             }
 
             Text(
-                text = "실행 기록",
+                text = "실행 기록 요약",
                 style = MaterialTheme.typography.headlineSmall
             )
 
             Row(
                 modifier = Modifier
-                    .clickable { }
+                    .clickable {
+                        onClickLogSummary(CroissantWorker.ATTEND_CHECK_IN_EVENT)
+                    }
                     .padding(DefaultDp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -324,20 +343,18 @@ fun AttendanceDetailContent(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    IconButton(
-                        onClick = {}
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.NavigateNext,
-                            contentDescription = Icons.Outlined.NavigateNext.name
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Outlined.NavigateNext,
+                        contentDescription = Icons.Outlined.NavigateNext.name
+                    )
                 }
             }
 
             Row(
                 modifier = Modifier
-                    .clickable { }
+                    .clickable {
+                        onClickLogSummary(CroissantWorker.CHECK_SESSION)
+                    }
                     .padding(DefaultDp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -386,14 +403,10 @@ fun AttendanceDetailContent(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    IconButton(
-                        onClick = {}
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.NavigateNext,
-                            contentDescription = Icons.Outlined.NavigateNext.name
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Outlined.NavigateNext,
+                        contentDescription = Icons.Outlined.NavigateNext.name
+                    )
                 }
             }
         }
@@ -452,7 +465,7 @@ fun ConnectedGameItem(
 
 @ExperimentalMaterial3Api
 @Composable
-fun ConnectedGameLoadingItem(
+fun ConnectedGameItemPlaceHolder(
     modifier: Modifier,
 ) {
     Card(

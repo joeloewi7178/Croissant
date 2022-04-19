@@ -1,7 +1,11 @@
 package com.joeloewi.croissant.worker
 
 import android.app.Notification
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.graphics.drawable.toBitmap
@@ -11,10 +15,7 @@ import androidx.work.WorkerParameters
 import coil.ImageLoader
 import coil.request.ImageRequest
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.data.common.CroissantWorker
-import com.joeloewi.croissant.data.common.HoYoLABGame
-import com.joeloewi.croissant.data.common.NotSupportedGameException
-import com.joeloewi.croissant.data.common.WorkerExecutionLogState
+import com.joeloewi.croissant.data.common.*
 import com.joeloewi.croissant.data.local.CroissantDatabase
 import com.joeloewi.croissant.data.local.model.FailureLog
 import com.joeloewi.croissant.data.local.model.SuccessLog
@@ -41,16 +42,39 @@ class AttendCheckInEventWorker @AssistedInject constructor(
 ) {
     private val attendanceId = inputData.getLong(ATTENDANCE_ID, Long.MIN_VALUE)
 
+    private fun getIntentFromGameRegion(
+        hoYoLABGame: HoYoLABGame,
+        region: String
+    ): Intent = when (hoYoLABGame) {
+        HoYoLABGame.HonkaiImpact3rd -> {
+            HonkaiImpact3rdServer.findByRegion(region = region).packageName
+        }
+        HoYoLABGame.GenshinImpact -> {
+            "com.miHoYo.GenshinImpact"
+        }
+        HoYoLABGame.Unknown -> {
+            ""
+        }
+    }.let { packageName ->
+        context.packageManager.getLaunchIntentForPackage(packageName)
+            ?: Intent(Intent.ACTION_VIEW).apply {
+                addCategory(Intent.CATEGORY_DEFAULT)
+                data = Uri.parse("market://details?id=$packageName")
+            }
+    }
+
     private suspend fun createAttendanceNotification(
         context: Context,
         channelId: String,
         nickname: String,
         hoYoLABGame: HoYoLABGame,
+        region: String,
         attendanceResponse: AttendanceResponse
     ): Notification = NotificationCompat
         .Builder(context, channelId)
         .setContentTitle("${nickname}의 출석 작업 - ${context.getString(hoYoLABGame.gameNameResourceId)}")
         .setContentText("${attendanceResponse.message} (${attendanceResponse.retcode})")
+        .setAutoCancel(true)
         .setSmallIcon(R.drawable.ic_launcher_foreground)
         .apply {
             ImageLoader(context).execute(
@@ -60,6 +84,26 @@ class AttendCheckInEventWorker @AssistedInject constructor(
             ).drawable?.run {
                 setLargeIcon(toBitmap())
             }
+        }
+        .apply {
+            val pendingIntentFlag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            } else {
+                PendingIntent.FLAG_UPDATE_CURRENT
+            }
+
+            val pendingIntent =
+                PendingIntent.getActivity(
+                    context,
+                    0,
+                    getIntentFromGameRegion(
+                        hoYoLABGame = hoYoLABGame,
+                        region = region
+                    ),
+                    pendingIntentFlag
+                )
+
+            setContentIntent(pendingIntent)
         }
         .build()
 
@@ -95,6 +139,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                             channelId = context.getString(R.string.attendance_notification_channel_id),
                             nickname = attendanceWithGames.attendance.nickname,
                             hoYoLABGame = game.name,
+                            region = game.region,
                             attendanceResponse = response
                         ).let { notification ->
                             NotificationManagerCompat.from(context).notify(

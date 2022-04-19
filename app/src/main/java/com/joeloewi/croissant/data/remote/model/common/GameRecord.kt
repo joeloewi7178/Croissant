@@ -16,6 +16,7 @@ data class GameRecord(
     val level: Int = Int.MIN_VALUE,
     @Json(name = "region_name")
     val regionName: String = "",
+    val region: String = "",
     @Transient
     val hoYoLABGame: HoYoLABGame = HoYoLABGame.Unknown
 )

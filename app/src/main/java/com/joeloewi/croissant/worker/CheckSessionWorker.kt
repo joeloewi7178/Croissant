@@ -1,9 +1,18 @@
 package com.joeloewi.croissant.worker
 
+import android.app.Notification
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
+import android.os.Build
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.app.TaskStackBuilder
+import androidx.core.net.toUri
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.joeloewi.croissant.R
 import com.joeloewi.croissant.data.common.CroissantWorker
 import com.joeloewi.croissant.data.common.WorkerExecutionLogState
 import com.joeloewi.croissant.data.local.CroissantDatabase
@@ -11,10 +20,12 @@ import com.joeloewi.croissant.data.local.model.FailureLog
 import com.joeloewi.croissant.data.local.model.SuccessLog
 import com.joeloewi.croissant.data.local.model.WorkerExecutionLog
 import com.joeloewi.croissant.data.remote.dao.HoYoLABService
+import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.util.*
 
 @HiltWorker
 class CheckSessionWorker @AssistedInject constructor(
@@ -27,6 +38,40 @@ class CheckSessionWorker @AssistedInject constructor(
     params = params
 ) {
     private val attendanceId = inputData.getLong(ATTENDANCE_ID, Long.MIN_VALUE)
+
+    private val deepLinkUri =
+        "${context.getString(R.string.deep_link_scheme)}${context.packageName}"
+
+    private fun getAttendanceDetailIntent(): Intent = Intent(
+        Intent.ACTION_VIEW,
+        "$deepLinkUri/${AttendancesDestination.AttendanceDetailScreen().plainRoute}/${attendanceId}".toUri()
+    )
+
+    private fun createCheckSessionNotification(
+        context: Context,
+        channelId: String,
+    ): Notification = NotificationCompat
+        .Builder(context, channelId)
+        .setContentTitle("접속 정보 유효성 검사 실패")
+        .setContentText("상세 화면에서 접속 정보를 갱신해주세요.")
+        .setAutoCancel(true)
+        .setSmallIcon(R.drawable.ic_launcher_foreground)
+        .apply {
+
+            val pendingIntentFlag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            } else {
+                PendingIntent.FLAG_UPDATE_CURRENT
+            }
+
+            val pendingIntent = TaskStackBuilder.create(context).run {
+                addNextIntentWithParentStack(getAttendanceDetailIntent())
+                getPendingIntent(0, pendingIntentFlag)
+            }
+
+            setContentIntent(pendingIntent)
+        }
+        .build()
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         attendanceId.runCatching {
@@ -42,23 +87,25 @@ class CheckSessionWorker @AssistedInject constructor(
                 throw NullPointerException()
             }
 
-            val executionLogId = croissantDatabase.workerExecutionLogDao().insert(
-                WorkerExecutionLog(
-                    attendanceId = attendanceId,
-                    state = WorkerExecutionLogState.SUCCESS,
-                    worker = CroissantWorker.CHECK_SESSION
-                )
-            )
-
-            croissantDatabase.successLogDao().insert(
-                SuccessLog(
-                    executionLogId = executionLogId,
-                    retCode = userFullInfoData.retcode,
-                    message = userFullInfoData.message
-                )
-            )
+            userFullInfoData
         }.fold(
             onSuccess = {
+                val executionLogId = croissantDatabase.workerExecutionLogDao().insert(
+                    WorkerExecutionLog(
+                        attendanceId = attendanceId,
+                        state = WorkerExecutionLogState.SUCCESS,
+                        worker = CroissantWorker.CHECK_SESSION
+                    )
+                )
+
+                croissantDatabase.successLogDao().insert(
+                    SuccessLog(
+                        executionLogId = executionLogId,
+                        retCode = it.retcode,
+                        message = it.message
+                    )
+                )
+
                 Result.success()
             },
             onFailure = { cause ->
@@ -77,6 +124,17 @@ class CheckSessionWorker @AssistedInject constructor(
                         failureStackTrace = cause.stackTraceToString()
                     )
                 )
+
+                createCheckSessionNotification(
+                    context = context,
+                    channelId = context.getString(R.string.check_session_notification_channel_id),
+                ).let { notification ->
+                    NotificationManagerCompat.from(context).notify(
+                        UUID.randomUUID().toString(),
+                        0,
+                        notification
+                    )
+                }
 
                 Result.failure()
             }

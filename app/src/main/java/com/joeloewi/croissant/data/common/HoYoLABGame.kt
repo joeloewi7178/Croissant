@@ -23,4 +23,9 @@ enum class HoYoLABGame(
         gameNameResourceId = R.string.unknown_game_name,
         gameIconUrl = ""
     );
+
+    companion object {
+        fun findByGameId(gameId: Int): HoYoLABGame =
+            values().find { it.gameId == gameId } ?: Unknown
+    }
 }

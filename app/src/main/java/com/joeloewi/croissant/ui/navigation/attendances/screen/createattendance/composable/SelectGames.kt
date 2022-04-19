@@ -28,6 +28,7 @@ import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
 import com.joeloewi.croissant.data.common.HoYoLABGame
+import com.joeloewi.croissant.data.local.model.Game
 import com.joeloewi.croissant.data.remote.model.common.GameRecord
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.theme.DefaultDp
@@ -41,7 +42,7 @@ import kotlinx.coroutines.ObsoleteCoroutinesApi
 @ExperimentalMaterialApi
 @Composable
 fun SelectGames(
-    checkedGames: SnapshotStateList<HoYoLABGame>,
+    checkedGames: SnapshotStateList<Game>,
     connectedGames: Lce<List<GameRecord>>,
     onNextButtonClick: () -> Unit
 ) {
@@ -176,11 +177,15 @@ fun SelectGames(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Icon(
+                                    modifier = Modifier.fillMaxSize(0.3f),
                                     imageVector = Icons.Outlined.Warning,
-                                    contentDescription = Icons.Outlined.Warning.name
+                                    contentDescription = Icons.Outlined.Warning.name,
+                                    tint = MaterialTheme.colorScheme.primaryContainer
                                 )
-                                Spacer(modifier = Modifier.padding(vertical = DefaultDp))
-                                Text(text = "HoYoLAB에 연동된 게임이 없습니다. 연동 후 다시 시도 해주세요.")
+                                Text(
+                                    text = "HoYoLAB에 연동된 게임이 없습니다. 연동 후 다시 시도 해주세요.",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
                             }
                         }
                     } else {
@@ -221,7 +226,7 @@ fun SelectGames(
                         items = IntArray(5) { it }.toTypedArray(),
                         key = { "placeholder${it}" }
                     ) {
-                        ConnectedGamesLoadingListItem()
+                        ConnectedGamesListItemPlaceholder()
                     }
                 }
             }
@@ -232,7 +237,7 @@ fun SelectGames(
 @ExperimentalMaterial3Api
 @ExperimentalMaterialApi
 @Composable
-fun ConnectedGamesLoadingListItem() {
+fun ConnectedGamesListItemPlaceholder() {
     ListItem(
         modifier = Modifier
             .fillMaxWidth(),
@@ -300,21 +305,29 @@ fun ConnectedGamesLoadingListItem() {
 @ExperimentalMaterialApi
 @Composable
 fun ConnectedGamesContentListItem(
-    checkedGames: SnapshotStateList<HoYoLABGame>,
+    checkedGames: SnapshotStateList<Game>,
     gameRecord: GameRecord
 ) {
+    val game = Game(
+        name = gameRecord.hoYoLABGame,
+        region = gameRecord.region
+    )
+
     ListItem(
         modifier = Modifier
             .fillMaxWidth()
             .toggleable(
-                value = checkedGames.contains(
-                    gameRecord.hoYoLABGame
-                ),
+                value = checkedGames.contains(game),
                 onValueChange = { checked ->
                     if (checked) {
-                        checkedGames.add(gameRecord.hoYoLABGame)
+                        checkedGames.add(
+                            Game(
+                                name = gameRecord.hoYoLABGame,
+                                region = gameRecord.region
+                            )
+                        )
                     } else {
-                        checkedGames.remove(gameRecord.hoYoLABGame)
+                        checkedGames.remove(game)
                     }
                 }
             ),
@@ -335,9 +348,7 @@ fun ConnectedGamesContentListItem(
         },
         trailing = {
             Checkbox(
-                checked = checkedGames.contains(
-                    gameRecord.hoYoLABGame
-                ),
+                checked = checkedGames.contains(game),
                 onCheckedChange = null
             )
         },
@@ -345,7 +356,7 @@ fun ConnectedGamesContentListItem(
             Text(text = stringResource(id = gameRecord.hoYoLABGame.gameNameResourceId))
         },
         secondaryText = {
-            Text(text = gameRecord.regionName)
+            Text(text = "${gameRecord.regionName} (${gameRecord.region})")
         }
     )
 }

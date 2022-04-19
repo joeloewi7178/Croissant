@@ -1,6 +1,7 @@
 package com.joeloewi.croissant.ui.navigation.attendances
 
 import androidx.navigation.NavType
+import com.joeloewi.croissant.data.common.CroissantWorker
 
 sealed class AttendancesDestination(val route: String) {
     object AttendancesScreen : AttendancesDestination(route = "attendancesScreen")
@@ -21,6 +22,25 @@ sealed class AttendancesDestination(val route: String) {
     ) {
         companion object {
             const val ATTENDANCE_ID = "attendanceId"
+        }
+    }
+    data class AttendanceLogsScreen(
+        val arguments: List<Pair<String, NavType<*>>> = listOf(
+            ATTENDANCE_ID to NavType.LongType,
+            CROISSANT_WORKER to NavType.EnumType(CroissantWorker::class.java)
+        ),
+        val plainRoute: String = "attendanceLogsScreen"
+    ): AttendancesDestination(
+        route = "${plainRoute}${
+            arguments.map { it.first }.joinToString(
+                separator = "/",
+                prefix = "/"
+            ) { "{$it}" }
+        }"
+    ) {
+        companion object {
+            const val ATTENDANCE_ID = "attendanceId"
+            const val CROISSANT_WORKER = "croissantWorker"
         }
     }
 }

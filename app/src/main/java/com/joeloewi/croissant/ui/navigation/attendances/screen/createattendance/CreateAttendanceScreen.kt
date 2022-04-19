@@ -17,11 +17,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
+import com.joeloewi.croissant.data.local.model.Game
 import com.joeloewi.croissant.data.remote.model.common.GameRecord
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.common.navigationIconButton
@@ -60,14 +62,14 @@ fun CreateAttendanceScreen(
     }
 
     CreateAttendanceContent(
-        navController = navController,
+        previousBackStackEntry = navController.previousBackStackEntry,
         cookie = cookie,
         connectedGames = connectedGames,
         createAttendanceState = createAttendanceState,
         onLoginHoYoLAB = {
             navController.navigate(AttendancesDestination.LoginHoYoLabScreen.route)
         },
-        onBackPress = navController::navigateUp,
+        onNavigateUp = navController::navigateUp,
         onCreateAttendance = {
             createAttendanceViewModel.createAttendance()
         }
@@ -81,12 +83,12 @@ fun CreateAttendanceScreen(
 @ExperimentalMaterial3Api
 @Composable
 fun CreateAttendanceContent(
-    navController: NavController,
+    previousBackStackEntry: NavBackStackEntry?,
     cookie: String,
     connectedGames: Lce<List<GameRecord>>,
     createAttendanceState: Lce<List<Long>>,
     onLoginHoYoLAB: () -> Unit,
-    onBackPress: () -> Unit,
+    onNavigateUp: () -> Unit,
     onCreateAttendance: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -124,7 +126,7 @@ fun CreateAttendanceContent(
             is Lce.Content -> {
                 onShowCreateAttendanceProgressDialogChange(false)
                 if (createAttendanceState.content.isNotEmpty()) {
-                    onBackPress()
+                    onNavigateUp()
                 }
             }
 
@@ -155,7 +157,7 @@ fun CreateAttendanceContent(
                     Text(text = "출석 작업 만들기")
                 },
                 navigationIcon = navigationIconButton(
-                    navController = navController,
+                    previousBackStackEntry = previousBackStackEntry,
                     onClick = {
                         onShowCancelConfirmationDialogChange(true)
                     }
@@ -233,7 +235,12 @@ fun CreateAttendanceContent(
                                 LaunchedEffect(connectedGames) {
                                     if (connectedGames is Lce.Content) {
                                         connectedGames.content.onEach { gameRecord ->
-                                            checkedGames.add(gameRecord.hoYoLABGame)
+                                            checkedGames.add(
+                                                Game(
+                                                    name = gameRecord.hoYoLABGame,
+                                                    region = gameRecord.region
+                                                )
+                                            )
                                         }
                                     }
                                 }
@@ -288,7 +295,7 @@ fun CreateAttendanceContent(
                     TextButton(
                         onClick = {
                             onShowCancelConfirmationDialogChange(false)
-                            onBackPress()
+                            onNavigateUp()
                         }
                     ) {
                         Text(text = "확인")

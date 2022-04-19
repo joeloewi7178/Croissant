@@ -9,7 +9,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.flowWithLifecycle
-import androidx.navigation.NavController
+import androidx.navigation.NavBackStackEntry
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
 import kotlinx.coroutines.flow.Flow
 
 @Composable
@@ -25,14 +27,12 @@ fun <T> rememberFlow(
 
 @Composable
 fun navigationIconButton(
-    navController: NavController,
-    onClick: (NavController) -> Unit = {
-        it.popBackStack()
-    }
+    previousBackStackEntry: NavBackStackEntry?,
+    onClick: () -> Unit
 ): @Composable () -> Unit =
-    if (navController.previousBackStackEntry != null) {
+    if (previousBackStackEntry != null) {
         {
-            IconButton(onClick = { onClick(navController) }) {
+            IconButton(onClick = onClick) {
                 Icon(
                     imageVector = Icons.Outlined.ArrowBack,
                     contentDescription = Icons.Outlined.ArrowBack.name
@@ -44,3 +44,7 @@ fun navigationIconButton(
 
         }
     }
+
+fun LazyPagingItems<*>.isEmpty(): Boolean = with(this.loadState) {
+    refresh is LoadState.NotLoading && append.endOfPaginationReached
+} && itemCount == 0

@@ -142,8 +142,15 @@ dependencies {
     //image load
     implementation("io.coil-kt:coil-compose:${Versions.coil}")
 
+    //webkit
     implementation("androidx.webkit:webkit:1.4.0")
+
+    //paging
     implementation("androidx.paging:paging-compose:1.0.0-alpha14")
+
+    //java.time back porting
+    implementation("com.jakewharton.threetenabp:threetenabp:1.4.0")
+
 }
 
 kapt {

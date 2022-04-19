@@ -12,7 +12,8 @@ class NotificationChannelInitializer : Initializer<List<NotificationChannelCompa
         context.resources.run {
             listOf(
                 getString(R.string.attendance_notification_channel_id) to getString(R.string.attendance_notification_channel_name),
-                getString(R.string.reminder_notification_channel_id) to getString(R.string.reminder_notification_channel_name)
+                getString(R.string.check_session_notification_channel_id) to getString(R.string.check_session_notification_channel_name),
+                getString(R.string.reminder_notification_channel_id) to getString(R.string.reminder_notification_channel_name),
             )
         }.filter { pair ->
             NotificationManagerCompat.from(context).getNotificationChannel(pair.first) == null
