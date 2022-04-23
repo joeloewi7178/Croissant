@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.joeloewi.croissant.data.common.CroissantWorker
+import com.joeloewi.croissant.data.common.LoggableWorker
 import com.joeloewi.croissant.data.common.WorkerExecutionLogState
 
 @Entity(
@@ -24,5 +24,5 @@ data class WorkerExecutionLog(
     val attendanceId: Long = 0,
     val createdAt: Long = System.currentTimeMillis(),
     val state: WorkerExecutionLogState = WorkerExecutionLogState.SUCCESS,
-    val worker: CroissantWorker = CroissantWorker.UNKNOWN,
+    val loggableWorker: LoggableWorker = LoggableWorker.UNKNOWN,
 )

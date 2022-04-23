@@ -4,8 +4,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Login
-import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material.icons.filled.Login
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -35,8 +35,8 @@ fun GetSession(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.Login,
-                        contentDescription = Icons.Outlined.Login.name
+                        imageVector = Icons.Default.Login,
+                        contentDescription = Icons.Default.Login.name
                     )
                     Text(
                         text = "HoYoLAB 로그인하기",
@@ -80,16 +80,18 @@ fun GetSession(
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                containerColor = MaterialTheme.colorScheme.errorContainer,
-                contentColor = MaterialTheme.colorScheme.error
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.error
+                ),
             ) {
                 Row(
                     modifier = Modifier.padding(all = DefaultDp),
                 ) {
                     Icon(
                         modifier = Modifier.padding(all = DefaultDp),
-                        imageVector = Icons.Outlined.Warning,
-                        contentDescription = Icons.Outlined.Warning.name
+                        imageVector = Icons.Default.Warning,
+                        contentDescription = Icons.Default.Warning.name
                     )
                     Text(
                         modifier = Modifier.padding(all = DefaultDp),

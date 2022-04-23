@@ -1,16 +1,22 @@
 package com.joeloewi.croissant.data.common
 
+import android.net.Uri
+import androidx.core.net.toUri
+
 enum class HonkaiImpact3rdServer(
     val region: String = "",
     val packageName: String = "",
+    //if app does not exist in device
+    val fallbackUri: Uri = "market://details?id=${packageName}".toUri()
 ) {
     CNServer(
         region = "cn01",
-        packageName = "com.miHoYo.enterprise.NGHSoD"
+        packageName = "com.miHoYo.enterprise.NGHSoD",
+        fallbackUri = "https://www.taptap.io/app/10056".toUri()
     ),
     KRServer(
         region = "kr01",
-        packageName = "com.miHoYo.bh3korea"
+        packageName = "com.miHoYo.bh3korea",
     ),
     JPServer(
         region = "jp01",
@@ -32,10 +38,14 @@ enum class HonkaiImpact3rdServer(
         region = "usa01",
         packageName = "com.miHoYo.bh3global"
     ),
-    Unknown;
+
+    //cn server's region code is not figured out
+    Unknown(
+        packageName = "com.miHoYo.enterprise.NGHSoD",
+        fallbackUri = "https://www.taptap.io/app/10056".toUri()
+    );
 
     companion object {
-        fun findByRegion(region: String): HonkaiImpact3rdServer =
-            values().find { it.region == region } ?: Unknown
+        fun findByRegion(region: String) = values().find { it.region == region } ?: Unknown
     }
 }

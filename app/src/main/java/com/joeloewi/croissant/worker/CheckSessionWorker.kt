@@ -4,16 +4,16 @@ import android.app.Notification
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.TaskStackBuilder
-import androidx.core.net.toUri
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.data.common.CroissantWorker
+import com.joeloewi.croissant.data.common.LoggableWorker
 import com.joeloewi.croissant.data.common.WorkerExecutionLogState
 import com.joeloewi.croissant.data.local.CroissantDatabase
 import com.joeloewi.croissant.data.local.model.FailureLog
@@ -39,12 +39,16 @@ class CheckSessionWorker @AssistedInject constructor(
 ) {
     private val attendanceId = inputData.getLong(ATTENDANCE_ID, Long.MIN_VALUE)
 
-    private val deepLinkUri =
-        "${context.getString(R.string.deep_link_scheme)}${context.packageName}"
+    private val attendanceDetailDeepLinkUri = Uri.Builder()
+        .scheme(context.getString(R.string.deep_link_scheme))
+        .authority(context.packageName)
+        .appendPath(AttendancesDestination.AttendanceDetailScreen().plainRoute)
+        .appendPath(attendanceId.toString())
+        .build()
 
     private fun getAttendanceDetailIntent(): Intent = Intent(
         Intent.ACTION_VIEW,
-        "$deepLinkUri/${AttendancesDestination.AttendanceDetailScreen().plainRoute}/${attendanceId}".toUri()
+        attendanceDetailDeepLinkUri
     )
 
     private fun createCheckSessionNotification(
@@ -94,7 +98,7 @@ class CheckSessionWorker @AssistedInject constructor(
                     WorkerExecutionLog(
                         attendanceId = attendanceId,
                         state = WorkerExecutionLogState.SUCCESS,
-                        worker = CroissantWorker.CHECK_SESSION
+                        loggableWorker = LoggableWorker.CHECK_SESSION
                     )
                 )
 
@@ -113,7 +117,7 @@ class CheckSessionWorker @AssistedInject constructor(
                     WorkerExecutionLog(
                         attendanceId = attendanceId,
                         state = WorkerExecutionLogState.FAILURE,
-                        worker = CroissantWorker.CHECK_SESSION
+                        loggableWorker = LoggableWorker.CHECK_SESSION
                     )
                 )
 

@@ -1,5 +1,5 @@
 object Versions {
-    const val compose = "1.2.0-alpha07"
+    const val compose = "1.2.0-alpha08"
     const val hilt = "2.41"
     const val paging = "3.0.1"
     const val lifecycle = "2.4.1"
@@ -12,4 +12,5 @@ object Versions {
     const val moshi = "1.13.0"
     const val retrofit = "2.9.0"
     const val coil = "2.0.0-alpha06"
+    const val protobuf = "3.20.0"
 }

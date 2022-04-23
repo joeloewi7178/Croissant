@@ -8,8 +8,8 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Pending
-import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material.icons.filled.Pending
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -26,9 +26,10 @@ import com.google.accompanist.pager.rememberPagerState
 import com.joeloewi.croissant.data.local.model.Game
 import com.joeloewi.croissant.data.remote.model.common.GameRecord
 import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.ui.common.getResultFromPreviousComposable
 import com.joeloewi.croissant.ui.common.navigationIconButton
-import com.joeloewi.croissant.ui.common.rememberFlow
 import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
+import com.joeloewi.croissant.ui.navigation.attendances.screen.COOKIE
 import com.joeloewi.croissant.ui.navigation.attendances.screen.createattendance.composable.GetSession
 import com.joeloewi.croissant.ui.navigation.attendances.screen.createattendance.composable.SelectGames
 import com.joeloewi.croissant.ui.navigation.attendances.screen.createattendance.composable.SetTime
@@ -36,7 +37,6 @@ import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.viewmodel.CreateAttendanceViewModel
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.launch
-import java.util.*
 
 @ExperimentalFoundationApi
 @ObsoleteCoroutinesApi
@@ -53,11 +53,11 @@ fun CreateAttendanceScreen(
     val createAttendanceState by createAttendanceViewModel.createAttendanceState.collectAsState()
 
     LaunchedEffect(createAttendanceViewModel) {
-        navController.currentBackStackEntry?.savedStateHandle?.apply {
-            get<String>("cookie")?.let {
-                createAttendanceViewModel.setCookie(it)
-            }
-            remove<String>("cookie")
+        getResultFromPreviousComposable<String>(
+            navController = navController,
+            key = COOKIE
+        )?.let {
+            createAttendanceViewModel.setCookie(cookie = it)
         }
     }
 
@@ -261,15 +261,9 @@ fun CreateAttendanceContent(
                             ) {
                                 val createAttendanceViewModel: CreateAttendanceViewModel =
                                     hiltViewModel()
-                                val hourOfDay by rememberFlow(flow = createAttendanceViewModel.hourOfDay).collectAsState(
-                                    initial = Calendar.getInstance()[Calendar.HOUR_OF_DAY]
-                                )
-                                val minute by rememberFlow(flow = createAttendanceViewModel.minute).collectAsState(
-                                    initial = Calendar.getInstance()[Calendar.MINUTE]
-                                )
-                                val tickerCalendar by rememberFlow(flow = createAttendanceViewModel.tickerCalendar).collectAsState(
-                                    initial = Calendar.getInstance()
-                                )
+                                val hourOfDay by createAttendanceViewModel.hourOfDay.collectAsState()
+                                val minute by createAttendanceViewModel.minute.collectAsState()
+                                val tickerCalendar by createAttendanceViewModel.tickerCalendar.collectAsState()
 
                                 SetTime(
                                     hourOfDay = hourOfDay,
@@ -312,8 +306,8 @@ fun CreateAttendanceContent(
                 },
                 icon = {
                     Icon(
-                        imageVector = Icons.Outlined.Warning,
-                        contentDescription = Icons.Outlined.Warning.name
+                        imageVector = Icons.Default.Warning,
+                        contentDescription = Icons.Default.Warning.name
                     )
                 },
                 title = {
@@ -337,8 +331,8 @@ fun CreateAttendanceContent(
                 confirmButton = {},
                 icon = {
                     Icon(
-                        imageVector = Icons.Outlined.Pending,
-                        contentDescription = Icons.Outlined.Pending.name
+                        imageVector = Icons.Default.Pending,
+                        contentDescription = Icons.Default.Pending.name
                     )
                 },
                 title = {

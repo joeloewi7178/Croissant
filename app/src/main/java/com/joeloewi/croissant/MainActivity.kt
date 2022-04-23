@@ -1,8 +1,10 @@
 package com.joeloewi.croissant
 
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
@@ -25,6 +27,8 @@ import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.joeloewi.croissant.data.proto.settingsDataStore
+import com.joeloewi.croissant.ui.common.isDarkThemeEnabled
 import com.joeloewi.croissant.ui.navigation.CroissantNavigation
 import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
 import com.joeloewi.croissant.ui.navigation.attendances.screen.AttendanceDetailScreen
@@ -40,6 +44,7 @@ import com.joeloewi.croissant.ui.theme.CroissantTheme
 import com.joeloewi.croissant.viewmodel.*
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ObsoleteCoroutinesApi
+import kotlinx.coroutines.flow.map
 
 @ExperimentalFoundationApi
 @ObsoleteCoroutinesApi
@@ -58,7 +63,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val systemUiController = rememberSystemUiController()
-            val useDarkIcons = !isSystemInDarkTheme()
+            val useDarkIcons = !isDarkThemeEnabled()
 
             SideEffect {
                 systemUiController.apply {
@@ -68,7 +73,9 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            CroissantTheme {
+            CroissantTheme(
+                darkTheme = isDarkThemeEnabled()
+            ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -98,8 +105,10 @@ fun CroissantApp() {
         AttendancesDestination.CreateAttendanceScreen.route,
         AttendancesDestination.LoginHoYoLabScreen.route
     )
-    val deepLinkUri =
-        "${stringResource(id = R.string.deep_link_scheme)}${LocalContext.current.packageName}"
+    val deepLinkUri = Uri.Builder()
+        .scheme(stringResource(id = R.string.deep_link_scheme))
+        .authority(LocalContext.current.packageName)
+        .build()
 
     Scaffold(
         topBar = {

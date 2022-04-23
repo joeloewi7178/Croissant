@@ -47,19 +47,28 @@ class AttendCheckInEventWorker @AssistedInject constructor(
         region: String
     ): Intent = when (hoYoLABGame) {
         HoYoLABGame.HonkaiImpact3rd -> {
-            HonkaiImpact3rdServer.findByRegion(region = region).packageName
+            with(HonkaiImpact3rdServer.findByRegion(region = region)) {
+                packageName to fallbackUri
+            }
         }
         HoYoLABGame.GenshinImpact -> {
-            "com.miHoYo.GenshinImpact"
+            with(GenshinImpactServer.findByRegion(region = region)) {
+                packageName to fallbackUri
+            }
         }
         HoYoLABGame.Unknown -> {
-            ""
+            "" to Uri.EMPTY
         }
-    }.let { packageName ->
-        context.packageManager.getLaunchIntentForPackage(packageName)
-            ?: Intent(Intent.ACTION_VIEW).apply {
-                addCategory(Intent.CATEGORY_DEFAULT)
-                data = Uri.parse("market://details?id=$packageName")
+    }.let {
+        context.packageManager.getLaunchIntentForPackage(it.first)
+            ?: if (it.second.authority?.contains("taptap.io") == true) {
+                //for chinese server
+                Intent(Intent.ACTION_VIEW, it.second)
+            } else {
+                Intent(Intent.ACTION_VIEW).apply {
+                    addCategory(Intent.CATEGORY_DEFAULT)
+                    data = it.second
+                }
             }
     }
 
@@ -153,7 +162,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                             WorkerExecutionLog(
                                 attendanceId = attendanceId,
                                 state = WorkerExecutionLogState.SUCCESS,
-                                worker = CroissantWorker.ATTEND_CHECK_IN_EVENT
+                                loggableWorker = LoggableWorker.ATTEND_CHECK_IN_EVENT
                             )
                         )
 
@@ -177,7 +186,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                     WorkerExecutionLog(
                         attendanceId = attendanceId,
                         state = WorkerExecutionLogState.FAILURE,
-                        worker = CroissantWorker.ATTEND_CHECK_IN_EVENT
+                        loggableWorker = LoggableWorker.ATTEND_CHECK_IN_EVENT
                     )
                 )
 

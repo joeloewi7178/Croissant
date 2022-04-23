@@ -14,6 +14,7 @@ class NotificationChannelInitializer : Initializer<List<NotificationChannelCompa
                 getString(R.string.attendance_notification_channel_id) to getString(R.string.attendance_notification_channel_name),
                 getString(R.string.check_session_notification_channel_id) to getString(R.string.check_session_notification_channel_name),
                 getString(R.string.reminder_notification_channel_id) to getString(R.string.reminder_notification_channel_name),
+                getString(R.string.time_zone_changed_notification_channel_id) to getString(R.string.time_zone_changed_notification_channel_name)
             )
         }.filter { pair ->
             NotificationManagerCompat.from(context).getNotificationChannel(pair.first) == null
@@ -21,7 +22,7 @@ class NotificationChannelInitializer : Initializer<List<NotificationChannelCompa
             NotificationChannelCompat
                 .Builder(
                     pair.first,
-                    NotificationManagerCompat.IMPORTANCE_HIGH
+                    NotificationManagerCompat.IMPORTANCE_MAX
                 )
                 .setName(pair.second)
                 .build()

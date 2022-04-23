@@ -9,10 +9,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.ListItem
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowForward
-import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,6 +30,7 @@ import com.joeloewi.croissant.data.common.HoYoLABGame
 import com.joeloewi.croissant.data.local.model.Game
 import com.joeloewi.croissant.data.remote.model.common.GameRecord
 import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.ui.common.ListItem
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.ui.theme.IconDp
@@ -117,8 +117,8 @@ fun SelectGames(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.ArrowForward,
-                            contentDescription = Icons.Outlined.ArrowForward.name
+                            imageVector = Icons.Default.ArrowForward,
+                            contentDescription = Icons.Default.ArrowForward.name
                         )
                         Text(text = "다음 단계로")
                     }
@@ -178,8 +178,8 @@ fun SelectGames(
                             ) {
                                 Icon(
                                     modifier = Modifier.fillMaxSize(0.3f),
-                                    imageVector = Icons.Outlined.Warning,
-                                    contentDescription = Icons.Outlined.Warning.name,
+                                    imageVector = Icons.Default.Warning,
+                                    contentDescription = Icons.Default.Warning.name,
                                     tint = MaterialTheme.colorScheme.primaryContainer
                                 )
                                 Text(
@@ -191,7 +191,7 @@ fun SelectGames(
                     } else {
                         items(
                             items = connectedGames.content,
-                            key = { it.gameId }
+                            key = { "${it.gameId}${it.region}" }
                         ) { gameRecord ->
                             ConnectedGamesContentListItem(
                                 checkedGames = checkedGames,
@@ -213,8 +213,8 @@ fun SelectGames(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Icon(
-                                imageVector = Icons.Outlined.Warning,
-                                contentDescription = Icons.Outlined.Warning.name
+                                imageVector = Icons.Default.Warning,
+                                contentDescription = Icons.Default.Warning.name
                             )
                             Text(text = "오류가 발생했습니다. 다시 시도해주세요.")
                         }

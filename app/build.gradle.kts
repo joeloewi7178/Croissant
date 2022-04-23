@@ -1,8 +1,14 @@
+import com.google.protobuf.gradle.builtins
+import com.google.protobuf.gradle.generateProtoTasks
+import com.google.protobuf.gradle.protobuf
+import com.google.protobuf.gradle.protoc
+
 plugins {
     id("com.android.application")
     `kotlin-android`
     `kotlin-kapt`
     `kotlin-parcelize`
+    id("com.google.protobuf") version "0.8.12"
     id("dagger.hilt.android.plugin")
 }
 
@@ -73,8 +79,8 @@ android {
 
 dependencies {
     implementation("androidx.core:core-ktx:1.7.0")
-    implementation("com.google.android.material:material:1.6.0-beta01")
-    implementation("androidx.compose.material3:material3:1.0.0-alpha09")
+    implementation("com.google.android.material:material:1.7.0-alpha01")
+    implementation("androidx.compose.material3:material3:1.0.0-alpha10")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:${Versions.lifecycle}")
     implementation("androidx.activity:activity-compose:1.4.0")
     testImplementation("junit:junit:4.13.2")
@@ -151,8 +157,30 @@ dependencies {
     //java.time back porting
     implementation("com.jakewharton.threetenabp:threetenabp:1.4.0")
 
+    //protobuf
+    implementation("com.google.protobuf:protobuf-javalite:${Versions.protobuf}")
+
+    //datastore
+    implementation("androidx.datastore:datastore:1.0.0")
 }
 
 kapt {
     correctErrorTypes = true
+}
+
+protobuf {
+
+    protoc {
+        artifact = "com.google.protobuf:protoc:${Versions.protobuf}"
+    }
+
+    generateProtoTasks {
+        all().forEach { task ->
+            task.builtins {
+                create("java") {
+                    option("lite")
+                }
+            }
+        }
+    }
 }

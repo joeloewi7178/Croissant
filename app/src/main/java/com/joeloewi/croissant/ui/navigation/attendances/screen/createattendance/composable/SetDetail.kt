@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.outlined.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -34,8 +35,8 @@ fun SetDetail(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.ArrowForward,
-                        contentDescription = Icons.Outlined.ArrowForward.name
+                        imageVector = Icons.Default.ArrowForward,
+                        contentDescription = Icons.Default.ArrowForward.name
                     )
                     Text(text = "다음 단계로")
                 }

@@ -10,12 +10,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Done
-import androidx.compose.material.icons.outlined.Error
-import androidx.compose.material.icons.outlined.NavigateNext
-import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,6 +23,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
@@ -33,10 +32,11 @@ import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
-import com.joeloewi.croissant.data.common.CroissantWorker
-import com.joeloewi.croissant.data.common.HoYoLABGame
+import com.joeloewi.croissant.data.common.LoggableWorker
+import com.joeloewi.croissant.data.local.model.Game
 import com.joeloewi.croissant.data.remote.model.common.GameRecord
 import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.ui.common.getResultFromPreviousComposable
 import com.joeloewi.croissant.ui.common.navigationIconButton
 import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
 import com.joeloewi.croissant.ui.theme.DefaultDp
@@ -50,7 +50,6 @@ fun AttendanceDetailScreen(
     navController: NavController,
     attendanceDetailViewModel: AttendanceDetailViewModel = hiltViewModel()
 ) {
-    val cookie by attendanceDetailViewModel.cookie.collectAsState()
     val hourOfDay by attendanceDetailViewModel.hourOfDay.collectAsState()
     val minute by attendanceDetailViewModel.minute.collectAsState()
     val nickname by attendanceDetailViewModel.nickname.collectAsState()
@@ -61,12 +60,19 @@ fun AttendanceDetailScreen(
     val checkSessionWorkerFailureLogCount by attendanceDetailViewModel.checkSessionWorkerFailureLogCount.collectAsState()
     val attendCheckInEventWorkerSuccessLogCount by attendanceDetailViewModel.attendCheckInEventWorkerSuccessLogCount.collectAsState()
     val attendCheckInEventWorkerFailureLogCount by attendanceDetailViewModel.attendCheckInEventWorkerFailureLogCount.collectAsState()
+    val updateAttendanceState by attendanceDetailViewModel.updateAttendanceState.collectAsState()
 
-    val attendanceId = attendanceDetailViewModel.attendanceId
+    LaunchedEffect(attendanceDetailViewModel) {
+        getResultFromPreviousComposable<String>(
+            navController = navController,
+            key = COOKIE
+        )?.let {
+            attendanceDetailViewModel.setCookie(cookie = it)
+        }
+    }
 
     AttendanceDetailContent(
         previousBackStackEntry = navController.previousBackStackEntry,
-        cookie = cookie,
         hourOfDay = hourOfDay,
         minute = minute,
         nickname = nickname,
@@ -77,14 +83,19 @@ fun AttendanceDetailScreen(
         checkSessionWorkerFailureLogCount = checkSessionWorkerFailureLogCount,
         attendCheckInEventWorkerSuccessLogCount = attendCheckInEventWorkerSuccessLogCount,
         attendCheckInEventWorkerFailureLogCount = attendCheckInEventWorkerFailureLogCount,
+        updateAttendanceState = updateAttendanceState,
         onHourOfDayChange = attendanceDetailViewModel::setHourOfDay,
         onMinuteChange = attendanceDetailViewModel::setMinute,
         onNavigateUp = {
             navController.navigateUp()
         },
         onClickLogSummary = {
-            navController.navigate("${AttendancesDestination.AttendanceLogsScreen().plainRoute}/${attendanceId}/${it}")
-        }
+            navController.navigate("${AttendancesDestination.AttendanceLogsScreen().plainRoute}/${attendanceDetailViewModel.attendanceId}/${it}")
+        },
+        onClickRefreshSession = {
+            navController.navigate(AttendancesDestination.LoginHoYoLabScreen.route)
+        },
+        onClickSave = attendanceDetailViewModel::updateAttendance
     )
 }
 
@@ -93,27 +104,32 @@ fun AttendanceDetailScreen(
 @Composable
 fun AttendanceDetailContent(
     previousBackStackEntry: NavBackStackEntry?,
-    cookie: String,
     hourOfDay: Int,
     minute: Int,
     nickname: String,
     uid: Long,
-    checkedGames: SnapshotStateList<HoYoLABGame>,
+    checkedGames: SnapshotStateList<Game>,
     connectedGames: Lce<List<GameRecord>>,
     checkSessionWorkerSuccessLogCount: Long,
     checkSessionWorkerFailureLogCount: Long,
     attendCheckInEventWorkerSuccessLogCount: Long,
     attendCheckInEventWorkerFailureLogCount: Long,
+    updateAttendanceState: Lce<Unit?>,
     onHourOfDayChange: (Int) -> Unit,
     onMinuteChange: (Int) -> Unit,
     onNavigateUp: () -> Unit,
-    onClickLogSummary: (CroissantWorker) -> Unit
+    onClickLogSummary: (LoggableWorker) -> Unit,
+    onClickRefreshSession: () -> Unit,
+    onClickSave: () -> Unit
 ) {
     val scrollableState = rememberScrollState()
     val (timePicker, onTimePickerChange) = remember {
         mutableStateOf<TimePicker?>(
             null
         )
+    }
+    val (showUpdateAttendanceProgressDialog, onShowUpdateAttendanceProgressDialogChange) = rememberSaveable {
+        mutableStateOf(false)
     }
 
     DisposableEffect(timePicker) {
@@ -127,6 +143,25 @@ fun AttendanceDetailContent(
         }
     }
 
+    LaunchedEffect(updateAttendanceState) {
+        when (updateAttendanceState) {
+            is Lce.Loading -> {
+                onShowUpdateAttendanceProgressDialogChange(true)
+            }
+
+            is Lce.Content -> {
+                onShowUpdateAttendanceProgressDialogChange(false)
+                if (updateAttendanceState.content != null) {
+                    onNavigateUp()
+                }
+            }
+
+            is Lce.Error -> {
+                onShowUpdateAttendanceProgressDialogChange(false)
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             SmallTopAppBar(
@@ -136,7 +171,17 @@ fun AttendanceDetailContent(
                 navigationIcon = navigationIconButton(
                     previousBackStackEntry = previousBackStackEntry,
                     onClick = onNavigateUp
-                )
+                ),
+                actions = {
+                    IconButton(
+                        onClick = onClickSave
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Save,
+                            contentDescription = Icons.Default.Save.name
+                        )
+                    }
+                }
             )
         }
     ) { innerPadding ->
@@ -164,47 +209,14 @@ fun AttendanceDetailContent(
                     alignment = Alignment.CenterVertically
                 )
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(
-                        DefaultDp
-                    )
-                ) {
-                    Text(
-                        text = "UID",
-                        style = TextStyle(
-                            fontWeight = FontWeight.Bold
-                        )
-                    )
-                    Text(text = "$uid")
-                }
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(
-                        DefaultDp
-                    )
-                ) {
-                    Text(
-                        text = "닉네임",
-                        style = TextStyle(
-                            fontWeight = FontWeight.Bold
-                        )
-                    )
-                    Text(text = nickname)
-                }
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(
-                        DefaultDp
-                    )
-                ) {
-                    Text(
-                        text = "연동 및 출석 작업 설정된 게임",
-                        style = TextStyle(
-                            fontWeight = FontWeight.Bold
-                        )
+                listOf(
+                    "UID" to uid.toString(),
+                    "닉네임" to nickname,
+                    "연동 및 출석 작업 설정된 게임" to ""
+                ).forEach {
+                    SessionInfoRow(
+                        key = it.first,
+                        value = it.second
                     )
                 }
 
@@ -216,9 +228,9 @@ fun AttendanceDetailContent(
                         is Lce.Content -> {
                             items(
                                 items = connectedGames.content,
-                                key = { it.gameId }
+                                key = { "${it.gameId}${it.region}" }
                             ) { gameRecord ->
-                                ConnectedGameItem(
+                                ConnectedGameListItem(
                                     modifier = Modifier.animateItemPlacement(),
                                     gameRecord = gameRecord,
                                     checkedGames = checkedGames,
@@ -235,7 +247,7 @@ fun AttendanceDetailContent(
                                 items = IntArray(5) { it }.toTypedArray(),
                                 key = { "placeholder${it}" }
                             ) {
-                                ConnectedGameItemPlaceHolder(modifier = Modifier.animateItemPlacement())
+                                ConnectedGameListItemPlaceHolder(modifier = Modifier.animateItemPlacement())
                             }
                         }
                     }
@@ -243,9 +255,7 @@ fun AttendanceDetailContent(
 
                 FilledTonalButton(
                     modifier = Modifier.fillMaxWidth(),
-                    onClick = {
-
-                    }
+                    onClick = onClickRefreshSession
                 ) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(
@@ -255,8 +265,8 @@ fun AttendanceDetailContent(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.Refresh,
-                            contentDescription = Icons.Outlined.Refresh.name
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = Icons.Default.Refresh.name
                         )
                         Text(text = "접속 정보 갱신하기")
                     }
@@ -290,144 +300,87 @@ fun AttendanceDetailContent(
                 style = MaterialTheme.typography.headlineSmall
             )
 
-            Row(
-                modifier = Modifier
-                    .clickable {
-                        onClickLogSummary(CroissantWorker.ATTEND_CHECK_IN_EVENT)
-                    }
-                    .padding(DefaultDp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(space = DefaultDp)
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(
-                            space = DefaultDp,
-                        ),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "출석 작업",
-                            style = MaterialTheme.typography.titleMedium
+            LoggableWorker.values().filter { it != LoggableWorker.UNKNOWN }.forEach {
+                when (it) {
+                    LoggableWorker.ATTEND_CHECK_IN_EVENT -> {
+                        LogSummaryRow(
+                            title = "출석 작업",
+                            failureLogCount = attendCheckInEventWorkerFailureLogCount,
+                            successLogCount = attendCheckInEventWorkerSuccessLogCount,
+                            onClickLogSummary = {
+                                onClickLogSummary(it)
+                            }
                         )
                     }
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(DefaultDp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Error,
-                            contentDescription = Icons.Outlined.Error.name,
-                            tint = MaterialTheme.colorScheme.error
+                    LoggableWorker.CHECK_SESSION -> {
+                        LogSummaryRow(
+                            title = "접속 정보 유효성 검사",
+                            failureLogCount = checkSessionWorkerFailureLogCount,
+                            successLogCount = checkSessionWorkerSuccessLogCount,
+                            onClickLogSummary = {
+                                onClickLogSummary(it)
+                            }
                         )
-
-                        Text(
-                            text = "$attendCheckInEventWorkerFailureLogCount",
-                            color = MaterialTheme.colorScheme.error
-                        )
-
-                        Icon(
-                            imageVector = Icons.Outlined.Done,
-                            contentDescription = Icons.Outlined.Done.name
-                        )
-
-                        Text(text = "$attendCheckInEventWorkerSuccessLogCount")
                     }
-                }
-
-                Column(
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.NavigateNext,
-                        contentDescription = Icons.Outlined.NavigateNext.name
-                    )
+                    LoggableWorker.UNKNOWN -> {
+                        LogSummaryRow(
+                            title = "",
+                            failureLogCount = 0,
+                            successLogCount = 0,
+                            onClickLogSummary = {}
+                        )
+                    }
                 }
             }
+        }
 
-            Row(
-                modifier = Modifier
-                    .clickable {
-                        onClickLogSummary(CroissantWorker.CHECK_SESSION)
-                    }
-                    .padding(DefaultDp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(space = DefaultDp)
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(
-                            space = DefaultDp,
-                        ),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "접속 정보 유효성 검사",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(DefaultDp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Error,
-                            contentDescription = Icons.Outlined.Error.name,
-                            tint = MaterialTheme.colorScheme.error
-                        )
-
-                        Text(
-                            text = "$checkSessionWorkerFailureLogCount",
-                            color = MaterialTheme.colorScheme.error
-                        )
-
-                        Icon(
-                            imageVector = Icons.Outlined.Done,
-                            contentDescription = Icons.Outlined.Done.name
-                        )
-
-                        Text(text = "$checkSessionWorkerSuccessLogCount")
-                    }
-                }
-
-                Column(
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
+        if (showUpdateAttendanceProgressDialog) {
+            AlertDialog(
+                onDismissRequest = {
+                    onShowUpdateAttendanceProgressDialogChange(false)
+                },
+                confirmButton = {},
+                icon = {
                     Icon(
-                        imageVector = Icons.Outlined.NavigateNext,
-                        contentDescription = Icons.Outlined.NavigateNext.name
+                        imageVector = Icons.Default.Pending,
+                        contentDescription = Icons.Default.Pending.name
                     )
-                }
-            }
+                },
+                title = {
+                    Text(text = "저장 중")
+                },
+                text = {
+                    Text(text = "잠시만 기다려주세요.")
+                },
+                properties = DialogProperties(
+                    dismissOnClickOutside = false,
+                    dismissOnBackPress = false
+                )
+            )
         }
     }
 }
 
 @ExperimentalMaterial3Api
 @Composable
-fun ConnectedGameItem(
+fun ConnectedGameListItem(
     modifier: Modifier,
     gameRecord: GameRecord,
-    checkedGames: SnapshotStateList<HoYoLABGame>
+    checkedGames: SnapshotStateList<Game>
 ) {
+    val game = Game(
+        name = gameRecord.hoYoLABGame,
+        region = gameRecord.region
+    )
+
     Card(
         onClick = {
-            val checked = checkedGames.contains(gameRecord.hoYoLABGame)
+            val checked = checkedGames.contains(game)
 
             if (!checked) {
-                checkedGames.add(gameRecord.hoYoLABGame)
+                checkedGames.add(game)
             } else {
-                checkedGames.remove(gameRecord.hoYoLABGame)
+                checkedGames.remove(game)
             }
         },
         modifier = modifier.size(120.dp)
@@ -446,7 +399,7 @@ fun ConnectedGameItem(
                 Text(text = stringResource(id = gameRecord.hoYoLABGame.gameNameResourceId))
 
                 Checkbox(
-                    checked = checkedGames.contains(gameRecord.hoYoLABGame),
+                    checked = checkedGames.contains(game),
                     onCheckedChange = null
                 )
             }
@@ -465,7 +418,7 @@ fun ConnectedGameItem(
 
 @ExperimentalMaterial3Api
 @Composable
-fun ConnectedGameItemPlaceHolder(
+fun ConnectedGameListItemPlaceHolder(
     modifier: Modifier,
 ) {
     Card(
@@ -528,5 +481,94 @@ fun ConnectedGameItemPlaceHolder(
                 contentDescription = null
             )
         }
+    }
+}
+
+@Composable
+fun LogSummaryRow(
+    title: String,
+    failureLogCount: Long,
+    successLogCount: Long,
+    onClickLogSummary: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .clickable {
+                onClickLogSummary()
+            }
+            .padding(DefaultDp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(space = DefaultDp)
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(
+                    space = DefaultDp,
+                ),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(DefaultDp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Error,
+                    contentDescription = Icons.Default.Error.name,
+                    tint = MaterialTheme.colorScheme.error
+                )
+
+                Text(
+                    text = "$failureLogCount",
+                    color = MaterialTheme.colorScheme.error
+                )
+
+                Icon(
+                    imageVector = Icons.Default.Done,
+                    contentDescription = Icons.Default.Done.name
+                )
+
+                Text(text = "$successLogCount")
+            }
+        }
+
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = Icons.Default.NavigateNext,
+                contentDescription = Icons.Default.NavigateNext.name
+            )
+        }
+    }
+}
+
+@Composable
+fun SessionInfoRow(
+    key: String,
+    value: String
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(
+            DefaultDp
+        )
+    ) {
+        Text(
+            text = key,
+            style = TextStyle(
+                fontWeight = FontWeight.Bold
+            )
+        )
+        Text(text = value)
     }
 }

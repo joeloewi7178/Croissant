@@ -19,6 +19,7 @@ import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.channels.ticker
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import org.threeten.bp.ZoneId
 import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -51,7 +52,7 @@ class CreateAttendanceViewModel @Inject constructor(
             )
         }.flowOn(Dispatchers.IO).stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(),
+            started = SharingStarted.Lazily,
             initialValue = Lce.Loading
         )
     val connectedGames = userInfo
@@ -80,7 +81,7 @@ class CreateAttendanceViewModel @Inject constructor(
             )
         }.flowOn(Dispatchers.IO).stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(),
+            started = SharingStarted.Lazily,
             initialValue = Lce.Loading
         )
     val checkedGames = mutableStateListOf<Game>()
@@ -89,7 +90,7 @@ class CreateAttendanceViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(),
+            started = SharingStarted.Lazily,
             initialValue = Calendar.getInstance()
         )
     val hourOfDay = _hourOfDay.asStateFlow()
@@ -122,17 +123,23 @@ class CreateAttendanceViewModel @Inject constructor(
                     nickname = userInfo.value.content!!.nickname,
                     uid = userInfo.value.content!!.uid,
                     hourOfDay = hourOfDay,
-                    minute = minute
+                    minute = minute,
+                    zoneId = ZoneId.systemDefault().id
                 )
 
-                insert(attendance = attendance)
-            }.mapCatching { attendanceId ->
-                val attendance = croissantDatabase.attendanceDao().getOne(attendanceId).attendance
+                with(attendance) {
+                    copy(
+                        id = insert(attendance = this)
+                    )
+                }
+            }.mapCatching { attendance ->
                 val now = Calendar.getInstance()
                 val canExecuteToday =
                     (now[Calendar.HOUR_OF_DAY] < attendance.hourOfDay) || (now[Calendar.HOUR_OF_DAY] == attendance.hourOfDay && now[Calendar.MINUTE] < attendance.minute)
 
                 val targetTime = Calendar.getInstance().apply {
+                    time = now.time
+
                     if (!canExecuteToday) {
                         add(Calendar.DATE, 1)
                     }
@@ -140,26 +147,6 @@ class CreateAttendanceViewModel @Inject constructor(
                     set(Calendar.HOUR_OF_DAY, attendance.hourOfDay)
                     set(Calendar.MINUTE, attendance.minute)
                 }
-
-                val periodicCheckSessionWork = PeriodicWorkRequest.Builder(
-                    CheckSessionWorker::class.java,
-                    6L,
-                    TimeUnit.HOURS
-                )
-                    .setInputData(workDataOf(CheckSessionWorker.ATTENDANCE_ID to attendanceId))
-                    .setConstraints(
-                        Constraints.Builder()
-                            .setRequiredNetworkType(NetworkType.CONNECTED)
-                            .build()
-                    )
-                    .build()
-
-                WorkManager.getInstance(application)
-                    .enqueueUniquePeriodicWork(
-                        attendance.checkSessionWorkerName.toString(),
-                        ExistingPeriodicWorkPolicy.REPLACE,
-                        periodicCheckSessionWork
-                    )
 
                 val periodicAttendanceCheckInEventWork = PeriodicWorkRequest.Builder(
                     AttendCheckInEventWorker::class.java,
@@ -170,7 +157,7 @@ class CreateAttendanceViewModel @Inject constructor(
                         targetTime.timeInMillis - now.timeInMillis,
                         TimeUnit.MILLISECONDS
                     )
-                    .setInputData(workDataOf(AttendCheckInEventWorker.ATTENDANCE_ID to attendanceId))
+                    .setInputData(workDataOf(AttendCheckInEventWorker.ATTENDANCE_ID to attendance.id))
                     .setConstraints(
                         Constraints.Builder()
                             .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -183,6 +170,26 @@ class CreateAttendanceViewModel @Inject constructor(
                         attendance.attendCheckInEventWorkerName.toString(),
                         ExistingPeriodicWorkPolicy.REPLACE,
                         periodicAttendanceCheckInEventWork
+                    )
+
+                val periodicCheckSessionWork = PeriodicWorkRequest.Builder(
+                    CheckSessionWorker::class.java,
+                    6L,
+                    TimeUnit.HOURS
+                )
+                    .setInputData(workDataOf(CheckSessionWorker.ATTENDANCE_ID to attendance.id))
+                    .setConstraints(
+                        Constraints.Builder()
+                            .setRequiredNetworkType(NetworkType.CONNECTED)
+                            .build()
+                    )
+                    .build()
+
+                WorkManager.getInstance(application)
+                    .enqueueUniquePeriodicWork(
+                        attendance.checkSessionWorkerName.toString(),
+                        ExistingPeriodicWorkPolicy.REPLACE,
+                        periodicCheckSessionWork
                     )
 
                 croissantDatabase.attendanceDao().update(

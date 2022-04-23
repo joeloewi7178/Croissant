@@ -11,12 +11,14 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Done
-import androidx.compose.material.icons.outlined.Refresh
-import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -34,10 +36,13 @@ import androidx.navigation.NavController
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebSettingsCompat.FORCE_DARK_ON
 import androidx.webkit.WebViewFeature
+import com.joeloewi.croissant.ui.common.isDarkThemeEnabled
 import com.joeloewi.croissant.viewmodel.LoginHoYoLABViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+
+const val COOKIE = "cookie"
 
 @ExperimentalComposeUiApi
 @ExperimentalMaterial3Api
@@ -52,7 +57,7 @@ fun LoginHoYoLABScreen(
         },
         onCatchCookie = { cookie ->
             navController.apply {
-                previousBackStackEntry?.savedStateHandle?.set("cookie", cookie)
+                previousBackStackEntry?.savedStateHandle?.set(COOKIE, cookie)
                 navigateUp()
             }
         }
@@ -117,8 +122,8 @@ fun LoginHoYoLABContent(
                     navigationIcon = {
                         IconButton(onClick = onClickClose) {
                             Icon(
-                                imageVector = Icons.Outlined.Close,
-                                contentDescription = Icons.Outlined.Close.name
+                                imageVector = Icons.Default.Close,
+                                contentDescription = Icons.Default.Close.name
                             )
                         }
                     },
@@ -133,8 +138,8 @@ fun LoginHoYoLABContent(
                                     }
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Outlined.Refresh,
-                                        contentDescription = Icons.Outlined.Refresh.name
+                                        imageVector = Icons.Default.Refresh,
+                                        contentDescription = Icons.Default.Refresh.name
                                     )
                                 }
                             },
@@ -145,8 +150,8 @@ fun LoginHoYoLABContent(
                                     }
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Outlined.Close,
-                                        contentDescription = Icons.Outlined.Close.name
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = Icons.Default.Close.name
                                     )
                                 }
                             },
@@ -169,8 +174,8 @@ fun LoginHoYoLABContent(
                             }
                         ) {
                             Icon(
-                                imageVector = Icons.Outlined.Done,
-                                contentDescription = Icons.Outlined.Done.name
+                                imageVector = Icons.Default.Done,
+                                contentDescription = Icons.Default.Done.name
                             )
                         }
                     },
@@ -209,7 +214,7 @@ fun LoginHoYoLABContent(
         val localContext = LocalContext.current
         val excludedUrls = listOf("www.webstatic-sea.mihoyo.com", "www.webstatic-sea.hoyolab.com")
         val (webViewState, onWebViewStateChange) = rememberSaveable { mutableStateOf<Bundle?>(null) }
-        val darkTheme = isSystemInDarkTheme()
+        val darkTheme = isDarkThemeEnabled()
 
         BackHandler(canGoBack) {
             webView?.goBack()
@@ -335,7 +340,7 @@ fun LoginHoYoLABContent(
                         javaScriptEnabled = true
                         domStorageEnabled = true
                         databaseEnabled = true
-                        cacheMode = WebSettings.LOAD_CACHE_ELSE_NETWORK
+                        cacheMode = WebSettings.LOAD_NO_CACHE
                     }
 
                     webViewState?.let { restoreState(it) }
@@ -345,6 +350,16 @@ fun LoginHoYoLABContent(
             onCanGoBackChange(view.canGoBack())
 
             if (webViewState == null) {
+                WebStorage.getInstance().deleteAllData()
+
+                with(view) {
+                    clearCache(true)
+                    clearFormData()
+                    clearHistory()
+                    clearMatches()
+                    clearSslPreferences()
+                }
+
                 CookieManager.getInstance().apply {
                     flush()
                     removeAllCookies {
@@ -391,8 +406,8 @@ fun LoginHoYoLABContent(
                 },
                 icon = {
                     Icon(
-                        imageVector = Icons.Outlined.Warning,
-                        contentDescription = Icons.Outlined.Warning.name
+                        imageVector = Icons.Default.Warning,
+                        contentDescription = Icons.Default.Warning.name
                     )
                 },
                 title = {

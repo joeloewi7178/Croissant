@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Done
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.*
@@ -66,8 +68,8 @@ fun SetTime(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.Done,
-                        contentDescription = Icons.Outlined.Done.name
+                        imageVector = Icons.Default.Done,
+                        contentDescription = Icons.Default.Done.name
                     )
                     Text(text = "작성 완료")
                 }
@@ -152,8 +154,8 @@ fun SetTime(
                 ) {
                     Icon(
                         modifier = Modifier.padding(DefaultDp),
-                        imageVector = Icons.Outlined.Star,
-                        contentDescription = Icons.Outlined.Star.name
+                        imageVector = Icons.Default.Star,
+                        contentDescription = Icons.Default.Star.name
                     )
                     Text(
                         modifier = Modifier.padding(DefaultDp),

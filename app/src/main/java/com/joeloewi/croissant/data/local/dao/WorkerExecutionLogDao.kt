@@ -2,7 +2,7 @@ package com.joeloewi.croissant.data.local.dao
 
 import androidx.paging.PagingSource
 import androidx.room.*
-import com.joeloewi.croissant.data.common.CroissantWorker
+import com.joeloewi.croissant.data.common.LoggableWorker
 import com.joeloewi.croissant.data.common.WorkerExecutionLogState
 import com.joeloewi.croissant.data.local.model.WorkerExecutionLog
 import com.joeloewi.croissant.data.local.model.relational.WorkerExecutionLogWithState
@@ -18,17 +18,17 @@ interface WorkerExecutionLogDao {
     suspend fun delete(vararg workerExecutionLogs: WorkerExecutionLog): Int
 
     @Transaction
-    @Query("SELECT * FROM WorkerExecutionLog WHERE attendanceId = :attendanceId AND worker = :croissantWorker ORDER BY createdAt DESC")
+    @Query("SELECT * FROM WorkerExecutionLog WHERE attendanceId = :attendanceId AND loggableWorker = :loggableWorker ORDER BY createdAt DESC")
     fun getAllPaged(
         attendanceId: Long,
-        croissantWorker: CroissantWorker
+        loggableWorker: LoggableWorker
     ): PagingSource<Int, WorkerExecutionLogWithState>
 
     @Transaction
-    @Query("SELECT COUNT(*) FROM WorkerExecutionLog WHERE attendanceId = :attendanceId AND worker = :croissantWorker AND state = :state")
+    @Query("SELECT COUNT(*) FROM WorkerExecutionLog WHERE attendanceId = :attendanceId AND loggableWorker = :loggableWorker AND state = :state")
     fun getCountByState(
         attendanceId: Long,
-        croissantWorker: CroissantWorker,
+        loggableWorker: LoggableWorker,
         state: WorkerExecutionLogState
     ): Flow<Long>
 }

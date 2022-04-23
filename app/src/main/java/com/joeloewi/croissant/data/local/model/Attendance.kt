@@ -15,6 +15,7 @@ data class Attendance(
     val uid: Long = 0,
     val hourOfDay: Int = 0,
     val minute: Int = 0,
+    val zoneId: String = "",
     val attendCheckInEventWorkerName: UUID = UUID.randomUUID(),
     val attendCheckInEventWorkerId: UUID = UUID.randomUUID(),
     val checkSessionWorkerName: UUID = UUID.randomUUID(),

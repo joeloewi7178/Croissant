@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
-import com.joeloewi.croissant.data.common.CroissantWorker
+import com.joeloewi.croissant.data.common.LoggableWorker
 import com.joeloewi.croissant.data.local.CroissantDatabase
 import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,7 +24,7 @@ class AttendanceLogsViewModel @Inject constructor(
     private val _croissantWorkerKey = AttendancesDestination.AttendanceLogsScreen.CROISSANT_WORKER
     private val _attendanceId = savedStateHandle.get<Long>(_attendanceIdKey) ?: Long.MIN_VALUE
     private val _croissantWorker =
-        savedStateHandle.get<CroissantWorker>(_croissantWorkerKey) ?: CroissantWorker.UNKNOWN
+        savedStateHandle.get<LoggableWorker>(_croissantWorkerKey) ?: LoggableWorker.UNKNOWN
 
     val pagedAttendanceLogs = Pager(
         config = PagingConfig(
@@ -33,7 +33,7 @@ class AttendanceLogsViewModel @Inject constructor(
         pagingSourceFactory = {
             croissantDatabase.workerExecutionLogDao().getAllPaged(
                 attendanceId = _attendanceId,
-                croissantWorker = _croissantWorker
+                loggableWorker = _croissantWorker
             )
         }
     ).flow.flowOn(Dispatchers.IO).cachedIn(viewModelScope)

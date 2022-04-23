@@ -15,9 +15,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.outlined.*
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -35,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -105,8 +104,8 @@ fun AttendancesContent(
                 onClick = onCreateAttendanceClick
             ) {
                 Icon(
-                    imageVector = Icons.Outlined.Add,
-                    contentDescription = Icons.Outlined.Add.name
+                    imageVector = Icons.Default.Add,
+                    contentDescription = Icons.Default.Add.name
                 )
             }
         },
@@ -115,19 +114,26 @@ fun AttendancesContent(
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
-                    .fillMaxSize(),
+                    .fillMaxSize()
+                    .then(Modifier.padding(DoubleDp)),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
                     modifier = Modifier.fillMaxSize(0.3f),
-                    imageVector = Icons.Outlined.Warning,
-                    contentDescription = Icons.Outlined.Warning.name,
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = Icons.Default.Warning.name,
                     tint = MaterialTheme.colorScheme.primaryContainer
                 )
                 Text(
                     text = "저장된 출석 작업이 없습니다.",
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    text = "출석 작업을 만들어 HoYoLAB 출석 이벤트에 참여할 수 있습니다.",
+                    style = MaterialTheme.typography.titleMedium,
+                    textAlign = TextAlign.Center
                 )
             }
         } else {
@@ -356,8 +362,8 @@ internal fun DismissContent(
                         exit = fadeOut()
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.PlayCircle,
-                            contentDescription = Icons.Outlined.PlayCircle.name
+                            imageVector = Icons.Default.PlayCircle,
+                            contentDescription = Icons.Default.PlayCircle.name
                         )
                     }
 
@@ -367,8 +373,8 @@ internal fun DismissContent(
                         exit = fadeOut()
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.Pending,
-                            contentDescription = Icons.Outlined.Pending.name
+                            imageVector = Icons.Default.Pending,
+                            contentDescription = Icons.Default.Pending.name
                         )
                     }
                 }
@@ -494,29 +500,29 @@ fun WorkInfoStateIndicator(
 
             WorkInfo.State.ENQUEUED -> {
                 Icon(
-                    imageVector = Icons.Outlined.PendingActions,
-                    contentDescription = Icons.Outlined.PendingActions.name
+                    imageVector = Icons.Default.PendingActions,
+                    contentDescription = Icons.Default.PendingActions.name
                 )
             }
 
             WorkInfo.State.RUNNING -> {
                 Icon(
-                    imageVector = Icons.Outlined.Pending,
-                    contentDescription = Icons.Outlined.Pending.name
+                    imageVector = Icons.Default.Pending,
+                    contentDescription = Icons.Default.Pending.name
                 )
             }
 
             else -> {
                 Icon(
-                    imageVector = Icons.Outlined.QuestionMark,
-                    contentDescription = Icons.Outlined.QuestionMark.name
+                    imageVector = Icons.Default.QuestionMark,
+                    contentDescription = Icons.Default.QuestionMark.name
                 )
             }
         }
     } else {
         Icon(
-            imageVector = Icons.Outlined.Error,
-            contentDescription = Icons.Outlined.Error.name
+            imageVector = Icons.Default.Error,
+            contentDescription = Icons.Default.Error.name
         )
     }
 }
