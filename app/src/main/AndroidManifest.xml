@@ -26,11 +26,9 @@
             android:authorities="${applicationId}.androidx-startup"
             android:exported="false"
             tools:node="merge">
-
             <meta-data
                 android:name="com.joeloewi.croissant.initializer.CoilInitializer"
                 android:value="androidx.startup" />
-
             <meta-data
                 android:name="androidx.work.WorkManagerInitializer"
                 android:value="androidx.startup"
@@ -41,11 +39,25 @@
             android:name=".receiver.TimeZoneChangedReceiver"
             android:enabled="true"
             android:exported="true">
-
             <intent-filter>
                 <action android:name="android.intent.action.TIMEZONE_CHANGED" />
             </intent-filter>
         </receiver>
+        <receiver
+            android:name=".receiver.ResinStatusWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/resin_status_widget_info" />
+        </receiver>
+
+        <service
+            android:name=".service.RemoteViewsFactoryService"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
 
         <activity
             android:name=".MainActivity"
@@ -57,7 +69,6 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -67,6 +78,16 @@
                 <data
                     android:host="${applicationId}"
                     android:scheme="@string/deep_link_scheme" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ResinStatusWidgetConfigurationActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppSplash">
+
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
         </activity>
     </application>

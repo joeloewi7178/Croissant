@@ -84,7 +84,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
         .setContentTitle("${nickname}의 출석 작업 - ${context.getString(hoYoLABGame.gameNameResourceId)}")
         .setContentText("${attendanceResponse.message} (${attendanceResponse.retcode})")
         .setAutoCancel(true)
-        .setSmallIcon(R.drawable.ic_launcher_foreground)
+        .setSmallIcon(R.drawable.ic_baseline_bakery_dining_24)
         .apply {
             ImageLoader(context).execute(
                 ImageRequest.Builder(context = context)
@@ -132,7 +132,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
             attendanceWithGames.games.map { game ->
                 //do parallel jobs
                 async {
-                    when (game.name) {
+                    when (game.type) {
                         HoYoLABGame.HonkaiImpact3rd -> {
                             hoYoLABService.attendCheckInHonkaiImpact3rd(cookie = cookie)
                         }
@@ -147,13 +147,13 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                             context = context,
                             channelId = context.getString(R.string.attendance_notification_channel_id),
                             nickname = attendanceWithGames.attendance.nickname,
-                            hoYoLABGame = game.name,
+                            hoYoLABGame = game.type,
                             region = game.region,
                             attendanceResponse = response
                         ).let { notification ->
                             NotificationManagerCompat.from(context).notify(
                                 UUID.randomUUID().toString(),
-                                game.name.gameId,
+                                game.type.gameId,
                                 notification
                             )
                         }
@@ -169,7 +169,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                         croissantDatabase.successLogDao().insert(
                             SuccessLog(
                                 executionLogId = executionLogId,
-                                gameName = game.name,
+                                gameName = game.type,
                                 retCode = response.retcode,
                                 message = response.message
                             )

@@ -2,9 +2,8 @@ package com.joeloewi.croissant
 
 import android.net.Uri
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
@@ -18,7 +17,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -27,8 +25,7 @@ import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.joeloewi.croissant.data.proto.settingsDataStore
-import com.joeloewi.croissant.ui.common.isDarkThemeEnabled
+import com.google.android.material.color.DynamicColors
 import com.joeloewi.croissant.ui.navigation.CroissantNavigation
 import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
 import com.joeloewi.croissant.ui.navigation.attendances.screen.AttendanceDetailScreen
@@ -41,10 +38,10 @@ import com.joeloewi.croissant.ui.navigation.reminders.screen.RemindersScreen
 import com.joeloewi.croissant.ui.navigation.settings.SettingsDestination
 import com.joeloewi.croissant.ui.navigation.settings.screen.SettingsScreen
 import com.joeloewi.croissant.ui.theme.CroissantTheme
+import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.viewmodel.*
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ObsoleteCoroutinesApi
-import kotlinx.coroutines.flow.map
 
 @ExperimentalFoundationApi
 @ObsoleteCoroutinesApi
@@ -53,34 +50,25 @@ import kotlinx.coroutines.flow.map
 @ExperimentalMaterial3Api
 @ExperimentalComposeUiApi
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-
         installSplashScreen()
 
+        DynamicColors.applyToActivityIfAvailable(this)
+
         setContent {
-            val systemUiController = rememberSystemUiController()
-            val useDarkIcons = !isDarkThemeEnabled()
+            val mainViewModel: MainViewModel = hiltViewModel()
 
-            SideEffect {
-                systemUiController.apply {
-                    setSystemBarsColor(Color.Transparent, darkIcons = useDarkIcons)
-                    setStatusBarColor(Color.Transparent, darkIcons = useDarkIcons)
-                    setNavigationBarColor(Color.Transparent, darkIcons = useDarkIcons)
-                }
-            }
-
-            CroissantTheme(
-                darkTheme = isDarkThemeEnabled()
-            ) {
+            CroissantTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    CroissantApp()
+                    CompositionLocalProvider(LocalActivity provides this) {
+                        CroissantApp()
+                    }
                 }
             }
         }
@@ -111,14 +99,6 @@ fun CroissantApp() {
         .build()
 
     Scaffold(
-        topBar = {
-            Spacer(
-                modifier = Modifier.padding(
-                    WindowInsets.statusBars.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
-                        .asPaddingValues()
-                )
-            )
-        },
         bottomBar = {
             Column {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -174,11 +154,6 @@ fun CroissantApp() {
                         }
                     }
                 }
-                Spacer(
-                    Modifier
-                        .windowInsetsBottomHeight(WindowInsets.navigationBars)
-                        .fillMaxWidth()
-                )
             }
         }
     ) { innerPadding ->
@@ -212,11 +187,8 @@ fun CroissantApp() {
                     composable(
                         route = AttendancesDestination.LoginHoYoLabScreen.route,
                     ) {
-                        val loginHoYoLABViewModel: LoginHoYoLABViewModel = hiltViewModel()
-
                         LoginHoYoLABScreen(
-                            navController = navController,
-                            loginHoYoLABViewModel = loginHoYoLABViewModel
+                            navController = navController
                         )
                     }
 

@@ -6,18 +6,20 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
-    indices = [Index("reminderId")],
+    indices = [Index("resinStatusWidgetId")],
     foreignKeys = [
         ForeignKey(
-            entity = Reminder::class,
+            entity = ResinStatusWidget::class,
             parentColumns = arrayOf("id"),
-            childColumns = arrayOf("reminderId"),
+            childColumns = arrayOf("resinStatusWidgetId"),
             onDelete = ForeignKey.CASCADE
         )
     ]
 )
-data class ScheduledDay(
-    @PrimaryKey val id: Long = 0,
-    val reminderId: Long = 0,
-    val dayOfWeek: Int = 0
+data class Account(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val resinStatusWidgetId: Long = 0,
+    val cookie: String = "",
+    val uid: Long = 0
 )

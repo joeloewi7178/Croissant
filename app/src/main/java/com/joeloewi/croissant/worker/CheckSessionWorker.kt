@@ -1,11 +1,9 @@
 package com.joeloewi.croissant.worker
 
 import android.app.Notification
-import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.TaskStackBuilder
@@ -21,6 +19,7 @@ import com.joeloewi.croissant.data.local.model.SuccessLog
 import com.joeloewi.croissant.data.local.model.WorkerExecutionLog
 import com.joeloewi.croissant.data.remote.dao.HoYoLABService
 import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
+import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
@@ -59,18 +58,11 @@ class CheckSessionWorker @AssistedInject constructor(
         .setContentTitle("접속 정보 유효성 검사 실패")
         .setContentText("상세 화면에서 접속 정보를 갱신해주세요.")
         .setAutoCancel(true)
-        .setSmallIcon(R.drawable.ic_launcher_foreground)
+        .setSmallIcon(R.drawable.ic_baseline_bakery_dining_24)
         .apply {
-
-            val pendingIntentFlag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            } else {
-                PendingIntent.FLAG_UPDATE_CURRENT
-            }
-
             val pendingIntent = TaskStackBuilder.create(context).run {
                 addNextIntentWithParentStack(getAttendanceDetailIntent())
-                getPendingIntent(0, pendingIntentFlag)
+                getPendingIntent(0, pendingIntentFlagUpdateCurrent)
             }
 
             setContentIntent(pendingIntent)

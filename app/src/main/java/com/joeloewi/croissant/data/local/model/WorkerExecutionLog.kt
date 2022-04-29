@@ -6,6 +6,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.joeloewi.croissant.data.common.LoggableWorker
 import com.joeloewi.croissant.data.common.WorkerExecutionLogState
+import org.threeten.bp.ZoneId
 
 @Entity(
     indices = [Index("attendanceId")],
@@ -23,6 +24,7 @@ data class WorkerExecutionLog(
     val id: Long = 0,
     val attendanceId: Long = 0,
     val createdAt: Long = System.currentTimeMillis(),
+    val timezoneId: String = ZoneId.systemDefault().id,
     val state: WorkerExecutionLogState = WorkerExecutionLogState.SUCCESS,
     val loggableWorker: LoggableWorker = LoggableWorker.UNKNOWN,
 )

@@ -17,6 +17,8 @@ data class GameRecord(
     @Json(name = "region_name")
     val regionName: String = "",
     val region: String = "",
+    @Json(name = "data_switches")
+    val dataSwitches: List<DataSwitch> = listOf(),
     @Transient
     val hoYoLABGame: HoYoLABGame = HoYoLABGame.Unknown
 )

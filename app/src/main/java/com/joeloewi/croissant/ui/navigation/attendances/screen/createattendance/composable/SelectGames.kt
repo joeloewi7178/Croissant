@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Warning
@@ -39,7 +38,6 @@ import kotlinx.coroutines.ObsoleteCoroutinesApi
 @ExperimentalFoundationApi
 @ObsoleteCoroutinesApi
 @ExperimentalMaterial3Api
-@ExperimentalMaterialApi
 @Composable
 fun SelectGames(
     checkedGames: SnapshotStateList<Game>,
@@ -235,7 +233,6 @@ fun SelectGames(
 }
 
 @ExperimentalMaterial3Api
-@ExperimentalMaterialApi
 @Composable
 fun ConnectedGamesListItemPlaceholder() {
     ListItem(
@@ -302,14 +299,14 @@ fun ConnectedGamesListItemPlaceholder() {
 }
 
 @ExperimentalMaterial3Api
-@ExperimentalMaterialApi
 @Composable
 fun ConnectedGamesContentListItem(
     checkedGames: SnapshotStateList<Game>,
     gameRecord: GameRecord
 ) {
     val game = Game(
-        name = gameRecord.hoYoLABGame,
+        roleId = gameRecord.gameRoleId,
+        type = gameRecord.hoYoLABGame,
         region = gameRecord.region
     )
 
@@ -322,7 +319,8 @@ fun ConnectedGamesContentListItem(
                     if (checked) {
                         checkedGames.add(
                             Game(
-                                name = gameRecord.hoYoLABGame,
+                                roleId = gameRecord.gameRoleId,
+                                type = gameRecord.hoYoLABGame,
                                 region = gameRecord.region
                             )
                         )

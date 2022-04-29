@@ -6,3 +6,7 @@ option java_multiple_files = true;
 message Settings {
   bool darkThemeEnabled = 1;
 }
+
+message Widget {
+  bool isUpdating = 1;
+}

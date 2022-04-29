@@ -4,6 +4,7 @@ import androidx.paging.PagingSource
 import androidx.room.*
 import com.joeloewi.croissant.data.local.model.Attendance
 import com.joeloewi.croissant.data.local.model.relational.AttendanceWithGames
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AttendanceDao {
@@ -21,6 +22,14 @@ interface AttendanceDao {
     suspend fun getOne(id: Long): AttendanceWithGames
 
     @Transaction
+    @Query("SELECT * FROM Attendance WHERE id IN (:ids)")
+    suspend fun getByIds(vararg ids: Long): List<AttendanceWithGames>
+
+    @Transaction
     @Query("SELECT * FROM Attendance ORDER BY createdAt DESC")
     fun getAllPaged(): PagingSource<Int, AttendanceWithGames>
+
+    @Transaction
+    @Query("SELECT * FROM Attendance ORDER BY createdAt DESC")
+    fun getAll(): Flow<List<AttendanceWithGames>>
 }

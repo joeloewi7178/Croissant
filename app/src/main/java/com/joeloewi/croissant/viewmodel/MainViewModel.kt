@@ -1,26 +1,28 @@
 package com.joeloewi.croissant.viewmodel
 
 import android.app.Application
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.joeloewi.croissant.Settings
+import androidx.work.*
 import com.joeloewi.croissant.data.proto.settingsDataStore
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    application: Application
+    application: Application,
 ) : ViewModel() {
-    val settings = application.settingsDataStore.data
-        .flowOn(Dispatchers.IO)
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(),
-            initialValue = Settings.getDefaultInstance()
-        )
+
+    init {
+        application.settingsDataStore.data.map { it.darkThemeEnabled }.distinctUntilChanged()
+            .onEach {
+                if (it) {
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+                } else {
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+                }
+            }.launchIn(viewModelScope)
+    }
 }

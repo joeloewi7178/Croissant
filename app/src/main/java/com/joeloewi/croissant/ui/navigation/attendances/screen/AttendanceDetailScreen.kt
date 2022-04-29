@@ -23,7 +23,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
@@ -36,11 +35,12 @@ import com.joeloewi.croissant.data.common.LoggableWorker
 import com.joeloewi.croissant.data.local.model.Game
 import com.joeloewi.croissant.data.remote.model.common.GameRecord
 import com.joeloewi.croissant.state.Lce
-import com.joeloewi.croissant.ui.common.getResultFromPreviousComposable
-import com.joeloewi.croissant.ui.common.navigationIconButton
+import com.joeloewi.croissant.util.ProgressDialog
 import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.IconDp
+import com.joeloewi.croissant.util.getResultFromPreviousComposable
+import com.joeloewi.croissant.util.navigationIconButton
 import com.joeloewi.croissant.viewmodel.AttendanceDetailViewModel
 
 @ExperimentalFoundationApi
@@ -335,27 +335,10 @@ fun AttendanceDetailContent(
         }
 
         if (showUpdateAttendanceProgressDialog) {
-            AlertDialog(
+            ProgressDialog(
                 onDismissRequest = {
                     onShowUpdateAttendanceProgressDialogChange(false)
-                },
-                confirmButton = {},
-                icon = {
-                    Icon(
-                        imageVector = Icons.Default.Pending,
-                        contentDescription = Icons.Default.Pending.name
-                    )
-                },
-                title = {
-                    Text(text = "저장 중")
-                },
-                text = {
-                    Text(text = "잠시만 기다려주세요.")
-                },
-                properties = DialogProperties(
-                    dismissOnClickOutside = false,
-                    dismissOnBackPress = false
-                )
+                }
             )
         }
     }
@@ -369,7 +352,8 @@ fun ConnectedGameListItem(
     checkedGames: SnapshotStateList<Game>
 ) {
     val game = Game(
-        name = gameRecord.hoYoLABGame,
+        roleId = gameRecord.gameRoleId,
+        type = gameRecord.hoYoLABGame,
         region = gameRecord.region
     )
 

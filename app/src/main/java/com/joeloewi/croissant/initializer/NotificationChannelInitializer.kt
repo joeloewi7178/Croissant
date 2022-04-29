@@ -13,7 +13,6 @@ class NotificationChannelInitializer : Initializer<List<NotificationChannelCompa
             listOf(
                 getString(R.string.attendance_notification_channel_id) to getString(R.string.attendance_notification_channel_name),
                 getString(R.string.check_session_notification_channel_id) to getString(R.string.check_session_notification_channel_name),
-                getString(R.string.reminder_notification_channel_id) to getString(R.string.reminder_notification_channel_name),
                 getString(R.string.time_zone_changed_notification_channel_id) to getString(R.string.time_zone_changed_notification_channel_name)
             )
         }.filter { pair ->

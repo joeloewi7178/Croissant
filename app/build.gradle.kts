@@ -10,6 +10,7 @@ plugins {
     `kotlin-parcelize`
     id("com.google.protobuf") version "0.8.12"
     id("dagger.hilt.android.plugin")
+    id("org.jetbrains.kotlin.android")
 }
 
 android {
@@ -162,6 +163,9 @@ dependencies {
 
     //datastore
     implementation("androidx.datastore:datastore:1.0.0")
+
+    // https://mvnrepository.com/artifact/com.google.android.material/compose-theme-adapter-3
+    implementation("com.google.android.material:compose-theme-adapter-3:1.0.7")
 }
 
 kapt {

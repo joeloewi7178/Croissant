@@ -49,12 +49,12 @@ import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
 import com.joeloewi.croissant.data.local.model.Attendance
 import com.joeloewi.croissant.data.local.model.relational.AttendanceWithGames
-import com.joeloewi.croissant.ui.common.isEmpty
 import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.ui.theme.HalfDp
 import com.joeloewi.croissant.ui.theme.IconDp
+import com.joeloewi.croissant.util.isEmpty
 import com.joeloewi.croissant.viewmodel.AttendancesViewModel
 import com.joeloewi.croissant.worker.AttendCheckInEventWorker
 
@@ -289,7 +289,7 @@ internal fun DismissContent(
     ) {
         Row(
             modifier = Modifier
-                .padding(16.dp),
+                .padding(DoubleDp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -334,7 +334,7 @@ internal fun DismissContent(
                                 .animateItemPlacement()
                                 .size(IconDp),
                             model = ImageRequest.Builder(LocalContext.current)
-                                .data(game.name.gameIconUrl)
+                                .data(game.type.gameIconUrl)
                                 .build(),
                             contentDescription = null
                         )

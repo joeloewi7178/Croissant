@@ -19,7 +19,5 @@ object DatabaseModule {
             application,
             CroissantDatabase::class.java,
             "croissant"
-        )
-            .enableMultiInstanceInvalidation()
-            .build()
+        ).build()
 }

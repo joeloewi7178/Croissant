@@ -124,7 +124,7 @@ class CreateAttendanceViewModel @Inject constructor(
                     uid = userInfo.value.content!!.uid,
                     hourOfDay = hourOfDay,
                     minute = minute,
-                    zoneId = ZoneId.systemDefault().id
+                    timezoneId = ZoneId.systemDefault().id
                 )
 
                 with(attendance) {

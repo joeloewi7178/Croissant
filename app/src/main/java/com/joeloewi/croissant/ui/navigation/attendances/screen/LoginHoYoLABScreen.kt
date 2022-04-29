@@ -36,8 +36,6 @@ import androidx.navigation.NavController
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebSettingsCompat.FORCE_DARK_ON
 import androidx.webkit.WebViewFeature
-import com.joeloewi.croissant.ui.common.isDarkThemeEnabled
-import com.joeloewi.croissant.viewmodel.LoginHoYoLABViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -48,8 +46,7 @@ const val COOKIE = "cookie"
 @ExperimentalMaterial3Api
 @Composable
 fun LoginHoYoLABScreen(
-    navController: NavController,
-    loginHoYoLABViewModel: LoginHoYoLABViewModel
+    navController: NavController
 ) {
     LoginHoYoLABContent(
         onClickClose = {
@@ -214,7 +211,7 @@ fun LoginHoYoLABContent(
         val localContext = LocalContext.current
         val excludedUrls = listOf("www.webstatic-sea.mihoyo.com", "www.webstatic-sea.hoyolab.com")
         val (webViewState, onWebViewStateChange) = rememberSaveable { mutableStateOf<Bundle?>(null) }
-        val darkTheme = isDarkThemeEnabled()
+        val darkTheme = isSystemInDarkTheme()
 
         BackHandler(canGoBack) {
             webView?.goBack()

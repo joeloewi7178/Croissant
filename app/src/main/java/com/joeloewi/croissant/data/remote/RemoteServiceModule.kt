@@ -16,7 +16,7 @@ object RemoteServiceModule {
     @Provides
     fun provideHoYoLabService(retrofitBuilder: Retrofit.Builder): HoYoLABService =
         retrofitBuilder
-            .baseUrl("https://bbs-api-os.hoyolab.com/")
+            .baseUrl("https://bbs-api-os.hoyoverse.com/")
             .build()
             .create(HoYoLABService::class.java)
 }

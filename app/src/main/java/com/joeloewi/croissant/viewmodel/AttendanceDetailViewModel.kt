@@ -6,13 +6,12 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.*
-import com.joeloewi.croissant.data.common.LoggableWorker
 import com.joeloewi.croissant.data.common.HoYoLABGame
+import com.joeloewi.croissant.data.common.LoggableWorker
 import com.joeloewi.croissant.data.common.WorkerExecutionLogState
 import com.joeloewi.croissant.data.local.CroissantDatabase
 import com.joeloewi.croissant.data.local.model.Game
 import com.joeloewi.croissant.data.remote.dao.HoYoLABService
-import com.joeloewi.croissant.data.remote.model.response.UserFullInfoResponse
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
 import com.joeloewi.croissant.worker.AttendCheckInEventWorker
@@ -248,7 +247,7 @@ class AttendanceDetailViewModel @Inject constructor(
                         uid = _uid.value,
                         hourOfDay = _hourOfDay.value,
                         minute = _minute.value,
-                        zoneId = ZoneId.systemDefault().id,
+                        timezoneId = ZoneId.systemDefault().id,
                         attendCheckInEventWorkerId = periodicAttendanceCheckInEventWork.id,
                         checkSessionWorkerId = periodicCheckSessionWork.id
                     )
@@ -262,10 +261,17 @@ class AttendanceDetailViewModel @Inject constructor(
                     croissantDatabase.gameDao().delete(*games.toTypedArray())
                 } else {
                     games.forEach { game ->
-                        if (!checkedGames.contains(game.copy(id = 0, attendanceId = 0))) {
+                        if (!checkedGames.contains(
+                                game.copy(
+                                    id = 0,
+                                    attendanceId = 0,
+                                    roleId = 0
+                                )
+                            )
+                        ) {
                             croissantDatabase.gameDao().delete(game)
                         } else {
-                            originalGames.add(game.copy(id = 0, attendanceId = 0))
+                            originalGames.add(game.copy(id = 0, attendanceId = 0, roleId = 0))
                         }
                     }
 
@@ -274,7 +280,8 @@ class AttendanceDetailViewModel @Inject constructor(
                             newGames.add(
                                 Game(
                                     attendanceId = attendance.id,
-                                    name = game.name,
+                                    roleId = game.roleId,
+                                    type = game.type,
                                     region = game.region
                                 )
                             )

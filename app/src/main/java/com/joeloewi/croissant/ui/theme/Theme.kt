@@ -1,30 +1,28 @@
 package com.joeloewi.croissant.ui.theme
 
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.google.android.material.composethemeadapter3.Mdc3Theme
 
 @Composable
-fun CroissantTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
-    val localContext = LocalContext.current
+fun CroissantTheme(
+    content: @Composable () -> Unit
+) {
+    val systemUiController = rememberSystemUiController()
+    val useDarkIcons = !isSystemInDarkTheme()
 
-    MaterialTheme(
-        colorScheme = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (darkTheme) {
-                dynamicDarkColorScheme(localContext)
-            } else {
-                dynamicLightColorScheme(localContext)
-            }
-        } else {
-            if (darkTheme) {
-                darkColorScheme()
-            } else {
-                lightColorScheme()
-            }
-        },
-        typography = Typography(),
+    SideEffect {
+        systemUiController.apply {
+            setSystemBarsColor(Color.Transparent, darkIcons = useDarkIcons)
+            setStatusBarColor(Color.Transparent, darkIcons = useDarkIcons)
+            setNavigationBarColor(Color.Transparent, darkIcons = useDarkIcons)
+        }
+    }
+
+    Mdc3Theme(
         content = content
     )
 }

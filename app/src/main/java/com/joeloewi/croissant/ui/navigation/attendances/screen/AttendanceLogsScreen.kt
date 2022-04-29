@@ -19,9 +19,9 @@ import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
 import com.joeloewi.croissant.data.common.WorkerExecutionLogState
 import com.joeloewi.croissant.data.local.model.relational.WorkerExecutionLogWithState
-import com.joeloewi.croissant.ui.common.navigationIconButton
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.IconDp
+import com.joeloewi.croissant.util.navigationIconButton
 import com.joeloewi.croissant.viewmodel.AttendanceLogsViewModel
 import org.threeten.bp.Instant
 import org.threeten.bp.ZoneId

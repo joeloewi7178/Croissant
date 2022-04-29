@@ -7,3 +7,8 @@ val Context.settingsDataStore by dataStore(
     fileName = "settings.pb",
     serializer = SettingsSerializer
 )
+
+val Context.widgetDataStore by dataStore(
+    fileName = "widget.pb",
+    serializer = WidgetSerializer
+)

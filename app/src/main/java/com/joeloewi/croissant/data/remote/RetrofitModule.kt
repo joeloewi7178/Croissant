@@ -1,8 +1,6 @@
 package com.joeloewi.croissant.data.remote
 
-import com.joeloewi.croissant.data.remote.model.response.AttendanceResponse
-import com.joeloewi.croissant.data.remote.model.response.GameRecordCardResponse
-import com.joeloewi.croissant.data.remote.model.response.UserFullInfoResponse
+import com.joeloewi.croissant.data.remote.model.response.*
 import com.joeloewi.croissant.data.remote.model.response.base.BaseResponse
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
@@ -39,6 +37,14 @@ object RetrofitModule {
             .withSubtype(
                 AttendanceResponse::class.java,
                 AttendanceResponse::class.java.simpleName
+            )
+            .withSubtype(
+                GenshinDailyNoteResponse::class.java,
+                GenshinDailyNoteResponse::class.java.simpleName
+            )
+            .withSubtype(
+                ChangeDataSwitchResponse::class.java,
+                ChangeDataSwitchResponse::class.java.simpleName
             )
     ).build()
 

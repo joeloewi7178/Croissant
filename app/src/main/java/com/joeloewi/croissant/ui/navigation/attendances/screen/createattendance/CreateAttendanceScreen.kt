@@ -6,9 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Pending
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -26,21 +24,21 @@ import com.google.accompanist.pager.rememberPagerState
 import com.joeloewi.croissant.data.local.model.Game
 import com.joeloewi.croissant.data.remote.model.common.GameRecord
 import com.joeloewi.croissant.state.Lce
-import com.joeloewi.croissant.ui.common.getResultFromPreviousComposable
-import com.joeloewi.croissant.ui.common.navigationIconButton
+import com.joeloewi.croissant.util.ProgressDialog
 import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
 import com.joeloewi.croissant.ui.navigation.attendances.screen.COOKIE
 import com.joeloewi.croissant.ui.navigation.attendances.screen.createattendance.composable.GetSession
 import com.joeloewi.croissant.ui.navigation.attendances.screen.createattendance.composable.SelectGames
 import com.joeloewi.croissant.ui.navigation.attendances.screen.createattendance.composable.SetTime
 import com.joeloewi.croissant.ui.theme.DefaultDp
+import com.joeloewi.croissant.util.getResultFromPreviousComposable
+import com.joeloewi.croissant.util.navigationIconButton
 import com.joeloewi.croissant.viewmodel.CreateAttendanceViewModel
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.launch
 
 @ExperimentalFoundationApi
 @ObsoleteCoroutinesApi
-@ExperimentalMaterialApi
 @ExperimentalPagerApi
 @ExperimentalMaterial3Api
 @Composable
@@ -78,7 +76,6 @@ fun CreateAttendanceScreen(
 
 @ExperimentalFoundationApi
 @ObsoleteCoroutinesApi
-@ExperimentalMaterialApi
 @ExperimentalPagerApi
 @ExperimentalMaterial3Api
 @Composable
@@ -237,7 +234,8 @@ fun CreateAttendanceContent(
                                         connectedGames.content.onEach { gameRecord ->
                                             checkedGames.add(
                                                 Game(
-                                                    name = gameRecord.hoYoLABGame,
+                                                    roleId = gameRecord.gameRoleId,
+                                                    type = gameRecord.hoYoLABGame,
                                                     region = gameRecord.region
                                                 )
                                             )
@@ -324,27 +322,10 @@ fun CreateAttendanceContent(
         }
 
         if (showCreateAttendanceProgressDialog) {
-            AlertDialog(
+            ProgressDialog(
                 onDismissRequest = {
                     onShowCreateAttendanceProgressDialogChange(false)
-                },
-                confirmButton = {},
-                icon = {
-                    Icon(
-                        imageVector = Icons.Default.Pending,
-                        contentDescription = Icons.Default.Pending.name
-                    )
-                },
-                title = {
-                    Text(text = "저장 중")
-                },
-                text = {
-                    Text(text = "잠시만 기다려주세요.")
-                },
-                properties = DialogProperties(
-                    dismissOnClickOutside = false,
-                    dismissOnBackPress = false
-                )
+                }
             )
         }
     }

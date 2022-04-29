@@ -2,6 +2,7 @@ package com.joeloewi.croissant.data.local.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import org.threeten.bp.ZoneId
 import java.util.*
 
 @Entity
@@ -15,7 +16,7 @@ data class Attendance(
     val uid: Long = 0,
     val hourOfDay: Int = 0,
     val minute: Int = 0,
-    val zoneId: String = "",
+    val timezoneId: String = ZoneId.systemDefault().id,
     val attendCheckInEventWorkerName: UUID = UUID.randomUUID(),
     val attendCheckInEventWorkerId: UUID = UUID.randomUUID(),
     val checkSessionWorkerName: UUID = UUID.randomUUID(),

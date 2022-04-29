@@ -10,10 +10,10 @@ import com.joeloewi.croissant.data.local.model.*
         Attendance::class,
         WorkerExecutionLog::class,
         Game::class,
-        Reminder::class,
-        ScheduledDay::class,
         SuccessLog::class,
-        FailureLog::class
+        FailureLog::class,
+        ResinStatusWidget::class,
+        Account::class
     ],
     exportSchema = true,
     version = CroissantDatabase.LATEST_VERSION
@@ -22,9 +22,10 @@ abstract class CroissantDatabase : RoomDatabase() {
     abstract fun attendanceDao(): AttendanceDao
     abstract fun workerExecutionLogDao(): WorkerExecutionLogDao
     abstract fun gameDao(): GameDao
-    abstract fun reminderDao(): ReminderDao
     abstract fun successLogDao(): SuccessLogDao
     abstract fun failureLogDao(): FailureLogDao
+    abstract fun resinStatusWidgetDao(): ResinStatusWidgetDao
+    abstract fun accountDao(): AccountDao
 
     companion object {
         const val LATEST_VERSION = 1

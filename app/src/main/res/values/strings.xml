@@ -11,8 +11,7 @@
     <string name="attendance_notification_channel_name">출석 알림</string>
     <string name="check_session_notification_channel_id">check_session_notification_channel_id</string>
     <string name="check_session_notification_channel_name">접속 정보 유효성 알림</string>
-    <string name="reminder_notification_channel_id">reminder_notification_channel_id</string>
-    <string name="reminder_notification_channel_name">알리미 알림</string>
     <string name="time_zone_changed_notification_channel_id">timezone_changed_notification_channel_id</string>
     <string name="time_zone_changed_notification_channel_name">시간대 변경 알림</string>
+    <string name="resin_status_widget_description">원신 레진 현황 위젯</string>
 </resources>
