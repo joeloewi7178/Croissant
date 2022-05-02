@@ -3,6 +3,7 @@ package com.joeloewi.croissant.worker
 import android.app.Notification
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -19,6 +20,7 @@ import com.joeloewi.croissant.data.local.model.SuccessLog
 import com.joeloewi.croissant.data.local.model.WorkerExecutionLog
 import com.joeloewi.croissant.data.remote.dao.HoYoLABService
 import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
+import com.joeloewi.croissant.util.CroissantPermission
 import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -125,11 +127,17 @@ class CheckSessionWorker @AssistedInject constructor(
                     context = context,
                     channelId = context.getString(R.string.check_session_notification_channel_id),
                 ).let { notification ->
-                    NotificationManagerCompat.from(context).notify(
-                        UUID.randomUUID().toString(),
-                        0,
-                        notification
-                    )
+                    if (context.packageManager.checkPermission(
+                            CroissantPermission.PostNotifications.permission,
+                            context.packageName
+                        ) == PackageManager.PERMISSION_GRANTED
+                    ) {
+                        NotificationManagerCompat.from(context).notify(
+                            UUID.randomUUID().toString(),
+                            0,
+                            notification
+                        )
+                    }
                 }
 
                 Result.failure()

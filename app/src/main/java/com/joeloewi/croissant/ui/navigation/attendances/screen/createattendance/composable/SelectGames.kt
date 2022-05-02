@@ -29,10 +29,10 @@ import com.joeloewi.croissant.data.common.HoYoLABGame
 import com.joeloewi.croissant.data.local.model.Game
 import com.joeloewi.croissant.data.remote.model.common.GameRecord
 import com.joeloewi.croissant.state.Lce
-import com.joeloewi.croissant.ui.common.ListItem
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.ui.theme.IconDp
+import com.joeloewi.croissant.util.ListItem
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 
 @ExperimentalFoundationApi
@@ -47,18 +47,17 @@ fun SelectGames(
     val snackbarHostState = remember { SnackbarHostState() }
     val supportedGames = listOf(
         HoYoLABGame.HonkaiImpact3rd,
-        HoYoLABGame.GenshinImpact
+        HoYoLABGame.GenshinImpact,
+        HoYoLABGame.TearsOfThemis
     )
 
     LaunchedEffect(connectedGames) {
         when (connectedGames) {
             is Lce.Content -> {
-                connectedGames.content.forEach {
-                    if (!supportedGames.contains(it.hoYoLABGame)) {
-                        snackbarHostState.apply {
-                            currentSnackbarData?.dismiss()
-                            showSnackbar(message = "지원되지 않는 게임입니다. 추후 업데이트를 기다려주세요.")
-                        }
+                if (connectedGames.content.any { !supportedGames.contains(HoYoLABGame.findByGameId(it.gameId)) }) {
+                    snackbarHostState.apply {
+                        currentSnackbarData?.dismiss()
+                        showSnackbar(message = "지원되지 않는 게임입니다. 추후 업데이트를 기다려주세요.")
                     }
                 }
             }
@@ -136,7 +135,7 @@ fun SelectGames(
                 Text(
                     modifier = Modifier.animateItemPlacement(),
                     text = "출석할 게임 선택하기",
-                    style = MaterialTheme.typography.headlineMedium
+                    style = MaterialTheme.typography.headlineSmall
                 )
             }
 
@@ -188,12 +187,15 @@ fun SelectGames(
                         }
                     } else {
                         items(
-                            items = connectedGames.content,
-                            key = { "${it.gameId}${it.region}" }
-                        ) { gameRecord ->
+                            items = HoYoLABGame.values().filter { it != HoYoLABGame.Unknown },
+                            key = { it.name }
+                        ) { item ->
                             ConnectedGamesContentListItem(
+                                modifier = Modifier.animateItemPlacement(),
                                 checkedGames = checkedGames,
-                                gameRecord = gameRecord
+                                hoYoLABGame = item,
+                                gameRecord = connectedGames.content.find { it.gameId == item.gameId }
+                                    ?: GameRecord()
                             )
                         }
                     }
@@ -301,17 +303,19 @@ fun ConnectedGamesListItemPlaceholder() {
 @ExperimentalMaterial3Api
 @Composable
 fun ConnectedGamesContentListItem(
+    modifier: Modifier,
     checkedGames: SnapshotStateList<Game>,
+    hoYoLABGame: HoYoLABGame,
     gameRecord: GameRecord
 ) {
     val game = Game(
         roleId = gameRecord.gameRoleId,
-        type = gameRecord.hoYoLABGame,
+        type = hoYoLABGame,
         region = gameRecord.region
     )
 
     ListItem(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .toggleable(
                 value = checkedGames.contains(game),
@@ -320,7 +324,7 @@ fun ConnectedGamesContentListItem(
                         checkedGames.add(
                             Game(
                                 roleId = gameRecord.gameRoleId,
-                                type = gameRecord.hoYoLABGame,
+                                type = hoYoLABGame,
                                 region = gameRecord.region
                             )
                         )
@@ -338,7 +342,7 @@ fun ConnectedGamesContentListItem(
                     model = ImageRequest.Builder(
                         LocalContext.current
                     )
-                        .data(gameRecord.hoYoLABGame.gameIconUrl)
+                        .data(hoYoLABGame.gameIconUrl)
                         .build(),
                     contentDescription = null
                 )
@@ -351,7 +355,7 @@ fun ConnectedGamesContentListItem(
             )
         },
         text = {
-            Text(text = stringResource(id = gameRecord.hoYoLABGame.gameNameResourceId))
+            Text(text = stringResource(id = hoYoLABGame.gameNameResourceId))
         },
         secondaryText = {
             Text(text = "${gameRecord.regionName} (${gameRecord.region})")

@@ -5,11 +5,13 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.joeloewi.croissant.R
+import com.joeloewi.croissant.util.CroissantPermission
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.*
 import javax.inject.Inject
@@ -34,7 +36,7 @@ class TimeZoneChangedReceiver @Inject constructor(
         .setContentTitle("시간대 변경 감지")
         .setContentText("이전에 작성된 작업들이 의도대로 동작하지 않을 수 있습니다.")
         .setAutoCancel(true)
-        .setSmallIcon(R.drawable.ic_launcher_foreground)
+        .setSmallIcon(R.drawable.ic_baseline_bakery_dining_24)
         .apply {
             val pendingIntentFlag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
@@ -64,11 +66,17 @@ class TimeZoneChangedReceiver @Inject constructor(
                         context = this,
                         channelId = getString(R.string.time_zone_changed_notification_channel_id)
                     ).let { notification ->
-                        NotificationManagerCompat.from(context).notify(
-                            UUID.randomUUID().toString(),
-                            0,
-                            notification
-                        )
+                        if (packageManager?.checkPermission(
+                                CroissantPermission.PostNotifications.permission,
+                                packageName
+                            ) == PackageManager.PERMISSION_GRANTED
+                        ) {
+                            NotificationManagerCompat.from(this).notify(
+                                UUID.randomUUID().toString(),
+                                0,
+                                notification
+                            )
+                        }
                     }
                 }
             }

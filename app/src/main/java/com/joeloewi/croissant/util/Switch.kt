@@ -1,4 +1,4 @@
-package com.joeloewi.croissant.ui.common
+package com.joeloewi.croissant.util
 
 import androidx.compose.material.SwitchDefaults
 import androidx.compose.material3.MaterialTheme

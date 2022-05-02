@@ -2,10 +2,10 @@ package com.joeloewi.croissant.ui.navigation
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.Redeem
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.TaskAlt
-import androidx.compose.material.icons.outlined.Event
+import androidx.compose.material.icons.outlined.Redeem
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.TaskAlt
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -25,12 +25,12 @@ sealed class CroissantNavigation(
             resourceId = R.string.navigation_label_attendance
         )
 
-    object Reminders :
+    object RedemptionCodes :
         CroissantNavigation(
-            route = "reminders",
-            filledIcon = Icons.Filled.Event,
-            outlinedIcon = Icons.Outlined.Event,
-            resourceId = R.string.navigation_label_reminder
+            route = "redemptionCodes",
+            filledIcon = Icons.Filled.Redeem,
+            outlinedIcon = Icons.Outlined.Redeem,
+            resourceId = R.string.navigation_label_redemption_codes
         )
 
     object Settings :

@@ -3,7 +3,26 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.joeloewi.croissant">
 
+    <uses-permission android:name="${applicationId}.permission.ACCESS_HOYOLAB_SESSION" />
+    <!-- back porting of notification permssion -->
+    <uses-permission
+        android:name="${applicationId}.permission.POST_NOTIFICATIONS"
+        android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <permission
+        android:name="${applicationId}.permission.ACCESS_HOYOLAB_SESSION"
+        android:description="@string/permission_access_hoyolab_session_description"
+        android:icon="@drawable/ic_baseline_cookie_24"
+        android:label="@string/permission_access_hoyolab_session_label"
+        android:protectionLevel="dangerous" />
+
+    <permission
+        android:name="${applicationId}.permission.POST_NOTIFICATIONS"
+        android:description="@string/permission_post_notification_description"
+        android:icon="@drawable/ic_baseline_notifications_24"
+        android:label="@string/permission_post_notification_label"
+        android:protectionLevel="dangerous" />
 
     <application
         android:name=".CroissantApplication"
@@ -28,6 +47,15 @@
             tools:node="merge">
             <meta-data
                 android:name="com.joeloewi.croissant.initializer.CoilInitializer"
+                android:value="androidx.startup" />
+            <meta-data
+                android:name="com.joeloewi.croissant.initializer.NotificationChannelInitializer"
+                android:value="androidx.startup" />
+            <meta-data
+                android:name="com.joeloewi.croissant.initializer.DynamicColorInitializer"
+                android:value="androidx.startup" />
+            <meta-data
+                android:name="com.joeloewi.croissant.initializer.ThreeTenABPInitializer"
                 android:value="androidx.startup" />
             <meta-data
                 android:name="androidx.work.WorkManagerInitializer"
@@ -62,8 +90,8 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.AppSplash"
-            android:windowSoftInputMode="adjustResize">
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppSplash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -84,6 +112,7 @@
         <activity
             android:name=".ResinStatusWidgetConfigurationActivity"
             android:exported="false"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.AppSplash">
 
             <intent-filter>

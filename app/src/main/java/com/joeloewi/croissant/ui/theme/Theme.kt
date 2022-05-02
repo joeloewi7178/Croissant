@@ -15,11 +15,11 @@ fun CroissantTheme(
     val useDarkIcons = !isSystemInDarkTheme()
 
     SideEffect {
-        systemUiController.apply {
-            setSystemBarsColor(Color.Transparent, darkIcons = useDarkIcons)
-            setStatusBarColor(Color.Transparent, darkIcons = useDarkIcons)
-            setNavigationBarColor(Color.Transparent, darkIcons = useDarkIcons)
-        }
+        systemUiController.setSystemBarsColor(
+            Color.Transparent,
+            darkIcons = useDarkIcons,
+            isNavigationBarContrastEnforced = false
+        )
     }
 
     Mdc3Theme(

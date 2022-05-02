@@ -14,8 +14,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.joeloewi.croissant.Settings
-import com.joeloewi.croissant.ui.common.ListItem
-import com.joeloewi.croissant.ui.common.Switch
+import com.joeloewi.croissant.util.ListItem
+import com.joeloewi.croissant.util.Switch
 import com.joeloewi.croissant.viewmodel.SettingsViewModel
 
 @ExperimentalMaterialApi

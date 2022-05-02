@@ -31,6 +31,7 @@ import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
+import com.joeloewi.croissant.data.common.HoYoLABGame
 import com.joeloewi.croissant.data.common.LoggableWorker
 import com.joeloewi.croissant.data.local.model.Game
 import com.joeloewi.croissant.data.remote.model.common.GameRecord
@@ -227,12 +228,14 @@ fun AttendanceDetailContent(
                     when (connectedGames) {
                         is Lce.Content -> {
                             items(
-                                items = connectedGames.content,
-                                key = { "${it.gameId}${it.region}" }
-                            ) { gameRecord ->
+                                items = HoYoLABGame.values().filter { it != HoYoLABGame.Unknown },
+                                key = { it.name }
+                            ) { item ->
                                 ConnectedGameListItem(
                                     modifier = Modifier.animateItemPlacement(),
-                                    gameRecord = gameRecord,
+                                    hoYoLABGame = item,
+                                    gameRecord = connectedGames.content.find { it.gameId == item.gameId }
+                                        ?: GameRecord(),
                                     checkedGames = checkedGames,
                                 )
                             }
@@ -348,12 +351,13 @@ fun AttendanceDetailContent(
 @Composable
 fun ConnectedGameListItem(
     modifier: Modifier,
+    hoYoLABGame: HoYoLABGame,
     gameRecord: GameRecord,
     checkedGames: SnapshotStateList<Game>
 ) {
     val game = Game(
         roleId = gameRecord.gameRoleId,
-        type = gameRecord.hoYoLABGame,
+        type = hoYoLABGame,
         region = gameRecord.region
     )
 
@@ -380,7 +384,10 @@ fun ConnectedGameListItem(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(text = stringResource(id = gameRecord.hoYoLABGame.gameNameResourceId))
+                Text(
+                    text = stringResource(id = hoYoLABGame.gameNameResourceId),
+                    style = MaterialTheme.typography.labelMedium
+                )
 
                 Checkbox(
                     checked = checkedGames.contains(game),
@@ -392,7 +399,7 @@ fun ConnectedGameListItem(
                 modifier = Modifier
                     .size(IconDp),
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(gameRecord.hoYoLABGame.gameIconUrl)
+                    .data(hoYoLABGame.gameIconUrl)
                     .build(),
                 contentDescription = null
             )

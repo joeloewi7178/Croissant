@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavType
@@ -58,6 +59,7 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class ResinStatusWidgetConfigurationActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         super.onCreate(savedInstanceState)
 
         installSplashScreen()
@@ -116,7 +118,23 @@ fun ResinStatusWidgetConfigurationApp() {
         }
     }
 
-    Scaffold { innerPadding ->
+    Scaffold(
+        topBar = {
+            Spacer(
+                modifier = Modifier.padding(
+                    WindowInsets.statusBars.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
+                        .asPaddingValues()
+                )
+            )
+        },
+        bottomBar = {
+            Spacer(
+                modifier = Modifier
+                    .windowInsetsBottomHeight(WindowInsets.navigationBars)
+                    .fillMaxWidth(),
+            )
+        }
+    ) { innerPadding ->
         Box(
             modifier = Modifier
                 .padding(innerPadding)
@@ -476,32 +494,29 @@ fun CreateResinStatusWidgetContent(
 
             if (pagedAttendancesWithGames.isEmpty()) {
                 item(key = "noAttendances") {
-                    Row {
-                        Column(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxSize()
-                                .padding(DoubleDp),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Icon(
-                                modifier = Modifier.fillMaxSize(0.3f),
-                                imageVector = Icons.Default.Warning,
-                                contentDescription = Icons.Default.Warning.name,
-                                tint = MaterialTheme.colorScheme.primaryContainer
-                            )
-                            Text(
-                                text = "저장된 출석 작업이 없습니다.",
-                                style = MaterialTheme.typography.titleMedium,
-                                textAlign = TextAlign.Center
-                            )
-                            Text(
-                                text = "앱에서 먼저 출석 작업을 만들어주세요.",
-                                style = MaterialTheme.typography.titleMedium,
-                                textAlign = TextAlign.Center
-                            )
-                        }
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(DoubleDp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            modifier = Modifier.fillMaxSize(0.3f),
+                            imageVector = Icons.Default.Warning,
+                            contentDescription = Icons.Default.Warning.name,
+                            tint = MaterialTheme.colorScheme.primaryContainer
+                        )
+                        Text(
+                            text = "저장된 출석 작업이 없습니다.",
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = "앱에서 먼저 출석 작업을 만들어주세요.",
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.Center
+                        )
                     }
                 }
             } else {

@@ -55,7 +55,7 @@ fun GetSession(
         ) {
             Text(
                 text = "접속 정보 가져오기",
-                style = MaterialTheme.typography.headlineMedium
+                style = MaterialTheme.typography.headlineSmall
             )
 
             Text(
@@ -80,10 +80,7 @@ fun GetSession(
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                    contentColor = MaterialTheme.colorScheme.error
-                ),
+                containerColor = MaterialTheme.colorScheme.errorContainer,
             ) {
                 Row(
                     modifier = Modifier.padding(all = DefaultDp),

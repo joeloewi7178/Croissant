@@ -1,6 +1,5 @@
 package com.joeloewi.croissant.data.remote.model.common
 
-import com.joeloewi.croissant.data.common.HoYoLABGame
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
@@ -19,6 +18,4 @@ data class GameRecord(
     val region: String = "",
     @Json(name = "data_switches")
     val dataSwitches: List<DataSwitch> = listOf(),
-    @Transient
-    val hoYoLABGame: HoYoLABGame = HoYoLABGame.Unknown
 )

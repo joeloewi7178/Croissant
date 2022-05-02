@@ -1,9 +1,9 @@
 object Versions {
-    const val compose = "1.2.0-alpha08"
+    const val compose = "1.2.0-alpha07"
     const val hilt = "2.41"
     const val paging = "3.0.1"
     const val lifecycle = "2.4.1"
-    const val accompanist = "0.24.3-alpha"
+    const val accompanist = "0.24.6-alpha"
     const val concurrentFuture = "1.1.0"
     const val startup = "1.1.0"
     const val hiltExtension = "1.0.0"

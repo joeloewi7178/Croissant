@@ -85,7 +85,7 @@ fun SetTime(
         ) {
             Text(
                 text = "실행할 시간 정하기",
-                style = MaterialTheme.typography.headlineMedium
+                style = MaterialTheme.typography.headlineSmall
             )
 
             Text(

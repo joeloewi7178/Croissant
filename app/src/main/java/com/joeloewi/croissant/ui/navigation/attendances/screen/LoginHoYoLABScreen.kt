@@ -2,40 +2,36 @@ package com.joeloewi.croissant.ui.navigation.attendances.screen
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.graphics.Bitmap
 import android.net.http.SslError
-import android.os.Bundle
 import android.webkit.*
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.DialogProperties
-import androidx.core.os.bundleOf
-import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavController
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebSettingsCompat.FORCE_DARK_ON
 import androidx.webkit.WebViewFeature
+import com.google.accompanist.web.AccompanistWebViewClient
+import com.google.accompanist.web.LoadingState
+import com.google.accompanist.web.WebView
+import com.google.accompanist.web.rememberWebViewState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -69,40 +65,16 @@ fun LoginHoYoLABContent(
     onClickClose: () -> Unit,
     onCatchCookie: (String) -> Unit
 ) {
-    val localLifecycleOwner = LocalLifecycleOwner.current
     val hoyolabUrl = "https://m.hoyolab.com/#/home"
+    val webViewState = rememberWebViewState(url = hoyolabUrl)
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val (currentUrl, onCurrentUrlChange) = remember { mutableStateOf(hoyolabUrl) }
-    val (isLoading, onIsLoadingChange) = remember { mutableStateOf(false) }
-    val (webPageTitle, onWebPageTitleChange) = remember { mutableStateOf("Title") }
-    val (webPageProgress, onWebPageProgressChange) = remember { mutableStateOf(0) }
     val (webView, onWebViewChange) = remember { mutableStateOf<WebView?>(null) }
     val (showSslErrorDialog, onShowSslErrorDialogChange) = remember {
         mutableStateOf<Pair<SslErrorHandler?, SslError?>?>(
             null
         )
-    }
-
-    LaunchedEffect(localLifecycleOwner.lifecycle.currentState, webView) {
-        when (localLifecycleOwner.lifecycle.currentState) {
-
-            Lifecycle.State.CREATED -> {
-                webView?.pauseTimers()
-            }
-
-            Lifecycle.State.STARTED -> {
-                webView?.resumeTimers()
-            }
-
-            Lifecycle.State.RESUMED -> {
-                webView?.resumeTimers()
-            }
-
-            else -> {
-
-            }
-        }
     }
 
     fun String?.checkContainsHoYoLABCookies(): Boolean =
@@ -126,7 +98,7 @@ fun LoginHoYoLABContent(
                     },
                     actions = {
                         ReloadOrStopLoading(
-                            isLoading = isLoading,
+                            isLoading = webViewState.isLoading,
                             webView = webView,
                             reload = {
                                 IconButton(
@@ -179,7 +151,7 @@ fun LoginHoYoLABContent(
                     title = {
                         Column {
                             Text(
-                                text = webPageTitle,
+                                text = webViewState.pageTitle ?: "Title",
                                 style = MaterialTheme.typography.titleMedium,
                                 overflow = TextOverflow.Ellipsis,
                                 maxLines = 1
@@ -194,11 +166,20 @@ fun LoginHoYoLABContent(
                     }
                 )
                 AnimatedVisibility(
-                    visible = isLoading,
+                    visible = webViewState.isLoading,
                     enter = fadeIn(),
                     exit = fadeOut(),
                 ) {
-                    LinearProgressIndicator(progress = webPageProgress.toFloat())
+                    with(webViewState.loadingState) {
+                        when (this) {
+                            is LoadingState.Loading -> {
+                                LinearProgressIndicator(progress = progress)
+                            }
+                            LoadingState.Finished -> {
+
+                            }
+                        }
+                    }
                 }
             }
         },
@@ -206,150 +187,33 @@ fun LoginHoYoLABContent(
             SnackbarHost(hostState = snackbarHostState)
         }
     ) { innerPadding ->
-        val (canGoBack, onCanGoBackChange) = remember { mutableStateOf(false) }
         var navigateUpJob: Job? = remember { null }
         val localContext = LocalContext.current
         val excludedUrls = listOf("www.webstatic-sea.mihoyo.com", "www.webstatic-sea.hoyolab.com")
-        val (webViewState, onWebViewStateChange) = rememberSaveable { mutableStateOf<Bundle?>(null) }
         val darkTheme = isSystemInDarkTheme()
 
-        BackHandler(canGoBack) {
-            webView?.goBack()
-        }
+        WebView(
+            state = webViewState,
+            onCreated = { webView ->
+                onWebViewChange(webView)
 
-        LaunchedEffect(darkTheme, webView) {
-            if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK) && webView != null && darkTheme) {
-                WebSettingsCompat.setForceDark(webView.settings, FORCE_DARK_ON)
-            }
-        }
+                webView.settings.apply {
+                    javaScriptEnabled = true
+                    domStorageEnabled = true
+                    databaseEnabled = true
+                    cacheMode = WebSettings.LOAD_NO_CACHE
+                }
 
-        AndroidView(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            factory = { androidViewContext ->
-                WebView(androidViewContext).apply {
+                if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK) && darkTheme) {
+                    WebSettingsCompat.setForceDark(
+                        webView.settings,
+                        FORCE_DARK_ON
+                    )
+                }
 
-                    CookieManager.getInstance().acceptThirdPartyCookies(this)
-
-                    webViewClient = object : WebViewClient() {
-                        override fun onPageStarted(
-                            view: WebView?,
-                            url: String?,
-                            favicon: Bitmap?
-                        ) {
-                            super.onPageStarted(view, url, favicon)
-                            onIsLoadingChange(true)
-                        }
-
-                        override fun onReceivedSslError(
-                            view: WebView?,
-                            handler: SslErrorHandler?,
-                            error: SslError?
-                        ) {
-                            super.onReceivedSslError(view, handler, error)
-                            onShowSslErrorDialogChange(handler to error)
-                        }
-
-                        override fun onPageFinished(view: WebView?, url: String?) {
-                            super.onPageFinished(view, url)
-                            onIsLoadingChange(false)
-                        }
-
-                        override fun doUpdateVisitedHistory(
-                            view: WebView?,
-                            url: String?,
-                            isReload: Boolean
-                        ) {
-                            super.doUpdateVisitedHistory(view, url, isReload)
-
-                            if (url != null && currentUrl != url) {
-                                onCurrentUrlChange(url)
-                            }
-                        }
-
-                        override fun shouldInterceptRequest(
-                            view: WebView?,
-                            request: WebResourceRequest?
-                        ): WebResourceResponse? {
-                            val currentCookie =
-                                CookieManager.getInstance().getCookie(hoyolabUrl)
-
-                            //in this block, codes are executed in io thread.
-                            //onCatchCookie callback's role is to execute navController.navigateUp()
-                            //which is must executed in main thread.
-                            //also shouldInterceptRequest() callback is called many times
-                            //but navController.navigateUp() has to be called only once
-
-                            //so, after switching context to main thread, store that job in variable
-                            //if the variable is null
-
-                            if (currentCookie.checkContainsHoYoLABCookies() && navigateUpJob == null) {
-                                navigateUpJob = coroutineScope.launch(Dispatchers.Main) {
-                                    onCatchCookie(currentCookie)
-                                }
-                            }
-
-                            return super.shouldInterceptRequest(view, request)
-                        }
-
-                        override fun shouldOverrideUrlLoading(
-                            view: WebView?,
-                            request: WebResourceRequest?
-                        ): Boolean {
-                            request?.url?.toString()?.let(onCurrentUrlChange)
-                            return if (
-                                mutableListOf(hoyolabUrl)
-                                    .apply { addAll(excludedUrls) }
-                                    .map { request?.url?.toString()?.contains(it) }
-                                    .all { it == false }
-                            ) {
-                                coroutineScope.launch {
-                                    request?.url?.let {
-                                        localContext.startActivity(
-                                            Intent(
-                                                Intent.ACTION_VIEW,
-                                                it
-                                            )
-                                        )
-                                    }
-                                }
-                                true
-                            } else {
-                                false
-                            }
-                        }
-                    }
-
-                    webChromeClient = object : WebChromeClient() {
-                        override fun onReceivedTitle(view: WebView?, title: String?) {
-                            title?.let(onWebPageTitleChange)
-                            super.onReceivedTitle(view, title)
-                        }
-
-                        override fun onProgressChanged(view: WebView?, newProgress: Int) {
-                            onWebPageProgressChange(newProgress)
-                            super.onProgressChanged(view, newProgress)
-                        }
-                    }
-
-                    settings.apply {
-                        javaScriptEnabled = true
-                        domStorageEnabled = true
-                        databaseEnabled = true
-                        cacheMode = WebSettings.LOAD_NO_CACHE
-                    }
-
-                    webViewState?.let { restoreState(it) }
-                }.also(onWebViewChange)
-            }
-        ) { view ->
-            onCanGoBackChange(view.canGoBack())
-
-            if (webViewState == null) {
                 WebStorage.getInstance().deleteAllData()
 
-                with(view) {
+                with(webView) {
                     clearCache(true)
                     clearFormData()
                     clearHistory()
@@ -359,18 +223,72 @@ fun LoginHoYoLABContent(
 
                 CookieManager.getInstance().apply {
                     flush()
-                    removeAllCookies {
-                        view.loadUrl(currentUrl)
+                    removeAllCookies {}
+                }
+            },
+            client = object : AccompanistWebViewClient() {
+                override fun onReceivedSslError(
+                    view: WebView?,
+                    handler: SslErrorHandler?,
+                    error: SslError?
+                ) {
+                    super.onReceivedSslError(view, handler, error)
+                    onShowSslErrorDialogChange(handler to error)
+                }
+
+                override fun shouldInterceptRequest(
+                    view: WebView?,
+                    request: WebResourceRequest?
+                ): WebResourceResponse? {
+                    val currentCookie =
+                        CookieManager.getInstance().getCookie(hoyolabUrl)
+
+                    //in this block, codes are executed in io thread.
+                    //onCatchCookie callback's role is to execute navController.navigateUp()
+                    //which is must executed in main thread.
+                    //in addition, shouldInterceptRequest() callback is called many times
+                    //but navController.navigateUp() has to be called only once
+
+                    //so, after switching context to main thread, store that job in variable
+                    //if the variable is null to ensure execute only once
+
+                    if (currentCookie.checkContainsHoYoLABCookies() && navigateUpJob == null) {
+                        navigateUpJob = coroutineScope.launch(Dispatchers.Main) {
+                            onCatchCookie(currentCookie)
+                        }
+                    }
+
+                    return super.shouldInterceptRequest(view, request)
+                }
+
+                override fun shouldOverrideUrlLoading(
+                    view: WebView?,
+                    request: WebResourceRequest?
+                ): Boolean {
+                    request?.url?.toString()?.let(onCurrentUrlChange)
+                    return if (
+                        mutableListOf(hoyolabUrl)
+                            .apply { addAll(excludedUrls) }
+                            .map { request?.url?.toString()?.contains(it) }
+                            .all { it == false }
+                    ) {
+                        coroutineScope.launch {
+                            request?.url?.let {
+                                localContext.startActivity(
+                                    Intent(
+                                        Intent.ACTION_VIEW,
+                                        it
+                                    )
+                                )
+                            }
+                        }
+                        true
+                    } else {
+                        false
                     }
                 }
             }
-
-            onWebViewStateChange(
-                bundleOf().apply {
-                    view.saveState(this)
-                }
-            )
-        }
+        )
 
         if (showSslErrorDialog != null) {
             AlertDialog(

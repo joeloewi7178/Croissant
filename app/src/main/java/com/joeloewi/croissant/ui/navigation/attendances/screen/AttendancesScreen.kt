@@ -85,7 +85,7 @@ fun AttendancesScreen(
 @ExperimentalMaterialApi
 @ExperimentalMaterial3Api
 @Composable
-fun AttendancesContent(
+private fun AttendancesContent(
     pagedAttendancesWithGames: LazyPagingItems<AttendanceWithGames>,
     onCreateAttendanceClick: () -> Unit,
     onDeleteAttendance: (Attendance) -> Unit,
@@ -185,8 +185,7 @@ fun AttendanceWithGamesItem(
 
     SwipeToDismiss(
         state = dismissState,
-        modifier = modifier
-            .padding(vertical = HalfDp),
+        modifier = modifier,
         directions = setOf(DismissDirection.EndToStart),
         dismissThresholds = { direction ->
             FractionalThreshold(if (direction == DismissDirection.EndToStart) 0.25f else 0.5f)
@@ -316,7 +315,7 @@ internal fun DismissContent(
                         text = "매일 ${
                             attendanceWithGames.attendance.hourOfDay.toString().padStart(2, '0')
                         } : ${attendanceWithGames.attendance.minute.toString().padStart(2, '0')}",
-                        style = MaterialTheme.typography.headlineMedium
+                        style = MaterialTheme.typography.headlineSmall
                     )
 
                     WorkInfoStateIndicator(workInfo = workInfo)

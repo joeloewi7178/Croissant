@@ -44,14 +44,16 @@ android {
         debug {
             isMinifyEnabled = false
             isDebuggable = true
+            isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             isDebuggable = false
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -81,7 +83,7 @@ android {
 dependencies {
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("com.google.android.material:material:1.7.0-alpha01")
-    implementation("androidx.compose.material3:material3:1.0.0-alpha10")
+    implementation("androidx.compose.material3:material3:1.0.0-alpha09")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:${Versions.lifecycle}")
     implementation("androidx.activity:activity-compose:1.4.0")
     testImplementation("junit:junit:4.13.2")
@@ -130,6 +132,7 @@ dependencies {
     implementation("com.google.accompanist:accompanist-systemuicontroller:${Versions.accompanist}")
     implementation("com.google.accompanist:accompanist-webview:${Versions.accompanist}")
     implementation("com.google.accompanist:accompanist-pager-indicators:${Versions.accompanist}")
+    implementation("com.google.accompanist:accompanist-swiperefresh:${Versions.accompanist}")
 
     //work
     implementation("androidx.work:work-runtime-ktx:${Versions.work}")
@@ -166,6 +169,13 @@ dependencies {
 
     // https://mvnrepository.com/artifact/com.google.android.material/compose-theme-adapter-3
     implementation("com.google.android.material:compose-theme-adapter-3:1.0.7")
+
+    //html parsing
+    implementation("org.jsoup:jsoup:1.14.3")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.6.1")
+    implementation("com.google.android.play:core:1.10.3")
+    implementation("com.google.android.play:core-ktx:1.8.1")
 }
 
 kapt {

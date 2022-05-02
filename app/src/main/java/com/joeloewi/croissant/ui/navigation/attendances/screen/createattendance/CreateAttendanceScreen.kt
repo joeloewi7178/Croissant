@@ -21,6 +21,7 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
+import com.joeloewi.croissant.data.common.HoYoLABGame
 import com.joeloewi.croissant.data.local.model.Game
 import com.joeloewi.croissant.data.remote.model.common.GameRecord
 import com.joeloewi.croissant.state.Lce
@@ -235,7 +236,7 @@ fun CreateAttendanceContent(
                                             checkedGames.add(
                                                 Game(
                                                     roleId = gameRecord.gameRoleId,
-                                                    type = gameRecord.hoYoLABGame,
+                                                    type = HoYoLABGame.findByGameId(gameId = gameRecord.gameId),
                                                     region = gameRecord.region
                                                 )
                                             )

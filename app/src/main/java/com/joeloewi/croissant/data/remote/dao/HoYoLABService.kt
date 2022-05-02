@@ -1,13 +1,11 @@
 package com.joeloewi.croissant.data.remote.dao
 
 import com.joeloewi.croissant.data.common.HeaderInformation
-import com.joeloewi.croissant.data.remote.model.common.DataSwitch
 import com.joeloewi.croissant.data.remote.model.request.DataSwitchRequest
 import com.joeloewi.croissant.data.remote.model.response.*
-import com.joeloewi.croissant.data.remote.model.response.base.BaseResponse
 import com.joeloewi.croissant.util.generateDS
-import okhttp3.ResponseBody
 import retrofit2.http.*
+import java.util.*
 
 interface HoYoLABService {
 
@@ -38,13 +36,19 @@ interface HoYoLABService {
 
     @POST
     suspend fun attendCheckInGenshinImpact(
-        @Url url: String = "https://hk4e-api-os.mihoyo.com/event/sol/sign?act_id=e202102251931481&lang=ko-kr",
+        @Url url: String = "https://hk4e-api-os.mihoyo.com/event/sol/sign?act_id=e202102251931481&lang=${Locale.getDefault().toLanguageTag().lowercase()}",
         @Header("Cookie") cookie: String
     ): AttendanceResponse
 
     @POST
     suspend fun attendCheckInHonkaiImpact3rd(
-        @Url url: String = "https://api-os-takumi.mihoyo.com/event/mani/sign?act_id=e202110291205111&lang=ko-kr",
+        @Url url: String = "https://api-os-takumi.mihoyo.com/event/mani/sign?act_id=e202110291205111&lang=${Locale.getDefault().toLanguageTag().lowercase()}",
+        @Header("Cookie") cookie: String
+    ): AttendanceResponse
+
+    @POST
+    suspend fun attendTearsOfThemis(
+        @Url url: String = "https://sg-public-api.hoyolab.com/event/luna/os/sign?act_id=e202202281857121&lang=${Locale.getDefault().toLanguageTag().lowercase()}",
         @Header("Cookie") cookie: String
     ): AttendanceResponse
 }

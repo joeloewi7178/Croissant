@@ -3,7 +3,6 @@
 
     <style name="Theme.Croissant" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:timePickerStyle">@style/TimePicker</item>
-        <item name="android:fitsSystemWindows">false</item>
     </style>
 
     <style name="Theme.Croissant.AppWidgetContainerParent" parent="Theme.Material3.DynamicColors.DayNight">

@@ -4,11 +4,13 @@ import android.app.Notification
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.graphics.drawable.toBitmap
+import androidx.core.net.toUri
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
@@ -22,6 +24,7 @@ import com.joeloewi.croissant.data.local.model.SuccessLog
 import com.joeloewi.croissant.data.local.model.WorkerExecutionLog
 import com.joeloewi.croissant.data.remote.dao.HoYoLABService
 import com.joeloewi.croissant.data.remote.model.response.AttendanceResponse
+import com.joeloewi.croissant.util.CroissantPermission
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
@@ -55,6 +58,9 @@ class AttendCheckInEventWorker @AssistedInject constructor(
             with(GenshinImpactServer.findByRegion(region = region)) {
                 packageName to fallbackUri
             }
+        }
+        HoYoLABGame.TearsOfThemis -> {
+            "com.miHoYo.tot.glb" to "market://details?id=com.miHoYo.tot.glb".toUri()
         }
         HoYoLABGame.Unknown -> {
             "" to Uri.EMPTY
@@ -139,6 +145,9 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                         HoYoLABGame.GenshinImpact -> {
                             hoYoLABService.attendCheckInGenshinImpact(cookie = cookie)
                         }
+                        HoYoLABGame.TearsOfThemis -> {
+                            hoYoLABService.attendTearsOfThemis(cookie = cookie)
+                        }
                         HoYoLABGame.Unknown -> {
                             throw NotSupportedGameException()
                         }
@@ -151,11 +160,17 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                             region = game.region,
                             attendanceResponse = response
                         ).let { notification ->
-                            NotificationManagerCompat.from(context).notify(
-                                UUID.randomUUID().toString(),
-                                game.type.gameId,
-                                notification
-                            )
+                            if (context.packageManager.checkPermission(
+                                    CroissantPermission.PostNotifications.permission,
+                                    context.packageName
+                                ) == PackageManager.PERMISSION_GRANTED
+                            ) {
+                                NotificationManagerCompat.from(context).notify(
+                                    UUID.randomUUID().toString(),
+                                    game.type.gameId,
+                                    notification
+                                )
+                            }
                         }
                     }.also { response ->
                         val executionLogId = croissantDatabase.workerExecutionLogDao().insert(

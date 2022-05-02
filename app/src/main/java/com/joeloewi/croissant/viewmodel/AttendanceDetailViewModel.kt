@@ -6,7 +6,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.*
-import com.joeloewi.croissant.data.common.HoYoLABGame
 import com.joeloewi.croissant.data.common.LoggableWorker
 import com.joeloewi.croissant.data.common.WorkerExecutionLogState
 import com.joeloewi.croissant.data.local.CroissantDatabase
@@ -59,11 +58,7 @@ class AttendanceDetailViewModel @Inject constructor(
                 ).data!!
             }.fold(
                 onSuccess = { gameRecordCardData ->
-                    gameRecordCardData.list.map { gameRecord ->
-                        gameRecord.copy(
-                            hoYoLABGame = HoYoLABGame.findByGameId(gameId = gameRecord.gameId)
-                        )
-                    }.let { gameRecords ->
+                    gameRecordCardData.list.let { gameRecords ->
                         Lce.Content(gameRecords)
                     }
                 },
