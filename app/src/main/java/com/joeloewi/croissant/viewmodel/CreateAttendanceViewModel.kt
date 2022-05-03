@@ -1,6 +1,7 @@
 package com.joeloewi.croissant.viewmodel
 
 import android.app.Application
+import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

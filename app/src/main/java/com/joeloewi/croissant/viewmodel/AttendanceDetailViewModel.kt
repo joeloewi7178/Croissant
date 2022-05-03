@@ -49,28 +49,6 @@ class AttendanceDetailViewModel @Inject constructor(
     val minute = _minute.asStateFlow()
     val nickname = _nickname.asStateFlow()
     val uid = _uid.asStateFlow()
-    val connectedGames =
-        combine(_cookie.filter { it.isNotEmpty() }, _uid.filter { it != 0L }) { cookie, uid ->
-            hoYoLABService.runCatching {
-                getGameRecordCard(
-                    cookie = cookie,
-                    uid = uid
-                ).data!!
-            }.fold(
-                onSuccess = { gameRecordCardData ->
-                    gameRecordCardData.list.let { gameRecords ->
-                        Lce.Content(gameRecords)
-                    }
-                },
-                onFailure = {
-                    Lce.Error(it)
-                }
-            )
-        }.flowOn(Dispatchers.IO).stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Lazily,
-            initialValue = Lce.Loading
-        )
 
     //log count
     val checkSessionWorkerSuccessLogCount =
@@ -145,7 +123,9 @@ class AttendanceDetailViewModel @Inject constructor(
                         checkedGames.addAll(games.map {
                             it.copy(
                                 id = 0,
-                                attendanceId = 0
+                                attendanceId = 0,
+                                roleId = 0,
+                                region = ""
                             )
                         })
                     }
@@ -177,7 +157,7 @@ class AttendanceDetailViewModel @Inject constructor(
                 val attendance = attendanceWithGames.attendance
                 val now = Calendar.getInstance()
                 val canExecuteToday =
-                    (now[Calendar.HOUR_OF_DAY] < attendance.hourOfDay) || (now[Calendar.HOUR_OF_DAY] == attendance.hourOfDay && now[Calendar.MINUTE] < attendance.minute)
+                    (now[Calendar.HOUR_OF_DAY] < _hourOfDay.value) || (now[Calendar.HOUR_OF_DAY] == _hourOfDay.value && now[Calendar.MINUTE] < _minute.value)
 
                 val targetTime = Calendar.getInstance().apply {
                     time = now.time
@@ -186,8 +166,8 @@ class AttendanceDetailViewModel @Inject constructor(
                         add(Calendar.DATE, 1)
                     }
 
-                    set(Calendar.HOUR_OF_DAY, attendance.hourOfDay)
-                    set(Calendar.MINUTE, attendance.minute)
+                    set(Calendar.HOUR_OF_DAY, _hourOfDay.value)
+                    set(Calendar.MINUTE, _minute.value)
                 }
 
                 val periodicAttendanceCheckInEventWork = PeriodicWorkRequest.Builder(

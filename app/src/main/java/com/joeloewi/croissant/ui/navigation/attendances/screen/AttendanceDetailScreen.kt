@@ -56,7 +56,6 @@ fun AttendanceDetailScreen(
     val nickname by attendanceDetailViewModel.nickname.collectAsState()
     val uid by attendanceDetailViewModel.uid.collectAsState()
     val checkedGame = attendanceDetailViewModel.checkedGames
-    val connectedGames by attendanceDetailViewModel.connectedGames.collectAsState()
     val checkSessionWorkerSuccessLogCount by attendanceDetailViewModel.checkSessionWorkerSuccessLogCount.collectAsState()
     val checkSessionWorkerFailureLogCount by attendanceDetailViewModel.checkSessionWorkerFailureLogCount.collectAsState()
     val attendCheckInEventWorkerSuccessLogCount by attendanceDetailViewModel.attendCheckInEventWorkerSuccessLogCount.collectAsState()
@@ -79,7 +78,6 @@ fun AttendanceDetailScreen(
         nickname = nickname,
         uid = uid,
         checkedGames = checkedGame,
-        connectedGames = connectedGames,
         checkSessionWorkerSuccessLogCount = checkSessionWorkerSuccessLogCount,
         checkSessionWorkerFailureLogCount = checkSessionWorkerFailureLogCount,
         attendCheckInEventWorkerSuccessLogCount = attendCheckInEventWorkerSuccessLogCount,
@@ -103,14 +101,13 @@ fun AttendanceDetailScreen(
 @ExperimentalFoundationApi
 @ExperimentalMaterial3Api
 @Composable
-fun AttendanceDetailContent(
+private fun AttendanceDetailContent(
     previousBackStackEntry: NavBackStackEntry?,
     hourOfDay: Int,
     minute: Int,
     nickname: String,
     uid: Long,
     checkedGames: SnapshotStateList<Game>,
-    connectedGames: Lce<List<GameRecord>>,
     checkSessionWorkerSuccessLogCount: Long,
     checkSessionWorkerFailureLogCount: Long,
     attendCheckInEventWorkerSuccessLogCount: Long,
@@ -213,7 +210,7 @@ fun AttendanceDetailContent(
                 listOf(
                     "UID" to uid.toString(),
                     "닉네임" to nickname,
-                    "연동 및 출석 작업 설정된 게임" to ""
+                    "출석 작업 설정된 게임" to ""
                 ).forEach {
                     SessionInfoRow(
                         key = it.first,
@@ -225,34 +222,15 @@ fun AttendanceDetailContent(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(space = DefaultDp)
                 ) {
-                    when (connectedGames) {
-                        is Lce.Content -> {
-                            items(
-                                items = HoYoLABGame.values().filter { it != HoYoLABGame.Unknown },
-                                key = { it.name }
-                            ) { item ->
-                                ConnectedGameListItem(
-                                    modifier = Modifier.animateItemPlacement(),
-                                    hoYoLABGame = item,
-                                    gameRecord = connectedGames.content.find { it.gameId == item.gameId }
-                                        ?: GameRecord(),
-                                    checkedGames = checkedGames,
-                                )
-                            }
-                        }
-
-                        is Lce.Error -> {
-
-                        }
-
-                        Lce.Loading -> {
-                            items(
-                                items = IntArray(5) { it }.toTypedArray(),
-                                key = { "placeholder${it}" }
-                            ) {
-                                ConnectedGameListItemPlaceHolder(modifier = Modifier.animateItemPlacement())
-                            }
-                        }
+                    items(
+                        items = HoYoLABGame.values().filter { it != HoYoLABGame.Unknown },
+                        key = { it.name }
+                    ) { item ->
+                        ConnectedGameListItem(
+                            modifier = Modifier.animateItemPlacement(),
+                            hoYoLABGame = item,
+                            checkedGames = checkedGames,
+                        )
                     }
                 }
 
@@ -352,13 +330,10 @@ fun AttendanceDetailContent(
 fun ConnectedGameListItem(
     modifier: Modifier,
     hoYoLABGame: HoYoLABGame,
-    gameRecord: GameRecord,
     checkedGames: SnapshotStateList<Game>
 ) {
     val game = Game(
-        roleId = gameRecord.gameRoleId,
         type = hoYoLABGame,
-        region = gameRecord.region
     )
 
     Card(

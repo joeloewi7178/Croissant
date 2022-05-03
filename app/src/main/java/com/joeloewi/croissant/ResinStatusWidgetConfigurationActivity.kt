@@ -20,17 +20,16 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
+import androidx.core.os.bundleOf
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.navigation
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -39,6 +38,7 @@ import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
 import com.google.android.material.color.DynamicColors
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.joeloewi.croissant.data.common.HoYoLABGame
 import com.joeloewi.croissant.data.local.model.relational.AttendanceWithGames
 import com.joeloewi.croissant.state.Lce
@@ -87,9 +87,12 @@ class ResinStatusWidgetConfigurationActivity : AppCompatActivity() {
 @Composable
 fun ResinStatusWidgetConfigurationApp() {
     val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
     val resinStatusWidgetConfigurationViewModel: ResinStatusWidgetConfigurationViewModel =
         hiltViewModel()
     val isAppWidgetConfigured by resinStatusWidgetConfigurationViewModel.isAppWidgetInitialized.collectAsState()
+    val context = LocalContext.current
     val activity = LocalActivity.current
     val appWidgetId = activity.intent?.extras?.getInt(
         AppWidgetManager.EXTRA_APPWIDGET_ID,
@@ -98,6 +101,16 @@ fun ResinStatusWidgetConfigurationApp() {
 
     LaunchedEffect(navController) {
         resinStatusWidgetConfigurationViewModel.findResinStatusWidgetByAppWidgetId(appWidgetId)
+    }
+
+    LaunchedEffect(navBackStackEntry?.destination) {
+        FirebaseAnalytics.getInstance(context).logEvent(
+            FirebaseAnalytics.Event.SCREEN_VIEW,
+            bundleOf(
+                FirebaseAnalytics.Param.SCREEN_NAME to currentDestination?.route,
+                FirebaseAnalytics.Param.SCREEN_CLASS to activity::class.java.simpleName
+            )
+        )
     }
 
     LaunchedEffect(isAppWidgetConfigured) {

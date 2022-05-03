@@ -18,6 +18,13 @@ interface WorkerExecutionLogDao {
     suspend fun delete(vararg workerExecutionLogs: WorkerExecutionLog): Int
 
     @Transaction
+    @Query("DELETE FROM WorkerExecutionLog WHERE attendanceId = :attendanceId AND loggableWorker = :loggableWorker")
+    fun deleteAll(
+        attendanceId: Long,
+        loggableWorker: LoggableWorker
+    ): Int
+
+    @Transaction
     @Query("SELECT * FROM WorkerExecutionLog WHERE attendanceId = :attendanceId AND loggableWorker = :loggableWorker ORDER BY createdAt DESC")
     fun getAllPaged(
         attendanceId: Long,

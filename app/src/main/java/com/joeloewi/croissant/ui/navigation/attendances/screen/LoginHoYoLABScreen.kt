@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
@@ -20,6 +21,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
@@ -165,19 +167,16 @@ fun LoginHoYoLABContent(
                         }
                     }
                 )
-                AnimatedVisibility(
-                    visible = webViewState.isLoading,
-                    enter = fadeIn(),
-                    exit = fadeOut(),
-                ) {
-                    with(webViewState.loadingState) {
-                        when (this) {
-                            is LoadingState.Loading -> {
-                                LinearProgressIndicator(progress = progress)
-                            }
-                            LoadingState.Finished -> {
+                with(webViewState.loadingState) {
+                    when (this) {
+                        is LoadingState.Loading -> {
+                            LinearProgressIndicator(
+                                modifier = Modifier.fillMaxWidth(),
+                                progress = progress
+                            )
+                        }
+                        LoadingState.Finished -> {
 
-                            }
                         }
                     }
                 }

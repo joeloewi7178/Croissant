@@ -22,7 +22,7 @@ import com.joeloewi.croissant.ui.theme.DefaultDp
 //under LocalActivity
 @Composable
 fun RequireAppUpdate(
-    inProgressScreen: @Composable ((progress: Float) -> Unit) = { progress ->
+    inProgressContent: @Composable ((progress: Float) -> Unit) = { progress ->
         InProgressScreen(progress = progress)
     },
     content: @Composable () -> Unit
@@ -52,7 +52,7 @@ fun RequireAppUpdate(
                     bytesDownloaded.toFloat() / totalBytesToDownload.toFloat()
                 }
 
-                inProgressScreen(progress = progress)
+                inProgressContent(progress = progress)
             }
             is AppUpdateResult.Downloaded -> {
                 LaunchedEffect(this) {
@@ -70,7 +70,7 @@ fun RequireAppUpdate(
 }
 
 @Composable
-fun InProgressScreen(
+private fun InProgressScreen(
     progress: Float
 ) {
     Column(

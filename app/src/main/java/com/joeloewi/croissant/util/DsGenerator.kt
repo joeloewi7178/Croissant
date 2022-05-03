@@ -70,7 +70,7 @@ fun generateDS(
     }
 }
 
-fun md5(str: String): ByteArray =
+private fun md5(str: String): ByteArray =
     MessageDigest.getInstance("MD5").digest(str.toByteArray())
 
-fun ByteArray.toHex() = joinToString(separator = "") { byte -> "%02x".format(byte) }
+private fun ByteArray.toHex() = joinToString(separator = "") { byte -> "%02x".format(byte) }

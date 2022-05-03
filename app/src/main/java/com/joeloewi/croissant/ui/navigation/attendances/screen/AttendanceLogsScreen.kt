@@ -2,10 +2,16 @@ package com.joeloewi.croissant.ui.navigation.attendances.screen
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DeleteSweep
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
@@ -40,7 +46,8 @@ fun AttendanceLogsScreen(
         pagedAttendanceLogs = pagedAttendanceLogs,
         onNavigateUp = {
             navController.navigateUp()
-        }
+        },
+        onDeleteAll = attendanceLogsViewModel::deleteAll
     )
 }
 
@@ -49,8 +56,15 @@ fun AttendanceLogsScreen(
 fun AttendanceLogsContent(
     previousBackStackEntry: NavBackStackEntry?,
     pagedAttendanceLogs: LazyPagingItems<WorkerExecutionLogWithState>,
-    onNavigateUp: () -> Unit
+    onNavigateUp: () -> Unit,
+    onDeleteAll: () -> Unit
 ) {
+    val (showDeleteConfirmationDialog, onShowDeleteConfirmationDialogChange) = remember {
+        mutableStateOf(
+            false
+        )
+    }
+
     Scaffold(
         topBar = {
             SmallTopAppBar(
@@ -60,7 +74,19 @@ fun AttendanceLogsContent(
                 navigationIcon = navigationIconButton(
                     previousBackStackEntry = previousBackStackEntry,
                     onClick = onNavigateUp
-                )
+                ),
+                actions = {
+                    IconButton(
+                        onClick = {
+                            onShowDeleteConfirmationDialogChange(true)
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DeleteSweep,
+                            contentDescription = Icons.Default.DeleteSweep.name
+                        )
+                    }
+                }
             )
         }
     ) { innerPadding ->
@@ -83,6 +109,45 @@ fun AttendanceLogsContent(
                     WorkerExecutionLogWithStateItemPlaceHolder()
                 }
             }
+        }
+
+        if (showDeleteConfirmationDialog) {
+            AlertDialog(
+                onDismissRequest = {
+                    onShowDeleteConfirmationDialogChange(false)
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            onShowDeleteConfirmationDialogChange(false)
+                            onDeleteAll()
+                        }
+                    ) {
+                        Text(text = "확인")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            onShowDeleteConfirmationDialogChange(false)
+                        }
+                    ) {
+                        Text(text = "취소")
+                    }
+                },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Warning,
+                        contentDescription = Icons.Default.Warning.name
+                    )
+                },
+                title = {
+                    Text(text = "경고")
+                },
+                text = {
+                    Text(text = "현재 화면의 실행기록들이 모두 삭제됩니다. 계속하시겠습니까?")
+                }
+            )
         }
     }
 }

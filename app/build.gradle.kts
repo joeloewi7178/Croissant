@@ -11,6 +11,8 @@ plugins {
     id("com.google.protobuf") version "0.8.12"
     id("dagger.hilt.android.plugin")
     id("org.jetbrains.kotlin.android")
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 android {
@@ -173,9 +175,14 @@ dependencies {
     //html parsing
     implementation("org.jsoup:jsoup:1.14.3")
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.6.1")
+    //in-app update
     implementation("com.google.android.play:core:1.10.3")
     implementation("com.google.android.play:core-ktx:1.8.1")
+
+    //firebase
+    implementation(platform("com.google.firebase:firebase-bom:29.3.1"))
+    implementation("com.google.firebase:firebase-analytics-ktx")
+    implementation("com.google.firebase:firebase-crashlytics-ktx")
 }
 
 kapt {

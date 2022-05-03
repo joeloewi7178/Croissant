@@ -202,19 +202,22 @@ fun RedemptionCodeListItem(
                     Text(text = stringResource(id = item.first.gameNameResourceId))
                 }
 
-                if (expandedItems.contains(item.first)) {
-                    IconButton(
-                        onClick = { expandedItems.remove(item.first) }
-                    ) {
+                IconToggleButton(
+                    checked = expandedItems.contains(item.first),
+                    onCheckedChange = { checked ->
+                        if (checked) {
+                            expandedItems.add(item.first)
+                        } else {
+                            expandedItems.remove(item.first)
+                        }
+                    }
+                ) {
+                    if (expandedItems.contains(item.first)) {
                         Icon(
                             imageVector = Icons.Default.ExpandLess,
                             contentDescription = Icons.Default.ExpandLess.name
                         )
-                    }
-                } else {
-                    IconButton(
-                        onClick = { expandedItems.add(item.first) }
-                    ) {
+                    } else {
                         Icon(
                             imageVector = Icons.Default.ExpandMore,
                             contentDescription = Icons.Default.ExpandMore.name

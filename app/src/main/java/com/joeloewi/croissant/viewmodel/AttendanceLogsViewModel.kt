@@ -12,19 +12,20 @@ import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class AttendanceLogsViewModel @Inject constructor(
-    croissantDatabase: CroissantDatabase,
+    private val croissantDatabase: CroissantDatabase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     //parameter
     private val _attendanceIdKey = AttendancesDestination.AttendanceLogsScreen.ATTENDANCE_ID
-    private val _croissantWorkerKey = AttendancesDestination.AttendanceLogsScreen.CROISSANT_WORKER
+    private val _loggableWorkerKey = AttendancesDestination.AttendanceLogsScreen.CROISSANT_WORKER
     private val _attendanceId = savedStateHandle.get<Long>(_attendanceIdKey) ?: Long.MIN_VALUE
-    private val _croissantWorker =
-        savedStateHandle.get<LoggableWorker>(_croissantWorkerKey) ?: LoggableWorker.UNKNOWN
+    private val _loggableWorker =
+        savedStateHandle.get<LoggableWorker>(_loggableWorkerKey) ?: LoggableWorker.UNKNOWN
 
     val pagedAttendanceLogs = Pager(
         config = PagingConfig(
@@ -33,8 +34,17 @@ class AttendanceLogsViewModel @Inject constructor(
         pagingSourceFactory = {
             croissantDatabase.workerExecutionLogDao().getAllPaged(
                 attendanceId = _attendanceId,
-                loggableWorker = _croissantWorker
+                loggableWorker = _loggableWorker
             )
         }
     ).flow.flowOn(Dispatchers.IO).cachedIn(viewModelScope)
+
+    fun deleteAll() {
+        viewModelScope.launch(Dispatchers.IO) {
+            croissantDatabase.workerExecutionLogDao().deleteAll(
+                attendanceId = _attendanceId,
+                loggableWorker = _loggableWorker
+            )
+        }
+    }
 }

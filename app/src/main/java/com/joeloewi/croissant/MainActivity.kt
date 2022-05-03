@@ -34,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.os.bundleOf
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -48,6 +49,7 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.android.material.color.DynamicColors
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.joeloewi.croissant.ui.navigation.CroissantNavigation
 import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
 import com.joeloewi.croissant.ui.navigation.attendances.screen.AttendanceDetailScreen
@@ -196,8 +198,15 @@ fun CroissantApp() {
                             false
                         )
                     }
-
                     LaunchedEffect(currentDestination) {
+                        FirebaseAnalytics.getInstance(context).logEvent(
+                            FirebaseAnalytics.Event.SCREEN_VIEW,
+                            bundleOf(
+                                FirebaseAnalytics.Param.SCREEN_NAME to currentDestination?.route,
+                                FirebaseAnalytics.Param.SCREEN_CLASS to activity::class.java.simpleName
+                            )
+                        )
+
                         onIsFullScreenDestinationChange(
                             fullScreenDestinations.contains(
                                 currentDestination?.route

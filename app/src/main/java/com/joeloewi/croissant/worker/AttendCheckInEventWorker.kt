@@ -16,6 +16,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import coil.ImageLoader
 import coil.request.ImageRequest
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.data.common.*
 import com.joeloewi.croissant.data.local.CroissantDatabase
