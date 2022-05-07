@@ -12,16 +12,15 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.data.common.LoggableWorker
-import com.joeloewi.croissant.data.common.WorkerExecutionLogState
-import com.joeloewi.croissant.data.local.CroissantDatabase
-import com.joeloewi.croissant.data.local.model.FailureLog
-import com.joeloewi.croissant.data.local.model.SuccessLog
-import com.joeloewi.croissant.data.local.model.WorkerExecutionLog
-import com.joeloewi.croissant.data.remote.dao.HoYoLABService
 import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
 import com.joeloewi.croissant.util.CroissantPermission
 import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
+import com.joeloewi.domain.common.LoggableWorker
+import com.joeloewi.domain.common.WorkerExecutionLogState
+import com.joeloewi.domain.entity.FailureLog
+import com.joeloewi.domain.entity.SuccessLog
+import com.joeloewi.domain.entity.WorkerExecutionLog
+import com.joeloewi.domain.usecase.*
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
@@ -32,8 +31,11 @@ import java.util.*
 class CheckSessionWorker @AssistedInject constructor(
     @Assisted val context: Context,
     @Assisted val params: WorkerParameters,
-    private val croissantDatabase: CroissantDatabase,
-    private val hoYoLABService: HoYoLABService
+    val getOneAttendanceUseCase: AttendanceUseCase.GetOne,
+    val getUserFullInfoHoYoLABUseCase: HoYoLABUseCase.GetUserFullInfo,
+    val insertWorkerExecutionLogUseCase: WorkerExecutionLogUseCase.Insert,
+    val insertSuccessLogUseCase: SuccessLogUseCase.Insert,
+    val insertFailureLogUseCase: FailureLogUseCase.Insert
 ) : CoroutineWorker(
     appContext = context,
     params = params
@@ -75,11 +77,9 @@ class CheckSessionWorker @AssistedInject constructor(
         attendanceId.runCatching {
             takeIf { it != Long.MIN_VALUE }!!
         }.mapCatching { attendanceId ->
-            croissantDatabase.attendanceDao().getOne(attendanceId)
+            getOneAttendanceUseCase(attendanceId)
         }.mapCatching { attendanceWithAllValues ->
-            hoYoLABService.getUserFullInfo(
-                cookie = attendanceWithAllValues.attendance.cookie
-            )
+            getUserFullInfoHoYoLABUseCase(attendanceWithAllValues.attendance.cookie)
         }.mapCatching { userFullInfoData ->
             if (userFullInfoData.data == null) {
                 throw NullPointerException()
@@ -88,7 +88,7 @@ class CheckSessionWorker @AssistedInject constructor(
             userFullInfoData
         }.fold(
             onSuccess = {
-                val executionLogId = croissantDatabase.workerExecutionLogDao().insert(
+                val executionLogId = insertWorkerExecutionLogUseCase(
                     WorkerExecutionLog(
                         attendanceId = attendanceId,
                         state = WorkerExecutionLogState.SUCCESS,
@@ -96,7 +96,7 @@ class CheckSessionWorker @AssistedInject constructor(
                     )
                 )
 
-                croissantDatabase.successLogDao().insert(
+                insertSuccessLogUseCase(
                     SuccessLog(
                         executionLogId = executionLogId,
                         retCode = it.retcode,
@@ -107,7 +107,7 @@ class CheckSessionWorker @AssistedInject constructor(
                 Result.success()
             },
             onFailure = { cause ->
-                val executionLogId = croissantDatabase.workerExecutionLogDao().insert(
+                val executionLogId = insertWorkerExecutionLogUseCase(
                     WorkerExecutionLog(
                         attendanceId = attendanceId,
                         state = WorkerExecutionLogState.FAILURE,
@@ -115,7 +115,7 @@ class CheckSessionWorker @AssistedInject constructor(
                     )
                 )
 
-                croissantDatabase.failureLogDao().insert(
+                insertFailureLogUseCase(
                     FailureLog(
                         executionLogId = executionLogId,
                         failureMessage = cause.message ?: "",

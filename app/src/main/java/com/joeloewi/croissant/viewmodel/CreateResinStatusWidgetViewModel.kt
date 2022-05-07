@@ -6,20 +6,19 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
 import androidx.work.*
-import com.joeloewi.croissant.data.local.CroissantDatabase
-import com.joeloewi.croissant.data.local.model.Account
-import com.joeloewi.croissant.data.local.model.ResinStatusWidget
-import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.worker.RefreshResinStatusWorker
+import com.joeloewi.domain.entity.Account
+import com.joeloewi.domain.entity.ResinStatusWidget
+import com.joeloewi.croissant.state.Lce
+import com.joeloewi.domain.usecase.AccountUseCase
+import com.joeloewi.domain.usecase.AttendanceUseCase
+import com.joeloewi.domain.usecase.ResinStatusWidgetUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -27,7 +26,10 @@ import javax.inject.Inject
 @HiltViewModel
 class CreateResinStatusWidgetViewModel @Inject constructor(
     private val application: Application,
-    private val croissantDatabase: CroissantDatabase,
+    getAllPagedAttendanceUseCase: AttendanceUseCase.GetAllPaged,
+    private val insertResinStatusWidgetUseCase: ResinStatusWidgetUseCase.Insert,
+    private val getByIdsAttendanceUseCase: AttendanceUseCase.GetByIds,
+    private val insertAccountUseCase: AccountUseCase.Insert,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     val appWidgetId =
@@ -43,16 +45,10 @@ class CreateResinStatusWidgetViewModel @Inject constructor(
 
     val createResinStatusWidgetState = _createResinStatusWidgetState.asStateFlow()
     val interval = _interval.asStateFlow()
+
     //these are connected to genshin impact
     val checkedAttendanceIds = SnapshotStateList<Long>()
-    val pagedAttendancesWithGames = Pager(
-        config = PagingConfig(
-            pageSize = 8,
-        ),
-        pagingSourceFactory = {
-            croissantDatabase.attendanceDao().getAllPaged()
-        }
-    ).flow.flowOn(Dispatchers.IO).cachedIn(viewModelScope)
+    val pagedAttendancesWithGames = getAllPagedAttendanceUseCase().cachedIn(viewModelScope)
 
     fun setInterval(interval: Long) {
         _interval.value = interval
@@ -68,19 +64,19 @@ class CreateResinStatusWidgetViewModel @Inject constructor(
                     interval = _interval.value,
                 )
 
-                val resinStatusWidgetId = croissantDatabase.resinStatusWidgetDao().insert(
+                val resinStatusWidgetId = insertResinStatusWidgetUseCase(
                     resinStatusWidget = resinStatusWidget
                 )
 
-                val accounts = croissantDatabase.attendanceDao()
-                    .getByIds(*checkedAttendanceIds.toLongArray())
-                    .map {
-                        Account(
-                            resinStatusWidgetId = resinStatusWidgetId,
-                            cookie = it.attendance.cookie,
-                            uid = it.attendance.uid
-                        )
-                    }
+                val accounts = getByIdsAttendanceUseCase(
+                    *checkedAttendanceIds.toLongArray()
+                ).map {
+                    Account(
+                        resinStatusWidgetId = resinStatusWidgetId,
+                        cookie = it.attendance.cookie,
+                        uid = it.attendance.uid
+                    )
+                }
 
                 val periodicWorkRequest = PeriodicWorkRequest.Builder(
                     RefreshResinStatusWorker::class.java,
@@ -101,7 +97,7 @@ class CreateResinStatusWidgetViewModel @Inject constructor(
                         periodicWorkRequest
                     ).await()
 
-                croissantDatabase.accountDao().insert(*accounts.toTypedArray())
+                insertAccountUseCase(*accounts.toTypedArray())
             }.fold(
                 onSuccess = {
                     Lce.Content(it)

@@ -12,17 +12,13 @@ import android.widget.RemoteViews
 import androidx.work.WorkManager
 import androidx.work.await
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.data.common.GenshinImpactServer
-import com.joeloewi.croissant.data.common.HeaderInformation
-import com.joeloewi.croissant.data.common.HoYoLABGame
-import com.joeloewi.croissant.data.local.CroissantDatabase
-import com.joeloewi.croissant.data.remote.dao.HoYoLABService
-import com.joeloewi.croissant.data.remote.model.common.DataSwitch
-import com.joeloewi.croissant.data.remote.model.request.DataSwitchRequest
 import com.joeloewi.croissant.service.RemoteViewsFactoryService
-import com.joeloewi.croissant.util.generateDS
 import com.joeloewi.croissant.util.goAsync
 import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
+import com.joeloewi.domain.common.HoYoLABGame
+import com.joeloewi.domain.entity.DataSwitch
+import com.joeloewi.domain.usecase.HoYoLABUseCase
+import com.joeloewi.domain.usecase.ResinStatusWidgetUseCase
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -36,10 +32,19 @@ import javax.inject.Inject
 class ResinStatusWidgetProvider : AppWidgetProvider() {
 
     @Inject
-    lateinit var croissantDatabase: CroissantDatabase
+    lateinit var getGameRecordCardHoYoLABUseCase: HoYoLABUseCase.GetGameRecordCard
 
     @Inject
-    lateinit var hoYoLABService: HoYoLABService
+    lateinit var getOneByAppWidgetIdResinStatusWidgetUseCase: ResinStatusWidgetUseCase.GetOneByAppWidgetId
+
+    @Inject
+    lateinit var getGenshinDailyNoteHoYoLABUseCase: HoYoLABUseCase.GetGenshinDailyNote
+
+    @Inject
+    lateinit var changeDataSwitchHoYoLABUseCase: HoYoLABUseCase.ChangeDataSwitch
+
+    @Inject
+    lateinit var deleteByAppWidgetIdResinStatusWidgetUseCase: ResinStatusWidgetUseCase.DeleteByAppWidgetId
 
     @Inject
     lateinit var application: Application
@@ -65,61 +70,43 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
                             )
                         }
 
-                        croissantDatabase.resinStatusWidgetDao().runCatching {
-                            getOneByAppWidgetId(appWidgetId)
+                        getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
+                            invoke(appWidgetId)
                         }.mapCatching { resinStatusWidgetWithAccounts ->
                             val resinStatuses =
                                 resinStatusWidgetWithAccounts.accounts.map { account ->
                                     async {
-                                        hoYoLABService.getGameRecordCard(
+                                        getGameRecordCardHoYoLABUseCase(
                                             cookie = account.cookie,
                                             uid = account.uid
-                                        ).data?.list?.find { gameRecord ->
+                                        )?.list?.find { gameRecord ->
                                             HoYoLABGame.findByGameId(gameRecord.gameId) == HoYoLABGame.GenshinImpact
                                         }!!.let { gameRecord ->
                                             val isDailyNoteEnabled =
                                                 gameRecord.dataSwitches.find { it.switchId == DataSwitch.GENSHIN_IMPACT_DAILY_NOTE_SWITCH_ID }?.isPublic
 
                                             if (isDailyNoteEnabled == false) {
-                                                hoYoLABService.changeDataSwitch(
+                                                changeDataSwitchHoYoLABUseCase(
                                                     cookie = account.cookie,
-                                                    dataSwitchRequest = DataSwitchRequest(
-                                                        switchId = DataSwitch.GENSHIN_IMPACT_DAILY_NOTE_SWITCH_ID,
-                                                        isPublic = true,
-                                                        gameId = gameRecord.gameId
-                                                    )
+                                                    switchId = DataSwitch.GENSHIN_IMPACT_DAILY_NOTE_SWITCH_ID,
+                                                    isPublic = true,
+                                                    gameId = gameRecord.gameId,
                                                 )
                                             }
 
-                                            val headerInformation =
-                                                when (GenshinImpactServer.findByRegion(gameRecord.region)) {
-                                                    GenshinImpactServer.CNServer -> {
-                                                        HeaderInformation.CN
-                                                    }
-                                                    GenshinImpactServer.Unknown -> {
-                                                        HeaderInformation.CN
-                                                    }
-                                                    else -> {
-                                                        HeaderInformation.OS
-                                                    }
-                                                }
-
-                                            val genshinDailyNoteResponse =
-                                                hoYoLABService.getGenshinDailyNote(
-                                                    ds = generateDS(headerInformation),
+                                            val genshinDailyNote =
+                                                getGenshinDailyNoteHoYoLABUseCase(
                                                     cookie = account.cookie,
-                                                    xRpcClientType = headerInformation.xRpcClientType,
-                                                    xRpcAppVersion = headerInformation.xRpcAppVersion,
-                                                    roleId = gameRecord.gameRoleId,
-                                                    server = gameRecord.region
+                                                    server = gameRecord.region,
+                                                    roleId = gameRecord.gameRoleId
                                                 )
 
                                             RemoteViewsFactoryService.ResinStatus(
                                                 id = account.id,
                                                 nickname = gameRecord.nickname,
-                                                currentResin = genshinDailyNoteResponse.data?.currentResin
+                                                currentResin = genshinDailyNote?.currentResin
                                                     ?: 0,
-                                                maxResin = genshinDailyNoteResponse.data?.maxResin
+                                                maxResin = genshinDailyNote?.maxResin
                                                     ?: 0
                                             )
                                         }
@@ -236,8 +223,8 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
             if (context != null && appWidgetIds != null) {
                 appWidgetIds.map { appWidgetId ->
                     async {
-                        croissantDatabase.resinStatusWidgetDao().runCatching {
-                            getOneByAppWidgetId(appWidgetId)
+                        getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
+                            invoke(appWidgetId)
                         }.mapCatching {
                             WorkManager.getInstance(context)
                                 .cancelUniqueWork(it.resinStatusWidget.refreshGenshinResinStatusWorkerName.toString())
@@ -251,8 +238,7 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
                     }
                 }.awaitAll()
 
-                croissantDatabase.resinStatusWidgetDao()
-                    .deleteByAppWidgetId(*appWidgetIds)
+                deleteByAppWidgetIdResinStatusWidgetUseCase(*appWidgetIds)
             }
         }
     }

@@ -39,9 +39,6 @@ import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
 import com.google.android.material.color.DynamicColors
 import com.google.firebase.analytics.FirebaseAnalytics
-import com.joeloewi.croissant.data.common.HoYoLABGame
-import com.joeloewi.croissant.data.local.model.relational.AttendanceWithGames
-import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.theme.CroissantTheme
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
@@ -52,6 +49,9 @@ import com.joeloewi.croissant.viewmodel.CreateResinStatusWidgetViewModel
 import com.joeloewi.croissant.viewmodel.MainViewModel
 import com.joeloewi.croissant.viewmodel.ResinStatusWidgetConfigurationViewModel
 import com.joeloewi.croissant.viewmodel.ResinStatusWidgetDetailViewModel
+import com.joeloewi.domain.common.HoYoLABGame
+import com.joeloewi.domain.entity.relational.AttendanceWithGames
+import com.joeloewi.croissant.state.Lce
 import dagger.hilt.android.AndroidEntryPoint
 
 //app widget configuration intent does not provide app widget provider's name

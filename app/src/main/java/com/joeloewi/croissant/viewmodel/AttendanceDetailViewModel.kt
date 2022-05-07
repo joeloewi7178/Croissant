@@ -6,15 +6,17 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.*
-import com.joeloewi.croissant.data.common.LoggableWorker
-import com.joeloewi.croissant.data.common.WorkerExecutionLogState
-import com.joeloewi.croissant.data.local.CroissantDatabase
-import com.joeloewi.croissant.data.local.model.Game
-import com.joeloewi.croissant.data.remote.dao.HoYoLABService
-import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
 import com.joeloewi.croissant.worker.AttendCheckInEventWorker
 import com.joeloewi.croissant.worker.CheckSessionWorker
+import com.joeloewi.domain.common.LoggableWorker
+import com.joeloewi.domain.common.WorkerExecutionLogState
+import com.joeloewi.domain.entity.Game
+import com.joeloewi.croissant.state.Lce
+import com.joeloewi.domain.usecase.AttendanceUseCase
+import com.joeloewi.domain.usecase.GameUseCase
+import com.joeloewi.domain.usecase.HoYoLABUseCase
+import com.joeloewi.domain.usecase.WorkerExecutionLogUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -27,8 +29,12 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AttendanceDetailViewModel @Inject constructor(
-    private val croissantDatabase: CroissantDatabase,
-    private val hoYoLABService: HoYoLABService,
+    getCountByStateWorkerExecutionLogUseCase: WorkerExecutionLogUseCase.GetCountByState,
+    private val getOneAttendanceUseCase: AttendanceUseCase.GetOne,
+    getUserFullInfoHoYoLABUseCase: HoYoLABUseCase.GetUserFullInfo,
+    private val updateAttendanceUseCase: AttendanceUseCase.Update,
+    private val deleteGameUseCase: GameUseCase.Delete,
+    private val insertGameUseCase: GameUseCase.Insert,
     private val application: Application,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -52,7 +58,7 @@ class AttendanceDetailViewModel @Inject constructor(
 
     //log count
     val checkSessionWorkerSuccessLogCount =
-        croissantDatabase.workerExecutionLogDao().getCountByState(
+        getCountByStateWorkerExecutionLogUseCase(
             attendanceId = attendanceId,
             loggableWorker = LoggableWorker.CHECK_SESSION,
             state = WorkerExecutionLogState.SUCCESS
@@ -62,7 +68,7 @@ class AttendanceDetailViewModel @Inject constructor(
             initialValue = 0L
         )
     val checkSessionWorkerFailureLogCount =
-        croissantDatabase.workerExecutionLogDao().getCountByState(
+        getCountByStateWorkerExecutionLogUseCase(
             attendanceId = attendanceId,
             loggableWorker = LoggableWorker.CHECK_SESSION,
             state = WorkerExecutionLogState.FAILURE
@@ -72,7 +78,7 @@ class AttendanceDetailViewModel @Inject constructor(
             initialValue = 0L
         )
     val attendCheckInEventWorkerSuccessLogCount =
-        croissantDatabase.workerExecutionLogDao().getCountByState(
+        getCountByStateWorkerExecutionLogUseCase(
             attendanceId = attendanceId,
             loggableWorker = LoggableWorker.ATTEND_CHECK_IN_EVENT,
             state = WorkerExecutionLogState.SUCCESS
@@ -82,7 +88,7 @@ class AttendanceDetailViewModel @Inject constructor(
             initialValue = 0L
         )
     val attendCheckInEventWorkerFailureLogCount =
-        croissantDatabase.workerExecutionLogDao().getCountByState(
+        getCountByStateWorkerExecutionLogUseCase(
             attendanceId = attendanceId,
             loggableWorker = LoggableWorker.ATTEND_CHECK_IN_EVENT,
             state = WorkerExecutionLogState.FAILURE
@@ -107,8 +113,8 @@ class AttendanceDetailViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            croissantDatabase.attendanceDao().runCatching {
-                getOne(attendanceId)
+            getOneAttendanceUseCase.runCatching {
+                invoke(attendanceId)
             }.mapCatching { attendanceWithGames ->
                 with(attendanceWithGames) {
                     with(attendance) {
@@ -121,11 +127,8 @@ class AttendanceDetailViewModel @Inject constructor(
 
                     withContext(Dispatchers.Main) {
                         checkedGames.addAll(games.map {
-                            it.copy(
-                                id = 0,
-                                attendanceId = 0,
-                                roleId = 0,
-                                region = ""
+                            Game(
+                                type = it.type
                             )
                         })
                     }
@@ -138,9 +141,9 @@ class AttendanceDetailViewModel @Inject constructor(
         }
 
         _cookie.filter { it.isNotEmpty() }.map { cookie ->
-            hoYoLABService.getUserFullInfo(cookie = cookie)
-        }.map { userFullInfoResponse ->
-            userFullInfoResponse.data?.userInfo?.run {
+            getUserFullInfoHoYoLABUseCase(cookie).data
+        }.filterNotNull().map {
+            with(it.userInfo) {
                 _uid.value = uid
                 _nickname.value = nickname
             }
@@ -151,8 +154,8 @@ class AttendanceDetailViewModel @Inject constructor(
         _updateAttendanceState.value = Lce.Loading
 
         viewModelScope.launch(Dispatchers.IO) {
-            _updateAttendanceState.value = croissantDatabase.attendanceDao().runCatching {
-                getOne(attendanceId)
+            _updateAttendanceState.value = getOneAttendanceUseCase.runCatching {
+                invoke(attendanceId)
             }.mapCatching { attendanceWithGames ->
                 val attendance = attendanceWithGames.attendance
                 val now = Calendar.getInstance()
@@ -214,7 +217,7 @@ class AttendanceDetailViewModel @Inject constructor(
                         periodicCheckSessionWork
                     )
 
-                croissantDatabase.attendanceDao().update(
+                updateAttendanceUseCase(
                     attendance.copy(
                         modifiedAt = System.currentTimeMillis(),
                         cookie = _cookie.value,
@@ -233,20 +236,22 @@ class AttendanceDetailViewModel @Inject constructor(
                 val newGames = arrayListOf<Game>()
 
                 if (checkedGames.isEmpty()) {
-                    croissantDatabase.gameDao().delete(*games.toTypedArray())
+                    deleteGameUseCase(*games.toTypedArray())
                 } else {
                     games.forEach { game ->
                         if (!checkedGames.contains(
-                                game.copy(
-                                    id = 0,
-                                    attendanceId = 0,
-                                    roleId = 0
+                                Game(
+                                    type = game.type
                                 )
                             )
                         ) {
-                            croissantDatabase.gameDao().delete(game)
+                            deleteGameUseCase(game)
                         } else {
-                            originalGames.add(game.copy(id = 0, attendanceId = 0, roleId = 0))
+                            originalGames.add(
+                                Game(
+                                    type = game.type
+                                )
+                            )
                         }
                     }
 
@@ -264,7 +269,7 @@ class AttendanceDetailViewModel @Inject constructor(
                     }
                 }
 
-                croissantDatabase.gameDao().insert(*newGames.toTypedArray())
+                insertGameUseCase(*newGames.toTypedArray())
             }.fold(
                 onSuccess = {
                     Lce.Content(Unit)

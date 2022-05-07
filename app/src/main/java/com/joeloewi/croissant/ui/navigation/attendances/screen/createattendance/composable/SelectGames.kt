@@ -18,21 +18,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
-import com.joeloewi.croissant.data.common.HoYoLABGame
-import com.joeloewi.croissant.data.local.model.Game
-import com.joeloewi.croissant.data.remote.model.common.GameRecord
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.theme.DefaultDp
-import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.ListItem
+import com.joeloewi.croissant.util.gameNameStringResId
+import com.joeloewi.domain.common.HoYoLABGame
+import com.joeloewi.domain.entity.Game
+import com.joeloewi.domain.entity.GameRecord
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 
 @ExperimentalFoundationApi
@@ -54,10 +56,16 @@ fun SelectGames(
     LaunchedEffect(connectedGames) {
         when (connectedGames) {
             is Lce.Content -> {
-                if (connectedGames.content.any { !supportedGames.contains(HoYoLABGame.findByGameId(it.gameId)) }) {
+                if (connectedGames.content.any {
+                        !supportedGames.contains(
+                            HoYoLABGame.findByGameId(
+                                it.gameId
+                            )
+                        )
+                    }) {
                     snackbarHostState.apply {
                         currentSnackbarData?.dismiss()
-                        showSnackbar(message = "지원되지 않는 게임입니다. 추후 업데이트를 기다려주세요.")
+                        showSnackbar(message = "지원되지 않는 게임이 있습니다. 추후 업데이트를 기다려주세요.")
                     }
                 }
             }
@@ -83,7 +91,7 @@ fun SelectGames(
             val noGamesSelected = checkedGames.isEmpty()
 
             AnimatedVisibility(
-                visible = connectedGames.content?.isNotEmpty() == true,
+                visible = !connectedGames.isLoading && connectedGames.error == null,
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
@@ -126,8 +134,7 @@ fun SelectGames(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
-            verticalArrangement = Arrangement.spacedBy(space = DoubleDp)
+                .padding(innerPadding)
         ) {
             item(
                 key = "headline"
@@ -137,6 +144,8 @@ fun SelectGames(
                     text = "출석할 게임 선택하기",
                     style = MaterialTheme.typography.headlineSmall
                 )
+
+                Spacer(modifier = Modifier.padding(DefaultDp))
             }
 
             item(
@@ -147,6 +156,8 @@ fun SelectGames(
                     text = "HoYoLAB 게임 선택하기",
                     style = MaterialTheme.typography.titleMedium
                 )
+
+                Spacer(modifier = Modifier.padding(DefaultDp))
             }
 
 
@@ -158,46 +169,23 @@ fun SelectGames(
                     text = "계정과 연동된 게임 목록 중에서 출석하고자 하는 게임을 선택해주세요.",
                     style = MaterialTheme.typography.bodyMedium
                 )
+
+                Spacer(modifier = Modifier.padding(DefaultDp))
             }
 
             when (connectedGames) {
                 is Lce.Content -> {
-                    if (connectedGames.content.isEmpty()) {
-                        item(
-                            key = "contentIsEmpty"
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .animateItemPlacement(),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Icon(
-                                    modifier = Modifier.fillMaxSize(0.3f),
-                                    imageVector = Icons.Default.Warning,
-                                    contentDescription = Icons.Default.Warning.name,
-                                    tint = MaterialTheme.colorScheme.primaryContainer
-                                )
-                                Text(
-                                    text = "HoYoLAB에 연동된 게임이 없습니다. 연동 후 다시 시도 해주세요.",
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                            }
-                        }
-                    } else {
-                        items(
-                            items = HoYoLABGame.values().filter { it != HoYoLABGame.Unknown },
-                            key = { it.name }
-                        ) { item ->
-                            ConnectedGamesContentListItem(
-                                modifier = Modifier.animateItemPlacement(),
-                                checkedGames = checkedGames,
-                                hoYoLABGame = item,
-                                gameRecord = connectedGames.content.find { it.gameId == item.gameId }
-                                    ?: GameRecord()
-                            )
-                        }
+                    items(
+                        items = HoYoLABGame.values().filter { it != HoYoLABGame.Unknown },
+                        key = { it.name }
+                    ) { item ->
+                        ConnectedGamesContentListItem(
+                            modifier = Modifier.animateItemPlacement(),
+                            checkedGames = checkedGames,
+                            hoYoLABGame = item,
+                            gameRecord = connectedGames.content.find { it.gameId == item.gameId }
+                                ?: GameRecord()
+                        )
                     }
                 }
 
@@ -314,20 +302,27 @@ fun ConnectedGamesContentListItem(
         region = gameRecord.region
     )
 
+    val enabled =
+        hoYoLABGame == HoYoLABGame.TearsOfThemis ||
+                gameRecord.gameId != GameRecord.INVALID_GAME_ID
+
     ListItem(
         modifier = modifier
             .fillMaxWidth()
+            .alpha(
+                if (enabled) {
+                    1.0f
+                } else {
+                    0.3f
+                }
+            )
             .toggleable(
                 value = checkedGames.contains(game),
+                enabled = enabled,
+                role = Role.Checkbox,
                 onValueChange = { checked ->
                     if (checked) {
-                        checkedGames.add(
-                            Game(
-                                roleId = gameRecord.gameRoleId,
-                                type = hoYoLABGame,
-                                region = gameRecord.region
-                            )
-                        )
+                        checkedGames.add(game)
                     } else {
                         checkedGames.remove(game)
                     }
@@ -355,10 +350,14 @@ fun ConnectedGamesContentListItem(
             )
         },
         text = {
-            Text(text = stringResource(id = hoYoLABGame.gameNameResourceId))
+            Text(text = stringResource(id = hoYoLABGame.gameNameStringResId()))
         },
         secondaryText = {
-            Text(text = "${gameRecord.regionName} (${gameRecord.region})")
+            with(gameRecord) {
+                if (regionName.isNotEmpty() && region.isNotEmpty()) {
+                    Text(text = "$regionName (${region})")
+                }
+            }
         }
     )
 }

@@ -21,10 +21,6 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
-import com.joeloewi.croissant.data.common.HoYoLABGame
-import com.joeloewi.croissant.data.local.model.Game
-import com.joeloewi.croissant.data.remote.model.common.GameRecord
-import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.util.ProgressDialog
 import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
 import com.joeloewi.croissant.ui.navigation.attendances.screen.COOKIE
@@ -35,6 +31,10 @@ import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.util.getResultFromPreviousComposable
 import com.joeloewi.croissant.util.navigationIconButton
 import com.joeloewi.croissant.viewmodel.CreateAttendanceViewModel
+import com.joeloewi.domain.common.HoYoLABGame
+import com.joeloewi.domain.entity.Game
+import com.joeloewi.domain.entity.GameRecord
+import com.joeloewi.croissant.state.Lce
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.launch
 

@@ -11,7 +11,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
@@ -23,12 +22,12 @@ import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
-import com.joeloewi.croissant.data.common.WorkerExecutionLogState
-import com.joeloewi.croissant.data.local.model.relational.WorkerExecutionLogWithState
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.navigationIconButton
 import com.joeloewi.croissant.viewmodel.AttendanceLogsViewModel
+import com.joeloewi.domain.common.WorkerExecutionLogState
+import com.joeloewi.domain.entity.relational.WorkerExecutionLogWithState
 import org.threeten.bp.Instant
 import org.threeten.bp.ZoneId
 import org.threeten.bp.format.DateTimeFormatter

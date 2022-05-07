@@ -3,29 +3,28 @@ package com.joeloewi.croissant.worker
 import android.app.Notification
 import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.graphics.drawable.toBitmap
-import androidx.core.net.toUri
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import coil.ImageLoader
 import coil.request.ImageRequest
-import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.data.common.*
-import com.joeloewi.croissant.data.local.CroissantDatabase
-import com.joeloewi.croissant.data.local.model.FailureLog
-import com.joeloewi.croissant.data.local.model.SuccessLog
-import com.joeloewi.croissant.data.local.model.WorkerExecutionLog
-import com.joeloewi.croissant.data.remote.dao.HoYoLABService
-import com.joeloewi.croissant.data.remote.model.response.AttendanceResponse
 import com.joeloewi.croissant.util.CroissantPermission
+import com.joeloewi.croissant.util.gameNameStringResId
+import com.joeloewi.data.common.generateGameIntent
+import com.joeloewi.domain.common.HoYoLABGame
+import com.joeloewi.domain.common.LoggableWorker
+import com.joeloewi.domain.common.WorkerExecutionLogState
+import com.joeloewi.domain.entity.BaseResponse
+import com.joeloewi.domain.entity.FailureLog
+import com.joeloewi.domain.entity.SuccessLog
+import com.joeloewi.domain.entity.WorkerExecutionLog
+import com.joeloewi.domain.usecase.*
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
@@ -33,51 +32,25 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 import java.util.*
+import kotlin.system.measureTimeMillis
 
 @HiltWorker
 class AttendCheckInEventWorker @AssistedInject constructor(
     @Assisted val context: Context,
     @Assisted val params: WorkerParameters,
-    private val croissantDatabase: CroissantDatabase,
-    private val hoYoLABService: HoYoLABService
+    val getOneAttendanceUseCase: AttendanceUseCase.GetOne,
+    val getUserFullInfoHoYoLABUseCase: HoYoLABUseCase.GetUserFullInfo,
+    val attendCheckInGenshinImpactHoYoLABUseCase: HoYoLABUseCase.AttendCheckInGenshinImpact,
+    val attendCheckInHonkaiImpact3rdHoYoLABUseCase: HoYoLABUseCase.AttendCheckInHonkaiImpact3rd,
+    val attendCheckInTearsOfThemisHoYoLABUseCase: HoYoLABUseCase.AttendCheckInTearsOfThemis,
+    val insertWorkerExecutionLogUseCase: WorkerExecutionLogUseCase.Insert,
+    val insertSuccessLogUseCase: SuccessLogUseCase.Insert,
+    val insertFailureLogUseCase: FailureLogUseCase.Insert
 ) : CoroutineWorker(
     appContext = context,
     params = params
 ) {
     private val attendanceId = inputData.getLong(ATTENDANCE_ID, Long.MIN_VALUE)
-
-    private fun getIntentFromGameRegion(
-        hoYoLABGame: HoYoLABGame,
-        region: String
-    ): Intent = when (hoYoLABGame) {
-        HoYoLABGame.HonkaiImpact3rd -> {
-            with(HonkaiImpact3rdServer.findByRegion(region = region)) {
-                packageName to fallbackUri
-            }
-        }
-        HoYoLABGame.GenshinImpact -> {
-            with(GenshinImpactServer.findByRegion(region = region)) {
-                packageName to fallbackUri
-            }
-        }
-        HoYoLABGame.TearsOfThemis -> {
-            "com.miHoYo.tot.glb" to "market://details?id=com.miHoYo.tot.glb".toUri()
-        }
-        HoYoLABGame.Unknown -> {
-            "" to Uri.EMPTY
-        }
-    }.let {
-        context.packageManager.getLaunchIntentForPackage(it.first)
-            ?: if (it.second.authority?.contains("taptap.io") == true) {
-                //for chinese server
-                Intent(Intent.ACTION_VIEW, it.second)
-            } else {
-                Intent(Intent.ACTION_VIEW).apply {
-                    addCategory(Intent.CATEGORY_DEFAULT)
-                    data = it.second
-                }
-            }
-    }
 
     private suspend fun createAttendanceNotification(
         context: Context,
@@ -85,10 +58,10 @@ class AttendCheckInEventWorker @AssistedInject constructor(
         nickname: String,
         hoYoLABGame: HoYoLABGame,
         region: String,
-        attendanceResponse: AttendanceResponse
+        attendanceResponse: BaseResponse
     ): Notification = NotificationCompat
         .Builder(context, channelId)
-        .setContentTitle("${nickname}의 출석 작업 - ${context.getString(hoYoLABGame.gameNameResourceId)}")
+        .setContentTitle("${nickname}의 출석 작업 - ${context.getString(hoYoLABGame.gameNameStringResId())}")
         .setContentText("${attendanceResponse.message} (${attendanceResponse.retcode})")
         .setAutoCancel(true)
         .setSmallIcon(R.drawable.ic_baseline_bakery_dining_24)
@@ -112,7 +85,8 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                 PendingIntent.getActivity(
                     context,
                     0,
-                    getIntentFromGameRegion(
+                    generateGameIntent(
+                        context = context,
                         hoYoLABGame = hoYoLABGame,
                         region = region
                     ),
@@ -128,10 +102,10 @@ class AttendCheckInEventWorker @AssistedInject constructor(
             takeIf { it != Long.MIN_VALUE }!!
         }.mapCatching { attendanceId ->
             //check session is valid
-            val attendanceWithGames = croissantDatabase.attendanceDao().getOne(attendanceId)
+            val attendanceWithGames = getOneAttendanceUseCase(attendanceId)
             val cookie = attendanceWithGames.attendance.cookie
 
-            if (hoYoLABService.getUserFullInfo(cookie).data == null) {
+            if (getUserFullInfoHoYoLABUseCase(cookie).data == null) {
                 throw NullPointerException()
             }
 
@@ -141,16 +115,16 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                 async {
                     when (game.type) {
                         HoYoLABGame.HonkaiImpact3rd -> {
-                            hoYoLABService.attendCheckInHonkaiImpact3rd(cookie = cookie)
+                            attendCheckInHonkaiImpact3rdHoYoLABUseCase(cookie)
                         }
                         HoYoLABGame.GenshinImpact -> {
-                            hoYoLABService.attendCheckInGenshinImpact(cookie = cookie)
+                            attendCheckInGenshinImpactHoYoLABUseCase(cookie)
                         }
                         HoYoLABGame.TearsOfThemis -> {
-                            hoYoLABService.attendTearsOfThemis(cookie = cookie)
+                            attendCheckInTearsOfThemisHoYoLABUseCase(cookie)
                         }
                         HoYoLABGame.Unknown -> {
-                            throw NotSupportedGameException()
+                            throw Exception()
                         }
                     }.also { response ->
                         createAttendanceNotification(
@@ -174,7 +148,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                             }
                         }
                     }.also { response ->
-                        val executionLogId = croissantDatabase.workerExecutionLogDao().insert(
+                        val executionLogId = insertWorkerExecutionLogUseCase(
                             WorkerExecutionLog(
                                 attendanceId = attendanceId,
                                 state = WorkerExecutionLogState.SUCCESS,
@@ -182,7 +156,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                             )
                         )
 
-                        croissantDatabase.successLogDao().insert(
+                        insertSuccessLogUseCase(
                             SuccessLog(
                                 executionLogId = executionLogId,
                                 gameName = game.type,
@@ -198,7 +172,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                 Result.success()
             },
             onFailure = { cause ->
-                val executionLogId = croissantDatabase.workerExecutionLogDao().insert(
+                val executionLogId = insertWorkerExecutionLogUseCase(
                     WorkerExecutionLog(
                         attendanceId = attendanceId,
                         state = WorkerExecutionLogState.FAILURE,
@@ -206,7 +180,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                     )
                 )
 
-                croissantDatabase.failureLogDao().insert(
+                insertFailureLogUseCase(
                     FailureLog(
                         executionLogId = executionLogId,
                         failureMessage = cause.message ?: "",

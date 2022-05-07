@@ -23,6 +23,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallTopAppBar
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -47,8 +48,6 @@ import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
-import com.joeloewi.croissant.data.local.model.Attendance
-import com.joeloewi.croissant.data.local.model.relational.AttendanceWithGames
 import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
@@ -57,6 +56,8 @@ import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.isEmpty
 import com.joeloewi.croissant.viewmodel.AttendancesViewModel
 import com.joeloewi.croissant.worker.AttendCheckInEventWorker
+import com.joeloewi.domain.entity.Attendance
+import com.joeloewi.domain.entity.relational.AttendanceWithGames
 
 @ExperimentalFoundationApi
 @ExperimentalMaterialApi
@@ -64,19 +65,23 @@ import com.joeloewi.croissant.worker.AttendCheckInEventWorker
 @Composable
 fun AttendancesScreen(
     navController: NavController,
+    snackbarHostState: SnackbarHostState,
     attendancesViewModel: AttendancesViewModel = hiltViewModel()
 ) {
     val pagedAttendancesWithGames =
         attendancesViewModel.pagedAttendanceWithGames.collectAsLazyPagingItems()
 
     AttendancesContent(
+        snackbarHostState = snackbarHostState,
         pagedAttendancesWithGames = pagedAttendancesWithGames,
         onCreateAttendanceClick = {
             navController.navigate(AttendancesDestination.CreateAttendanceScreen.route)
         },
         onDeleteAttendance = attendancesViewModel::deleteAttendance,
         onClickAttendance = {
-            navController.navigate("${AttendancesDestination.AttendanceDetailScreen().plainRoute}/${it.id}")
+            navController.navigate(
+                AttendancesDestination.AttendanceDetailScreen().generateRoute(it.id)
+            )
         }
     )
 }
@@ -86,6 +91,7 @@ fun AttendancesScreen(
 @ExperimentalMaterial3Api
 @Composable
 private fun AttendancesContent(
+    snackbarHostState: SnackbarHostState,
     pagedAttendancesWithGames: LazyPagingItems<AttendanceWithGames>,
     onCreateAttendanceClick: () -> Unit,
     onDeleteAttendance: (Attendance) -> Unit,
@@ -98,6 +104,9 @@ private fun AttendancesContent(
                     Text(text = "출석 작업")
                 }
             )
+        },
+        snackbarHost = {
+            androidx.compose.material3.SnackbarHost(hostState = snackbarHostState)
         },
         floatingActionButton = {
             FloatingActionButton(

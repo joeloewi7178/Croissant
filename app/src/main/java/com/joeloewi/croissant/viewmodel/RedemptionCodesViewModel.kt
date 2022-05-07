@@ -1,9 +1,10 @@
 package com.joeloewi.croissant.viewmodel
 
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.joeloewi.croissant.data.common.HoYoLABGame
+import com.joeloewi.domain.common.HoYoLABGame
 import com.joeloewi.croissant.state.Lce
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
@@ -14,13 +15,12 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RedemptionCodesViewModel @Inject constructor(
-
 ) : ViewModel() {
     private val _hoYoLABGameRedemptionCodesState =
         MutableStateFlow<Lce<List<Pair<HoYoLABGame, String>>>>(Lce.Loading)
 
     val hoYoLABGameRedemptionCodesState = _hoYoLABGameRedemptionCodesState.asStateFlow()
-    val expandedItems = SnapshotStateList<HoYoLABGame>()
+    val expandedItems = mutableStateListOf<HoYoLABGame>()
 
     init {
         viewModelScope.launch(Dispatchers.IO) {

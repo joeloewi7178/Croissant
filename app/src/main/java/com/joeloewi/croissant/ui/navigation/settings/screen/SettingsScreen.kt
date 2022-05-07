@@ -13,10 +13,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.joeloewi.croissant.Settings
 import com.joeloewi.croissant.util.ListItem
 import com.joeloewi.croissant.util.Switch
 import com.joeloewi.croissant.viewmodel.SettingsViewModel
+import com.joeloewi.domain.entity.Settings
 
 @ExperimentalMaterialApi
 @ExperimentalMaterial3Api

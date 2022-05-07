@@ -30,10 +30,7 @@ import androidx.navigation.NavController
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebSettingsCompat.FORCE_DARK_ON
 import androidx.webkit.WebViewFeature
-import com.google.accompanist.web.AccompanistWebViewClient
-import com.google.accompanist.web.LoadingState
-import com.google.accompanist.web.WebView
-import com.google.accompanist.web.rememberWebViewState
+import com.google.accompanist.web.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -72,7 +69,7 @@ fun LoginHoYoLABContent(
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val (currentUrl, onCurrentUrlChange) = remember { mutableStateOf(hoyolabUrl) }
-    val (webView, onWebViewChange) = remember { mutableStateOf<WebView?>(null) }
+    val webViewNavigator = rememberWebViewNavigator()
     val (showSslErrorDialog, onShowSslErrorDialogChange) = remember {
         mutableStateOf<Pair<SslErrorHandler?, SslError?>?>(
             null
@@ -101,11 +98,10 @@ fun LoginHoYoLABContent(
                     actions = {
                         ReloadOrStopLoading(
                             isLoading = webViewState.isLoading,
-                            webView = webView,
                             reload = {
                                 IconButton(
                                     onClick = {
-                                        it?.reload()
+                                        webViewNavigator.reload()
                                     }
                                 ) {
                                     Icon(
@@ -117,7 +113,7 @@ fun LoginHoYoLABContent(
                             stopLoading = {
                                 IconButton(
                                     onClick = {
-                                        it?.stopLoading()
+                                        webViewNavigator.stopLoading()
                                     }
                                 ) {
                                     Icon(
@@ -193,9 +189,8 @@ fun LoginHoYoLABContent(
 
         WebView(
             state = webViewState,
+            navigator = webViewNavigator,
             onCreated = { webView ->
-                onWebViewChange(webView)
-
                 webView.settings.apply {
                     javaScriptEnabled = true
                     domStorageEnabled = true
@@ -346,13 +341,12 @@ fun LoginHoYoLABContent(
 @Composable
 fun ReloadOrStopLoading(
     isLoading: Boolean,
-    webView: WebView?,
-    reload: @Composable (WebView?) -> Unit,
-    stopLoading: @Composable (WebView?) -> Unit
+    reload: @Composable () -> Unit,
+    stopLoading: @Composable () -> Unit
 ) {
     if (!isLoading) {
-        reload(webView)
+        reload()
     } else {
-        stopLoading(webView)
+        stopLoading()
     }
 }

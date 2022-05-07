@@ -1,11 +1,10 @@
 package com.joeloewi.croissant.viewmodel
 
-import android.app.Application
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.joeloewi.croissant.data.proto.SettingsSerializer
-import com.joeloewi.croissant.data.proto.settingsDataStore
+import com.joeloewi.domain.entity.Settings
+import com.joeloewi.domain.usecase.SettingsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -14,18 +13,15 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val application: Application,
+    getSettingsUseCase: SettingsUseCase.GetSettings,
+    private val updateSettingsUseCase: SettingsUseCase.SetIsFirstLaunch,
 ) : ViewModel() {
-    private val _settings = application.settingsDataStore.data.flowOn(Dispatchers.IO).stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(),
-        initialValue = SettingsSerializer.defaultValue
-    )
+    private val _settings = getSettingsUseCase()
 
     val isFirstLaunch = _settings.map { it.isFirstLaunch }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(),
-        initialValue = SettingsSerializer.defaultValue.isFirstLaunch
+        initialValue = Settings().isFirstLaunch
     )
 
     init {
@@ -41,9 +37,7 @@ class MainViewModel @Inject constructor(
 
     fun setIsFirstLaunch(isFirstLaunch: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
-            application.settingsDataStore.updateData {
-                it.toBuilder().setIsFirstLaunch(isFirstLaunch).build()
-            }
+            updateSettingsUseCase.invoke(isFirstLaunch)
         }
     }
 }

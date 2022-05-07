@@ -1,23 +1,17 @@
-import com.google.protobuf.gradle.builtins
-import com.google.protobuf.gradle.generateProtoTasks
-import com.google.protobuf.gradle.protobuf
-import com.google.protobuf.gradle.protoc
-
 plugins {
-    id("com.android.application")
+    android
     `kotlin-android`
     `kotlin-kapt`
     `kotlin-parcelize`
-    id("com.google.protobuf") version "0.8.12"
     id("dagger.hilt.android.plugin")
-    id("org.jetbrains.kotlin.android")
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
 }
 
 android {
+    compileSdk = 32
+
     defaultConfig {
-        compileSdk = 32
         applicationId = "com.joeloewi.croissant"
         minSdk = 21
         targetSdk = 32
@@ -27,18 +21,6 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
-        }
-
-        javaCompileOptions {
-            annotationProcessorOptions {
-                arguments.putAll(
-                    mapOf(
-                        "room.schemaLocation" to "$projectDir/schemas",
-                        "room.incremental" to "true",
-                        "room.expandProjection" to "true"
-                    )
-                )
-            }
         }
     }
 
@@ -83,6 +65,9 @@ android {
 }
 
 dependencies {
+    implementation(project(":data"))
+    implementation(project(":domain"))
+
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("com.google.android.material:material:1.7.0-alpha01")
     implementation("androidx.compose.material3:material3:1.0.0-alpha09")
@@ -96,17 +81,6 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:${Versions.lifecycle}")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:${Versions.lifecycle}")
     implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:${Versions.lifecycle}")
-
-    //moshi
-    implementation("com.squareup.moshi:moshi:${Versions.moshi}")
-    implementation("com.squareup.moshi:moshi-adapters:${Versions.moshi}")
-    kapt("com.squareup.moshi:moshi-kotlin-codegen:${Versions.moshi}")
-
-    //retrofit2
-    implementation("com.squareup.retrofit2:retrofit:${Versions.retrofit}")
-    implementation("com.squareup.retrofit2:converter-moshi:${Versions.retrofit}")
-    implementation("com.squareup.retrofit2:converter-scalars:${Versions.retrofit}")
-    implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.2")
 
     //hilt
     implementation("com.google.dagger:hilt-android:${Versions.hilt}")
@@ -142,12 +116,6 @@ dependencies {
     //start up
     implementation("androidx.startup:startup-runtime:${Versions.startup}")
 
-    //room
-    implementation("androidx.room:room-runtime:${Versions.room}")
-    kapt("androidx.room:room-compiler:${Versions.room}")
-    implementation("androidx.room:room-ktx:${Versions.room}")
-    implementation("androidx.room:room-paging:${Versions.room}")
-
     //splashscreen
     implementation("androidx.core:core-splashscreen:1.0.0-beta02")
 
@@ -162,12 +130,6 @@ dependencies {
 
     //java.time back porting
     implementation("com.jakewharton.threetenabp:threetenabp:1.4.0")
-
-    //protobuf
-    implementation("com.google.protobuf:protobuf-javalite:${Versions.protobuf}")
-
-    //datastore
-    implementation("androidx.datastore:datastore:1.0.0")
 
     // https://mvnrepository.com/artifact/com.google.android.material/compose-theme-adapter-3
     implementation("com.google.android.material:compose-theme-adapter-3:1.0.7")
@@ -187,21 +149,4 @@ dependencies {
 
 kapt {
     correctErrorTypes = true
-}
-
-protobuf {
-
-    protoc {
-        artifact = "com.google.protobuf:protoc:${Versions.protobuf}"
-    }
-
-    generateProtoTasks {
-        all().forEach { task ->
-            task.builtins {
-                create("java") {
-                    option("lite")
-                }
-            }
-        }
-    }
 }

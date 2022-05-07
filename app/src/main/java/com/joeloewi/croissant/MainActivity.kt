@@ -186,9 +186,6 @@ fun CroissantApp() {
                     )
                 )
             },
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
-            },
             bottomBar = {
                 Column {
                     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -282,6 +279,7 @@ fun CroissantApp() {
 
                             AttendancesScreen(
                                 navController = navController,
+                                snackbarHostState = snackbarHostState,
                                 attendancesViewModel = attendancesViewModel
                             )
                         }
@@ -442,107 +440,111 @@ fun CroissantAppBottomSheetContent(
         }
     }
 
-    Surface(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Scaffold(
-            bottomBar = {
-                Column {
-                    FilledTonalButton(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(DefaultDp),
-                        onClick = {
-                            multiplePermissionsState.launchMultiplePermissionRequest()
-                        }
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(
-                                space = DefaultDp,
-                                alignment = Alignment.CenterHorizontally
-                            ),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Checklist,
-                                contentDescription = Icons.Default.Checklist.name
-                            )
-                            Text(text = "권한 허가하고 시작하기")
-                        }
-                    }
-
-                    Spacer(
-                        modifier = Modifier
-                            .windowInsetsBottomHeight(WindowInsets.navigationBars)
-                            .fillMaxWidth(),
-                    )
-                }
-            }
-        ) { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(
-                    space = DoubleDp,
+    Scaffold(
+        topBar = {
+            Spacer(
+                modifier = Modifier.padding(
+                    WindowInsets.statusBars.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
+                        .asPaddingValues()
                 )
-            ) {
-                Spacer(modifier = Modifier.padding(DoubleDp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
+            )
+        },
+        bottomBar = {
+            Column {
+                FilledTonalButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(DefaultDp),
+                    onClick = {
+                        multiplePermissionsState.launchMultiplePermissionRequest()
+                    }
                 ) {
-                    AsyncImage(
-                        modifier = Modifier.size(48.dp),
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(R.mipmap.ic_launcher)
-                            .build(),
-                        contentDescription = null
-                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(
+                            space = DefaultDp,
+                            alignment = Alignment.CenterHorizontally
+                        ),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Checklist,
+                            contentDescription = Icons.Default.Checklist.name
+                        )
+                        Text(text = "권한 허가하고 시작하기")
+                    }
                 }
 
-                Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = "크루아상 시작하기",
-                    style = MaterialTheme.typography.headlineSmall.copy(
-                        fontWeight = FontWeight.Bold
-                    ),
-                    textAlign = TextAlign.Center
+                Spacer(
+                    modifier = Modifier
+                        .windowInsetsBottomHeight(WindowInsets.navigationBars)
+                        .fillMaxWidth(),
                 )
+            }
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(
+                space = DoubleDp,
+            )
+        ) {
+            Spacer(modifier = Modifier.padding(DoubleDp))
 
-                Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = "간편한 설정을 통해 HoYoLAB 자동 출석체크 및 원신 레진 알림 위젯 기능을 사용할 수 있습니다.",
-                    textAlign = TextAlign.Center
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                AsyncImage(
+                    modifier = Modifier.size(48.dp),
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(R.mipmap.ic_launcher)
+                        .build(),
+                    contentDescription = null
                 )
+            }
 
-                Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = "시작하기 전에 다음 권한에 대한 허가가 필요합니다.",
-                    textAlign = TextAlign.Center
-                )
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = "크루아상 시작하기",
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontWeight = FontWeight.Bold
+                ),
+                textAlign = TextAlign.Center
+            )
 
-                LazyColumn {
-                    items(
-                        items = croissantPermissions,
-                        key = { it.permission }
-                    ) { item ->
-                        ListItem(
-                            icon = {
-                                Icon(
-                                    imageVector = item.icon,
-                                    contentDescription = item.icon.name
-                                )
-                            },
-                            secondaryText = {
-                                Text(text = stringResource(id = item.detailedDescription))
-                            },
-                            text = {
-                                Text(text = stringResource(id = item.label))
-                            }
-                        )
-                    }
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = "간편한 설정을 통해 HoYoLAB 자동 출석체크 및 원신 레진 알림 위젯 기능을 사용할 수 있습니다.",
+                textAlign = TextAlign.Center
+            )
+
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = "시작하기 전에 다음 권한에 대한 허가가 필요합니다.",
+                textAlign = TextAlign.Center
+            )
+
+            LazyColumn {
+                items(
+                    items = croissantPermissions,
+                    key = { it.permission }
+                ) { item ->
+                    ListItem(
+                        icon = {
+                            Icon(
+                                imageVector = item.icon,
+                                contentDescription = item.icon.name
+                            )
+                        },
+                        secondaryText = {
+                            Text(text = stringResource(id = item.detailedDescription))
+                        },
+                        text = {
+                            Text(text = stringResource(id = item.label))
+                        }
+                    )
                 }
             }
         }

@@ -13,18 +13,19 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -40,13 +41,15 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.google.accompanist.web.AccompanistWebViewClient
 import com.google.accompanist.web.WebView
 import com.google.accompanist.web.rememberWebViewStateWithHTMLData
-import com.joeloewi.croissant.data.common.HoYoLABGame
-import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.navigation.CroissantNavigation
 import com.joeloewi.croissant.ui.theme.DefaultDp
+import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.LocalActivity
+import com.joeloewi.croissant.util.gameNameStringResId
 import com.joeloewi.croissant.viewmodel.RedemptionCodesViewModel
+import com.joeloewi.domain.common.HoYoLABGame
+import com.joeloewi.croissant.state.Lce
 
 @ExperimentalFoundationApi
 @ExperimentalMaterial3Api
@@ -199,19 +202,10 @@ fun RedemptionCodeListItem(
 
                     Spacer(modifier = Modifier.padding(horizontal = DefaultDp))
 
-                    Text(text = stringResource(id = item.first.gameNameResourceId))
+                    Text(text = stringResource(id = item.first.gameNameStringResId()))
                 }
 
-                IconToggleButton(
-                    checked = expandedItems.contains(item.first),
-                    onCheckedChange = { checked ->
-                        if (checked) {
-                            expandedItems.add(item.first)
-                        } else {
-                            expandedItems.remove(item.first)
-                        }
-                    }
-                ) {
+                Box(modifier = Modifier.padding(DoubleDp)) {
                     if (expandedItems.contains(item.first)) {
                         Icon(
                             imageVector = Icons.Default.ExpandLess,
@@ -226,12 +220,16 @@ fun RedemptionCodeListItem(
                 }
             }
 
+            val maxHeight = if (expandedItems.contains(item.first)) {
+                Dp.Unspecified
+            } else {
+                216.dp
+            }
+
             WebView(
-                modifier = if (expandedItems.contains(item.first)) {
-                    Modifier.fillMaxSize()
-                } else {
-                    Modifier.height(216.dp)
-                },
+                modifier = Modifier
+                    .height(maxHeight)
+                    .fillMaxWidth(),
                 state = rememberWebViewStateWithHTMLData(
                     data = item.second,
                     baseUrl = "https://arca.live/"

@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+option java_package = "com.joeloewi.data";
+option java_multiple_files = true;
+
+message Settings {
+  bool darkThemeEnabled = 1;
+  bool isFirstLaunch = 2;
+}

@@ -2,14 +2,13 @@ package com.joeloewi.croissant.viewmodel
 
 import android.app.Application
 import android.appwidget.AppWidgetManager
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.*
-import com.joeloewi.croissant.data.local.CroissantDatabase
-import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.worker.RefreshResinStatusWorker
+import com.joeloewi.croissant.state.Lce
+import com.joeloewi.domain.usecase.ResinStatusWidgetUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +20,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ResinStatusWidgetDetailViewModel @Inject constructor(
     private val application: Application,
-    private val croissantDatabase: CroissantDatabase,
+    private val getOneByAppWidgetIdResinStatusWidgetUseCase: ResinStatusWidgetUseCase.GetOneByAppWidgetId,
+    private val updateResinStatusWidgetUseCase: ResinStatusWidgetUseCase.Update,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     val appWidgetId =
@@ -36,8 +36,8 @@ class ResinStatusWidgetDetailViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            croissantDatabase.resinStatusWidgetDao().runCatching {
-                getOneByAppWidgetId(appWidgetId = appWidgetId)
+            getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
+                invoke(appWidgetId = appWidgetId)
             }.mapCatching {
                 _interval.value = it.resinStatusWidget.interval
             }
@@ -55,8 +55,8 @@ class ResinStatusWidgetDetailViewModel @Inject constructor(
 
         viewModelScope.launch(Dispatchers.IO) {
             _updateResinStatusWidgetState.value =
-                croissantDatabase.resinStatusWidgetDao().runCatching {
-                    getOneByAppWidgetId(appWidgetId = appWidgetId)
+                getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
+                    invoke(appWidgetId = appWidgetId)
                 }.mapCatching {
                     val resinStatusWidget = it.resinStatusWidget
 
@@ -83,7 +83,7 @@ class ResinStatusWidgetDetailViewModel @Inject constructor(
                         interval = _interval.value
                     )
                 }.mapCatching {
-                    croissantDatabase.resinStatusWidgetDao().update(it)
+                    updateResinStatusWidgetUseCase(it)
                 }.fold(
                     onSuccess = {
                         Lce.Content(it)
