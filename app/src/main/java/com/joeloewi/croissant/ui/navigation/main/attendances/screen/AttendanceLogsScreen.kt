@@ -1,16 +1,19 @@
-package com.joeloewi.croissant.ui.navigation.attendances.screen
+package com.joeloewi.croissant.ui.navigation.main.attendances.screen
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DeleteSweep
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
@@ -24,6 +27,7 @@ import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.IconDp
+import com.joeloewi.croissant.util.isEmpty
 import com.joeloewi.croissant.util.navigationIconButton
 import com.joeloewi.croissant.viewmodel.AttendanceLogsViewModel
 import com.joeloewi.domain.common.WorkerExecutionLogState
@@ -89,23 +93,44 @@ fun AttendanceLogsContent(
             )
         }
     ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(innerPadding)
-                .then(Modifier.padding(DefaultDp)),
-            verticalArrangement = Arrangement.spacedBy(DefaultDp)
-        ) {
-            items(
-                items = pagedAttendanceLogs,
-                key = { it.workerExecutionLog.id }
-            ) { item ->
-                if (item != null) {
-                    WorkerExecutionLogWithStateItem(
-                        item = item
-                    )
-                } else {
-                    WorkerExecutionLogWithStateItemPlaceHolder()
+
+        if (pagedAttendanceLogs.isEmpty()) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    modifier = Modifier.fillMaxSize(0.3f),
+                    imageVector = Icons.Default.Error,
+                    contentDescription = Icons.Default.Error.name,
+                    tint = MaterialTheme.colorScheme.primaryContainer
+                )
+                Text(
+                    text = "실행 기록이 없습니다.",
+                    style = MaterialTheme.typography.titleMedium,
+                    textAlign = TextAlign.Center
+                )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(innerPadding)
+                    .then(Modifier.padding(DefaultDp)),
+                verticalArrangement = Arrangement.spacedBy(DefaultDp)
+            ) {
+                items(
+                    items = pagedAttendanceLogs,
+                    key = { it.workerExecutionLog.id }
+                ) { item ->
+                    if (item != null) {
+                        WorkerExecutionLogWithStateItem(
+                            item = item
+                        )
+                    } else {
+                        WorkerExecutionLogWithStateItemPlaceHolder()
+                    }
                 }
             }
         }

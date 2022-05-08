@@ -4,7 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
-import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
+import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.domain.common.LoggableWorker
 import com.joeloewi.domain.usecase.WorkerExecutionLogUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,7 +20,7 @@ class AttendanceLogsViewModel @Inject constructor(
 ) : ViewModel() {
     //parameter
     private val _attendanceIdKey = AttendancesDestination.AttendanceLogsScreen.ATTENDANCE_ID
-    private val _loggableWorkerKey = AttendancesDestination.AttendanceLogsScreen.CROISSANT_WORKER
+    private val _loggableWorkerKey = AttendancesDestination.AttendanceLogsScreen.LOGGABLE_WORKER
     private val _attendanceId = savedStateHandle.get<Long>(_attendanceIdKey) ?: Long.MIN_VALUE
     private val _loggableWorker =
         savedStateHandle.get<LoggableWorker>(_loggableWorkerKey) ?: LoggableWorker.UNKNOWN

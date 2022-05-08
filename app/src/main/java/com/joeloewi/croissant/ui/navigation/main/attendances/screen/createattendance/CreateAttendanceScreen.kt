@@ -1,4 +1,4 @@
-package com.joeloewi.croissant.ui.navigation.attendances.screen.createattendance
+package com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -22,11 +22,11 @@ import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
 import com.joeloewi.croissant.util.ProgressDialog
-import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
-import com.joeloewi.croissant.ui.navigation.attendances.screen.COOKIE
-import com.joeloewi.croissant.ui.navigation.attendances.screen.createattendance.composable.GetSession
-import com.joeloewi.croissant.ui.navigation.attendances.screen.createattendance.composable.SelectGames
-import com.joeloewi.croissant.ui.navigation.attendances.screen.createattendance.composable.SetTime
+import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
+import com.joeloewi.croissant.ui.navigation.main.attendances.screen.COOKIE
+import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.composable.GetSession
+import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.composable.SelectGames
+import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.composable.SetTime
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.util.getResultFromPreviousComposable
 import com.joeloewi.croissant.util.navigationIconButton
@@ -71,6 +71,19 @@ fun CreateAttendanceScreen(
         onNavigateUp = navController::navigateUp,
         onCreateAttendance = {
             createAttendanceViewModel.createAttendance()
+        },
+        onNavigateToAttendanceDetailScreen = {
+            navController.navigate(
+                AttendancesDestination.AttendanceDetailScreen().generateRoute(it)
+            ) {
+                popUpTo(AttendancesDestination.AttendancesScreen.route)
+            }
+        },
+        onCancelCreateAttendance = {
+            navController.popBackStack(
+                route = AttendancesDestination.AttendancesScreen.route,
+                inclusive = false
+            )
         }
     )
 }
@@ -87,7 +100,9 @@ fun CreateAttendanceContent(
     createAttendanceState: Lce<List<Long>>,
     onLoginHoYoLAB: () -> Unit,
     onNavigateUp: () -> Unit,
-    onCreateAttendance: () -> Unit
+    onCreateAttendance: () -> Unit,
+    onNavigateToAttendanceDetailScreen: (Long) -> Unit,
+    onCancelCreateAttendance: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState()
@@ -229,6 +244,7 @@ fun CreateAttendanceContent(
                                     hiltViewModel()
                                 val checkedGames =
                                     remember { createAttendanceViewModel.checkedGames }
+                                val duplicatedAttendance by createAttendanceViewModel.duplicatedAttendance.collectAsState()
 
                                 LaunchedEffect(connectedGames) {
                                     if (connectedGames is Lce.Content) {
@@ -245,9 +261,12 @@ fun CreateAttendanceContent(
                                 }
 
                                 SelectGames(
+                                    duplicatedAttendance = duplicatedAttendance,
                                     checkedGames = checkedGames,
                                     connectedGames = connectedGames,
-                                    onNextButtonClick = onNextButtonClick
+                                    onNextButtonClick = onNextButtonClick,
+                                    onNavigateToAttendanceDetailScreen = onNavigateToAttendanceDetailScreen,
+                                    onCancelCreateAttendance = onCancelCreateAttendance
                                 )
                             }
                         }

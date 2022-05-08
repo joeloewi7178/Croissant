@@ -1,12 +1,9 @@
-package com.joeloewi.croissant.ui.navigation.attendances.screen
+package com.joeloewi.croissant.ui.navigation.main.attendances.screen
 
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.http.SslError
 import android.webkit.*
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth

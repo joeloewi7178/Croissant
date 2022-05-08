@@ -20,6 +20,8 @@ class AttendanceRepositoryImpl @Inject constructor(
     override suspend fun delete(vararg attendances: Attendance): Int =
         attendanceDataSource.delete(*attendances)
 
+    override suspend fun getOneByUid(uid: Long): Attendance = attendanceDataSource.getOneByUid(uid)
+
     override suspend fun getOne(id: Long): AttendanceWithGames =
         attendanceDataSource.getOne(id)
 

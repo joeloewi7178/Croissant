@@ -32,6 +32,12 @@ sealed class AttendanceUseCase {
         suspend operator fun invoke(id: Long) = attendanceRepository.getOne(id)
     }
 
+    class GetOneByUid @Inject constructor(
+        private val attendanceRepository: AttendanceRepository
+    ) : AttendanceUseCase() {
+        suspend operator fun invoke(uid: Long) = attendanceRepository.getOneByUid(uid)
+    }
+
     class GetByIds @Inject constructor(
         private val attendanceRepository: AttendanceRepository
     ) : AttendanceUseCase() {

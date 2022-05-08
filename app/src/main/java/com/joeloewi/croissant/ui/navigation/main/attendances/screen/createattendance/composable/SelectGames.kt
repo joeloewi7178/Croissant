@@ -1,19 +1,22 @@
-package com.joeloewi.croissant.ui.navigation.attendances.screen.createattendance.composable
+package com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.composable
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
@@ -22,6 +25,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
@@ -33,6 +37,7 @@ import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.ListItem
 import com.joeloewi.croissant.util.gameNameStringResId
 import com.joeloewi.domain.common.HoYoLABGame
+import com.joeloewi.domain.entity.Attendance
 import com.joeloewi.domain.entity.Game
 import com.joeloewi.domain.entity.GameRecord
 import kotlinx.coroutines.ObsoleteCoroutinesApi
@@ -42,11 +47,19 @@ import kotlinx.coroutines.ObsoleteCoroutinesApi
 @ExperimentalMaterial3Api
 @Composable
 fun SelectGames(
+    duplicatedAttendance: Attendance?,
     checkedGames: SnapshotStateList<Game>,
     connectedGames: Lce<List<GameRecord>>,
-    onNextButtonClick: () -> Unit
+    onNextButtonClick: () -> Unit,
+    onNavigateToAttendanceDetailScreen: (Long) -> Unit,
+    onCancelCreateAttendance: () -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
+    val (showDuplicatedAttendanceDialog, onShowDuplicatedAttendanceDialogChange) = remember {
+        mutableStateOf(
+            false to 0L
+        )
+    }
     val supportedGames = listOf(
         HoYoLABGame.HonkaiImpact3rd,
         HoYoLABGame.GenshinImpact,
@@ -83,6 +96,12 @@ fun SelectGames(
         }
     }
 
+    LaunchedEffect(duplicatedAttendance) {
+        if (duplicatedAttendance != null) {
+            onShowDuplicatedAttendanceDialogChange(true to duplicatedAttendance.id)
+        }
+    }
+
     Scaffold(
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
@@ -110,7 +129,9 @@ fun SelectGames(
                 }
 
                 FilledTonalButton(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surface),
                     enabled = !noGamesSelected,
                     onClick = onNextButtonClick
                 ) {
@@ -201,8 +222,8 @@ fun SelectGames(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Warning,
-                                contentDescription = Icons.Default.Warning.name
+                                imageVector = Icons.Default.Error,
+                                contentDescription = Icons.Default.Error.name
                             )
                             Text(text = "오류가 발생했습니다. 다시 시도해주세요.")
                         }
@@ -218,6 +239,50 @@ fun SelectGames(
                     }
                 }
             }
+        }
+
+        if (showDuplicatedAttendanceDialog.first) {
+            AlertDialog(
+                onDismissRequest = {
+                    onShowDuplicatedAttendanceDialogChange(false to 0L)
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            onNavigateToAttendanceDetailScreen(showDuplicatedAttendanceDialog.second)
+                            onShowDuplicatedAttendanceDialogChange(false to 0L)
+                        }
+                    ) {
+                        Text(text = "확인")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            onShowDuplicatedAttendanceDialogChange(false to 0L)
+                            onCancelCreateAttendance()
+                        }
+                    ) {
+                        Text(text = "취소")
+                    }
+                },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Warning,
+                        contentDescription = Icons.Default.Warning.name
+                    )
+                },
+                title = {
+                    Text(text = "알림")
+                },
+                text = {
+                    Text(text = "입력하신 계정은 이미 출석 작업에 등록되어있어 출석 작업 만들기를 중단합니다. 해당 출석 작업의 상세화면으로 이동하시겠습니까?")
+                },
+                properties = DialogProperties(
+                    dismissOnClickOutside = false,
+                    dismissOnBackPress = false
+                )
+            )
         }
     }
 }

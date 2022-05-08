@@ -1,4 +1,4 @@
-package com.joeloewi.croissant.ui.navigation.attendances.screen
+package com.joeloewi.croissant.ui.navigation.main.attendances.screen
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -48,7 +48,7 @@ import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
-import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
+import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.ui.theme.HalfDp
@@ -130,8 +130,8 @@ private fun AttendancesContent(
             ) {
                 Icon(
                     modifier = Modifier.fillMaxSize(0.3f),
-                    imageVector = Icons.Default.Warning,
-                    contentDescription = Icons.Default.Warning.name,
+                    imageVector = Icons.Default.Error,
+                    contentDescription = Icons.Default.Error.name,
                     tint = MaterialTheme.colorScheme.primaryContainer
                 )
                 Text(

@@ -5,12 +5,11 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.*
+import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.worker.AttendCheckInEventWorker
 import com.joeloewi.croissant.worker.CheckSessionWorker
 import com.joeloewi.domain.entity.Attendance
 import com.joeloewi.domain.entity.Game
-import com.joeloewi.domain.entity.GameRecord
-import com.joeloewi.croissant.state.Lce
 import com.joeloewi.domain.usecase.AttendanceUseCase
 import com.joeloewi.domain.usecase.GameUseCase
 import com.joeloewi.domain.usecase.HoYoLABUseCase
@@ -33,19 +32,27 @@ class CreateAttendanceViewModel @Inject constructor(
     getGameRecordCardHoYoLABUseCase: HoYoLABUseCase.GetGameRecordCard,
     private val insertAttendanceUseCase: AttendanceUseCase.Insert,
     private val updateAttendanceUseCase: AttendanceUseCase.Update,
-    private val insertGameUseCase: GameUseCase.Insert
+    private val insertGameUseCase: GameUseCase.Insert,
+    private val getOneByUidAttendanceUseCase: AttendanceUseCase.GetOneByUid
 ) : ViewModel() {
     private val _cookie = MutableStateFlow("")
     private val _hourOfDay = MutableStateFlow(Calendar.getInstance()[Calendar.HOUR_OF_DAY])
     private val _minute = MutableStateFlow(Calendar.getInstance()[Calendar.MINUTE])
     private val _createAttendanceState = MutableStateFlow<Lce<List<Long>>>(Lce.Content(listOf()))
+    private val _duplicatedAttendance = MutableStateFlow<Attendance?>(null)
 
-    val cookie = _cookie
-    private val userInfo = _cookie
+    val cookie = _cookie.asStateFlow()
+    private val _userInfo = _cookie
         .filter { it.isNotEmpty() }
         .map { cookie ->
             getUserFullInfoHoYoLABUseCase.runCatching {
-                invoke(cookie = cookie).data!!.userInfo
+                invoke(cookie = cookie).data!!.userInfo.also {
+                    getOneByUidAttendanceUseCase.runCatching {
+                        invoke(it.uid)
+                    }.onSuccess { attendance ->
+                        _duplicatedAttendance.value = attendance
+                    }
+                }
             }.fold(
                 onSuccess = {
                     Lce.Content(it)
@@ -59,7 +66,7 @@ class CreateAttendanceViewModel @Inject constructor(
             started = SharingStarted.Lazily,
             initialValue = Lce.Loading
         )
-    val connectedGames = userInfo
+    val connectedGames = _userInfo
         .filter { it is Lce.Content }
         .combine(_cookie) { userInfo, cookie ->
             userInfo to cookie
@@ -94,6 +101,7 @@ class CreateAttendanceViewModel @Inject constructor(
     val hourOfDay = _hourOfDay.asStateFlow()
     val minute = _minute.asStateFlow()
     val createAttendanceState = _createAttendanceState.asStateFlow()
+    val duplicatedAttendance = _duplicatedAttendance.asStateFlow()
 
     fun setCookie(cookie: String) {
         viewModelScope.launch {
@@ -118,8 +126,8 @@ class CreateAttendanceViewModel @Inject constructor(
                 val minute = _minute.value
                 val attendance = Attendance(
                     cookie = _cookie.value,
-                    nickname = userInfo.value.content!!.nickname,
-                    uid = userInfo.value.content!!.uid,
+                    nickname = _userInfo.value.content!!.nickname,
+                    uid = _userInfo.value.content!!.uid,
                     hourOfDay = hourOfDay,
                     minute = minute,
                     timezoneId = ZoneId.systemDefault().id

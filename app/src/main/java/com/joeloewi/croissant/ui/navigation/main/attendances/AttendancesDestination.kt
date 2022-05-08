@@ -1,4 +1,4 @@
-package com.joeloewi.croissant.ui.navigation.attendances
+package com.joeloewi.croissant.ui.navigation.main.attendances
 
 import androidx.navigation.NavType
 import com.joeloewi.domain.common.LoggableWorker
@@ -24,15 +24,16 @@ sealed class AttendancesDestination(val route: String) {
             const val ATTENDANCE_ID = "attendanceId"
         }
 
-        fun generateRoute(attendanceId: Long) ="${plainRoute}/${attendanceId}"
+        fun generateRoute(attendanceId: Long) = "${plainRoute}/${attendanceId}"
     }
+
     data class AttendanceLogsScreen(
         val arguments: List<Pair<String, NavType<*>>> = listOf(
             ATTENDANCE_ID to NavType.LongType,
-            CROISSANT_WORKER to NavType.EnumType(LoggableWorker::class.java)
+            LOGGABLE_WORKER to NavType.EnumType(LoggableWorker::class.java)
         ),
         val plainRoute: String = "attendanceLogsScreen"
-    ): AttendancesDestination(
+    ) : AttendancesDestination(
         route = "${plainRoute}${
             arguments.map { it.first }.joinToString(
                 separator = "/",
@@ -42,7 +43,10 @@ sealed class AttendancesDestination(val route: String) {
     ) {
         companion object {
             const val ATTENDANCE_ID = "attendanceId"
-            const val CROISSANT_WORKER = "croissantWorker"
+            const val LOGGABLE_WORKER = "loggableWorker"
         }
+
+        fun generateRoute(attendanceId: Long, loggableWorker: LoggableWorker) =
+            "${plainRoute}/${attendanceId}/${loggableWorker}"
     }
 }

@@ -39,6 +39,10 @@ class AttendanceDataSourceImpl @Inject constructor(
             attendanceDao.delete(*attendances.map { attendanceMapper.toData(it) }.toTypedArray())
         }
 
+    override suspend fun getOneByUid(uid: Long): Attendance = withContext(coroutineDispatcher) {
+        attendanceMapper.toDomain(attendanceDao.getOneByUid(uid))
+    }
+
     override suspend fun getOne(id: Long): AttendanceWithGames =
         withContext(coroutineDispatcher) {
             attendanceWithGamesMapper.toDomain(attendanceDao.getOne(id))

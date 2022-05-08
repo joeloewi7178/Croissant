@@ -1,4 +1,4 @@
-package com.joeloewi.croissant.ui.navigation.attendances.screen
+package com.joeloewi.croissant.ui.navigation.main.attendances.screen
 
 import android.os.Build
 import android.widget.TimePicker
@@ -31,10 +31,11 @@ import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
-import com.joeloewi.croissant.util.ProgressDialog
-import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
+import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.IconDp
+import com.joeloewi.croissant.util.ProgressDialog
 import com.joeloewi.croissant.util.gameNameStringResId
 import com.joeloewi.croissant.util.getResultFromPreviousComposable
 import com.joeloewi.croissant.util.navigationIconButton
@@ -42,7 +43,6 @@ import com.joeloewi.croissant.viewmodel.AttendanceDetailViewModel
 import com.joeloewi.domain.common.HoYoLABGame
 import com.joeloewi.domain.common.LoggableWorker
 import com.joeloewi.domain.entity.Game
-import com.joeloewi.croissant.state.Lce
 
 @ExperimentalFoundationApi
 @ExperimentalMaterial3Api
@@ -89,7 +89,12 @@ fun AttendanceDetailScreen(
             navController.navigateUp()
         },
         onClickLogSummary = {
-            navController.navigate("${AttendancesDestination.AttendanceLogsScreen().plainRoute}/${attendanceDetailViewModel.attendanceId}/${it}")
+            navController.navigate(
+                AttendancesDestination.AttendanceLogsScreen().generateRoute(
+                    attendanceDetailViewModel.attendanceId,
+                    it
+                )
+            )
         },
         onClickRefreshSession = {
             navController.navigate(AttendancesDestination.LoginHoYoLabScreen.route)

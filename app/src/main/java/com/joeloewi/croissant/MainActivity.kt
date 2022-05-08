@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -15,7 +16,6 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -38,6 +38,7 @@ import androidx.core.os.bundleOf
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.*
@@ -50,17 +51,17 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.android.material.color.DynamicColors
 import com.google.firebase.analytics.FirebaseAnalytics
-import com.joeloewi.croissant.ui.navigation.CroissantNavigation
-import com.joeloewi.croissant.ui.navigation.attendances.AttendancesDestination
-import com.joeloewi.croissant.ui.navigation.attendances.screen.AttendanceDetailScreen
-import com.joeloewi.croissant.ui.navigation.attendances.screen.AttendanceLogsScreen
-import com.joeloewi.croissant.ui.navigation.attendances.screen.AttendancesScreen
-import com.joeloewi.croissant.ui.navigation.attendances.screen.LoginHoYoLABScreen
-import com.joeloewi.croissant.ui.navigation.attendances.screen.createattendance.CreateAttendanceScreen
-import com.joeloewi.croissant.ui.navigation.redemptioncodes.RedemptionCodesNavigation
-import com.joeloewi.croissant.ui.navigation.redemptioncodes.screen.RedemptionCodesScreen
-import com.joeloewi.croissant.ui.navigation.settings.SettingsDestination
-import com.joeloewi.croissant.ui.navigation.settings.screen.SettingsScreen
+import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
+import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
+import com.joeloewi.croissant.ui.navigation.main.attendances.screen.AttendanceDetailScreen
+import com.joeloewi.croissant.ui.navigation.main.attendances.screen.AttendanceLogsScreen
+import com.joeloewi.croissant.ui.navigation.main.attendances.screen.AttendancesScreen
+import com.joeloewi.croissant.ui.navigation.main.attendances.screen.LoginHoYoLABScreen
+import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.CreateAttendanceScreen
+import com.joeloewi.croissant.ui.navigation.main.redemptioncodes.RedemptionCodesNavigation
+import com.joeloewi.croissant.ui.navigation.main.redemptioncodes.screen.RedemptionCodesScreen
+import com.joeloewi.croissant.ui.navigation.main.settings.SettingsDestination
+import com.joeloewi.croissant.ui.navigation.main.settings.screen.SettingsScreen
 import com.joeloewi.croissant.ui.theme.CroissantTheme
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
@@ -169,10 +170,14 @@ fun CroissantApp() {
             )
         }
     ) {
+        val lifecycleOwner = LocalLifecycleOwner.current
         val (showRootedDeviceAlert, onShowRootedDeviceAlertChange) = remember { mutableStateOf(false) }
 
-        LaunchedEffect(LocalLifecycleOwner.current.lifecycle.currentState) {
-            if (RootChecker(context = context).isDeviceRooted()) {
+        LaunchedEffect(lifecycleOwner.lifecycle.currentState) {
+            if (lifecycleOwner.lifecycle.currentState == Lifecycle.State.RESUMED && RootChecker(
+                    context = context
+                ).isDeviceRooted()
+            ) {
                 onShowRootedDeviceAlertChange(true)
             }
         }
@@ -454,7 +459,8 @@ fun CroissantAppBottomSheetContent(
                 FilledTonalButton(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(DefaultDp),
+                        .padding(DefaultDp)
+                        .background(MaterialTheme.colorScheme.surface),
                     onClick = {
                         multiplePermissionsState.launchMultiplePermissionRequest()
                     }

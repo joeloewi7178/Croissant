@@ -1,4 +1,4 @@
-package com.joeloewi.croissant.ui.navigation.redemptioncodes
+package com.joeloewi.croissant.ui.navigation.main.redemptioncodes
 
 sealed class RedemptionCodesNavigation(
     val route: String

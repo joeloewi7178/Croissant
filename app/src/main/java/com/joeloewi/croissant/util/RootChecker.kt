@@ -2,6 +2,7 @@ package com.joeloewi.croissant.util
 
 import android.content.Context
 import android.content.pm.PackageManager
+import com.google.android.gms.common.util.ClientLibraryUtils.getPackageInfo
 import java.io.File
 import java.io.IOException
 import java.nio.charset.Charset
@@ -54,53 +55,52 @@ class RootChecker(
         Runtime.getRuntime()
     }
 
-    fun isDeviceRooted(): Boolean {
-        return checkRootFiles() || checkSUExist() || checkRootPackages()
-    }
+    fun isDeviceRooted(): Boolean = checkRootFiles() || checkSUExist() || checkRootPackages()
 
-    private fun checkRootFiles(): Boolean {
-        for (path in rootFiles) {
-            try {
-                if (File(path).exists()) {
-                    return true
-                }
-            } catch (e: RuntimeException) {
-
-            }
+    private fun checkRootFiles(): Boolean = rootFiles.runCatching {
+        any { path -> File(path).exists() }
+    }.fold(
+        onSuccess = {
+            it
+        },
+        onFailure = {
+            false
         }
-        return false
-    }
+    )
 
     private fun checkSUExist(): Boolean {
         var process: Process? = null
-        val su = arrayOf("/system/xbin/which", "su")
-        try {
-            process = runtime.exec(su)
 
-            process.inputStream.bufferedReader(Charset.forName("UTF-8"))
-                .use { reader -> return reader.readLine() != null }
-        } catch (e: IOException) {
-
-        } catch (e: Exception) {
-
-        } finally {
+        return runtime.runCatching {
+            exec(arrayOf("/system/xbin/which", "su"))
+        }.mapCatching {
+            process = it
+            it.inputStream.bufferedReader(Charset.forName("UTF-8"))
+                .use { reader -> reader.readLine() } != null
+        }.fold(
+            onSuccess = {
+                it
+            },
+            onFailure = {
+                false
+            }
+        ).also {
             process?.destroy()
         }
-        return false
     }
 
-    private fun checkRootPackages(): Boolean {
-        val pm = context.packageManager
-        if (pm != null) {
-            for (pkg in rootPackages) {
-                try {
-                    pm.getPackageInfo(pkg, 0)
-                    return true
-                } catch (ignored: PackageManager.NameNotFoundException) {
-                    // fine, package doesn't exist.
-                }
-            }
+    private fun checkRootPackages(): Boolean = context.runCatching {
+        packageManager
+    }.mapCatching {
+        for (pkg in rootPackages) {
+            it.getPackageInfo(pkg, 0)
         }
-        return false
-    }
+    }.fold(
+        onSuccess = {
+            true
+        },
+        onFailure = {
+            false
+        }
+    )
 }

@@ -1,4 +1,4 @@
-package com.joeloewi.croissant.ui.navigation.settings.screen
+package com.joeloewi.croissant.ui.navigation.main.settings.screen
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding

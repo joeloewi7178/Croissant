@@ -17,6 +17,9 @@ interface AttendanceDao {
     @Delete
     suspend fun delete(vararg attendanceEntities: AttendanceEntity): Int
 
+    @Query("SELECT * FROM AttendanceEntity WHERE uid = :uid")
+    suspend fun getOneByUid(uid: Long): AttendanceEntity
+
     @Transaction
     @Query("SELECT * FROM AttendanceEntity WHERE id = :id")
     suspend fun getOne(id: Long): AttendanceWithGamesEntity

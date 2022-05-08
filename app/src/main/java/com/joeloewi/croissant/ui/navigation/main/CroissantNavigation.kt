@@ -1,4 +1,4 @@
-package com.joeloewi.croissant.ui.navigation
+package com.joeloewi.croissant.ui.navigation.main
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
