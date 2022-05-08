@@ -187,7 +187,7 @@ fun SelectGames(
             ) {
                 Text(
                     modifier = Modifier.animateItemPlacement(),
-                    text = "계정과 연동된 게임 목록 중에서 출석하고자 하는 게임을 선택해주세요.",
+                    text = "게임 목록 중에서 출석하고자 하는 게임을 선택해주세요.",
                     style = MaterialTheme.typography.bodyMedium
                 )
 
