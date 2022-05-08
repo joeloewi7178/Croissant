@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">크루아상</string>
+    <string name="deep_link_scheme">app</string>
+    <string name="navigation_label_attendance">출석 작업</string>
+    <string name="navigation_label_redemption_codes">리딤 코드</string>
+    <string name="navigation_label_settings">설정</string>
+    <string name="honkai_impact_3rd_game_name">붕괴 3rd</string>
+    <string name="genshin_impact_game_name">원신</string>
+    <string name="tears_of_themis_game_name">미해결사건부</string>
+    <string name="unknown_game_name">알 수 없음</string>
+    <string name="attendance_notification_channel_id">attendance_notification_channel_id</string>
+    <string name="attendance_notification_channel_name">출석 알림</string>
+    <string name="check_session_notification_channel_id">check_session_notification_channel_id</string>
+    <string name="check_session_notification_channel_name">접속 정보 유효성 알림</string>
+    <string name="time_zone_changed_notification_channel_id">timezone_changed_notification_channel_id</string>
+    <string name="time_zone_changed_notification_channel_name">시간대 변경 알림</string>
+    <string name="resin_status_widget_description">원신 레진 현황 위젯</string>
+    <string name="permission_access_hoyolab_session_label">HoYoLAB 접속 정보 접근 및 저장</string>
+    <string name="permission_access_hoyolab_session_description">HoYoLAB 접속 정보 접근 및 저장</string>
+    <string name="permission_access_hoyolab_session_detailed_description">기능을 사용하기 위해 HoYoLAB 접속 정보에 접근하고 기기내에 저장하여 활용합니다.</string>
+    <string name="permission_post_notification_label">알림</string>
+    <string name="permission_post_notification_description">알림을 전송</string>
+    <string name="permission_post_notification_detailed_description">출석 작업 실행결과 등을 알림으로 전송합니다.</string>
+</resources>

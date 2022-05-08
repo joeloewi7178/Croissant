@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.joeloewi.croissant">
+
+    <uses-permission android:name="${applicationId}.permission.ACCESS_HOYOLAB_SESSION" />
+    <!-- back porting of notification permssion -->
+    <uses-permission
+        android:name="${applicationId}.permission.POST_NOTIFICATIONS"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <permission
+        android:name="${applicationId}.permission.ACCESS_HOYOLAB_SESSION"
+        android:description="@string/permission_access_hoyolab_session_description"
+        android:icon="@drawable/ic_baseline_cookie_24"
+        android:label="@string/permission_access_hoyolab_session_label"
+        android:protectionLevel="dangerous" />
+
+    <permission
+        android:name="${applicationId}.permission.POST_NOTIFICATIONS"
+        android:description="@string/permission_post_notification_description"
+        android:icon="@drawable/ic_baseline_notifications_24"
+        android:label="@string/permission_post_notification_label"
+        android:protectionLevel="dangerous" />
+
+    <application
+        android:name=".CroissantApplication"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Croissant">
+
+        <meta-data
+            android:name="android.supports_size_changes"
+            android:value="true" />
+        <meta-data
+            android:name="android.allow_multiple_resumed_activities"
+            android:value="true" />
+
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="com.joeloewi.croissant.initializer.CoilInitializer"
+                android:value="androidx.startup" />
+            <meta-data
+                android:name="com.joeloewi.croissant.initializer.NotificationChannelInitializer"
+                android:value="androidx.startup" />
+            <meta-data
+                android:name="com.joeloewi.croissant.initializer.DynamicColorInitializer"
+                android:value="androidx.startup" />
+            <meta-data
+                android:name="com.joeloewi.croissant.initializer.ThreeTenABPInitializer"
+                android:value="androidx.startup" />
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
+
+        <receiver
+            android:name=".receiver.TimeZoneChangedReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name=".receiver.ResinStatusWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/resin_status_widget_info" />
+        </receiver>
+
+        <service
+            android:name=".service.RemoteViewsFactoryService"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppSplash">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="${applicationId}"
+                    android:scheme="@string/deep_link_scheme" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ResinStatusWidgetConfigurationActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppSplash">
+
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>
