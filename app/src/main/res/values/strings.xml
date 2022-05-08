@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Croissant</string>
+    <string name="app_name">크루아상</string>
     <string name="deep_link_scheme">app</string>
     <string name="navigation_label_attendance">출석 작업</string>
     <string name="navigation_label_redemption_codes">리딤 코드</string>
