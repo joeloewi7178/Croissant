@@ -5,18 +5,23 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
-import com.google.android.play.core.appupdate.testing.FakeAppUpdateManager
 import com.google.android.play.core.ktx.AppUpdateResult
 import com.google.android.play.core.ktx.bytesDownloaded
 import com.google.android.play.core.ktx.requestUpdateFlow
 import com.google.android.play.core.ktx.totalBytesToDownload
-import com.joeloewi.croissant.BuildConfig
 import com.joeloewi.croissant.ui.theme.DefaultDp
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
 //under LocalActivity
 @ExperimentalMaterial3Api
@@ -30,15 +35,22 @@ fun RequireAppUpdate(
     val requestCode = 22050
     val context = LocalContext.current
     val activity = LocalActivity.current
-    val appUpdate by remember {
-        if (BuildConfig.DEBUG) {
-            FakeAppUpdateManager(context)
-        } else {
-            AppUpdateManagerFactory.create(context)
-        }
-    }.requestUpdateFlow().collectAsState(initial = AppUpdateResult.NotAvailable)
+    val (appUpdateState, onAppUpdateStateChange) = remember {
+        mutableStateOf<AppUpdateResult>(
+            AppUpdateResult.NotAvailable
+        )
+    }
 
-    with(appUpdate) {
+    LaunchedEffect(LocalLifecycleOwner.current) {
+        //can't use catch block and collectAsState() at once
+        AppUpdateManagerFactory.create(context).requestUpdateFlow()
+            .catch { it.printStackTrace() }
+            .onEach {
+                onAppUpdateStateChange(it)
+            }.launchIn(this)
+    }
+
+    with(appUpdateState) {
         when (this) {
             AppUpdateResult.NotAvailable -> {
                 content()
