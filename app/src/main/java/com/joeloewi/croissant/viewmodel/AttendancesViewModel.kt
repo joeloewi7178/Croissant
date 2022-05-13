@@ -32,11 +32,9 @@ class AttendancesViewModel @Inject constructor(
                     attendance.attendCheckInEventWorkerName,
                     attendance.oneTimeAttendCheckInEventWorkerName
                 ).map { it.toString() }.map { uniqueWorkName ->
-                    async {
-                        WorkManager.getInstance(application).cancelUniqueWork(uniqueWorkName)
-                            .await()
-                    }
-                }.awaitAll()
+                    WorkManager.getInstance(application).cancelUniqueWork(uniqueWorkName)
+                        .await()
+                }
 
                 deleteAttendanceUseCase(attendance)
             }.onSuccess {

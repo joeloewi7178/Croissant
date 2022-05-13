@@ -21,6 +21,7 @@ import com.joeloewi.domain.entity.FailureLog
 import com.joeloewi.domain.entity.SuccessLog
 import com.joeloewi.domain.entity.WorkerExecutionLog
 import com.joeloewi.domain.usecase.*
+import com.joeloewi.domain.wrapper.getOrThrow
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
@@ -81,11 +82,7 @@ class CheckSessionWorker @AssistedInject constructor(
         }.mapCatching { attendanceWithAllValues ->
             getUserFullInfoHoYoLABUseCase(attendanceWithAllValues.attendance.cookie)
         }.mapCatching { userFullInfoData ->
-            if (userFullInfoData.data == null) {
-                throw NullPointerException()
-            }
-
-            userFullInfoData
+            userFullInfoData.getOrThrow()
         }.fold(
             onSuccess = {
                 val executionLogId = insertWorkerExecutionLogUseCase(

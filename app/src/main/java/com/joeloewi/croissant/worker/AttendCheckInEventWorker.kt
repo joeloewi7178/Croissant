@@ -25,6 +25,7 @@ import com.joeloewi.domain.entity.FailureLog
 import com.joeloewi.domain.entity.SuccessLog
 import com.joeloewi.domain.entity.WorkerExecutionLog
 import com.joeloewi.domain.usecase.*
+import com.joeloewi.domain.wrapper.getOrThrow
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +33,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 import java.util.*
-import kotlin.system.measureTimeMillis
 
 @HiltWorker
 class AttendCheckInEventWorker @AssistedInject constructor(
@@ -97,7 +97,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
         }
         .build()
 
-    override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
+    override suspend fun doWork(): Result = withContext(Dispatchers.Default) {
         attendanceId.runCatching {
             takeIf { it != Long.MIN_VALUE }!!
         }.mapCatching { attendanceId ->
@@ -105,63 +105,79 @@ class AttendCheckInEventWorker @AssistedInject constructor(
             val attendanceWithGames = getOneAttendanceUseCase(attendanceId)
             val cookie = attendanceWithGames.attendance.cookie
 
-            if (getUserFullInfoHoYoLABUseCase(cookie).data == null) {
-                throw NullPointerException()
-            }
+            getUserFullInfoHoYoLABUseCase(cookie).getOrThrow()
 
             //attend check in events
             attendanceWithGames.games.map { game ->
                 //do parallel jobs
                 async {
-                    when (game.type) {
-                        HoYoLABGame.HonkaiImpact3rd -> {
-                            attendCheckInHonkaiImpact3rdHoYoLABUseCase(cookie)
-                        }
-                        HoYoLABGame.GenshinImpact -> {
-                            attendCheckInGenshinImpactHoYoLABUseCase(cookie)
-                        }
-                        HoYoLABGame.TearsOfThemis -> {
-                            attendCheckInTearsOfThemisHoYoLABUseCase(cookie)
-                        }
-                        HoYoLABGame.Unknown -> {
-                            throw Exception()
-                        }
-                    }.also { response ->
-                        createAttendanceNotification(
-                            context = context,
-                            channelId = context.getString(R.string.attendance_notification_channel_id),
-                            nickname = attendanceWithGames.attendance.nickname,
-                            hoYoLABGame = game.type,
-                            region = game.region,
-                            attendanceResponse = response
-                        ).let { notification ->
-                            if (context.packageManager.checkPermission(
-                                    CroissantPermission.PostNotifications.permission,
-                                    context.packageName
-                                ) == PackageManager.PERMISSION_GRANTED
-                            ) {
-                                NotificationManagerCompat.from(context).notify(
-                                    UUID.randomUUID().toString(),
-                                    game.type.gameId,
-                                    notification
-                                )
+                    try {
+                        when (game.type) {
+                            HoYoLABGame.HonkaiImpact3rd -> {
+                                attendCheckInHonkaiImpact3rdHoYoLABUseCase(cookie)
                             }
+                            HoYoLABGame.GenshinImpact -> {
+                                attendCheckInGenshinImpactHoYoLABUseCase(cookie)
+                            }
+                            HoYoLABGame.TearsOfThemis -> {
+                                attendCheckInTearsOfThemisHoYoLABUseCase(cookie)
+                            }
+                            HoYoLABGame.Unknown -> {
+                                throw Exception()
+                            }
+                        }.getOrThrow().also { response ->
+                            createAttendanceNotification(
+                                context = context,
+                                channelId = context.getString(R.string.attendance_notification_channel_id),
+                                nickname = attendanceWithGames.attendance.nickname,
+                                hoYoLABGame = game.type,
+                                region = game.region,
+                                attendanceResponse = response
+                            ).let { notification ->
+                                if (context.packageManager.checkPermission(
+                                        CroissantPermission.PostNotifications.permission,
+                                        context.packageName
+                                    ) == PackageManager.PERMISSION_GRANTED
+                                ) {
+                                    NotificationManagerCompat.from(context).notify(
+                                        UUID.randomUUID().toString(),
+                                        game.type.gameId,
+                                        notification
+                                    )
+                                }
+                            }
+                        }.also { response ->
+                            val executionLogId = insertWorkerExecutionLogUseCase(
+                                WorkerExecutionLog(
+                                    attendanceId = attendanceId,
+                                    state = WorkerExecutionLogState.SUCCESS,
+                                    loggableWorker = LoggableWorker.ATTEND_CHECK_IN_EVENT
+                                )
+                            )
+
+                            insertSuccessLogUseCase(
+                                SuccessLog(
+                                    executionLogId = executionLogId,
+                                    gameName = game.type,
+                                    retCode = response.retcode,
+                                    message = response.message
+                                )
+                            )
                         }
-                    }.also { response ->
+                    } catch (cause: Throwable) {
                         val executionLogId = insertWorkerExecutionLogUseCase(
                             WorkerExecutionLog(
                                 attendanceId = attendanceId,
-                                state = WorkerExecutionLogState.SUCCESS,
+                                state = WorkerExecutionLogState.FAILURE,
                                 loggableWorker = LoggableWorker.ATTEND_CHECK_IN_EVENT
                             )
                         )
 
-                        insertSuccessLogUseCase(
-                            SuccessLog(
+                        insertFailureLogUseCase(
+                            FailureLog(
                                 executionLogId = executionLogId,
-                                gameName = game.type,
-                                retCode = response.retcode,
-                                message = response.message
+                                failureMessage = cause.message ?: "",
+                                failureStackTrace = cause.stackTraceToString()
                             )
                         )
                     }

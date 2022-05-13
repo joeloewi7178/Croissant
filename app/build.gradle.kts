@@ -1,8 +1,8 @@
 plugins {
-    android
-    `kotlin-android`
-    `kotlin-kapt`
-    `kotlin-parcelize`
+    id("com.android.application")
+    id("kotlin-android")
+    id("kotlin-kapt")
+    id("kotlin-parcelize")
     id("dagger.hilt.android.plugin")
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
@@ -15,7 +15,7 @@ android {
         applicationId = "com.joeloewi.croissant"
         minSdk = 21
         targetSdk = 32
-        versionCode = 2
+        versionCode = 3
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -63,6 +63,12 @@ android {
         }
     }
     namespace = "com.joeloewi.croissant"
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    kotlinOptions {
+        jvmTarget = "11"
+    }
 }
 
 dependencies {
@@ -143,11 +149,15 @@ dependencies {
     implementation("com.google.android.play:core-ktx:1.8.1")
 
     //firebase
-    implementation(platform("com.google.firebase:firebase-bom:29.3.1"))
+    implementation(platform("com.google.firebase:firebase-bom:30.0.0"))
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.firebase:firebase-crashlytics-ktx")
 }
 
 kapt {
     correctErrorTypes = true
+}
+
+hilt {
+    enableAggregatingTask = true
 }

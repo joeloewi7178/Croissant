@@ -4,38 +4,37 @@ import com.joeloewi.domain.common.LoggableWorker
 import com.joeloewi.domain.common.WorkerExecutionLogState
 import com.joeloewi.domain.entity.WorkerExecutionLog
 import com.joeloewi.domain.repository.WorkerExecutionLogRepository
-import javax.inject.Inject
 
 sealed class WorkerExecutionLogUseCase {
-    class Insert @Inject constructor(
+    class Insert constructor(
         private val workerExecutionLogRepository: WorkerExecutionLogRepository
     ) {
         suspend operator fun invoke(workerExecutionLog: WorkerExecutionLog) =
             workerExecutionLogRepository.insert(workerExecutionLog)
     }
 
-    class Delete @Inject constructor(
+    class Delete constructor(
         private val workerExecutionLogRepository: WorkerExecutionLogRepository
     ) {
         suspend operator fun invoke(vararg workerExecutionLogs: WorkerExecutionLog) =
             workerExecutionLogRepository.delete(*workerExecutionLogs)
     }
 
-    class DeleteAll @Inject constructor(
+    class DeleteAll constructor(
         private val workerExecutionLogRepository: WorkerExecutionLogRepository
     ) {
         suspend operator fun invoke(attendanceId: Long, loggableWorker: LoggableWorker) =
             workerExecutionLogRepository.deleteAll(attendanceId, loggableWorker)
     }
 
-    class GetAllPaged @Inject constructor(
+    class GetAllPaged constructor(
         private val workerExecutionLogRepository: WorkerExecutionLogRepository
     ) {
         operator fun invoke(attendanceId: Long, loggableWorker: LoggableWorker) =
             workerExecutionLogRepository.getAllPaged(attendanceId, loggableWorker)
     }
 
-    class GetCountByState @Inject constructor(
+    class GetCountByState constructor(
         private val workerExecutionLogRepository: WorkerExecutionLogRepository
     ) {
         operator fun invoke(

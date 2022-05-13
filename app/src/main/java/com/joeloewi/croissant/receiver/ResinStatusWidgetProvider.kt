@@ -19,9 +19,12 @@ import com.joeloewi.domain.common.HoYoLABGame
 import com.joeloewi.domain.entity.DataSwitch
 import com.joeloewi.domain.usecase.HoYoLABUseCase
 import com.joeloewi.domain.usecase.ResinStatusWidgetUseCase
+import com.joeloewi.domain.wrapper.getOrThrow
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.withContext
 import org.threeten.bp.Instant
 import org.threeten.bp.ZoneId
 import org.threeten.bp.format.DateTimeFormatter
@@ -56,30 +59,69 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
     ) {
         super.onUpdate(context, appWidgetManager, appWidgetIds)
 
-        goAsync {
-            if (context != null && appWidgetManager != null && appWidgetIds != null) {
-                appWidgetIds.map { appWidgetId ->
-                    async {
+        goAsync(
+            onError = {
+                //error view
+                if (context != null && appWidgetManager != null && appWidgetIds != null) {
+                    appWidgetIds.map { appWidgetId ->
                         RemoteViews(
                             context.packageName,
-                            R.layout.widget_loading
-                        ).also { remoteViews ->
+                            R.layout.widget_resin_status_error
+                        ).apply {
+                            setOnClickPendingIntent(
+                                R.id.button_retry,
+                                PendingIntent.getBroadcast(
+                                    context,
+                                    appWidgetId,
+                                    Intent(
+                                        context,
+                                        this@ResinStatusWidgetProvider.javaClass
+                                    ).apply {
+                                        action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+
+                                        putExtra(
+                                            AppWidgetManager.EXTRA_APPWIDGET_IDS,
+                                            intArrayOf(appWidgetId)
+                                        )
+                                    },
+                                    pendingIntentFlagUpdateCurrent
+                                )
+                            )
+                        }.also { remoteViews ->
                             appWidgetManager.updateAppWidget(
                                 appWidgetId,
                                 remoteViews
                             )
                         }
+                    }
+                }
+            }
+        ) {
+            if (context != null && appWidgetManager != null && appWidgetIds != null) {
+                appWidgetIds.map { appWidgetId ->
+                    withContext(Dispatchers.Default) {
+                        async {
+                            //loading view
+                            RemoteViews(
+                                context.packageName,
+                                R.layout.widget_resin_status_loading
+                            ).also { remoteViews ->
+                                appWidgetManager.updateAppWidget(
+                                    appWidgetId,
+                                    remoteViews
+                                )
+                            }
 
-                        getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
-                            invoke(appWidgetId)
-                        }.mapCatching { resinStatusWidgetWithAccounts ->
+                            val resinStatusWidgetWithAccounts =
+                                getOneByAppWidgetIdResinStatusWidgetUseCase(appWidgetId)
+
                             val resinStatuses =
                                 resinStatusWidgetWithAccounts.accounts.map { account ->
                                     async {
                                         getGameRecordCardHoYoLABUseCase(
                                             cookie = account.cookie,
                                             uid = account.uid
-                                        )?.list?.find { gameRecord ->
+                                        ).getOrThrow()?.list?.find { gameRecord ->
                                             HoYoLABGame.findByGameId(gameRecord.gameId) == HoYoLABGame.GenshinImpact
                                         }!!.let { gameRecord ->
                                             val isDailyNoteEnabled =
@@ -91,7 +133,7 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
                                                     switchId = DataSwitch.GENSHIN_IMPACT_DAILY_NOTE_SWITCH_ID,
                                                     isPublic = true,
                                                     gameId = gameRecord.gameId,
-                                                )
+                                                ).getOrThrow()
                                             }
 
                                             val genshinDailyNote =
@@ -99,7 +141,7 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
                                                     cookie = account.cookie,
                                                     server = gameRecord.region,
                                                     roleId = gameRecord.gameRoleId
-                                                )
+                                                ).getOrThrow()
 
                                             RemoteViewsFactoryService.ResinStatus(
                                                 id = account.id,
@@ -208,10 +250,6 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
                             }
                         }
                     }
-                }.runCatching {
-                    awaitAll()
-                }.onFailure {
-                    it.printStackTrace()
                 }
             }
         }
@@ -219,22 +257,24 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
 
     override fun onDeleted(context: Context?, appWidgetIds: IntArray?) {
         super.onDeleted(context, appWidgetIds)
-        goAsync {
+        goAsync(onError = {}) {
             if (context != null && appWidgetIds != null) {
                 appWidgetIds.map { appWidgetId ->
-                    async {
-                        getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
-                            invoke(appWidgetId)
-                        }.mapCatching {
-                            WorkManager.getInstance(context)
-                                .cancelUniqueWork(it.resinStatusWidget.refreshGenshinResinStatusWorkerName.toString())
-                                .await()
-                        }.fold(
-                            onSuccess = {},
-                            onFailure = {
-                                it.printStackTrace()
-                            }
-                        )
+                    withContext(Dispatchers.Default) {
+                        async {
+                            getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
+                                invoke(appWidgetId)
+                            }.mapCatching {
+                                WorkManager.getInstance(context)
+                                    .cancelUniqueWork(it.resinStatusWidget.refreshGenshinResinStatusWorkerName.toString())
+                                    .await()
+                            }.fold(
+                                onSuccess = {},
+                                onFailure = {
+                                    it.printStackTrace()
+                                }
+                            )
+                        }
                     }
                 }.awaitAll()
 

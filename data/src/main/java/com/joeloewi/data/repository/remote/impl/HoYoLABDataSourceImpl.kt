@@ -4,13 +4,14 @@ import com.joeloewi.data.api.dao.HoYoLABService
 import com.joeloewi.data.api.model.request.DataSwitchRequest
 import com.joeloewi.data.api.model.response.AttendanceResponse
 import com.joeloewi.data.api.model.response.ChangeDataSwitchResponse
+import com.joeloewi.data.api.model.response.GameRecordCardResponse
+import com.joeloewi.data.api.model.response.GenshinDailyNoteResponse
 import com.joeloewi.data.common.GenshinImpactServer
 import com.joeloewi.data.common.HeaderInformation
 import com.joeloewi.data.common.generateDS
 import com.joeloewi.data.repository.remote.HoYoLABDataSource
-import com.joeloewi.domain.entity.GameRecordCardData
-import com.joeloewi.domain.entity.GenshinDailyNoteData
 import com.joeloewi.domain.entity.UserFullInfoResponse
+import com.skydoves.sandwich.ApiResponse
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -19,16 +20,17 @@ class HoYoLABDataSourceImpl @Inject constructor(
     private val hoYoLABService: HoYoLABService,
     private val coroutineDispatcher: CoroutineDispatcher
 ) : HoYoLABDataSource {
-
-    override suspend fun getUserFullInfo(cookie: String): UserFullInfoResponse =
+    override suspend fun getUserFullInfo(cookie: String): ApiResponse<UserFullInfoResponse> =
         withContext(coroutineDispatcher) {
             hoYoLABService.getUserFullInfo(cookie)
         }
 
-    override suspend fun getGameRecordCard(cookie: String, uid: Long): GameRecordCardData? =
-        withContext(coroutineDispatcher) {
-            hoYoLABService.getGameRecordCard(cookie, uid).data
-        }
+    override suspend fun getGameRecordCard(
+        cookie: String,
+        uid: Long
+    ): ApiResponse<GameRecordCardResponse> = withContext(coroutineDispatcher) {
+        hoYoLABService.getGameRecordCard(cookie, uid)
+    }
 
     override suspend fun getGenshinDailyNote(
         ds: String,
@@ -37,7 +39,7 @@ class HoYoLABDataSourceImpl @Inject constructor(
         xRpcClientType: String,
         roleId: Long,
         server: String
-    ): GenshinDailyNoteData? = withContext(coroutineDispatcher) {
+    ): ApiResponse<GenshinDailyNoteResponse> = withContext(coroutineDispatcher) {
         val headerInformation = when (GenshinImpactServer.findByRegion(server)) {
             GenshinImpactServer.CNServer -> {
                 HeaderInformation.CN
@@ -57,7 +59,7 @@ class HoYoLABDataSourceImpl @Inject constructor(
             xRpcClientType = headerInformation.xRpcClientType,
             roleId,
             server
-        ).data
+        )
     }
 
     override suspend fun changeDataSwitch(
@@ -65,7 +67,7 @@ class HoYoLABDataSourceImpl @Inject constructor(
         switchId: Int,
         isPublic: Boolean,
         gameId: Int
-    ): ChangeDataSwitchResponse = withContext(coroutineDispatcher) {
+    ): ApiResponse<ChangeDataSwitchResponse> = withContext(coroutineDispatcher) {
         hoYoLABService.changeDataSwitch(
             cookie, DataSwitchRequest(
                 switchId, isPublic, gameId
@@ -76,18 +78,21 @@ class HoYoLABDataSourceImpl @Inject constructor(
     override suspend fun attendCheckInGenshinImpact(
         url: String,
         cookie: String
-    ): AttendanceResponse = withContext(coroutineDispatcher) {
+    ): ApiResponse<AttendanceResponse> = withContext(coroutineDispatcher) {
         hoYoLABService.attendCheckInGenshinImpact(url, cookie)
     }
 
     override suspend fun attendCheckInHonkaiImpact3rd(
         url: String,
         cookie: String
-    ): AttendanceResponse = withContext(coroutineDispatcher) {
+    ): ApiResponse<AttendanceResponse> = withContext(coroutineDispatcher) {
         hoYoLABService.attendCheckInHonkaiImpact3rd(url, cookie)
     }
 
-    override suspend fun attendTearsOfThemis(url: String, cookie: String): AttendanceResponse =
+    override suspend fun attendTearsOfThemis(
+        url: String,
+        cookie: String
+    ): ApiResponse<AttendanceResponse> =
         withContext(coroutineDispatcher) {
             hoYoLABService.attendTearsOfThemis(url, cookie)
         }
