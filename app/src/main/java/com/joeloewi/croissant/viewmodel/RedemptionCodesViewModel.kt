@@ -32,11 +32,7 @@ class RedemptionCodesViewModel @Inject constructor(
 
         viewModelScope.launch(Dispatchers.IO) {
             _hoYoLABGameRedemptionCodesState.value = HoYoLABGame.values().runCatching {
-                map {
-                    async {
-                        it to getRedemptionCodesFromHtml(it)
-                    }
-                }.awaitAll()
+                map { it to getRedemptionCodesFromHtml(it) }
             }.fold(
                 onSuccess = {
                     Lce.Content(it)
