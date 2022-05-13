@@ -1,20 +1,21 @@
 package com.joeloewi.domain.repository
 
 import com.joeloewi.domain.entity.*
+import com.joeloewi.domain.wrapper.ContentOrError
 
 interface HoYoLABRepository {
-    suspend fun getUserFullInfo(cookie: String): UserFullInfoResponse
+    suspend fun getUserFullInfo(cookie: String): ContentOrError<UserFullInfoResponse>
 
     suspend fun getGameRecordCard(
         cookie: String,
         uid: Long
-    ): GameRecordCardData?
+    ): ContentOrError<GameRecordCardData?>
 
     suspend fun getGenshinDailyNote(
         cookie: String,
         roleId: Long,
         server: String,
-    ): GenshinDailyNoteData?
+    ): ContentOrError<GenshinDailyNoteData?>
 
     //uses message, retcode from response
     suspend fun changeDataSwitch(
@@ -22,17 +23,17 @@ interface HoYoLABRepository {
         switchId: Int,
         isPublic: Boolean,
         gameId: Int
-    ): BaseResponse
+    ): ContentOrError<BaseResponse>
 
     suspend fun attendCheckInGenshinImpact(
         cookie: String
-    ): BaseResponse
+    ): ContentOrError<BaseResponse>
 
     suspend fun attendCheckInHonkaiImpact3rd(
         cookie: String
-    ): BaseResponse
+    ): ContentOrError<BaseResponse>
 
     suspend fun attendCheckInTearsOfThemis(
         cookie: String
-    ): BaseResponse
+    ): ContentOrError<BaseResponse>
 }

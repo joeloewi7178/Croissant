@@ -4,9 +4,9 @@ import com.google.protobuf.gradle.protobuf
 import com.google.protobuf.gradle.protoc
 
 plugins {
-    `android-library`
-    `kotlin-android`
-    `kotlin-kapt`
+    id("com.android.library")
+    id("kotlin-android")
+    id("kotlin-kapt")
     id("com.google.protobuf") version "0.8.18"
     id("dagger.hilt.android.plugin")
 }
@@ -89,6 +89,8 @@ dependencies {
     //hilt
     implementation("com.google.dagger:hilt-android:${Versions.hilt}")
     kapt("com.google.dagger:hilt-android-compiler:${Versions.hilt}")
+
+    implementation("com.github.skydoves:sandwich:1.2.4")
 }
 
 protobuf {

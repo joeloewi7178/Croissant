@@ -2,45 +2,44 @@ package com.joeloewi.domain.usecase
 
 import com.joeloewi.domain.entity.ResinStatusWidget
 import com.joeloewi.domain.repository.ResinStatusWidgetRepository
-import javax.inject.Inject
 
 sealed class ResinStatusWidgetUseCase {
-    class Insert @Inject constructor(
+    class Insert constructor(
         private val resinStatusWidgetRepository: ResinStatusWidgetRepository
     ) : ResinStatusWidgetUseCase() {
         suspend operator fun invoke(resinStatusWidget: ResinStatusWidget) =
             resinStatusWidgetRepository.insert(resinStatusWidget)
     }
 
-    class Delete @Inject constructor(
+    class Delete constructor(
         private val resinStatusWidgetRepository: ResinStatusWidgetRepository
     ) : ResinStatusWidgetUseCase() {
         suspend operator fun invoke(vararg resinStatusWidget: ResinStatusWidget) =
             resinStatusWidgetRepository.delete(*resinStatusWidget)
     }
 
-    class Update @Inject constructor(
+    class Update constructor(
         private val resinStatusWidgetRepository: ResinStatusWidgetRepository
     ) : ResinStatusWidgetUseCase() {
         suspend operator fun invoke(resinStatusWidget: ResinStatusWidget) =
             resinStatusWidgetRepository.update(resinStatusWidget)
     }
 
-    class GetOne @Inject constructor(
+    class GetOne constructor(
         private val resinStatusWidgetRepository: ResinStatusWidgetRepository
     ) : ResinStatusWidgetUseCase() {
         suspend operator fun invoke(id: Long) =
             resinStatusWidgetRepository.getOne(id)
     }
 
-    class DeleteByAppWidgetId @Inject constructor(
+    class DeleteByAppWidgetId constructor(
         private val resinStatusWidgetRepository: ResinStatusWidgetRepository
     ) : ResinStatusWidgetUseCase() {
         suspend operator fun invoke(vararg appWidgetIds: Int) =
             resinStatusWidgetRepository.deleteByAppWidgetId(*appWidgetIds)
     }
 
-    class GetOneByAppWidgetId @Inject constructor(
+    class GetOneByAppWidgetId constructor(
         private val resinStatusWidgetRepository: ResinStatusWidgetRepository
     ) : ResinStatusWidgetUseCase() {
         suspend operator fun invoke(appWidgetId: Int) =

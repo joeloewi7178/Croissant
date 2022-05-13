@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/background"
+    style="@style/Widget.Croissant.AppWidget.Container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:theme="@style/Theme.Croissant.AppWidgetContainer">
+
+    <ImageView
+        android:id="@+id/error_icon"
+        android:adjustViewBounds="true"
+        android:layout_width="wrap_content"
+        android:layout_height="72dp"
+        android:src="@drawable/ic_baseline_error_24" />
+
+    <TextView
+        android:id="@+id/text_view_error_occurred"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="오류가 발생하였습니다." />
+
+    <Button
+        android:id="@+id/button_retry"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="다시시도" />
+</LinearLayout>

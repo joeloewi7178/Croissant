@@ -3,12 +3,13 @@ package com.joeloewi.croissant.service
 import android.content.Context
 import android.content.Intent
 import android.os.Parcelable
-import android.util.Log
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
 import com.joeloewi.croissant.R
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.parcelize.Parcelize
 
+@AndroidEntryPoint
 class RemoteViewsFactoryService : RemoteViewsService() {
     override fun onGetViewFactory(p0: Intent?): RemoteViewsFactory =
         ListRemoteViewsFactory(

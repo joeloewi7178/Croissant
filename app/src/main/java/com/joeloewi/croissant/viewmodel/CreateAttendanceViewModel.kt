@@ -13,6 +13,7 @@ import com.joeloewi.domain.entity.Game
 import com.joeloewi.domain.usecase.AttendanceUseCase
 import com.joeloewi.domain.usecase.GameUseCase
 import com.joeloewi.domain.usecase.HoYoLABUseCase
+import com.joeloewi.domain.wrapper.getOrThrow
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ObsoleteCoroutinesApi
@@ -46,7 +47,7 @@ class CreateAttendanceViewModel @Inject constructor(
         .filter { it.isNotEmpty() }
         .map { cookie ->
             getUserFullInfoHoYoLABUseCase.runCatching {
-                invoke(cookie = cookie).data!!.userInfo.also {
+                invoke(cookie = cookie).getOrThrow().data?.userInfo?.also {
                     getOneByUidAttendanceUseCase.runCatching {
                         invoke(it.uid)
                     }.onSuccess { attendance ->
@@ -67,7 +68,6 @@ class CreateAttendanceViewModel @Inject constructor(
             initialValue = Lce.Loading
         )
     val connectedGames = _userInfo
-        .filter { it is Lce.Content }
         .combine(_cookie) { userInfo, cookie ->
             userInfo to cookie
         }.map { pair ->
@@ -75,10 +75,10 @@ class CreateAttendanceViewModel @Inject constructor(
                 invoke(
                     pair.second,
                     pair.first.content!!.uid
-                )!!
+                ).getOrThrow()!!.list
             }.fold(
-                onSuccess = { gameRecordCardData ->
-                    Lce.Content(gameRecordCardData.list)
+                onSuccess = { gameRecordCards ->
+                    Lce.Content(gameRecordCards)
                 },
                 onFailure = {
                     Lce.Error(it)

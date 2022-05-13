@@ -7,6 +7,7 @@ import com.joeloewi.data.api.model.response.GameRecordCardResponse
 import com.joeloewi.data.api.model.response.GenshinDailyNoteResponse
 import com.joeloewi.domain.entity.BaseResponse
 import com.joeloewi.domain.entity.UserFullInfoResponse
+import com.skydoves.sandwich.adapters.ApiResponseCallAdapterFactory
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
 import dagger.Module
@@ -17,6 +18,7 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
+import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 @Module
@@ -55,6 +57,9 @@ object ApiModule {
     @Singleton
     @Provides
     fun provideOkHttpClient(): OkHttpClient = OkHttpClient.Builder()
+        .connectTimeout(1, TimeUnit.MINUTES)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .writeTimeout(15, TimeUnit.SECONDS)
         .build()
 
     @Singleton
@@ -63,6 +68,7 @@ object ApiModule {
         Retrofit.Builder()
             .client(okHttpClient)
             .addConverterFactory(ScalarsConverterFactory.create())
+            .addCallAdapterFactory(ApiResponseCallAdapterFactory.create())
             .addConverterFactory(MoshiConverterFactory.create(moshi))
 
     @Singleton

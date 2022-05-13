@@ -6,17 +6,18 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.*
+import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.croissant.worker.AttendCheckInEventWorker
 import com.joeloewi.croissant.worker.CheckSessionWorker
 import com.joeloewi.domain.common.LoggableWorker
 import com.joeloewi.domain.common.WorkerExecutionLogState
 import com.joeloewi.domain.entity.Game
-import com.joeloewi.croissant.state.Lce
 import com.joeloewi.domain.usecase.AttendanceUseCase
 import com.joeloewi.domain.usecase.GameUseCase
 import com.joeloewi.domain.usecase.HoYoLABUseCase
 import com.joeloewi.domain.usecase.WorkerExecutionLogUseCase
+import com.joeloewi.domain.wrapper.getOrThrow
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -141,13 +142,13 @@ class AttendanceDetailViewModel @Inject constructor(
         }
 
         _cookie.filter { it.isNotEmpty() }.map { cookie ->
-            getUserFullInfoHoYoLABUseCase(cookie).data
-        }.filterNotNull().map {
-            with(it.userInfo) {
+            getUserFullInfoHoYoLABUseCase(cookie)
+        }.onEach {
+            it.getOrThrow().data?.userInfo?.run {
                 _uid.value = uid
                 _nickname.value = nickname
             }
-        }.flowOn(Dispatchers.IO).launchIn(viewModelScope)
+        }.flowOn(Dispatchers.IO).catch { }.launchIn(viewModelScope)
     }
 
     fun updateAttendance() {

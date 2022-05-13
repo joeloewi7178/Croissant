@@ -8,10 +8,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import androidx.work.*
+import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.worker.RefreshResinStatusWorker
 import com.joeloewi.domain.entity.Account
 import com.joeloewi.domain.entity.ResinStatusWidget
-import com.joeloewi.croissant.state.Lce
 import com.joeloewi.domain.usecase.AccountUseCase
 import com.joeloewi.domain.usecase.AttendanceUseCase
 import com.joeloewi.domain.usecase.ResinStatusWidgetUseCase

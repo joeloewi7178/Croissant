@@ -5,20 +5,21 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 
 fun BroadcastReceiver.goAsync(
+    onError: () -> Unit,
     coroutineContext: CoroutineContext = Dispatchers.Default,
     block: suspend CoroutineScope.() -> Unit,
 ): Job {
     val coroutineScope = CoroutineScope(SupervisorJob() + coroutineContext)
     val pendingResult = goAsync()
 
-    return coroutineScope.launch {
+    return coroutineScope.launch() {
         try {
             try {
                 block()
             } catch (e: CancellationException) {
                 throw e
             } catch (t: Throwable) {
-                t.printStackTrace()
+                onError()
             } finally {
                 coroutineScope.cancel()
             }
