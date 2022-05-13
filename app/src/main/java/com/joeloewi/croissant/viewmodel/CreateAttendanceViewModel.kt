@@ -72,13 +72,27 @@ class CreateAttendanceViewModel @Inject constructor(
             userInfo to cookie
         }.map { pair ->
             getGameRecordCardHoYoLABUseCase.runCatching {
-                invoke(
-                    pair.second,
-                    pair.first.content!!.uid
-                ).getOrThrow()!!.list
+                with(pair.first) {
+                    when (this) {
+                        is Lce.Content -> {
+                            Lce.Content(
+                                invoke(
+                                    pair.second,
+                                    content!!.uid
+                                ).getOrThrow()!!.list
+                            )
+                        }
+                        is Lce.Error -> {
+                            Lce.Error(error = error)
+                        }
+                        Lce.Loading -> {
+                            Lce.Loading
+                        }
+                    }
+                }
             }.fold(
-                onSuccess = { gameRecordCards ->
-                    Lce.Content(gameRecordCards)
+                onSuccess = {
+                    it
                 },
                 onFailure = {
                     Lce.Error(it)
