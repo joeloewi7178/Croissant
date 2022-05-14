@@ -12,9 +12,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -26,7 +25,6 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.theme.DefaultDp
-import com.joeloewi.croissant.ui.theme.DoubleDp
 
 @ExperimentalPagerApi
 @ExperimentalMaterial3Api
@@ -54,7 +52,7 @@ fun GetSession(
                         contentDescription = Icons.Default.Login.name
                     )
                     Text(
-                        text = "HoYoLAB 로그인하기",
+                        text = stringResource(id = R.string.go_to_hoyolab),
                         style = MaterialTheme.typography.labelMedium
                     )
                 }
@@ -69,12 +67,12 @@ fun GetSession(
             verticalArrangement = Arrangement.spacedBy(space = DefaultDp)
         ) {
             Text(
-                text = "접속 정보 가져오기",
+                text = stringResource(id = R.string.get_session),
                 style = MaterialTheme.typography.headlineSmall
             )
 
             Text(
-                text = "HoYoLAB 로그인",
+                text = stringResource(id = R.string.login_hoyolab),
                 style = MaterialTheme.typography.titleMedium
             )
 
@@ -111,17 +109,17 @@ fun GetSession(
             }
 
             Text(
-                text = "아래의 버튼을 눌러 표시되는 웹 화면의 HoYoLAB에 로그인 해주세요.",
+                text = stringResource(id = R.string.get_session_description_1),
                 style = MaterialTheme.typography.bodyMedium
             )
 
             Text(
-                text = "로그인 중 접속정보가 확인되면 웹 화면이 자동으로 닫히고 다음 단계로 진행됩니다.",
+                text = stringResource(id = R.string.get_session_description_2),
                 style = MaterialTheme.typography.bodyMedium
             )
 
             Text(
-                text = "로그인 완료 후에도 진행되지 않는다면 웹 화면의 우측 상단 체크 버튼을 눌러주세요.",
+                text = stringResource(id = R.string.get_session_description_3),
                 style = MaterialTheme.typography.bodyMedium
             )
 
@@ -141,9 +139,10 @@ fun GetSession(
                         modifier = Modifier.padding(all = DefaultDp),
                         text = buildAnnotatedString {
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("경고: ")
+                                append(stringResource(id = R.string.caution))
+                                append(": ")
                             }
-                            append("SNS 계정을 통한 로그인은 지원되지 않으니 HoYoLAB 계정으로 로그인하시기 바랍니다.")
+                            append(stringResource(id = R.string.get_session_warning))
                         },
                         style = MaterialTheme.typography.bodyMedium
                     )

@@ -33,28 +33,4 @@ sealed class HoYoLABUseCase {
             gameId: Int
         ) = hoYoLABRepository.changeDataSwitch(cookie, switchId, isPublic, gameId)
     }
-
-    class AttendCheckInGenshinImpact constructor(
-        private val hoYoLABRepository: HoYoLABRepository
-    ) : HoYoLABUseCase() {
-        suspend operator fun invoke(
-            cookie: String
-        ) = hoYoLABRepository.attendCheckInGenshinImpact(cookie)
-    }
-
-    class AttendCheckInHonkaiImpact3rd constructor(
-        private val hoYoLABRepository: HoYoLABRepository
-    ) : HoYoLABUseCase() {
-        suspend operator fun invoke(
-            cookie: String
-        ) = hoYoLABRepository.attendCheckInHonkaiImpact3rd(cookie)
-    }
-
-    class AttendCheckInTearsOfThemis constructor(
-        private val hoYoLABRepository: HoYoLABRepository
-    ) : HoYoLABUseCase() {
-        suspend operator fun invoke(
-            cookie: String
-        ) = hoYoLABRepository.attendCheckInTearsOfThemis(cookie)
-    }
 }

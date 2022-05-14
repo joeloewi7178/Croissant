@@ -31,6 +31,7 @@ import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
+import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.IconDp
@@ -65,6 +66,7 @@ fun SelectGames(
         HoYoLABGame.GenshinImpact,
         HoYoLABGame.TearsOfThemis
     )
+    val containsNotSupportedGame = stringResource(id = R.string.contains_not_supported_game)
 
     LaunchedEffect(connectedGames) {
         when (connectedGames) {
@@ -78,7 +80,7 @@ fun SelectGames(
                     }) {
                     snackbarHostState.apply {
                         currentSnackbarData?.dismiss()
-                        showSnackbar(message = "지원되지 않는 게임이 있습니다. 추후 업데이트를 기다려주세요.")
+                        showSnackbar(message = containsNotSupportedGame)
                     }
                 }
             }
@@ -114,12 +116,14 @@ fun SelectGames(
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
+                val chooseAtLeastOneGame = stringResource(id = R.string.choose_at_least_one_game)
+
                 LaunchedEffect(noGamesSelected) {
                     if (noGamesSelected) {
                         snackbarHostState.apply {
                             currentSnackbarData?.dismiss()
                             showSnackbar(
-                                message = "한 개 이상의 게임을 선택해주세요.",
+                                message = chooseAtLeastOneGame,
                                 duration = SnackbarDuration.Indefinite
                             )
                         }
@@ -146,7 +150,7 @@ fun SelectGames(
                             imageVector = Icons.Default.ArrowForward,
                             contentDescription = Icons.Default.ArrowForward.name
                         )
-                        Text(text = "다음 단계로")
+                        Text(text = stringResource(id = R.string.next_step))
                     }
                 }
             }
@@ -162,7 +166,7 @@ fun SelectGames(
             ) {
                 Text(
                     modifier = Modifier.animateItemPlacement(),
-                    text = "출석할 게임 선택하기",
+                    text = stringResource(id = R.string.select_hoyolab_game_headline),
                     style = MaterialTheme.typography.headlineSmall
                 )
 
@@ -174,7 +178,7 @@ fun SelectGames(
             ) {
                 Text(
                     modifier = Modifier.animateItemPlacement(),
-                    text = "HoYoLAB 게임 선택하기",
+                    text = stringResource(id = R.string.select_hoyolab_game_title),
                     style = MaterialTheme.typography.titleMedium
                 )
 
@@ -187,7 +191,7 @@ fun SelectGames(
             ) {
                 Text(
                     modifier = Modifier.animateItemPlacement(),
-                    text = "게임 목록 중에서 출석하고자 하는 게임을 선택해주세요.",
+                    text = stringResource(id = R.string.select_hoyolab_game_description),
                     style = MaterialTheme.typography.bodyMedium
                 )
 
@@ -225,7 +229,7 @@ fun SelectGames(
                                 imageVector = Icons.Default.Error,
                                 contentDescription = Icons.Default.Error.name
                             )
-                            Text(text = "오류가 발생했습니다. 다시 시도해주세요.")
+                            Text(text = stringResource(id = R.string.error_occurred))
                         }
                     }
                 }
@@ -253,7 +257,7 @@ fun SelectGames(
                             onShowDuplicatedAttendanceDialogChange(false to 0L)
                         }
                     ) {
-                        Text(text = "확인")
+                        Text(text = stringResource(id = R.string.confirm))
                     }
                 },
                 dismissButton = {
@@ -263,7 +267,7 @@ fun SelectGames(
                             onCancelCreateAttendance()
                         }
                     ) {
-                        Text(text = "취소")
+                        Text(text = stringResource(id = R.string.dismiss))
                     }
                 },
                 icon = {
@@ -273,10 +277,10 @@ fun SelectGames(
                     )
                 },
                 title = {
-                    Text(text = "알림")
+                    Text(text = stringResource(id = R.string.alert))
                 },
                 text = {
-                    Text(text = "입력하신 계정은 이미 출석 작업에 등록되어있어 출석 작업 만들기를 중단합니다. 해당 출석 작업의 상세화면으로 이동하시겠습니까?")
+                    Text(text = stringResource(id = R.string.account_already_exists_fallback))
                 },
                 properties = DialogProperties(
                     dismissOnClickOutside = false,

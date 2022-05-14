@@ -95,18 +95,18 @@ object UseCaseModule {
 
     @Provides
     @Singleton
-    fun provideAttendCheckInGenshinImpactHoYoLABUseCase(hoYoLABRepository: HoYoLABRepository): HoYoLABUseCase.AttendCheckInGenshinImpact =
-        HoYoLABUseCase.AttendCheckInGenshinImpact(hoYoLABRepository)
+    fun provideAttendCheckInGenshinImpactUseCase(genshinImpactCheckInRepository: GenshinImpactCheckInRepository): GenshinImpactCheckInUseCase.AttendCheckInGenshinImpact =
+        GenshinImpactCheckInUseCase.AttendCheckInGenshinImpact(genshinImpactCheckInRepository)
 
     @Provides
     @Singleton
-    fun provideAttendCheckInHonkaiImpact3rdHoYoLABUseCase(hoYoLABRepository: HoYoLABRepository): HoYoLABUseCase.AttendCheckInHonkaiImpact3rd =
-        HoYoLABUseCase.AttendCheckInHonkaiImpact3rd(hoYoLABRepository)
+    fun provideAttendCheckInHonkaiImpact3rdUseCase(honkaiImpact3rdCheckInRepository: HonkaiImpact3rdCheckInRepository): HonkaiImpact3rdCheckInUseCase.AttendCheckInHonkaiImpact3rd =
+        HonkaiImpact3rdCheckInUseCase.AttendCheckInHonkaiImpact3rd(honkaiImpact3rdCheckInRepository)
 
     @Provides
     @Singleton
-    fun provideAttendCheckInTearsOfThemisHoYoLABUseCase(hoYoLABRepository: HoYoLABRepository): HoYoLABUseCase.AttendCheckInTearsOfThemis =
-        HoYoLABUseCase.AttendCheckInTearsOfThemis(hoYoLABRepository)
+    fun provideAttendCheckInTearsOfThemisUseCase(tearsOfThemisCheckInRepository: TearsOfThemisCheckInRepository): TearsOfThemisCheckInUseCase.AttendCheckInTearsOfThemis =
+        TearsOfThemisCheckInUseCase.AttendCheckInTearsOfThemis(tearsOfThemisCheckInRepository)
 
     @Provides
     @Singleton

@@ -33,8 +33,8 @@ class TimeZoneChangedReceiver @Inject constructor(
         channelId: String,
     ): Notification = NotificationCompat
         .Builder(context, channelId)
-        .setContentTitle("시간대 변경 감지")
-        .setContentText("이전에 작성된 작업들이 의도대로 동작하지 않을 수 있습니다.")
+        .setContentTitle(context.getString(R.string.time_zone_changed_notification_title))
+        .setContentText(context.getString(R.string.time_zone_changed_notification_description))
         .setAutoCancel(true)
         .setSmallIcon(R.drawable.ic_baseline_bakery_dining_24)
         .apply {

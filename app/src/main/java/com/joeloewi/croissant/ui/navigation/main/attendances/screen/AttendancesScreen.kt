@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -48,6 +49,7 @@ import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
+import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
@@ -101,7 +103,7 @@ private fun AttendancesContent(
         topBar = {
             SmallTopAppBar(
                 title = {
-                    Text(text = "출석 작업")
+                    Text(text = stringResource(id = R.string.attendance))
                 }
             )
         },
@@ -135,12 +137,12 @@ private fun AttendancesContent(
                     tint = MaterialTheme.colorScheme.primaryContainer
                 )
                 Text(
-                    text = "저장된 출석 작업이 없습니다.",
+                    text = stringResource(id = R.string.attendance_is_empty),
                     style = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center
                 )
                 Text(
-                    text = "출석 작업을 만들어 HoYoLAB 출석 이벤트에 참여할 수 있습니다.",
+                    text = stringResource(id = R.string.can_attend_event_by_creating_attendance),
                     style = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center
                 )
@@ -306,7 +308,10 @@ internal fun DismissContent(
                 verticalArrangement = Arrangement.spacedBy(space = DefaultDp)
             ) {
                 Text(
-                    text = "${attendanceWithGames.attendance.nickname}의 출석 작업",
+                    text = stringResource(
+                        id = R.string.attendance_of_nickname,
+                        attendanceWithGames.attendance.nickname
+                    ),
                     style = MaterialTheme.typography.titleMedium
                 )
 
@@ -321,9 +326,11 @@ internal fun DismissContent(
                         .observeAsState()
 
                     Text(
-                        text = "매일 ${
-                            attendanceWithGames.attendance.hourOfDay.toString().padStart(2, '0')
-                        } : ${attendanceWithGames.attendance.minute.toString().padStart(2, '0')}",
+                        text = stringResource(
+                            id = R.string.scheduled_time,
+                            attendanceWithGames.attendance.hourOfDay.toString().padStart(2, '0'),
+                            attendanceWithGames.attendance.minute.toString().padStart(2, '0')
+                        ),
                         style = MaterialTheme.typography.headlineSmall
                     )
 

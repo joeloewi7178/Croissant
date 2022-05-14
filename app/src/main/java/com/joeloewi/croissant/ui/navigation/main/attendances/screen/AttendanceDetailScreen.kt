@@ -31,6 +31,7 @@ import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
+import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.croissant.ui.theme.DefaultDp
@@ -169,7 +170,7 @@ private fun AttendanceDetailContent(
         topBar = {
             SmallTopAppBar(
                 title = {
-                    Text(text = "${nickname}의 출석 작업")
+                    Text(text = stringResource(id = R.string.attendance_of_nickname, nickname))
                 },
                 navigationIcon = navigationIconButton(
                     previousBackStackEntry = previousBackStackEntry,
@@ -199,7 +200,7 @@ private fun AttendanceDetailContent(
             )
         ) {
             Text(
-                text = "접속 정보",
+                text = stringResource(id = R.string.session),
                 style = MaterialTheme.typography.headlineSmall
             )
 
@@ -213,9 +214,9 @@ private fun AttendanceDetailContent(
                 )
             ) {
                 listOf(
-                    "UID" to uid.toString(),
-                    "닉네임" to nickname,
-                    "출석 작업 설정된 게임" to ""
+                    stringResource(id = R.string.uid) to uid.toString(),
+                    stringResource(id = R.string.nickname) to nickname,
+                    stringResource(id = R.string.games_to_attend) to ""
                 ).forEach {
                     SessionInfoRow(
                         key = it.first,
@@ -254,13 +255,13 @@ private fun AttendanceDetailContent(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = Icons.Default.Refresh.name
                         )
-                        Text(text = "접속 정보 갱신하기")
+                        Text(text = stringResource(id = R.string.refresh_session))
                     }
                 }
             }
 
             Text(
-                text = "시간 설정",
+                text = stringResource(id = R.string.schedule_time_setting),
                 style = MaterialTheme.typography.headlineSmall
             )
 
@@ -282,7 +283,7 @@ private fun AttendanceDetailContent(
             }
 
             Text(
-                text = "실행 기록 요약",
+                text = stringResource(id = R.string.execution_log_summary),
                 style = MaterialTheme.typography.headlineSmall
             )
 
@@ -290,7 +291,7 @@ private fun AttendanceDetailContent(
                 when (it) {
                     LoggableWorker.ATTEND_CHECK_IN_EVENT -> {
                         LogSummaryRow(
-                            title = "출석 작업",
+                            title = stringResource(id = R.string.attendance),
                             failureLogCount = attendCheckInEventWorkerFailureLogCount,
                             successLogCount = attendCheckInEventWorkerSuccessLogCount,
                             onClickLogSummary = {
@@ -300,7 +301,7 @@ private fun AttendanceDetailContent(
                     }
                     LoggableWorker.CHECK_SESSION -> {
                         LogSummaryRow(
-                            title = "접속 정보 유효성 검사",
+                            title = stringResource(id = R.string.session_validation),
                             failureLogCount = checkSessionWorkerFailureLogCount,
                             successLogCount = checkSessionWorkerSuccessLogCount,
                             onClickLogSummary = {

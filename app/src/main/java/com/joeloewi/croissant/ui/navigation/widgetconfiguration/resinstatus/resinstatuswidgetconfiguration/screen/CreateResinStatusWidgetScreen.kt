@@ -16,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
@@ -25,6 +26,7 @@ import androidx.paging.compose.items
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
+import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.domain.wrapper.ContentOrError
 import com.joeloewi.croissant.ui.theme.DefaultDp
@@ -134,7 +136,7 @@ fun CreateResinStatusWidgetContent(
         topBar = {
             SmallTopAppBar(
                 title = {
-                    Text(text = "위젯 설정")
+                    Text(text = stringResource(id = R.string.widget_configuration))
                 }
             )
         },
@@ -158,7 +160,7 @@ fun CreateResinStatusWidgetContent(
                         imageVector = Icons.Default.Done,
                         contentDescription = Icons.Default.Done.name
                     )
-                    Text(text = "${checkedAttendanceIds.size}개 선택됨")
+                    Text(text = stringResource(id = R.string.account_selected, checkedAttendanceIds.size))
                 }
             }
         }
@@ -175,7 +177,7 @@ fun CreateResinStatusWidgetContent(
         ) {
             item(key = "intervalTitle") {
                 Text(
-                    text = "새로고침 간격",
+                    text = stringResource(id = R.string.refresh_interval),
                     style = MaterialTheme.typography.titleMedium
                 )
             }
@@ -211,7 +213,7 @@ fun CreateResinStatusWidgetContent(
                                 onClick = null
                             )
 
-                            Text(text = "$it 분")
+                            Text(text = stringResource(id = R.string.minute, it))
                         }
                     }
                 }
@@ -219,7 +221,7 @@ fun CreateResinStatusWidgetContent(
 
             item(key = "selectAccountTitle") {
                 Text(
-                    text = "레진을 확인할 계정",
+                    text = stringResource(id = R.string.account_to_check_resin),
                     style = MaterialTheme.typography.titleMedium
                 )
             }
@@ -240,12 +242,12 @@ fun CreateResinStatusWidgetContent(
                             tint = MaterialTheme.colorScheme.primaryContainer
                         )
                         Text(
-                            text = "저장된 출석 작업이 없습니다.",
+                            text = stringResource(id = R.string.no_attendance),
                             style = MaterialTheme.typography.titleMedium,
                             textAlign = TextAlign.Center
                         )
                         Text(
-                            text = "앱에서 먼저 출석 작업을 만들어주세요.",
+                            text = stringResource(id = R.string.make_attendance),
                             style = MaterialTheme.typography.titleMedium,
                             textAlign = TextAlign.Center
                         )

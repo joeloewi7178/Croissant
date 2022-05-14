@@ -13,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavBackStackEntry
@@ -25,6 +26,7 @@ import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
+import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.isEmpty
@@ -72,7 +74,7 @@ fun AttendanceLogsContent(
         topBar = {
             SmallTopAppBar(
                 title = {
-                    Text(text = "실행 기록")
+                    Text(text = stringResource(id = R.string.execution_log))
                 },
                 navigationIcon = navigationIconButton(
                     previousBackStackEntry = previousBackStackEntry,
@@ -107,7 +109,7 @@ fun AttendanceLogsContent(
                     tint = MaterialTheme.colorScheme.primaryContainer
                 )
                 Text(
-                    text = "실행 기록이 없습니다.",
+                    text = stringResource(id = R.string.execution_log_is_empty),
                     style = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center
                 )
@@ -147,7 +149,7 @@ fun AttendanceLogsContent(
                             onDeleteAll()
                         }
                     ) {
-                        Text(text = "확인")
+                        Text(text = stringResource(id = R.string.confirm))
                     }
                 },
                 dismissButton = {
@@ -156,7 +158,7 @@ fun AttendanceLogsContent(
                             onShowDeleteConfirmationDialogChange(false)
                         }
                     ) {
-                        Text(text = "취소")
+                        Text(text = stringResource(id = R.string.dismiss))
                     }
                 },
                 icon = {
@@ -166,10 +168,10 @@ fun AttendanceLogsContent(
                     )
                 },
                 title = {
-                    Text(text = "경고")
+                    Text(text = stringResource(id = R.string.caution))
                 },
                 text = {
-                    Text(text = "현재 화면의 실행기록들이 모두 삭제됩니다. 계속하시겠습니까?")
+                    Text(text = stringResource(id = R.string.all_execution_log_will_be_deleted))
                 }
             )
         }
@@ -191,10 +193,10 @@ fun WorkerExecutionLogWithStateItem(
     }
     val textByState = when (item.workerExecutionLog.state) {
         WorkerExecutionLogState.SUCCESS -> {
-            "성공"
+            stringResource(id = R.string.success)
         }
         WorkerExecutionLogState.FAILURE -> {
-            "실패"
+            stringResource(id = R.string.failure)
         }
     }
     val dateTimeFormatter =

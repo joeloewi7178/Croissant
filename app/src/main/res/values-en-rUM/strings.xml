@@ -1,15 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="attendance_notification_channel_id" translatable="false">attendance_notification_channel_id</string>
-    <string name="check_session_notification_channel_id" translatable="false">check_session_notification_channel_id</string>
-    <string name="time_zone_changed_notification_channel_id" translatable="false">timezone_changed_notification_channel_id</string>
     <string name="app_name">Croissant</string>
-    <string name="deep_link_scheme" translatable="false">app</string>
-    <string name="navigation_label_attendance">attendance</string>
-    <string name="navigation_label_redemption_codes">redeem code</string>
-    <string name="navigation_label_settings">settings</string>
-    <string name="honkai_impact_3rd_game_name">honkai impact 3rd</string>
-    <string name="genshin_impact_game_name">genshin impact</string>
-    <string name="tears_of_themis_game_name">tears of themis</string>
+    <string name="navigation_label_attendance">Attendance</string>
+    <string name="navigation_label_redemption_codes">Redeem code</string>
+    <string name="navigation_label_settings">Settings</string>
+    <string name="honkai_impact_3rd_game_name">Honkai impact 3rd</string>
+    <string name="genshin_impact_game_name">Genshin impact</string>
+    <string name="tears_of_themis_game_name">Tears of themis</string>
     <string name="unknown_game_name">unknown</string>
     <string name="attendance_notification_channel_name">attendance notification</string>
     <string name="check_session_notification_channel_name">session validation notification</string>
@@ -97,6 +94,6 @@
     <string name="first_view_screen_description">You can attend HoYoLAB Check in event automatically or check genshin impact resin by simple settings</string>
     <string name="before_start">Before start using this app, this app needs your permissions</string>
     <string name="grant_permissions_and_start">Grant permissions and start</string>
-    <string name="post_notification_granted" formatted="true">Receive notification has been granted %1$s</string>
+    <string name="post_notification_granted">Receive notification has been granted %1$s</string>
     <string name="retry">retry</string>
 </resources>

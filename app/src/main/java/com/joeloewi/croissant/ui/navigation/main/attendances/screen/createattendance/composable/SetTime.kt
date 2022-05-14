@@ -16,11 +16,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.viewinterop.AndroidView
+import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import java.util.*
@@ -72,7 +74,7 @@ fun SetTime(
                         imageVector = Icons.Default.Done,
                         contentDescription = Icons.Default.Done.name
                     )
-                    Text(text = "작성 완료")
+                    Text(text = stringResource(id = R.string.completed))
                 }
             }
         }
@@ -85,17 +87,17 @@ fun SetTime(
             verticalArrangement = Arrangement.spacedBy(space = DefaultDp)
         ) {
             Text(
-                text = "실행할 시간 정하기",
+                text = stringResource(id = R.string.select_scheduled_time),
                 style = MaterialTheme.typography.headlineSmall
             )
 
             Text(
-                text = "시간 입력하기",
+                text = stringResource(id = R.string.type_time),
                 style = MaterialTheme.typography.titleMedium
             )
 
             Text(
-                text = "아래의 다이얼로 출석 작업을 매일 언제 실행할지 지정해주세요.",
+                text = stringResource(id = R.string.select_scheduled_time_by_using_dial),
                 style = MaterialTheme.typography.bodyMedium
             )
 
@@ -121,7 +123,7 @@ fun SetTime(
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "최초 실행 시점",
+                    text = stringResource(id = R.string.first_execution),
                     style = MaterialTheme.typography.titleMedium
                 )
             }
@@ -130,9 +132,9 @@ fun SetTime(
                 (tickerCalendar[Calendar.HOUR_OF_DAY] < hourOfDay) || (tickerCalendar[Calendar.HOUR_OF_DAY] == hourOfDay && tickerCalendar[Calendar.MINUTE] < minute)
 
             val todayOrTomorrow = if (canExecuteToday) {
-                "오늘"
+                stringResource(id = R.string.today)
             } else {
-                "내일"
+                stringResource(id = R.string.tomorrow)
             }
 
             Row(
@@ -162,9 +164,10 @@ fun SetTime(
                         modifier = Modifier.padding(DefaultDp),
                         text = buildAnnotatedString {
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("참고: ")
+                                append(stringResource(id = R.string.note))
+                                append(": ")
                             }
-                            append("위 최초 실행 시점은 출석 작업 작성완료 시점으로 참고용입니다.")
+                            append(stringResource(id = R.string.first_execution_is_for_reference))
                         },
                         style = MaterialTheme.typography.bodyMedium
                     )

@@ -257,16 +257,23 @@ fun CroissantApp() {
                         }
                     }
 
-                    NavigationBar(
+                    Surface(
                         modifier = Modifier
                             .windowInsetsBottomHeight(WindowInsets.navigationBars)
                             .fillMaxWidth(),
-                        containerColor = if (isFullScreenDestination) {
+                        color = if (isFullScreenDestination) {
                             Color.Transparent
                         } else {
                             MaterialTheme.colorScheme.surface
+                        },
+                        tonalElevation = if (isFullScreenDestination) {
+                            0.dp
+                        } else {
+                            3.dp
                         }
-                    ) {}
+                    ) {
+
+                    }
                 }
             }
         ) { innerPadding ->
@@ -424,6 +431,7 @@ fun CroissantAppBottomSheetContent(
     val multiplePermissionsState = rememberMultiplePermissionsState(
         permissions = croissantPermissions.map { it.permission }
     )
+    val context = LocalContext.current
 
     LaunchedEffect(multiplePermissionsState.allPermissionsGranted) {
         if (multiplePermissionsState.allPermissionsGranted) {
@@ -439,7 +447,7 @@ fun CroissantAppBottomSheetContent(
 
             if (modalBottomSheetState.isVisible) {
                 snackbarHostState.showSnackbar(
-                    "알림 수신에 동의하였습니다. (일자 : ${readableTimestamp})"
+                    context.getString(R.string.post_notification_granted, readableTimestamp)
                 )
             }
         }
@@ -476,7 +484,7 @@ fun CroissantAppBottomSheetContent(
                             imageVector = Icons.Default.Checklist,
                             contentDescription = Icons.Default.Checklist.name
                         )
-                        Text(text = "권한 허가하고 시작하기")
+                        Text(text = stringResource(id = R.string.grant_permissions_and_start))
                     }
                 }
 
@@ -513,7 +521,7 @@ fun CroissantAppBottomSheetContent(
 
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = "크루아상 시작하기",
+                text = stringResource(id = R.string.start_croissant),
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.Bold
                 ),
@@ -522,13 +530,13 @@ fun CroissantAppBottomSheetContent(
 
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = "간편한 설정을 통해 HoYoLAB 자동 출석체크 및 원신 레진 알림 위젯 기능을 사용할 수 있습니다.",
+                text = stringResource(id = R.string.first_view_screen_description),
                 textAlign = TextAlign.Center
             )
 
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = "시작하기 전에 다음 권한에 대한 허가가 필요합니다.",
+                text = stringResource(id = R.string.before_start),
                 textAlign = TextAlign.Center
             )
 

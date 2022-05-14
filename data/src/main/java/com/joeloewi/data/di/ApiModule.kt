@@ -1,6 +1,9 @@
 package com.joeloewi.data.di
 
+import com.joeloewi.data.api.dao.GenshinImpactCheckInService
 import com.joeloewi.data.api.dao.HoYoLABService
+import com.joeloewi.data.api.dao.HonkaiImpact3rdCheckInService
+import com.joeloewi.data.api.dao.TearsOfThemisCheckInService
 import com.joeloewi.data.api.model.response.AttendanceResponse
 import com.joeloewi.data.api.model.response.ChangeDataSwitchResponse
 import com.joeloewi.data.api.model.response.GameRecordCardResponse
@@ -18,6 +21,7 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
+import retrofit2.create
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
@@ -78,4 +82,28 @@ object ApiModule {
             .baseUrl("https://bbs-api-os.hoyoverse.com/")
             .build()
             .create(HoYoLABService::class.java)
+
+    @Singleton
+    @Provides
+    fun provideGenshinImpactCheckInService(retrofitBuilder: Retrofit.Builder): GenshinImpactCheckInService =
+        retrofitBuilder
+            .baseUrl("https://hk4e-api-os.mihoyo.com/")
+            .build()
+            .create(GenshinImpactCheckInService::class.java)
+
+    @Singleton
+    @Provides
+    fun provideHonkaiImpact3rdCheckInService(retrofitBuilder: Retrofit.Builder): HonkaiImpact3rdCheckInService =
+        retrofitBuilder
+            .baseUrl("https://api-os-takumi.mihoyo.com/")
+            .build()
+            .create(HonkaiImpact3rdCheckInService::class.java)
+
+    @Singleton
+    @Provides
+    fun provideTearsOfThemisCheckInService(retrofitBuilder: Retrofit.Builder): TearsOfThemisCheckInService =
+        retrofitBuilder
+            .baseUrl("https://sg-public-api.hoyolab.com/")
+            .build()
+            .create(TearsOfThemisCheckInService::class.java)
 }
