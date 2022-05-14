@@ -2,7 +2,6 @@ package com.joeloewi.data.repository.remote.impl
 
 import com.joeloewi.data.api.dao.HoYoLABService
 import com.joeloewi.data.api.model.request.DataSwitchRequest
-import com.joeloewi.data.api.model.response.AttendanceResponse
 import com.joeloewi.data.api.model.response.ChangeDataSwitchResponse
 import com.joeloewi.data.api.model.response.GameRecordCardResponse
 import com.joeloewi.data.api.model.response.GenshinDailyNoteResponse
@@ -74,26 +73,4 @@ class HoYoLABDataSourceImpl @Inject constructor(
             )
         )
     }
-
-    override suspend fun attendCheckInGenshinImpact(
-        url: String,
-        cookie: String
-    ): ApiResponse<AttendanceResponse> = withContext(coroutineDispatcher) {
-        hoYoLABService.attendCheckInGenshinImpact(url, cookie)
-    }
-
-    override suspend fun attendCheckInHonkaiImpact3rd(
-        url: String,
-        cookie: String
-    ): ApiResponse<AttendanceResponse> = withContext(coroutineDispatcher) {
-        hoYoLABService.attendCheckInHonkaiImpact3rd(url, cookie)
-    }
-
-    override suspend fun attendTearsOfThemis(
-        url: String,
-        cookie: String
-    ): ApiResponse<AttendanceResponse> =
-        withContext(coroutineDispatcher) {
-            hoYoLABService.attendTearsOfThemis(url, cookie)
-        }
 }

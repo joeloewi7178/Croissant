@@ -85,4 +85,14 @@
     <string name="wait_for_a_moment">잠시만 기다려주세요.</string>
     <string name="latest_version_of_app_is_downloading">새로운 버전의 앱 다운로드 중</string>
     <string name="install_after_download_automatically">다운로드 완료 후 자동으로 설치를 진행합니다.</string>
+    <string name="check_session_notification_title">접속 정보 유효성 검사 실패</string>
+    <string name="check_session_notification_description">상세 화면에서 접속 정보를 갱신해주세요.</string>
+    <string name="time_zone_changed_notification_title">시간대 변경 감지</string>
+    <string name="time_zone_changed_notification_description">이전에 작성된 작업들이 의도대로 동작하지 않을 수 있습니다.</string>
+    <string name="grant_permissions_and_start">권한 허가하고 시작하기</string>
+    <string name="start_croissant">크루아상 시작하기</string>
+    <string name="first_view_screen_description">간편한 설정을 통해 HoYoLAB 자동 출석체크 및 원신 레진 알림 위젯 기능을 사용할 수 있습니다.</string>
+    <string name="before_start">시작하기 전에 다음 권한에 대한 허가가 필요합니다.</string>
+    <string name="post_notification_granted">알림 수신에 동의하였습니다. %1$s</string>
+    <string name="retry">다시시도</string>
 </resources>

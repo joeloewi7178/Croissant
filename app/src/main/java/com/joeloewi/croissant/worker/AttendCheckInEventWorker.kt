@@ -13,6 +13,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import coil.ImageLoader
 import coil.request.ImageRequest
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.util.CroissantPermission
 import com.joeloewi.croissant.util.gameNameStringResId
@@ -40,9 +41,9 @@ class AttendCheckInEventWorker @AssistedInject constructor(
     @Assisted val params: WorkerParameters,
     val getOneAttendanceUseCase: AttendanceUseCase.GetOne,
     val getUserFullInfoHoYoLABUseCase: HoYoLABUseCase.GetUserFullInfo,
-    val attendCheckInGenshinImpactHoYoLABUseCase: HoYoLABUseCase.AttendCheckInGenshinImpact,
-    val attendCheckInHonkaiImpact3rdHoYoLABUseCase: HoYoLABUseCase.AttendCheckInHonkaiImpact3rd,
-    val attendCheckInTearsOfThemisHoYoLABUseCase: HoYoLABUseCase.AttendCheckInTearsOfThemis,
+    val attendCheckInGenshinImpactHoYoLABUseCase: GenshinImpactCheckInUseCase.AttendCheckInGenshinImpact,
+    val attendCheckInHonkaiImpact3rdHoYoLABUseCase: HonkaiImpact3rdCheckInUseCase.AttendCheckInHonkaiImpact3rd,
+    val attendCheckInTearsOfThemisHoYoLABUseCase: TearsOfThemisCheckInUseCase.AttendCheckInTearsOfThemis,
     val insertWorkerExecutionLogUseCase: WorkerExecutionLogUseCase.Insert,
     val insertSuccessLogUseCase: SuccessLogUseCase.Insert,
     val insertFailureLogUseCase: FailureLogUseCase.Insert
@@ -61,7 +62,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
         attendanceResponse: BaseResponse
     ): Notification = NotificationCompat
         .Builder(context, channelId)
-        .setContentTitle("${nickname}의 출석 작업 - ${context.getString(hoYoLABGame.gameNameStringResId())}")
+        .setContentTitle("${context.getString(R.string.attendance_of_nickname, nickname)} - ${context.getString(hoYoLABGame.gameNameStringResId())}")
         .setContentText("${attendanceResponse.message} (${attendanceResponse.retcode})")
         .setAutoCancel(true)
         .setSmallIcon(R.drawable.ic_baseline_bakery_dining_24)
@@ -165,6 +166,11 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                             )
                         }
                     } catch (cause: Throwable) {
+                        FirebaseCrashlytics.getInstance().apply {
+                            log(this@AttendCheckInEventWorker.javaClass.simpleName)
+                            recordException(cause)
+                        }
+
                         val executionLogId = insertWorkerExecutionLogUseCase(
                             WorkerExecutionLog(
                                 attendanceId = attendanceId,
@@ -188,6 +194,11 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                 Result.success()
             },
             onFailure = { cause ->
+                FirebaseCrashlytics.getInstance().apply {
+                    log(this@AttendCheckInEventWorker.javaClass.simpleName)
+                    recordException(cause)
+                }
+
                 val executionLogId = insertWorkerExecutionLogUseCase(
                     WorkerExecutionLog(
                         attendanceId = attendanceId,

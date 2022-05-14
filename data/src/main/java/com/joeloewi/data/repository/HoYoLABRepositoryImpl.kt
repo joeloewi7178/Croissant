@@ -67,44 +67,4 @@ class HoYoLABRepositoryImpl @Inject constructor(
                 ContentOrError.Error(it)
             }
         )
-
-    override suspend fun attendCheckInGenshinImpact(cookie: String): ContentOrError<BaseResponse> =
-        hoYoLABDataSource.attendCheckInGenshinImpact(
-            cookie = cookie
-        ).runCatching {
-            getOrThrow()
-        }.fold(
-            onSuccess = {
-                ContentOrError.Content(it)
-            },
-            onFailure = {
-                ContentOrError.Error(it)
-            }
-        )
-
-    override suspend fun attendCheckInHonkaiImpact3rd(cookie: String): ContentOrError<BaseResponse> =
-        hoYoLABDataSource.attendCheckInHonkaiImpact3rd(
-            cookie = cookie
-        ).runCatching {
-            getOrThrow()
-        }.fold(
-            onSuccess = {
-                ContentOrError.Content(it)
-            },
-            onFailure = {
-                ContentOrError.Error(it)
-            }
-        )
-
-    override suspend fun attendCheckInTearsOfThemis(cookie: String): ContentOrError<BaseResponse> =
-        hoYoLABDataSource.attendTearsOfThemis(cookie = cookie).runCatching {
-            getOrThrow()
-        }.fold(
-            onSuccess = {
-                ContentOrError.Content(it)
-            },
-            onFailure = {
-                ContentOrError.Error(it)
-            }
-        )
 }

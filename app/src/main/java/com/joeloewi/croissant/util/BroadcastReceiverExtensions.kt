@@ -5,7 +5,7 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 
 fun BroadcastReceiver.goAsync(
-    onError: () -> Unit,
+    onError: (cause: Throwable) -> Unit,
     coroutineContext: CoroutineContext = Dispatchers.Default,
     block: suspend CoroutineScope.() -> Unit,
 ): Job {
@@ -19,7 +19,7 @@ fun BroadcastReceiver.goAsync(
             } catch (e: CancellationException) {
                 throw e
             } catch (t: Throwable) {
-                onError()
+                onError(t)
             } finally {
                 coroutineScope.cancel()
             }

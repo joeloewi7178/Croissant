@@ -11,6 +11,7 @@ import androidx.core.app.TaskStackBuilder
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.croissant.util.CroissantPermission
@@ -60,8 +61,8 @@ class CheckSessionWorker @AssistedInject constructor(
         channelId: String,
     ): Notification = NotificationCompat
         .Builder(context, channelId)
-        .setContentTitle("접속 정보 유효성 검사 실패")
-        .setContentText("상세 화면에서 접속 정보를 갱신해주세요.")
+        .setContentTitle(context.getString(R.string.check_session_notification_title))
+        .setContentText(context.getString(R.string.check_session_notification_description))
         .setAutoCancel(true)
         .setSmallIcon(R.drawable.ic_baseline_bakery_dining_24)
         .apply {
@@ -104,6 +105,11 @@ class CheckSessionWorker @AssistedInject constructor(
                 Result.success()
             },
             onFailure = { cause ->
+                FirebaseCrashlytics.getInstance().apply {
+                    log(this@CheckSessionWorker.javaClass.simpleName)
+                    recordException(cause)
+                }
+
                 val executionLogId = insertWorkerExecutionLogUseCase(
                     WorkerExecutionLog(
                         attendanceId = attendanceId,

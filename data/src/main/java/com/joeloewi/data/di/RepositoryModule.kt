@@ -47,4 +47,16 @@ interface RepositoryModule {
     @Binds
     @Singleton
     fun bindHoYoLABRepository(hoYoLABRepositoryImpl: HoYoLABRepositoryImpl): HoYoLABRepository
+
+    @Binds
+    @Singleton
+    fun bindGenshinImpactCheckInRepository(genshinImpactCheckInRepositoryImpl: GenshinImpactCheckInRepositoryImpl): GenshinImpactCheckInRepository
+
+    @Binds
+    @Singleton
+    fun bindHonkaiImpact3rdCheckInRepository(honkaiImpact3rdCheckInRepositoryImpl: HonkaiImpact3rdCheckInRepositoryImpl): HonkaiImpact3rdCheckInRepository
+
+    @Binds
+    @Singleton
+    fun bindTearsOfThemisCheckInRepository(themisCheckInRepositoryImpl: TearsOfThemisCheckInRepositoryImpl): TearsOfThemisCheckInRepository
 }

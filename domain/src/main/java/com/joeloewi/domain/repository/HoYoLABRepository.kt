@@ -24,16 +24,4 @@ interface HoYoLABRepository {
         isPublic: Boolean,
         gameId: Int
     ): ContentOrError<BaseResponse>
-
-    suspend fun attendCheckInGenshinImpact(
-        cookie: String
-    ): ContentOrError<BaseResponse>
-
-    suspend fun attendCheckInHonkaiImpact3rd(
-        cookie: String
-    ): ContentOrError<BaseResponse>
-
-    suspend fun attendCheckInTearsOfThemis(
-        cookie: String
-    ): ContentOrError<BaseResponse>
 }

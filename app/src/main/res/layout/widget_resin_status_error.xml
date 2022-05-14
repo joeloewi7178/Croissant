@@ -11,21 +11,21 @@
 
     <ImageView
         android:id="@+id/error_icon"
-        android:adjustViewBounds="true"
         android:layout_width="wrap_content"
         android:layout_height="72dp"
+        android:adjustViewBounds="true"
         android:src="@drawable/ic_baseline_error_24" />
 
     <TextView
         android:id="@+id/text_view_error_occurred"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="오류가 발생하였습니다." />
+        android:text="@string/error_occurred" />
 
     <Button
         android:id="@+id/button_retry"
         style="@style/Widget.Material3.Button.TextButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="다시시도" />
+        android:text="@string/retry" />
 </LinearLayout>

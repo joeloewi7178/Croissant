@@ -11,6 +11,7 @@ import android.os.Build
 import android.widget.RemoteViews
 import androidx.work.WorkManager
 import androidx.work.await
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.service.RemoteViewsFactoryService
 import com.joeloewi.croissant.util.goAsync
@@ -61,6 +62,10 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
 
         goAsync(
             onError = {
+                FirebaseCrashlytics.getInstance().apply {
+                    log(this@ResinStatusWidgetProvider.javaClass.simpleName)
+                    recordException(it)
+                }
                 //error view
                 if (context != null && appWidgetManager != null && appWidgetIds != null) {
                     appWidgetIds.map { appWidgetId ->

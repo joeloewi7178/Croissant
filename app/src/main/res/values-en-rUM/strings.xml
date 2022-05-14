@@ -86,4 +86,14 @@
     <string name="install_after_download_automatically">Installing will be executed automatically after download.</string>
     <string name="attendance_of_nickname">%1$s \'s attendance job</string>
     <string name="account_already_exists_fallback">The account you\'ve login is alreay exists in attendance job. Do you want to see details of your attedance job?</string>
+    <string name="check_session_notification_title">Session validation failed</string>
+    <string name="check_session_notification_description">Please refresh your session</string>
+    <string name="time_zone_changed_notification_title">Time zone change detected</string>
+    <string name="time_zone_changed_notification_description">Jobs which you have been set before may not be executed as intended</string>
+    <string name="start_croissant">Croissant: Getting started</string>
+    <string name="first_view_screen_description">You can attend HoYoLAB Check in event automatically or check genshin impact resin by simple settings</string>
+    <string name="before_start">Before start using this app, this app needs your permissions</string>
+    <string name="grant_permissions_and_start">Grant permissions and start</string>
+    <string name="post_notification_granted">Receive notification has been granted %1$s</string>
+    <string name="retry">retry</string>
 </resources>

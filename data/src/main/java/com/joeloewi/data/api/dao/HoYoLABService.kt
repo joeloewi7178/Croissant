@@ -35,22 +35,4 @@ interface HoYoLABService {
         @Query("role_id") roleId: Long,
         @Query("server") server: String,
     ): ApiResponse<GenshinDailyNoteResponse>
-
-    @POST
-    suspend fun attendCheckInGenshinImpact(
-        @Url url: String = "https://hk4e-api-os.mihoyo.com/event/sol/sign?act_id=e202102251931481&lang=${Locale.getDefault().toLanguageTag().lowercase()}",
-        @Header("Cookie") cookie: String
-    ): ApiResponse<AttendanceResponse>
-
-    @POST
-    suspend fun attendCheckInHonkaiImpact3rd(
-        @Url url: String = "https://api-os-takumi.mihoyo.com/event/mani/sign?act_id=e202110291205111&lang=${Locale.getDefault().toLanguageTag().lowercase()}",
-        @Header("Cookie") cookie: String
-    ): ApiResponse<AttendanceResponse>
-
-    @POST
-    suspend fun attendTearsOfThemis(
-        @Url url: String = "https://sg-public-api.hoyolab.com/event/luna/os/sign?act_id=e202202281857121&lang=${Locale.getDefault().toLanguageTag().lowercase()}",
-        @Header("Cookie") cookie: String
-    ): ApiResponse<AttendanceResponse>
 }
