@@ -10,9 +10,11 @@ import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.joeloewi.croissant.R
 import com.joeloewi.croissant.util.ListItem
 import com.joeloewi.croissant.util.Switch
 import com.joeloewi.croissant.viewmodel.SettingsViewModel
@@ -44,7 +46,7 @@ fun SettingsContent(
         topBar = {
             SmallTopAppBar(
                 title = {
-                    Text(text = "설정")
+                    Text(text = stringResource(id = R.string.settings))
                 }
             )
         }
@@ -61,7 +63,7 @@ fun SettingsContent(
                 ListItem(
                     text = {
                         Text(
-                            text = "테마",
+                            text = stringResource(id = R.string.theme),
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -84,10 +86,10 @@ fun SettingsContent(
                         )
                     },
                     text = {
-                        Text(text = "어두운 테마")
+                        Text(text = stringResource(id = R.string.dark_theme))
                     },
                     secondaryText = {
-                        Text(text = "시스템 설정과 상관없이 항상 어두운 테마를 사용합니다.")
+                        Text(text = stringResource(id = R.string.always_use_dark_theme))
                     },
                     trailing = {
                         Switch(

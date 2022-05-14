@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavBackStackEntry
@@ -21,6 +22,7 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
+import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.COOKIE
@@ -167,7 +169,7 @@ fun CreateAttendanceContent(
         topBar = {
             SmallTopAppBar(
                 title = {
-                    Text(text = "출석 작업 만들기")
+                    Text(text = stringResource(id = R.string.create_attendance))
                 },
                 navigationIcon = navigationIconButton(
                     previousBackStackEntry = previousBackStackEntry,
@@ -310,7 +312,7 @@ fun CreateAttendanceContent(
                             onNavigateUp()
                         }
                     ) {
-                        Text(text = "확인")
+                        Text(text = stringResource(id = R.string.confirm))
                     }
                 },
                 dismissButton = {
@@ -319,7 +321,7 @@ fun CreateAttendanceContent(
                             onShowCancelConfirmationDialogChange(false)
                         }
                     ) {
-                        Text(text = "취소")
+                        Text(text = stringResource(id = R.string.dismiss))
                     }
                 },
                 icon = {
@@ -329,10 +331,10 @@ fun CreateAttendanceContent(
                     )
                 },
                 title = {
-                    Text(text = "경고")
+                    Text(text = stringResource(id = R.string.caution))
                 },
                 text = {
-                    Text(text = "이전 화면으로 돌아가게 되면 저장완료되지 않은 내용은 사라집니다. 계속하시겠습니까?")
+                    Text(text = stringResource(id = R.string.unsaved_contents_will_be_disappeared))
                 },
                 properties = DialogProperties(
                     dismissOnClickOutside = false,

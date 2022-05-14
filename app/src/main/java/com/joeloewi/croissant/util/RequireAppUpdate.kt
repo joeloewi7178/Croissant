@@ -13,11 +13,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.ktx.AppUpdateResult
 import com.google.android.play.core.ktx.bytesDownloaded
 import com.google.android.play.core.ktx.requestUpdateFlow
 import com.google.android.play.core.ktx.totalBytesToDownload
+import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
@@ -119,8 +121,8 @@ private fun InProgressScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             CircularProgressIndicator(progress = progress)
-            Text(text = "새로운 버전의 앱 다운로드 중")
-            Text(text = "다운로드 완료 후 자동으로 설치를 진행합니다.")
+            Text(text = stringResource(id = R.string.latest_version_of_app_is_downloading))
+            Text(text = stringResource(id = R.string.install_after_download_automatically))
         }
     }
 }

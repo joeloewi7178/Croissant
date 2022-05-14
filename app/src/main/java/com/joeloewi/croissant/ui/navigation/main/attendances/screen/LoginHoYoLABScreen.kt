@@ -20,6 +20,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.window.DialogProperties
@@ -28,6 +29,7 @@ import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebSettingsCompat.FORCE_DARK_ON
 import androidx.webkit.WebViewFeature
 import com.google.accompanist.web.*
+import com.joeloewi.croissant.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -93,6 +95,8 @@ fun LoginHoYoLABContent(
                         }
                     },
                     actions = {
+                        val incorrectSession = stringResource(id = R.string.incorrect_session)
+
                         ReloadOrStopLoading(
                             isLoading = webViewState.isLoading,
                             reload = {
@@ -131,7 +135,7 @@ fun LoginHoYoLABContent(
                                 } else {
                                     coroutineScope.launch {
                                         snackbarHostState.showSnackbar(
-                                            message = "접속정보가 정확하지 않습니다. 다시 로그인해주세요."
+                                            message = incorrectSession
                                         )
                                     }
                                 }
@@ -297,7 +301,7 @@ fun LoginHoYoLABContent(
                             onShowSslErrorDialogChange(null)
                         }
                     ) {
-                        Text(text = "확인")
+                        Text(text = stringResource(id = R.string.confirm))
                     }
                 },
                 dismissButton = {
@@ -307,7 +311,7 @@ fun LoginHoYoLABContent(
                             onShowSslErrorDialogChange(null)
                         }
                     ) {
-                        Text(text = "취소")
+                        Text(text = stringResource(id = R.string.dismiss))
                     }
                 },
                 icon = {
@@ -317,16 +321,16 @@ fun LoginHoYoLABContent(
                     )
                 },
                 title = {
-                    Text(text = "인증서 오류")
+                    Text(text = stringResource(id = R.string.certification_error))
                 },
                 text = {
                     Text(
                         text = buildAnnotatedString {
-                            append("방문하려는 웹사이트")
+                            append(stringResource(id = R.string.website_user_try_to_access))
                             showSslErrorDialog.second?.url?.let {
                                 append("(${it})")
                             }
-                            append("의 인증서에 오류가 있습니다. 계속 진행하시겠습니까?")
+                            append(stringResource(id = R.string.has_error_in_certification))
                         }
                     )
                 }

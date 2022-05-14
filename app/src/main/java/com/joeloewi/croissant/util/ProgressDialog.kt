@@ -6,7 +6,9 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.DialogProperties
+import com.joeloewi.croissant.R
 
 @Composable
 fun ProgressDialog(
@@ -22,10 +24,10 @@ fun ProgressDialog(
             )
         },
         title = {
-            Text(text = "저장 중")
+            Text(text = stringResource(id = R.string.saving))
         },
         text = {
-            Text(text = "잠시만 기다려주세요.")
+            Text(text = stringResource(id = R.string.wait_for_a_moment))
         },
         properties = DialogProperties(
             dismissOnClickOutside = false,

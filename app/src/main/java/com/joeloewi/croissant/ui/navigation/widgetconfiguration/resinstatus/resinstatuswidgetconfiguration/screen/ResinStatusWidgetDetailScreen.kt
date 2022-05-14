@@ -12,9 +12,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.util.LocalActivity
@@ -77,7 +79,7 @@ fun ResinStatusWidgetDetailContent(
         topBar = {
             SmallTopAppBar(
                 title = {
-                    Text(text = "위젯 설정 상세")
+                    Text(text = stringResource(id = R.string.widget_configuration))
                 }
             )
         },
@@ -100,7 +102,7 @@ fun ResinStatusWidgetDetailContent(
                         imageVector = Icons.Default.Done,
                         contentDescription = Icons.Default.Done.name
                     )
-                    Text(text = "수정 완료")
+                    Text(text = stringResource(id = R.string.update_completed))
                 }
             }
         }
@@ -114,7 +116,7 @@ fun ResinStatusWidgetDetailContent(
             verticalArrangement = Arrangement.spacedBy(space = DefaultDp)
         ) {
             Text(
-                text = "새로고침 간격",
+                text = stringResource(id = R.string.refresh_interval),
                 style = MaterialTheme.typography.titleMedium
             )
 
@@ -148,7 +150,7 @@ fun ResinStatusWidgetDetailContent(
                             onClick = null
                         )
 
-                        Text(text = "$it 분")
+                        Text(text = stringResource(id = R.string.minute, it))
                     }
                 }
             }
