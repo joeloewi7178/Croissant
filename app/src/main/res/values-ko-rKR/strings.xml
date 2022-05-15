@@ -69,7 +69,6 @@
     <string name="certification_error">인증서 오류</string>
     <string name="website_user_try_to_access">방문하려는 웹사이트</string>
     <string name="has_error_in_certification">의 인증서에 오류가 있습니다. 계속 진행하시겠습니까?</string>
-    <string name="settings">설정</string>
     <string name="theme">테마</string>
     <string name="dark_theme">어두운 테마</string>
     <string name="always_use_dark_theme">시스템 설정과 상관없이 항상 어두운 테마를 사용합니다.</string>

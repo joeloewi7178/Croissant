@@ -15,6 +15,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.joeloewi.croissant.R
+import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
 import com.joeloewi.croissant.util.ListItem
 import com.joeloewi.croissant.util.Switch
 import com.joeloewi.croissant.viewmodel.SettingsViewModel
@@ -46,7 +47,7 @@ fun SettingsContent(
         topBar = {
             SmallTopAppBar(
                 title = {
-                    Text(text = stringResource(id = R.string.settings))
+                    Text(text = stringResource(id = CroissantNavigation.Settings.resourceId))
                 }
             )
         }
