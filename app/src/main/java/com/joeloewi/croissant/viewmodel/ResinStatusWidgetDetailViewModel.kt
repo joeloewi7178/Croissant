@@ -24,7 +24,7 @@ class ResinStatusWidgetDetailViewModel @Inject constructor(
     private val updateResinStatusWidgetUseCase: ResinStatusWidgetUseCase.Update,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    val appWidgetId =
+    private val _appWidgetId =
         savedStateHandle.get<Int>("appWidgetId") ?: AppWidgetManager.INVALID_APPWIDGET_ID
     val selectableIntervals = listOf(15L, 30L, 60L)
 
@@ -37,7 +37,7 @@ class ResinStatusWidgetDetailViewModel @Inject constructor(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
-                invoke(appWidgetId = appWidgetId)
+                invoke(appWidgetId = _appWidgetId)
             }.mapCatching {
                 _interval.value = it.resinStatusWidget.interval
             }
@@ -56,7 +56,7 @@ class ResinStatusWidgetDetailViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             _updateResinStatusWidgetState.value =
                 getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
-                    invoke(appWidgetId = appWidgetId)
+                    invoke(appWidgetId = _appWidgetId)
                 }.mapCatching {
                     val resinStatusWidget = it.resinStatusWidget
 
@@ -65,7 +65,7 @@ class ResinStatusWidgetDetailViewModel @Inject constructor(
                         _interval.value,
                         TimeUnit.MINUTES
                     ).setInputData(
-                        workDataOf(RefreshResinStatusWorker.APP_WIDGET_ID to appWidgetId)
+                        workDataOf(RefreshResinStatusWorker.APP_WIDGET_ID to _appWidgetId)
                     ).setConstraints(
                         Constraints.Builder()
                             .setRequiredNetworkType(NetworkType.CONNECTED)

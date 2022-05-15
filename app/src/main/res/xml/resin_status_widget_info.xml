@@ -8,4 +8,5 @@
     android:minResizeHeight="110dp"
     android:previewImage="@drawable/image_placeholder"
     android:resizeMode="horizontal|vertical"
+    android:updatePeriodMillis="0"
     android:widgetCategory="home_screen" />
