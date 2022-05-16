@@ -68,20 +68,24 @@ class RefreshResinStatusWorker @AssistedInject constructor(
             resinStatusWidgetWithAccounts.accounts.map { account ->
                 withContext(Dispatchers.IO) {
                     async {
-                        getGameRecordCardHoYoLABUseCase(
-                            cookie = account.cookie,
-                            uid = account.uid
-                        ).getOrThrow()?.list?.find { gameRecord ->
+                        measureTimedValue {
+                            getGameRecordCardHoYoLABUseCase(
+                                cookie = account.cookie,
+                                uid = account.uid
+                            ).getOrThrow()
+                        }.also {
+                            FirebaseCrashlytics.getInstance().apply {
+                                log(this@RefreshResinStatusWorker.javaClass.simpleName)
+                                setCustomKey(
+                                    "elapsed time for getGameRecordCard",
+                                    it.duration.inWholeMilliseconds
+                                )
+                            }
+                        }.value?.list?.find { gameRecord ->
                             HoYoLABGame.findByGameId(gameRecord.gameId) == HoYoLABGame.GenshinImpact
                         }!!.let { gameRecord ->
-                            val isDailyNoteEnabled = measureTimedValue {
+                            val isDailyNoteEnabled =
                                 gameRecord.dataSwitches.find { it.switchId == DataSwitch.GENSHIN_IMPACT_DAILY_NOTE_SWITCH_ID }?.isPublic
-                            }.also {
-                                FirebaseCrashlytics.getInstance().apply {
-                                    log(this@RefreshResinStatusWorker.javaClass.simpleName)
-                                    setCustomKey("elapsed time for getGameRecordCard", it.duration.inWholeMilliseconds)
-                                }
-                            }.value
 
                             if (isDailyNoteEnabled == false) {
                                 measureTimedValue {
@@ -94,7 +98,10 @@ class RefreshResinStatusWorker @AssistedInject constructor(
                                 }.also {
                                     FirebaseCrashlytics.getInstance().apply {
                                         log(this@RefreshResinStatusWorker.javaClass.simpleName)
-                                        setCustomKey("elapsed time for changeDataSwitch", it.duration.inWholeMilliseconds)
+                                        setCustomKey(
+                                            "elapsed time for changeDataSwitch",
+                                            it.duration.inWholeMilliseconds
+                                        )
                                     }
                                 }.value
                             }
@@ -109,7 +116,10 @@ class RefreshResinStatusWorker @AssistedInject constructor(
                                 }.also {
                                     FirebaseCrashlytics.getInstance().apply {
                                         log(this@RefreshResinStatusWorker.javaClass.simpleName)
-                                        setCustomKey("elapsed time for getGenshinDailyNote", it.duration.inWholeMilliseconds)
+                                        setCustomKey(
+                                            "elapsed time for getGenshinDailyNote",
+                                            it.duration.inWholeMilliseconds
+                                        )
                                     }
                                 }.value
 
