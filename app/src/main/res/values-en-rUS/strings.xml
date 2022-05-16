@@ -94,5 +94,5 @@
     <string name="before_start">Before start using this app, this app needs your permissions</string>
     <string name="grant_permissions_and_start">Grant permissions and start</string>
     <string name="post_notification_granted">Receive notification has been granted %1$s</string>
-    <string name="retry">retry</string>
+    <string name="retry">Retry</string>
 </resources>
