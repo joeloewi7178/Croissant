@@ -37,7 +37,9 @@ import com.joeloewi.croissant.util.isEmpty
 import com.joeloewi.croissant.viewmodel.CreateResinStatusWidgetViewModel
 import com.joeloewi.domain.common.HoYoLABGame
 import com.joeloewi.domain.entity.relational.AttendanceWithGames
+import kotlin.time.ExperimentalTime
 
+@ExperimentalTime
 @ExperimentalMaterial3Api
 @Composable
 fun CreateResinStatusWidgetScreen(
