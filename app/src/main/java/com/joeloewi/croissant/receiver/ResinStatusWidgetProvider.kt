@@ -1,6 +1,5 @@
 package com.joeloewi.croissant.receiver
 
-import android.app.Application
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
@@ -14,7 +13,9 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import kotlin.time.ExperimentalTime
 
+@ExperimentalTime
 @AndroidEntryPoint
 class ResinStatusWidgetProvider : AppWidgetProvider() {
 
@@ -23,9 +24,6 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
 
     @Inject
     lateinit var deleteByAppWidgetIdResinStatusWidgetUseCase: ResinStatusWidgetUseCase.DeleteByAppWidgetId
-
-    @Inject
-    lateinit var application: Application
 
     override fun onUpdate(
         context: Context?,
@@ -38,28 +36,30 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
         if (context != null) {
             goAsync(onError = {}) {
                 appWidgetIds?.map { appWidgetId ->
-                    getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
-                        invoke(appWidgetId)
-                    }.mapCatching {
-                        val oneTimeWorkRequest =
-                            OneTimeWorkRequest.Builder(RefreshResinStatusWorker::class.java)
-                                .setInputData(
-                                    workDataOf(RefreshResinStatusWorker.APP_WIDGET_ID to appWidgetId)
-                                ).setConstraints(
-                                    Constraints.Builder()
-                                        .setRequiredNetworkType(NetworkType.CONNECTED)
-                                        .build()
-                                ).build()
+                    async {
+                        getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
+                            invoke(appWidgetId)
+                        }.mapCatching {
+                            val oneTimeWorkRequest =
+                                OneTimeWorkRequest.Builder(RefreshResinStatusWorker::class.java)
+                                    .setInputData(
+                                        workDataOf(RefreshResinStatusWorker.APP_WIDGET_ID to appWidgetId)
+                                    ).setConstraints(
+                                        Constraints.Builder()
+                                            .setRequiredNetworkType(NetworkType.CONNECTED)
+                                            .build()
+                                    ).build()
 
-                        WorkManager.getInstance(context).enqueueUniqueWork(
-                            it.resinStatusWidget.id.toString(),
-                            ExistingWorkPolicy.APPEND_OR_REPLACE,
-                            oneTimeWorkRequest
-                        ).await()
-                    }.onFailure {
+                            WorkManager.getInstance(context).enqueueUniqueWork(
+                                it.resinStatusWidget.id.toString(),
+                                ExistingWorkPolicy.APPEND_OR_REPLACE,
+                                oneTimeWorkRequest
+                            ).await()
+                        }.onFailure {
 
+                        }
                     }
-                }
+                }?.awaitAll()
             }
         }
     }

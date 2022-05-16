@@ -1,6 +1,5 @@
 package com.joeloewi.croissant.viewmodel
 
-import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.joeloewi.domain.entity.Settings
@@ -15,7 +14,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val application: Application,
     getSettingsUseCase: SettingsUseCase.GetSettings,
     private val setDarkThemeEnabledSettingUseCase: SettingsUseCase.SetDarkThemeEnabled
 ) : ViewModel() {

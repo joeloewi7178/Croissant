@@ -30,7 +30,10 @@ import org.threeten.bp.Instant
 import org.threeten.bp.ZoneId
 import org.threeten.bp.format.DateTimeFormatter
 import org.threeten.bp.format.FormatStyle
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTimedValue
 
+@ExperimentalTime
 @HiltWorker
 class RefreshResinStatusWorker @AssistedInject constructor(
     @Assisted val context: Context,
@@ -71,24 +74,44 @@ class RefreshResinStatusWorker @AssistedInject constructor(
                         ).getOrThrow()?.list?.find { gameRecord ->
                             HoYoLABGame.findByGameId(gameRecord.gameId) == HoYoLABGame.GenshinImpact
                         }!!.let { gameRecord ->
-                            val isDailyNoteEnabled =
+                            val isDailyNoteEnabled = measureTimedValue {
                                 gameRecord.dataSwitches.find { it.switchId == DataSwitch.GENSHIN_IMPACT_DAILY_NOTE_SWITCH_ID }?.isPublic
+                            }.also {
+                                FirebaseCrashlytics.getInstance().apply {
+                                    log(this@RefreshResinStatusWorker.javaClass.simpleName)
+                                    setCustomKey("elapsed time for getGameRecordCard", it.duration.inWholeMilliseconds)
+                                }
+                            }.value
 
                             if (isDailyNoteEnabled == false) {
-                                changeDataSwitchHoYoLABUseCase(
-                                    cookie = account.cookie,
-                                    switchId = DataSwitch.GENSHIN_IMPACT_DAILY_NOTE_SWITCH_ID,
-                                    isPublic = true,
-                                    gameId = gameRecord.gameId,
-                                ).getOrThrow()
+                                measureTimedValue {
+                                    changeDataSwitchHoYoLABUseCase(
+                                        cookie = account.cookie,
+                                        switchId = DataSwitch.GENSHIN_IMPACT_DAILY_NOTE_SWITCH_ID,
+                                        isPublic = true,
+                                        gameId = gameRecord.gameId,
+                                    ).getOrThrow()
+                                }.also {
+                                    FirebaseCrashlytics.getInstance().apply {
+                                        log(this@RefreshResinStatusWorker.javaClass.simpleName)
+                                        setCustomKey("elapsed time for changeDataSwitch", it.duration.inWholeMilliseconds)
+                                    }
+                                }.value
                             }
 
                             val genshinDailyNote =
-                                getGenshinDailyNoteHoYoLABUseCase(
-                                    cookie = account.cookie,
-                                    server = gameRecord.region,
-                                    roleId = gameRecord.gameRoleId
-                                ).getOrThrow()
+                                measureTimedValue {
+                                    getGenshinDailyNoteHoYoLABUseCase(
+                                        cookie = account.cookie,
+                                        server = gameRecord.region,
+                                        roleId = gameRecord.gameRoleId
+                                    ).getOrThrow()
+                                }.also {
+                                    FirebaseCrashlytics.getInstance().apply {
+                                        log(this@RefreshResinStatusWorker.javaClass.simpleName)
+                                        setCustomKey("elapsed time for getGenshinDailyNote", it.duration.inWholeMilliseconds)
+                                    }
+                                }.value
 
                             RemoteViewsFactoryService.ResinStatus(
                                 id = account.id,
@@ -201,6 +224,9 @@ class RefreshResinStatusWorker @AssistedInject constructor(
             Result.success()
         },
         onFailure = {
+            //hoyoverse api rarely throws timeout error
+            //even though this worker has constraints on connection
+
             FirebaseCrashlytics.getInstance().apply {
                 log(this@RefreshResinStatusWorker.javaClass.simpleName)
                 recordException(it)
