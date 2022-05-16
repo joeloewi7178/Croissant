@@ -29,8 +29,10 @@ import com.joeloewi.croissant.viewmodel.MainViewModel
 import com.joeloewi.croissant.viewmodel.ResinStatusWidgetConfigurationViewModel
 import com.joeloewi.croissant.viewmodel.ResinStatusWidgetDetailViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlin.time.ExperimentalTime
 
 //app widget configuration intent does not provide app widget provider's name
+@ExperimentalTime
 @ExperimentalMaterial3Api
 @AndroidEntryPoint
 class ResinStatusWidgetConfigurationActivity : AppCompatActivity() {
@@ -59,6 +61,7 @@ class ResinStatusWidgetConfigurationActivity : AppCompatActivity() {
     }
 }
 
+@ExperimentalTime
 @ExperimentalMaterial3Api
 @Composable
 fun ResinStatusWidgetConfigurationApp() {

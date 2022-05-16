@@ -22,7 +22,9 @@ import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.ProgressDialog
 import com.joeloewi.croissant.viewmodel.ResinStatusWidgetDetailViewModel
+import kotlin.time.ExperimentalTime
 
+@ExperimentalTime
 @ExperimentalMaterial3Api
 @Composable
 fun ResinStatusWidgetDetailScreen(
