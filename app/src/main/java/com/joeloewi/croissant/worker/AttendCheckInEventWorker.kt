@@ -51,7 +51,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
     appContext = context,
     params = params
 ) {
-    private val attendanceId = inputData.getLong(ATTENDANCE_ID, Long.MIN_VALUE)
+    private val _attendanceId = inputData.getLong(ATTENDANCE_ID, Long.MIN_VALUE)
 
     private suspend fun createAttendanceNotification(
         context: Context,
@@ -99,7 +99,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
         .build()
 
     override suspend fun doWork(): Result = withContext(Dispatchers.Default) {
-        attendanceId.runCatching {
+        _attendanceId.runCatching {
             takeIf { it != Long.MIN_VALUE }!!
         }.mapCatching { attendanceId ->
             //check session is valid
@@ -201,7 +201,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
 
                 val executionLogId = insertWorkerExecutionLogUseCase(
                     WorkerExecutionLog(
-                        attendanceId = attendanceId,
+                        attendanceId = _attendanceId,
                         state = WorkerExecutionLogState.FAILURE,
                         loggableWorker = LoggableWorker.ATTEND_CHECK_IN_EVENT
                     )

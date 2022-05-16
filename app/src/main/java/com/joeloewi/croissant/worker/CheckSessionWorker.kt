@@ -42,18 +42,18 @@ class CheckSessionWorker @AssistedInject constructor(
     appContext = context,
     params = params
 ) {
-    private val attendanceId = inputData.getLong(ATTENDANCE_ID, Long.MIN_VALUE)
+    private val _attendanceId = inputData.getLong(ATTENDANCE_ID, Long.MIN_VALUE)
 
-    private val attendanceDetailDeepLinkUri = Uri.Builder()
+    private val _attendanceDetailDeepLinkUri = Uri.Builder()
         .scheme(context.getString(R.string.deep_link_scheme))
         .authority(context.packageName)
         .appendPath(AttendancesDestination.AttendanceDetailScreen().plainRoute)
-        .appendPath(attendanceId.toString())
+        .appendPath(_attendanceId.toString())
         .build()
 
     private fun getAttendanceDetailIntent(): Intent = Intent(
         Intent.ACTION_VIEW,
-        attendanceDetailDeepLinkUri
+        _attendanceDetailDeepLinkUri
     )
 
     private fun createCheckSessionNotification(
@@ -76,7 +76,7 @@ class CheckSessionWorker @AssistedInject constructor(
         .build()
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
-        attendanceId.runCatching {
+        _attendanceId.runCatching {
             takeIf { it != Long.MIN_VALUE }!!
         }.mapCatching { attendanceId ->
             getOneAttendanceUseCase(attendanceId)
@@ -88,7 +88,7 @@ class CheckSessionWorker @AssistedInject constructor(
             onSuccess = {
                 val executionLogId = insertWorkerExecutionLogUseCase(
                     WorkerExecutionLog(
-                        attendanceId = attendanceId,
+                        attendanceId = _attendanceId,
                         state = WorkerExecutionLogState.SUCCESS,
                         loggableWorker = LoggableWorker.CHECK_SESSION
                     )
@@ -112,7 +112,7 @@ class CheckSessionWorker @AssistedInject constructor(
 
                 val executionLogId = insertWorkerExecutionLogUseCase(
                     WorkerExecutionLog(
-                        attendanceId = attendanceId,
+                        attendanceId = _attendanceId,
                         state = WorkerExecutionLogState.FAILURE,
                         loggableWorker = LoggableWorker.CHECK_SESSION
                     )

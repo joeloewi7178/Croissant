@@ -46,8 +46,8 @@ class RefreshResinStatusWorker @AssistedInject constructor(
     appContext = context,
     params = params
 ) {
-    private val appWidgetId = inputData.getInt(APP_WIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
-    private val appWidgetManager by lazy { AppWidgetManager.getInstance(context) }
+    private val _appWidgetId = inputData.getInt(APP_WIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
+    private val _appWidgetManager by lazy { AppWidgetManager.getInstance(context) }
 
     override suspend fun doWork(): Result = runCatching {
         //loading view
@@ -55,14 +55,14 @@ class RefreshResinStatusWorker @AssistedInject constructor(
             context.packageName,
             R.layout.widget_resin_status_loading
         ).also { remoteViews ->
-            appWidgetManager.updateAppWidget(
-                appWidgetId,
+            _appWidgetManager.updateAppWidget(
+                _appWidgetId,
                 remoteViews
             )
         }
 
         val resinStatusWidgetWithAccounts =
-            getOneByAppWidgetIdResinStatusWidgetUseCase(appWidgetId)
+            getOneByAppWidgetIdResinStatusWidgetUseCase(_appWidgetId)
 
         val resinStatuses =
             resinStatusWidgetWithAccounts.accounts.map { account ->
@@ -157,7 +157,7 @@ class RefreshResinStatusWorker @AssistedInject constructor(
                 R.id.widget_refresh,
                 PendingIntent.getBroadcast(
                     context,
-                    appWidgetId,
+                    _appWidgetId,
                     Intent(
                         context,
                         ResinStatusWidgetProvider::class.java
@@ -166,7 +166,7 @@ class RefreshResinStatusWorker @AssistedInject constructor(
 
                         putExtra(
                             AppWidgetManager.EXTRA_APPWIDGET_IDS,
-                            intArrayOf(appWidgetId)
+                            intArrayOf(_appWidgetId)
                         )
                     },
                     pendingIntentFlagUpdateCurrent
@@ -212,7 +212,7 @@ class RefreshResinStatusWorker @AssistedInject constructor(
                     ).apply {
                         putExtra(
                             AppWidgetManager.EXTRA_APPWIDGET_ID,
-                            appWidgetId
+                            _appWidgetId
                         )
                         putParcelableArrayListExtra(
                             RemoteViewsFactoryService.ListRemoteViewsFactory.RESIN_STATUSES,
@@ -224,8 +224,8 @@ class RefreshResinStatusWorker @AssistedInject constructor(
                 setRemoteAdapter(R.id.resin_statuses, serviceIntent)
             }
         }.let { remoteViews ->
-            appWidgetManager.updateAppWidget(
-                appWidgetId,
+            _appWidgetManager.updateAppWidget(
+                _appWidgetId,
                 remoteViews
             )
         }
@@ -251,7 +251,7 @@ class RefreshResinStatusWorker @AssistedInject constructor(
                     R.id.button_retry,
                     PendingIntent.getBroadcast(
                         context,
-                        appWidgetId,
+                        _appWidgetId,
                         Intent(
                             context,
                             ResinStatusWidgetProvider::class.java
@@ -260,15 +260,15 @@ class RefreshResinStatusWorker @AssistedInject constructor(
 
                             putExtra(
                                 AppWidgetManager.EXTRA_APPWIDGET_IDS,
-                                intArrayOf(appWidgetId)
+                                intArrayOf(_appWidgetId)
                             )
                         },
                         pendingIntentFlagUpdateCurrent
                     )
                 )
             }.also { remoteViews ->
-                appWidgetManager.updateAppWidget(
-                    appWidgetId,
+                _appWidgetManager.updateAppWidget(
+                    _appWidgetId,
                     remoteViews
                 )
             }
