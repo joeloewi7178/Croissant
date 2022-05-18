@@ -9,4 +9,8 @@
             @android:dimen/system_app_widget_inner_radius
         </item>
     </style>
+
+    <style name="Theme.Croissant" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:timePickerStyle">@style/TimePicker</item>
+    </style>
 </resources>

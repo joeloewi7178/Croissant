@@ -1,7 +1,10 @@
 package com.joeloewi.croissant
 
+import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -65,11 +68,8 @@ import com.joeloewi.croissant.ui.navigation.main.settings.screen.SettingsScreen
 import com.joeloewi.croissant.ui.theme.CroissantTheme
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
-import com.joeloewi.croissant.util.CroissantPermission
+import com.joeloewi.croissant.util.*
 import com.joeloewi.croissant.util.ListItem
-import com.joeloewi.croissant.util.LocalActivity
-import com.joeloewi.croissant.util.RequireAppUpdate
-import com.joeloewi.croissant.util.RootChecker
 import com.joeloewi.croissant.viewmodel.*
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ObsoleteCoroutinesApi
@@ -170,15 +170,30 @@ fun CroissantApp() {
             )
         }
     ) {
-        val lifecycleOwner = LocalLifecycleOwner.current
+        val lifecycle by LocalLifecycleOwner.current.lifecycle.observeAsState()
         val (showRootedDeviceAlert, onShowRootedDeviceAlertChange) = remember { mutableStateOf(false) }
+        val (showBatteryOptimizationAlert, onShowBatteryOptimizationAlertChange) = remember {
+            mutableStateOf(
+                false
+            )
+        }
 
-        LaunchedEffect(lifecycleOwner.lifecycle.currentState) {
-            if (lifecycleOwner.lifecycle.currentState == Lifecycle.State.RESUMED && RootChecker(
-                    context = context
-                ).isDeviceRooted()
-            ) {
-                onShowRootedDeviceAlertChange(true)
+        LaunchedEffect(lifecycle) {
+            when (lifecycle) {
+                Lifecycle.Event.ON_RESUME -> {
+                    onShowRootedDeviceAlertChange(
+                        RootChecker(
+                            context = context
+                        ).isDeviceRooted()
+                    )
+
+                    onShowBatteryOptimizationAlertChange(
+                        !context.isIgnoringBatteryOptimizations()
+                    )
+                }
+                else -> {
+
+                }
             }
         }
 
@@ -391,7 +406,7 @@ fun CroissantApp() {
                                     activity.finish()
                                 }
                             ) {
-                                Text(text = "확인")
+                                Text(text = stringResource(id = R.string.confirm))
                             }
                         },
                         icon = {
@@ -401,10 +416,51 @@ fun CroissantApp() {
                             )
                         },
                         title = {
-                            Text(text = "경고")
+                            Text(text = stringResource(id = R.string.caution))
                         },
                         text = {
-                            Text(text = "루팅이 감지되었습니다. 앱을 종료합니다.")
+                            Text(text = stringResource(id = R.string.device_rooting_detected))
+                        },
+                        properties = DialogProperties(
+                            dismissOnClickOutside = false,
+                            dismissOnBackPress = false
+                        )
+                    )
+                }
+
+                if (!isFirstLaunch && showBatteryOptimizationAlert) {
+                    AlertDialog(
+                        onDismissRequest = {
+                            onShowBatteryOptimizationAlertChange(false)
+                        },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    onShowBatteryOptimizationAlertChange(false)
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                        Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).also {
+                                            context.startActivity(it)
+                                        }
+                                    }
+                                }
+                            ) {
+                                Text(text = stringResource(id = R.string.confirm))
+                            }
+                        },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.Warning,
+                                contentDescription = Icons.Default.Warning.name
+                            )
+                        },
+                        title = {
+                            Text(text = stringResource(id = R.string.caution))
+                        },
+                        text = {
+                            Text(
+                                textAlign = TextAlign.Center,
+                                text = stringResource(id = R.string.battery_optimization_enabled)
+                            )
                         },
                         properties = DialogProperties(
                             dismissOnClickOutside = false,

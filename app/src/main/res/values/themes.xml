@@ -18,9 +18,10 @@
         <item name="appWidgetPadding">16dp</item>
     </style>
 
-    <style name="Theme.AppSplash" parent="Theme.SplashScreen">
+    <style name="Theme.AppSplash" parent="Theme.SplashScreen.IconBackground">
         <item name="postSplashScreenTheme">@style/Theme.Croissant</item>
-        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_round</item>
+        <item name="windowSplashScreenIconBackgroundColor">@color/white</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
     </style>
 
     <style name="TimePicker" parent="@android:style/Widget.Material.TimePicker">

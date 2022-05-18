@@ -18,6 +18,7 @@ import com.joeloewi.croissant.util.CroissantPermission
 import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
 import com.joeloewi.domain.common.LoggableWorker
 import com.joeloewi.domain.common.WorkerExecutionLogState
+import com.joeloewi.domain.common.exception.HoYoLABException
 import com.joeloewi.domain.entity.FailureLog
 import com.joeloewi.domain.entity.SuccessLog
 import com.joeloewi.domain.entity.WorkerExecutionLog
@@ -126,20 +127,22 @@ class CheckSessionWorker @AssistedInject constructor(
                     )
                 )
 
-                createCheckSessionNotification(
-                    context = context,
-                    channelId = context.getString(R.string.check_session_notification_channel_id),
-                ).let { notification ->
-                    if (context.packageManager.checkPermission(
-                            CroissantPermission.PostNotifications.permission,
-                            context.packageName
-                        ) == PackageManager.PERMISSION_GRANTED
-                    ) {
-                        NotificationManagerCompat.from(context).notify(
-                            UUID.randomUUID().toString(),
-                            0,
-                            notification
-                        )
+                if (cause is HoYoLABException.LoginFailedException) {
+                    createCheckSessionNotification(
+                        context = context,
+                        channelId = context.getString(R.string.check_session_notification_channel_id),
+                    ).let { notification ->
+                        if (context.packageManager.checkPermission(
+                                CroissantPermission.PostNotifications.permission,
+                                context.packageName
+                            ) == PackageManager.PERMISSION_GRANTED
+                        ) {
+                            NotificationManagerCompat.from(context).notify(
+                                UUID.randomUUID().toString(),
+                                0,
+                                notification
+                            )
+                        }
                     }
                 }
 

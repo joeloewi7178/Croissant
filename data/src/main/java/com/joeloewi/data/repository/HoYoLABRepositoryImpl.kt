@@ -1,6 +1,8 @@
 package com.joeloewi.data.repository
 
 import com.joeloewi.data.repository.remote.HoYoLABDataSource
+import com.joeloewi.domain.common.HoYoLABRetCode
+import com.joeloewi.domain.common.exception.HoYoLABException
 import com.joeloewi.domain.entity.*
 import com.joeloewi.domain.repository.HoYoLABRepository
 import com.joeloewi.domain.wrapper.ContentOrError
@@ -10,9 +12,25 @@ import javax.inject.Inject
 class HoYoLABRepositoryImpl @Inject constructor(
     private val hoYoLABDataSource: HoYoLABDataSource
 ) : HoYoLABRepository {
+
     override suspend fun getUserFullInfo(cookie: String): ContentOrError<UserFullInfoResponse> =
         hoYoLABDataSource.getUserFullInfo(cookie).runCatching {
-            getOrThrow()
+            getOrThrow().also { response ->
+                when (HoYoLABRetCode.findByCode(response.retcode)) {
+                    HoYoLABRetCode.LoginFailed -> {
+                        throw HoYoLABException.LoginFailedException
+                    }
+                    HoYoLABRetCode.Unknown -> {
+                        throw HoYoLABException.Unknown(
+                            retCode = response.retcode,
+                            responseMessage = response.message
+                        )
+                    }
+                    else -> {
+
+                    }
+                }
+            }
         }.fold(
             onSuccess = {
                 ContentOrError.Content(it)
@@ -24,7 +42,22 @@ class HoYoLABRepositoryImpl @Inject constructor(
 
     override suspend fun getGameRecordCard(cookie: String, uid: Long): ContentOrError<GameRecordCardData?> =
         hoYoLABDataSource.getGameRecordCard(cookie, uid).runCatching {
-            getOrThrow()
+            getOrThrow().also { response ->
+                when (HoYoLABRetCode.findByCode(response.retcode)) {
+                    HoYoLABRetCode.LoginFailed -> {
+                        throw HoYoLABException.LoginFailedException
+                    }
+                    HoYoLABRetCode.Unknown -> {
+                        throw HoYoLABException.Unknown(
+                            retCode = response.retcode,
+                            responseMessage = response.message
+                        )
+                    }
+                    else -> {
+
+                    }
+                }
+            }
         }.fold(
             onSuccess = {
                 ContentOrError.Content(it.data)
@@ -41,7 +74,22 @@ class HoYoLABRepositoryImpl @Inject constructor(
     ): ContentOrError<GenshinDailyNoteData?> = hoYoLABDataSource.getGenshinDailyNote(
         cookie = cookie, roleId = roleId, server = server
     ).runCatching {
-        getOrThrow()
+        getOrThrow().also { response ->
+            when (HoYoLABRetCode.findByCode(response.retcode)) {
+                HoYoLABRetCode.LoginFailed -> {
+                    throw HoYoLABException.LoginFailedException
+                }
+                HoYoLABRetCode.Unknown -> {
+                    throw HoYoLABException.Unknown(
+                        retCode = response.retcode,
+                        responseMessage = response.message
+                    )
+                }
+                else -> {
+
+                }
+            }
+        }
     }.fold(
         onSuccess = {
             ContentOrError.Content(it.data)
@@ -58,7 +106,25 @@ class HoYoLABRepositoryImpl @Inject constructor(
         gameId: Int
     ): ContentOrError<BaseResponse> =
         hoYoLABDataSource.changeDataSwitch(cookie, switchId, isPublic, gameId).runCatching {
-            getOrThrow()
+            getOrThrow().also { response ->
+                when (HoYoLABRetCode.findByCode(response.retcode)) {
+                    HoYoLABRetCode.LoginFailed -> {
+                        throw HoYoLABException.LoginFailedException
+                    }
+                    HoYoLABRetCode.OK -> {
+
+                    }
+                    HoYoLABRetCode.Unknown -> {
+                        throw HoYoLABException.Unknown(
+                            retCode = response.retcode,
+                            responseMessage = response.message
+                        )
+                    }
+                    else -> {
+
+                    }
+                }
+            }
         }.fold(
             onSuccess = {
                 ContentOrError.Content(it)

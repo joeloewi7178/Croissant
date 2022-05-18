@@ -366,11 +366,13 @@ fun ConnectedGameListItem(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
+                    modifier = Modifier.weight(3f),
                     text = stringResource(id = hoYoLABGame.gameNameStringResId()),
                     style = MaterialTheme.typography.labelMedium
                 )
 
                 Checkbox(
+                    modifier = Modifier.weight(1f),
                     checked = checkedGames.contains(game),
                     onCheckedChange = null
                 )

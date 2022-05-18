@@ -4,9 +4,9 @@ import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.widget.RemoteViews
+import androidx.core.os.bundleOf
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
@@ -14,6 +14,9 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.receiver.ResinStatusWidgetProvider
 import com.joeloewi.croissant.service.RemoteViewsFactoryService
+import com.joeloewi.croissant.util.ListRemoteViewsFactory
+import com.joeloewi.croissant.util.ResinStatus
+import com.joeloewi.croissant.util.isPowerSaveMode
 import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
 import com.joeloewi.domain.common.HoYoLABGame
 import com.joeloewi.domain.entity.DataSwitch
@@ -46,7 +49,8 @@ class RefreshResinStatusWorker @AssistedInject constructor(
     appContext = context,
     params = params
 ) {
-    private val _appWidgetId = inputData.getInt(APP_WIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
+    private val _appWidgetId =
+        inputData.getInt(APP_WIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
     private val _appWidgetManager by lazy { AppWidgetManager.getInstance(context) }
 
     override suspend fun doWork(): Result = runCatching {
@@ -123,7 +127,7 @@ class RefreshResinStatusWorker @AssistedInject constructor(
                                     }
                                 }.value
 
-                            RemoteViewsFactoryService.ResinStatus(
+                            ResinStatus(
                                 id = account.id,
                                 nickname = gameRecord.nickname,
                                 currentResin = genshinDailyNote?.currentResin
@@ -205,23 +209,23 @@ class RefreshResinStatusWorker @AssistedInject constructor(
                     items
                 )
             } else {
-                val serviceIntent =
-                    Intent(
-                        context,
-                        RemoteViewsFactoryService::class.java
-                    ).apply {
-                        putExtra(
-                            AppWidgetManager.EXTRA_APPWIDGET_ID,
-                            _appWidgetId
-                        )
-                        putParcelableArrayListExtra(
-                            RemoteViewsFactoryService.ListRemoteViewsFactory.RESIN_STATUSES,
-                            ArrayList(resinStatuses)
-                        )
-                        data = Uri.parse(toUri(Intent.URI_INTENT_SCHEME))
-                    }
+                val serviceIntent = Intent(
+                    context,
+                    RemoteViewsFactoryService::class.java
+                )
 
-                setRemoteAdapter(R.id.resin_statuses, serviceIntent)
+                val extrasBundle = bundleOf().apply {
+                    putParcelableArrayList(
+                        ListRemoteViewsFactory.RESIN_STATUSES,
+                        ArrayList(resinStatuses)
+                    )
+                }
+
+                serviceIntent.putExtra(ListRemoteViewsFactory.BUNDLE, extrasBundle)
+
+                setRemoteAdapter(
+                    R.id.resin_statuses, serviceIntent
+                )
             }
         }.let { remoteViews ->
             _appWidgetManager.updateAppWidget(
@@ -237,41 +241,80 @@ class RefreshResinStatusWorker @AssistedInject constructor(
             //hoyoverse api rarely throws timeout error
             //even though this worker has constraints on connection
 
+            it.printStackTrace()
+
             FirebaseCrashlytics.getInstance().apply {
                 log(this@RefreshResinStatusWorker.javaClass.simpleName)
                 recordException(it)
             }
 
-            //error view
-            RemoteViews(
-                context.packageName,
-                R.layout.widget_resin_status_error
-            ).apply {
-                setOnClickPendingIntent(
-                    R.id.button_retry,
-                    PendingIntent.getBroadcast(
-                        context,
-                        _appWidgetId,
-                        Intent(
-                            context,
-                            ResinStatusWidgetProvider::class.java
-                        ).apply {
-                            action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-
-                            putExtra(
-                                AppWidgetManager.EXTRA_APPWIDGET_IDS,
-                                intArrayOf(_appWidgetId)
-                            )
-                        },
-                        pendingIntentFlagUpdateCurrent
+            if (context.isPowerSaveMode()) {
+                RemoteViews(
+                    context.packageName,
+                    R.layout.widget_resin_status_error
+                ).apply {
+                    setTextViewText(
+                        R.id.text_view_error_occurred,
+                        context.getString(R.string.not_update_due_to_power_save)
                     )
-                )
-            }.also { remoteViews ->
-                _appWidgetManager.updateAppWidget(
-                    _appWidgetId,
-                    remoteViews
-                )
+                    setOnClickPendingIntent(
+                        R.id.button_retry,
+                        PendingIntent.getBroadcast(
+                            context,
+                            _appWidgetId,
+                            Intent(
+                                context,
+                                ResinStatusWidgetProvider::class.java
+                            ).apply {
+                                action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+
+                                putExtra(
+                                    AppWidgetManager.EXTRA_APPWIDGET_IDS,
+                                    intArrayOf(_appWidgetId)
+                                )
+                            },
+                            pendingIntentFlagUpdateCurrent
+                        )
+                    )
+                }.also { remoteViews ->
+                    _appWidgetManager.updateAppWidget(
+                        _appWidgetId,
+                        remoteViews
+                    )
+                }
+            } else {
+                //error view
+                RemoteViews(
+                    context.packageName,
+                    R.layout.widget_resin_status_error
+                ).apply {
+                    setOnClickPendingIntent(
+                        R.id.button_retry,
+                        PendingIntent.getBroadcast(
+                            context,
+                            _appWidgetId,
+                            Intent(
+                                context,
+                                ResinStatusWidgetProvider::class.java
+                            ).apply {
+                                action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+
+                                putExtra(
+                                    AppWidgetManager.EXTRA_APPWIDGET_IDS,
+                                    intArrayOf(_appWidgetId)
+                                )
+                            },
+                            pendingIntentFlagUpdateCurrent
+                        )
+                    )
+                }.also { remoteViews ->
+                    _appWidgetManager.updateAppWidget(
+                        _appWidgetId,
+                        remoteViews
+                    )
+                }
             }
+
             Result.failure()
         }
     )

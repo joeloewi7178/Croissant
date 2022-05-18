@@ -1,10 +1,18 @@
 package com.joeloewi.croissant.receiver
 
+import android.app.Application
+import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
+import android.content.Intent
+import android.widget.RemoteViews
 import androidx.work.*
+import com.joeloewi.croissant.R
 import com.joeloewi.croissant.util.goAsync
+import com.joeloewi.croissant.util.isIgnoringBatteryOptimizations
+import com.joeloewi.croissant.util.isPowerSaveMode
+import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
 import com.joeloewi.croissant.worker.RefreshResinStatusWorker
 import com.joeloewi.domain.usecase.ResinStatusWidgetUseCase
 import dagger.hilt.android.AndroidEntryPoint
@@ -18,6 +26,9 @@ import kotlin.time.ExperimentalTime
 @ExperimentalTime
 @AndroidEntryPoint
 class ResinStatusWidgetProvider : AppWidgetProvider() {
+
+    @Inject
+    lateinit var application: Application
 
     @Inject
     lateinit var getOneByAppWidgetIdResinStatusWidgetUseCase: ResinStatusWidgetUseCase.GetOneByAppWidgetId
@@ -37,26 +48,62 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
             goAsync(onError = {}) {
                 appWidgetIds?.map { appWidgetId ->
                     async {
-                        getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
-                            invoke(appWidgetId)
-                        }.mapCatching {
-                            val oneTimeWorkRequest =
-                                OneTimeWorkRequest.Builder(RefreshResinStatusWorker::class.java)
-                                    .setInputData(
-                                        workDataOf(RefreshResinStatusWorker.APP_WIDGET_ID to appWidgetId)
-                                    ).setConstraints(
-                                        Constraints.Builder()
-                                            .setRequiredNetworkType(NetworkType.CONNECTED)
-                                            .build()
-                                    ).build()
+                        if (context.isPowerSaveMode() && !context.isIgnoringBatteryOptimizations()) {
+                            RemoteViews(
+                                context.packageName,
+                                R.layout.widget_resin_status_error
+                            ).apply {
+                                setTextViewText(
+                                    R.id.text_view_error_occurred,
+                                    context.getString(R.string.not_update_due_to_power_save)
+                                )
+                                setOnClickPendingIntent(
+                                    R.id.button_retry,
+                                    PendingIntent.getBroadcast(
+                                        context,
+                                        appWidgetId,
+                                        Intent(
+                                            context,
+                                            ResinStatusWidgetProvider::class.java
+                                        ).apply {
+                                            action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
 
-                            WorkManager.getInstance(context).enqueueUniqueWork(
-                                it.resinStatusWidget.id.toString(),
-                                ExistingWorkPolicy.APPEND_OR_REPLACE,
-                                oneTimeWorkRequest
-                            ).await()
-                        }.onFailure {
+                                            putExtra(
+                                                AppWidgetManager.EXTRA_APPWIDGET_IDS,
+                                                intArrayOf(appWidgetId)
+                                            )
+                                        },
+                                        pendingIntentFlagUpdateCurrent
+                                    )
+                                )
+                            }.also { remoteViews ->
+                                appWidgetManager?.updateAppWidget(
+                                    appWidgetId,
+                                    remoteViews
+                                )
+                            }
+                        } else {
+                            getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
+                                invoke(appWidgetId)
+                            }.mapCatching {
+                                val oneTimeWorkRequest =
+                                    OneTimeWorkRequest.Builder(RefreshResinStatusWorker::class.java)
+                                        .setInputData(
+                                            workDataOf(RefreshResinStatusWorker.APP_WIDGET_ID to appWidgetId)
+                                        ).setConstraints(
+                                            Constraints.Builder()
+                                                .setRequiredNetworkType(NetworkType.CONNECTED)
+                                                .build()
+                                        ).build()
 
+                                WorkManager.getInstance(context).enqueueUniqueWork(
+                                    it.resinStatusWidget.id.toString(),
+                                    ExistingWorkPolicy.APPEND_OR_REPLACE,
+                                    oneTimeWorkRequest
+                                ).await()
+                            }.onFailure {
+
+                            }
                         }
                     }
                 }?.awaitAll()

@@ -94,4 +94,7 @@
     <string name="before_start">시작하기 전에 다음 권한에 대한 허가가 필요합니다.</string>
     <string name="post_notification_granted">알림 수신에 동의하였습니다. %1$s</string>
     <string name="retry">다시시도</string>
+    <string name="not_update_due_to_power_save">전원 절약 모드에서 위젯을 업데이트 할 수 없습니다.</string>
+    <string name="device_rooting_detected">루팅이 감지되었습니다. 앱을 종료합니다.</string>
+    <string name="battery_optimization_enabled">현재 시스템 설정에서는 백그라운드 작업이 제한되어 기능이 원활히 동작하지 않을 수 있습니다. 확인을 눌러 표시되는 화면의 모든 앱 중 크루아상을 찾아 최적화를 해제하여 주세요.</string>
 </resources>
