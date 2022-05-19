@@ -99,4 +99,5 @@
     <string name="device_rooting_detected">Device rooting dectected. App wiil be closed.</string>
     <string name="battery_optimization_enabled">Battery optimization for this app is enabled. In this mode, almost features are not working properly. Please disable battery optimization. Confirm button will locate to system settings.</string>
     <string name="change_setting">Change setting</string>
+    <string name="experimental_sns_login_feature">Login via SNS account may occurs some errors. Facebook login is not supported.</string>
 </resources>

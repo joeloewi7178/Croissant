@@ -7,6 +7,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Login
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -125,24 +126,23 @@ fun GetSession(
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                containerColor = MaterialTheme.colorScheme.errorContainer,
             ) {
                 Row(
-                    modifier = Modifier.padding(all = DefaultDp),
+                    modifier = Modifier.padding(DefaultDp),
                 ) {
                     Icon(
-                        modifier = Modifier.padding(all = DefaultDp),
-                        imageVector = Icons.Default.Warning,
-                        contentDescription = Icons.Default.Warning.name
+                        modifier = Modifier.padding(DefaultDp),
+                        imageVector = Icons.Default.Star,
+                        contentDescription = Icons.Default.Star.name
                     )
                     Text(
-                        modifier = Modifier.padding(all = DefaultDp),
+                        modifier = Modifier.padding(DefaultDp),
                         text = buildAnnotatedString {
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append(stringResource(id = R.string.caution))
+                                append(stringResource(id = R.string.note))
                                 append(": ")
                             }
-                            append(stringResource(id = R.string.get_session_warning))
+                            append(stringResource(id = R.string.experimental_sns_login_feature))
                         },
                         style = MaterialTheme.typography.bodyMedium
                     )
