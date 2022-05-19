@@ -64,7 +64,7 @@
     <string name="type_time">Type time</string>
     <string name="select_scheduled_time_by_using_dial">Choose time your attendance be executed everyday.</string>
     <string name="note">Note</string>
-    <string name="first_execution_is_for_reference">First executuin is for reference</string>
+    <string name="first_execution_is_for_reference">First execution is for reference</string>
     <string name="create_attendance">Create attendance</string>
     <string name="unsaved_contents_will_be_disappeared">Unsaved contents will be disappeared. Continue?</string>
     <string name="games_to_attend">Game to attend</string>
@@ -87,7 +87,7 @@
     <string name="latest_version_of_app_is_downloading">Latest version of app is downloading</string>
     <string name="install_after_download_automatically">Installing will be executed automatically after download.</string>
     <string name="attendance_of_nickname">%1$s \'s attendance job</string>
-    <string name="account_already_exists_fallback">The account you\'ve login is alreay exists in attendance job. Do you want to see details of your attedance job?</string>
+    <string name="account_already_exists_fallback">The account you\'ve login is already exists in attendance job. Do you want to see details of your attedance job?</string>
     <string name="check_session_notification_title">Session validation failed</string>
     <string name="check_session_notification_description">Please refresh your session</string>
     <string name="time_zone_changed_notification_title">Time zone change detected</string>
@@ -98,4 +98,9 @@
     <string name="grant_permissions_and_start">Grant permissions and start</string>
     <string name="post_notification_granted" formatted="true">Receive notification has been granted %1$s</string>
     <string name="retry">retry</string>
+    <string name="not_update_due_to_battery_optimization">Widget will not be updated while battery optimization is enabled for croissant</string>
+    <string name="device_rooting_detected">Device rooting dectected. App wiil be closed.</string>
+    <string name="battery_optimization_enabled">Battery optimization for this app is enabled. In this mode, almost features are not working properly. Please disable battery optimization. Confirm button will locate to system settings.</string>
+    <string name="change_setting">Change setting</string>
+    <string name="experimental_sns_login_feature">Login via SNS account may occurs some errors. Facebook login is not supported.</string>
 </resources>

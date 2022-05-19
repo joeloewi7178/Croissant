@@ -1,6 +1,8 @@
 package com.joeloewi.data.repository
 
 import com.joeloewi.data.repository.remote.GenshinImpactCheckInDataSource
+import com.joeloewi.domain.common.HoYoLABRetCode
+import com.joeloewi.domain.common.exception.HoYoLABException
 import com.joeloewi.domain.entity.BaseResponse
 import com.joeloewi.domain.repository.GenshinImpactCheckInRepository
 import com.joeloewi.domain.wrapper.ContentOrError
@@ -13,7 +15,25 @@ class GenshinImpactCheckInRepositoryImpl @Inject constructor(
 
     override suspend fun attendCheckInGenshinImpact(cookie: String): ContentOrError<BaseResponse> =
         genshinImpactCheckInDataSource.attendCheckInGenshinImpact(cookie).runCatching {
-            getOrThrow()
+            getOrThrow().also { response ->
+                when (HoYoLABRetCode.findByCode(response.retcode)) {
+                    HoYoLABRetCode.LoginFailed -> {
+                        throw HoYoLABException.LoginFailedException
+                    }
+                    HoYoLABRetCode.OK -> {
+
+                    }
+                    HoYoLABRetCode.Unknown -> {
+                        throw HoYoLABException.Unknown(
+                            retCode = response.retcode,
+                            responseMessage = response.message
+                        )
+                    }
+                    else -> {
+
+                    }
+                }
+            }
         }.fold(
             onSuccess = {
                 ContentOrError.Content(it)

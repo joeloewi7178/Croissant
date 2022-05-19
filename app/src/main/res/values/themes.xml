@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools">
-
+<resources>
     <style name="Theme.Croissant" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:timePickerStyle">@style/TimePicker</item>
     </style>
@@ -18,9 +17,10 @@
         <item name="appWidgetPadding">16dp</item>
     </style>
 
-    <style name="Theme.AppSplash" parent="Theme.SplashScreen">
+    <style name="Theme.AppSplash" parent="Theme.SplashScreen.IconBackground">
         <item name="postSplashScreenTheme">@style/Theme.Croissant</item>
-        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_round</item>
+        <item name="windowSplashScreenIconBackgroundColor">@color/white</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
     </style>
 
     <style name="TimePicker" parent="@android:style/Widget.Material.TimePicker">
