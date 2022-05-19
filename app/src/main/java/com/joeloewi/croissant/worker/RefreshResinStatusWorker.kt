@@ -5,6 +5,8 @@ import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.provider.Settings
+import android.view.View
 import android.widget.RemoteViews
 import androidx.core.os.bundleOf
 import androidx.hilt.work.HiltWorker
@@ -241,8 +243,6 @@ class RefreshResinStatusWorker @AssistedInject constructor(
             //hoyoverse api rarely throws timeout error
             //even though this worker has constraints on connection
 
-            it.printStackTrace()
-
             FirebaseCrashlytics.getInstance().apply {
                 log(this@RefreshResinStatusWorker.javaClass.simpleName)
                 recordException(it)
@@ -251,12 +251,8 @@ class RefreshResinStatusWorker @AssistedInject constructor(
             if (context.isPowerSaveMode()) {
                 RemoteViews(
                     context.packageName,
-                    R.layout.widget_resin_status_error
+                    R.layout.widget_resin_status_battery_optimization_enabled
                 ).apply {
-                    setTextViewText(
-                        R.id.text_view_error_occurred,
-                        context.getString(R.string.not_update_due_to_power_save)
-                    )
                     setOnClickPendingIntent(
                         R.id.button_retry,
                         PendingIntent.getBroadcast(
@@ -276,8 +272,23 @@ class RefreshResinStatusWorker @AssistedInject constructor(
                             pendingIntentFlagUpdateCurrent
                         )
                     )
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        setOnClickPendingIntent(
+                            R.id.button_change_setting,
+                            PendingIntent.getActivity(
+                                context,
+                                _appWidgetId,
+                                Intent(
+                                    Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS
+                                ),
+                                pendingIntentFlagUpdateCurrent
+                            )
+                        )
+                    } else {
+                        setViewVisibility(R.id.button_change_setting, View.INVISIBLE)
+                    }
                 }.also { remoteViews ->
-                    _appWidgetManager.updateAppWidget(
+                    _appWidgetManager?.updateAppWidget(
                         _appWidgetId,
                         remoteViews
                     )

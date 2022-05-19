@@ -1,12 +1,18 @@
 package com.joeloewi.croissant.ui.navigation.main.attendances.screen
 
 import android.annotation.SuppressLint
+import android.app.Dialog
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.http.SslError
+import android.os.Message
+import android.view.ViewGroup
+import android.view.WindowManager
 import android.webkit.*
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
@@ -185,10 +191,14 @@ fun LoginHoYoLABContent(
     ) { innerPadding ->
         var navigateUpJob: Job? = remember { null }
         val localContext = LocalContext.current
-        val excludedUrls = listOf("www.webstatic-sea.mihoyo.com", "www.webstatic-sea.hoyolab.com")
+        val excludedUrls =
+            listOf("www.webstatic-sea.mihoyo.com", "www.webstatic-sea.hoyolab.com")
+        val securityPopUpUrl =
+            "https://m.hoyolab.com/account-system-sea/security.html?origin=hoyolab"
         val darkTheme = isSystemInDarkTheme()
 
         WebView(
+            modifier = Modifier.padding(innerPadding),
             state = webViewState,
             navigator = webViewNavigator,
             onCreated = { webView ->
@@ -197,6 +207,9 @@ fun LoginHoYoLABContent(
                     domStorageEnabled = true
                     databaseEnabled = true
                     cacheMode = WebSettings.LOAD_NO_CACHE
+                    setSupportMultipleWindows(true)
+                    javaScriptCanOpenWindowsAutomatically = true
+                    userAgentString = userAgentString.replace("; wv", "")
                 }
 
                 if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK) && darkTheme) {
@@ -217,6 +230,8 @@ fun LoginHoYoLABContent(
                 }
 
                 CookieManager.getInstance().apply {
+                    acceptCookie()
+                    setAcceptThirdPartyCookies(webView, true)
                     flush()
                     removeAllCookies {}
                 }
@@ -281,6 +296,81 @@ fun LoginHoYoLABContent(
                     } else {
                         false
                     }
+                }
+            },
+            chromeClient = object : AccompanistWebChromeClient() {
+                override fun onCreateWindow(
+                    view: WebView?,
+                    isDialog: Boolean,
+                    isUserGesture: Boolean,
+                    resultMsg: Message?
+                ): Boolean {
+                    val popUpWebView = WebView(localContext).apply {
+                        settings.apply {
+                            javaScriptEnabled = true
+                            domStorageEnabled = true
+                            databaseEnabled = true
+                            setSupportMultipleWindows(true)
+                            javaScriptCanOpenWindowsAutomatically = true
+                            userAgentString = userAgentString.replace("; wv", "")
+                        }
+                    }
+
+                    CookieManager.getInstance().apply {
+                        acceptCookie()
+                        setAcceptThirdPartyCookies(popUpWebView, true)
+                    }
+
+                    val dialog = Dialog(localContext).apply {
+                        setContentView(popUpWebView)
+                    }
+
+                    dialog.window?.run {
+                        attributes = attributes?.apply {
+                            width = ViewGroup.LayoutParams.MATCH_PARENT
+                            height = ViewGroup.LayoutParams.MATCH_PARENT
+                        } as WindowManager.LayoutParams
+                    }
+
+                    dialog.apply {
+                        setOnDismissListener {
+                            popUpWebView.destroy()
+                        }
+                    }
+
+                    popUpWebView.apply {
+                        webChromeClient = object : WebChromeClient() {
+                            override fun onCloseWindow(window: WebView?) {
+                                dialog.dismiss()
+                            }
+                        }
+                        webViewClient = object : WebViewClient() {
+                            override fun onPageStarted(
+                                view: WebView?,
+                                url: String?,
+                                favicon: Bitmap?
+                            ) {
+                                if (url == securityPopUpUrl) {
+                                    dialog.dismiss()
+                                } else {
+                                    dialog.show()
+                                }
+                                super.onPageStarted(view, url, favicon)
+                            }
+
+                            override fun shouldOverrideUrlLoading(
+                                view: WebView?,
+                                request: WebResourceRequest?
+                            ): Boolean = false
+                        }
+                    }
+
+                    resultMsg?.run {
+                        (this.obj as WebView.WebViewTransport).webView = popUpWebView
+                        sendToTarget()
+                    }
+
+                    return true
                 }
             }
         )

@@ -6,6 +6,9 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
+import android.os.Build
+import android.provider.Settings
+import android.view.View
 import android.widget.RemoteViews
 import androidx.work.*
 import com.joeloewi.croissant.R
@@ -51,12 +54,8 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
                         if (context.isPowerSaveMode() && !context.isIgnoringBatteryOptimizations()) {
                             RemoteViews(
                                 context.packageName,
-                                R.layout.widget_resin_status_error
+                                R.layout.widget_resin_status_battery_optimization_enabled
                             ).apply {
-                                setTextViewText(
-                                    R.id.text_view_error_occurred,
-                                    context.getString(R.string.not_update_due_to_power_save)
-                                )
                                 setOnClickPendingIntent(
                                     R.id.button_retry,
                                     PendingIntent.getBroadcast(
@@ -76,6 +75,21 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
                                         pendingIntentFlagUpdateCurrent
                                     )
                                 )
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                    setOnClickPendingIntent(
+                                        R.id.button_change_setting,
+                                        PendingIntent.getActivity(
+                                            context,
+                                            appWidgetId,
+                                            Intent(
+                                                Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS
+                                            ),
+                                            pendingIntentFlagUpdateCurrent
+                                        )
+                                    )
+                                } else {
+                                    setViewVisibility(R.id.button_change_setting, View.INVISIBLE)
+                                }
                             }.also { remoteViews ->
                                 appWidgetManager?.updateAppWidget(
                                     appWidgetId,

@@ -98,7 +98,8 @@
     <string name="grant_permissions_and_start">Grant permissions and start</string>
     <string name="post_notification_granted" formatted="true">Receive notification has been granted %1$s</string>
     <string name="retry">retry</string>
-    <string name="not_update_due_to_power_save">Widget will not be updated when your phone is in power save mode</string>
+    <string name="not_update_due_to_battery_optimization">Widget will not be updated while battery optimization is enabled for croissant</string>
     <string name="device_rooting_detected">Device rooting dectected. App wiil be closed.</string>
     <string name="battery_optimization_enabled">Battery optimization for this app is enabled. In this mode, almost features are not working properly. Please disable battery optimization. Confirm button will locate to system settings.</string>
+    <string name="change_setting">Change setting</string>
 </resources>
