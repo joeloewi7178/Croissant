@@ -107,6 +107,11 @@ class CheckSessionWorker @AssistedInject constructor(
                 Result.success()
             },
             onFailure = { cause ->
+                FirebaseCrashlytics.getInstance().apply {
+                    log(this@CheckSessionWorker.javaClass.simpleName)
+                    recordException(cause)
+                }
+
                 if (cause is HoYoLABUnsuccessfulResponseException && HoYoLABRetCode.findByCode(cause.retCode) == HoYoLABRetCode.LoginFailed) {
                     createCheckSessionNotification(
                         context = context,
@@ -123,11 +128,6 @@ class CheckSessionWorker @AssistedInject constructor(
                                 notification
                             )
                         }
-                    }
-                } else {
-                    FirebaseCrashlytics.getInstance().apply {
-                        log(this@CheckSessionWorker.javaClass.simpleName)
-                        recordException(cause)
                     }
                 }
 
