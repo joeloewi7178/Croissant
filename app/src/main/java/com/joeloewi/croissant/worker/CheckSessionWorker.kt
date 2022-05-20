@@ -16,9 +16,10 @@ import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.croissant.util.CroissantPermission
 import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
+import com.joeloewi.domain.common.HoYoLABRetCode
 import com.joeloewi.domain.common.LoggableWorker
 import com.joeloewi.domain.common.WorkerExecutionLogState
-import com.joeloewi.domain.common.exception.HoYoLABException
+import com.joeloewi.domain.common.exception.HoYoLABUnsuccessfulResponseException
 import com.joeloewi.domain.entity.FailureLog
 import com.joeloewi.domain.entity.SuccessLog
 import com.joeloewi.domain.entity.WorkerExecutionLog
@@ -98,7 +99,7 @@ class CheckSessionWorker @AssistedInject constructor(
                 insertSuccessLogUseCase(
                     SuccessLog(
                         executionLogId = executionLogId,
-                        retCode = it.retcode,
+                        retCode = it.retCode,
                         message = it.message
                     )
                 )
@@ -106,9 +107,28 @@ class CheckSessionWorker @AssistedInject constructor(
                 Result.success()
             },
             onFailure = { cause ->
-                FirebaseCrashlytics.getInstance().apply {
-                    log(this@CheckSessionWorker.javaClass.simpleName)
-                    recordException(cause)
+                if (cause is HoYoLABUnsuccessfulResponseException && HoYoLABRetCode.findByCode(cause.retCode) == HoYoLABRetCode.LoginFailed) {
+                    createCheckSessionNotification(
+                        context = context,
+                        channelId = context.getString(R.string.check_session_notification_channel_id),
+                    ).let { notification ->
+                        if (context.packageManager.checkPermission(
+                                CroissantPermission.PostNotifications.permission,
+                                context.packageName
+                            ) == PackageManager.PERMISSION_GRANTED
+                        ) {
+                            NotificationManagerCompat.from(context).notify(
+                                UUID.randomUUID().toString(),
+                                0,
+                                notification
+                            )
+                        }
+                    }
+                } else {
+                    FirebaseCrashlytics.getInstance().apply {
+                        log(this@CheckSessionWorker.javaClass.simpleName)
+                        recordException(cause)
+                    }
                 }
 
                 val executionLogId = insertWorkerExecutionLogUseCase(
@@ -126,25 +146,6 @@ class CheckSessionWorker @AssistedInject constructor(
                         failureStackTrace = cause.stackTraceToString()
                     )
                 )
-
-                if (cause is HoYoLABException.LoginFailedException) {
-                    createCheckSessionNotification(
-                        context = context,
-                        channelId = context.getString(R.string.check_session_notification_channel_id),
-                    ).let { notification ->
-                        if (context.packageManager.checkPermission(
-                                CroissantPermission.PostNotifications.permission,
-                                context.packageName
-                            ) == PackageManager.PERMISSION_GRANTED
-                        ) {
-                            NotificationManagerCompat.from(context).notify(
-                                UUID.randomUUID().toString(),
-                                0,
-                                notification
-                            )
-                        }
-                    }
-                }
 
                 Result.failure()
             }

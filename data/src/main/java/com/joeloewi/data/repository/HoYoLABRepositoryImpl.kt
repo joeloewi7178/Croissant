@@ -2,8 +2,11 @@ package com.joeloewi.data.repository
 
 import com.joeloewi.data.repository.remote.HoYoLABDataSource
 import com.joeloewi.domain.common.HoYoLABRetCode
-import com.joeloewi.domain.common.exception.HoYoLABException
-import com.joeloewi.domain.entity.*
+import com.joeloewi.domain.common.exception.HoYoLABUnsuccessfulResponseException
+import com.joeloewi.domain.entity.BaseResponse
+import com.joeloewi.domain.entity.GameRecordCardData
+import com.joeloewi.domain.entity.GenshinDailyNoteData
+import com.joeloewi.domain.entity.UserFullInfoResponse
 import com.joeloewi.domain.repository.HoYoLABRepository
 import com.joeloewi.domain.wrapper.ContentOrError
 import com.skydoves.sandwich.getOrThrow
@@ -16,19 +19,11 @@ class HoYoLABRepositoryImpl @Inject constructor(
     override suspend fun getUserFullInfo(cookie: String): ContentOrError<UserFullInfoResponse> =
         hoYoLABDataSource.getUserFullInfo(cookie).runCatching {
             getOrThrow().also { response ->
-                when (HoYoLABRetCode.findByCode(response.retcode)) {
-                    HoYoLABRetCode.LoginFailed -> {
-                        throw HoYoLABException.LoginFailedException
-                    }
-                    HoYoLABRetCode.Unknown -> {
-                        throw HoYoLABException.Unknown(
-                            retCode = response.retcode,
-                            responseMessage = response.message
-                        )
-                    }
-                    else -> {
-
-                    }
+                if (HoYoLABRetCode.findByCode(response.retCode) != HoYoLABRetCode.OK) {
+                    throw HoYoLABUnsuccessfulResponseException(
+                        responseMessage = response.message,
+                        retCode = response.retCode
+                    )
                 }
             }
         }.fold(
@@ -40,22 +35,17 @@ class HoYoLABRepositoryImpl @Inject constructor(
             }
         )
 
-    override suspend fun getGameRecordCard(cookie: String, uid: Long): ContentOrError<GameRecordCardData?> =
+    override suspend fun getGameRecordCard(
+        cookie: String,
+        uid: Long
+    ): ContentOrError<GameRecordCardData?> =
         hoYoLABDataSource.getGameRecordCard(cookie, uid).runCatching {
             getOrThrow().also { response ->
-                when (HoYoLABRetCode.findByCode(response.retcode)) {
-                    HoYoLABRetCode.LoginFailed -> {
-                        throw HoYoLABException.LoginFailedException
-                    }
-                    HoYoLABRetCode.Unknown -> {
-                        throw HoYoLABException.Unknown(
-                            retCode = response.retcode,
-                            responseMessage = response.message
-                        )
-                    }
-                    else -> {
-
-                    }
+                if (HoYoLABRetCode.findByCode(response.retCode) != HoYoLABRetCode.OK) {
+                    throw HoYoLABUnsuccessfulResponseException(
+                        responseMessage = response.message,
+                        retCode = response.retCode
+                    )
                 }
             }
         }.fold(
@@ -75,19 +65,11 @@ class HoYoLABRepositoryImpl @Inject constructor(
         cookie = cookie, roleId = roleId, server = server
     ).runCatching {
         getOrThrow().also { response ->
-            when (HoYoLABRetCode.findByCode(response.retcode)) {
-                HoYoLABRetCode.LoginFailed -> {
-                    throw HoYoLABException.LoginFailedException
-                }
-                HoYoLABRetCode.Unknown -> {
-                    throw HoYoLABException.Unknown(
-                        retCode = response.retcode,
-                        responseMessage = response.message
-                    )
-                }
-                else -> {
-
-                }
+            if (HoYoLABRetCode.findByCode(response.retCode) != HoYoLABRetCode.OK) {
+                throw HoYoLABUnsuccessfulResponseException(
+                    responseMessage = response.message,
+                    retCode = response.retCode
+                )
             }
         }
     }.fold(
@@ -107,22 +89,11 @@ class HoYoLABRepositoryImpl @Inject constructor(
     ): ContentOrError<BaseResponse> =
         hoYoLABDataSource.changeDataSwitch(cookie, switchId, isPublic, gameId).runCatching {
             getOrThrow().also { response ->
-                when (HoYoLABRetCode.findByCode(response.retcode)) {
-                    HoYoLABRetCode.LoginFailed -> {
-                        throw HoYoLABException.LoginFailedException
-                    }
-                    HoYoLABRetCode.OK -> {
-
-                    }
-                    HoYoLABRetCode.Unknown -> {
-                        throw HoYoLABException.Unknown(
-                            retCode = response.retcode,
-                            responseMessage = response.message
-                        )
-                    }
-                    else -> {
-
-                    }
+                if (HoYoLABRetCode.findByCode(response.retCode) != HoYoLABRetCode.OK) {
+                    throw HoYoLABUnsuccessfulResponseException(
+                        responseMessage = response.message,
+                        retCode = response.retCode
+                    )
                 }
             }
         }.fold(

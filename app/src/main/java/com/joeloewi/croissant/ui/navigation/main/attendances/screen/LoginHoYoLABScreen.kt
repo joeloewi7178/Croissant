@@ -32,7 +32,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
 import androidx.webkit.WebSettingsCompat
-import androidx.webkit.WebSettingsCompat.FORCE_DARK_ON
 import androidx.webkit.WebViewFeature
 import com.google.accompanist.web.*
 import com.joeloewi.croissant.R
@@ -215,7 +214,7 @@ fun LoginHoYoLABContent(
                 if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK) && darkTheme) {
                     WebSettingsCompat.setForceDark(
                         webView.settings,
-                        FORCE_DARK_ON
+                        WebSettingsCompat.FORCE_DARK_ON
                     )
                 }
 
@@ -313,6 +312,13 @@ fun LoginHoYoLABContent(
                             setSupportMultipleWindows(true)
                             javaScriptCanOpenWindowsAutomatically = true
                             userAgentString = userAgentString.replace("; wv", "")
+                        }
+
+                        if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK) && darkTheme) {
+                            WebSettingsCompat.setForceDark(
+                                settings,
+                                WebSettingsCompat.FORCE_DARK_ON
+                            )
                         }
                     }
 

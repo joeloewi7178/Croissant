@@ -89,6 +89,7 @@ private fun RedemptionCodesContent(
         val swipeRefreshState = rememberSwipeRefreshState(hoYoLABGameRedemptionCodesState.isLoading)
 
         SwipeRefresh(
+            modifier = Modifier.fillMaxSize(),
             state = swipeRefreshState,
             onRefresh = {
                 expandedItems.clear()
@@ -97,6 +98,7 @@ private fun RedemptionCodesContent(
         ) {
             LazyColumn(
                 modifier = Modifier
+                    .fillMaxSize()
                     .padding(innerPadding)
                     .then(Modifier.padding(horizontal = DefaultDp)),
                 verticalArrangement = Arrangement.spacedBy(
@@ -236,14 +238,16 @@ fun RedemptionCodeListItem(
                     baseUrl = "https://arca.live/"
                 ),
                 onCreated = { webView ->
-                    if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK) && darkTheme) {
-                        WebSettingsCompat.setForceDark(
-                            webView.settings,
-                            WebSettingsCompat.FORCE_DARK_ON
-                        )
+                    with(webView) {
+                        if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK) && darkTheme) {
+                            WebSettingsCompat.setForceDark(
+                                settings,
+                                WebSettingsCompat.FORCE_DARK_ON
+                            )
+                        }
+                        isVerticalScrollBarEnabled = false
+                        setBackgroundColor(Color.TRANSPARENT)
                     }
-                    webView.isVerticalScrollBarEnabled = false
-                    webView.setBackgroundColor(Color.TRANSPARENT)
                 },
                 client = object : AccompanistWebViewClient() {
                     override fun shouldOverrideUrlLoading(
