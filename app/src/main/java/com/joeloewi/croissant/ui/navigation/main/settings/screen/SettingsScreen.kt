@@ -8,7 +8,9 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -17,7 +19,6 @@ import androidx.navigation.NavController
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
 import com.joeloewi.croissant.util.ListItem
-import com.joeloewi.croissant.util.Switch
 import com.joeloewi.croissant.viewmodel.SettingsViewModel
 import com.joeloewi.domain.entity.Settings
 
