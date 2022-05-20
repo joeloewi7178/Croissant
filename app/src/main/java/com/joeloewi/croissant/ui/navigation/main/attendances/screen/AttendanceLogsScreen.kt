@@ -209,7 +209,9 @@ fun WorkerExecutionLogWithStateItem(
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        containerColor = colorByState
+        colors = CardDefaults.cardColors(
+            containerColor = colorByState
+        )
     ) {
         Column(
             modifier = Modifier

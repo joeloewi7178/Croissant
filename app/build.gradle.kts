@@ -15,8 +15,8 @@ android {
         applicationId = "com.joeloewi.croissant"
         minSdk = 21
         targetSdk = 32
-        versionCode = 6
-        versionName = "1.0.6"
+        versionCode = 7
+        versionName = "1.0.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -65,19 +65,13 @@ android {
     namespace = "com.joeloewi.croissant"
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = "11"
-    }
-}
-
 dependencies {
     implementation(project(":data"))
     implementation(project(":domain"))
 
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("com.google.android.material:material:1.7.0-alpha01")
-    implementation("androidx.compose.material3:material3:1.0.0-alpha09")
+    implementation("androidx.compose.material3:material3:1.0.0-alpha11")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:${Versions.lifecycle}")
     implementation("androidx.activity:activity-compose:1.4.0")
     testImplementation("junit:junit:4.13.2")
@@ -139,7 +133,7 @@ dependencies {
     implementation("com.jakewharton.threetenabp:threetenabp:1.4.0")
 
     // https://mvnrepository.com/artifact/com.google.android.material/compose-theme-adapter-3
-    implementation("com.google.android.material:compose-theme-adapter-3:1.0.7")
+    implementation("com.google.android.material:compose-theme-adapter-3:1.0.9")
 
     //html parsing
     implementation("org.jsoup:jsoup:1.14.3")

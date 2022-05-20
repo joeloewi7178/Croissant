@@ -26,6 +26,7 @@ import com.google.accompanist.pager.rememberPagerState
 import com.google.android.play.core.ktx.launchReview
 import com.google.android.play.core.ktx.requestReview
 import com.google.android.play.core.review.ReviewManagerFactory
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
@@ -150,15 +151,16 @@ fun CreateAttendanceContent(
                 if (createAttendanceState.content.isNotEmpty()) {
                     onNavigateUp()
 
-                    with(ReviewManagerFactory.create(context)) {
-                        requestReviewFlow().runCatching {
-                            requestReview()
-                        }.mapCatching { reviewInfo ->
-                            launchReview(activity, reviewInfo)
-                        }.onSuccess {
-
-                        }.onFailure {
-
+                    runCatching {
+                        ReviewManagerFactory.create(context)
+                    }.mapCatching { reviewManager ->
+                        with(reviewManager) {
+                            launchReview(activity, requestReview())
+                        }
+                    }.onFailure { cause ->
+                        FirebaseCrashlytics.getInstance().apply {
+                            log("CreateAttendanceScreen")
+                            recordException(cause)
                         }
                     }
                 }

@@ -2,7 +2,7 @@ package com.joeloewi.data.repository
 
 import com.joeloewi.data.repository.remote.TearsOfThemisCheckInDataSource
 import com.joeloewi.domain.common.HoYoLABRetCode
-import com.joeloewi.domain.common.exception.HoYoLABException
+import com.joeloewi.domain.common.exception.HoYoLABUnsuccessfulResponseException
 import com.joeloewi.domain.entity.BaseResponse
 import com.joeloewi.domain.repository.TearsOfThemisCheckInRepository
 import com.joeloewi.domain.wrapper.ContentOrError
@@ -16,22 +16,11 @@ class TearsOfThemisCheckInRepositoryImpl @Inject constructor(
     override suspend fun attendCheckInTearsOfThemis(cookie: String): ContentOrError<BaseResponse> =
         themisCheckInDataSource.attendCheckInTearsOfThemis(cookie = cookie).runCatching {
             getOrThrow().also { response ->
-                when (HoYoLABRetCode.findByCode(response.retcode)) {
-                    HoYoLABRetCode.LoginFailed -> {
-                        throw HoYoLABException.LoginFailedException
-                    }
-                    HoYoLABRetCode.OK -> {
-
-                    }
-                    HoYoLABRetCode.Unknown -> {
-                        throw HoYoLABException.Unknown(
-                            retCode = response.retcode,
-                            responseMessage = response.message
-                        )
-                    }
-                    else -> {
-
-                    }
+                if (HoYoLABRetCode.findByCode(response.retCode) != HoYoLABRetCode.OK) {
+                    throw HoYoLABUnsuccessfulResponseException(
+                        responseMessage = response.message,
+                        retCode = response.retCode
+                    )
                 }
             }
         }.fold(

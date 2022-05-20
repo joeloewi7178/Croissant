@@ -16,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
@@ -26,9 +27,12 @@ import androidx.paging.compose.items
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
+import com.google.android.play.core.ktx.launchReview
+import com.google.android.play.core.ktx.requestReview
+import com.google.android.play.core.review.ReviewManagerFactory
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.Lce
-import com.joeloewi.domain.wrapper.ContentOrError
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.util.LocalActivity
@@ -54,6 +58,7 @@ fun CreateResinStatusWidgetScreen(
     val createResinStatusWidgetState by
     createResinStatusWidgetViewModel.createResinStatusWidgetState.collectAsState()
     val activity = LocalActivity.current
+    val context = LocalContext.current
 
     LaunchedEffect(createResinStatusWidgetViewModel) {
         with(activity) {
@@ -64,6 +69,23 @@ fun CreateResinStatusWidgetScreen(
                 )
             }
             setResult(Activity.RESULT_CANCELED, resultValue)
+        }
+    }
+
+    LaunchedEffect(context) {
+        runCatching {
+            ReviewManagerFactory.create(context)
+        }.mapCatching { reviewManager ->
+            with(reviewManager) {
+                launchReview(activity, requestReview())
+            }
+        }.onFailure { cause ->
+            FirebaseCrashlytics.getInstance().apply {
+                navController.currentDestination?.route?.let {
+                    log(it)
+                }
+                recordException(cause)
+            }
         }
     }
 
@@ -162,7 +184,12 @@ fun CreateResinStatusWidgetContent(
                         imageVector = Icons.Default.Done,
                         contentDescription = Icons.Default.Done.name
                     )
-                    Text(text = stringResource(id = R.string.account_selected, checkedAttendanceIds.size))
+                    Text(
+                        text = stringResource(
+                            id = R.string.account_selected,
+                            checkedAttendanceIds.size
+                        )
+                    )
                 }
             }
         }

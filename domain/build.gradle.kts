@@ -12,7 +12,7 @@ java {
 
 dependencies {
 
-    implementation("androidx.paging:paging-common-ktx:3.1.1")
+    implementation("androidx.paging:paging-common-ktx:${Versions.paging}")
 
     //moshi
     implementation("com.squareup.moshi:moshi:${Versions.moshi}")

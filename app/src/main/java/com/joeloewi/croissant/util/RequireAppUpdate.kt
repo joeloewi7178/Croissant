@@ -19,6 +19,7 @@ import com.google.android.play.core.ktx.AppUpdateResult
 import com.google.android.play.core.ktx.bytesDownloaded
 import com.google.android.play.core.ktx.requestUpdateFlow
 import com.google.android.play.core.ktx.totalBytesToDownload
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import kotlinx.coroutines.flow.catch
@@ -45,11 +46,20 @@ fun RequireAppUpdate(
 
     LaunchedEffect(LocalLifecycleOwner.current) {
         //can't use catch block and collectAsState() at once
-        AppUpdateManagerFactory.create(context).requestUpdateFlow()
-            .catch { it.printStackTrace() }
-            .onEach {
-                onAppUpdateStateChange(it)
-            }.launchIn(this)
+        runCatching {
+            AppUpdateManagerFactory.create(context)
+        }.mapCatching { appUpdateManager ->
+            appUpdateManager.requestUpdateFlow()
+                .catch { it.printStackTrace() }
+                .onEach {
+                    onAppUpdateStateChange(it)
+                }.launchIn(this)
+        }.onFailure { cause ->
+            FirebaseCrashlytics.getInstance().apply {
+                log("RequireAppUpdate")
+                recordException(cause)
+            }
+        }
     }
 
     with(appUpdateState) {

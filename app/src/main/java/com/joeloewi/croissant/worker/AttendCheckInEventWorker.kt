@@ -21,7 +21,7 @@ import com.joeloewi.data.common.generateGameIntent
 import com.joeloewi.domain.common.HoYoLABGame
 import com.joeloewi.domain.common.LoggableWorker
 import com.joeloewi.domain.common.WorkerExecutionLogState
-import com.joeloewi.domain.entity.BaseResponse
+import com.joeloewi.domain.common.exception.HoYoLABUnsuccessfulResponseException
 import com.joeloewi.domain.entity.FailureLog
 import com.joeloewi.domain.entity.SuccessLog
 import com.joeloewi.domain.entity.WorkerExecutionLog
@@ -59,11 +59,19 @@ class AttendCheckInEventWorker @AssistedInject constructor(
         nickname: String,
         hoYoLABGame: HoYoLABGame,
         region: String,
-        attendanceResponse: BaseResponse
+        message: String,
+        retCode: Int
     ): Notification = NotificationCompat
         .Builder(context, channelId)
-        .setContentTitle("${context.getString(R.string.attendance_of_nickname, nickname)} - ${context.getString(hoYoLABGame.gameNameStringResId())}")
-        .setContentText("${attendanceResponse.message} (${attendanceResponse.retcode})")
+        .setContentTitle(
+            "${
+                context.getString(
+                    R.string.attendance_of_nickname,
+                    nickname
+                )
+            } - ${context.getString(hoYoLABGame.gameNameStringResId())}"
+        )
+        .setContentText("$message (${retCode})")
         .setAutoCancel(true)
         .setSmallIcon(R.drawable.ic_baseline_bakery_dining_24)
         .apply {
@@ -133,7 +141,8 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                                 nickname = attendanceWithGames.attendance.nickname,
                                 hoYoLABGame = game.type,
                                 region = game.region,
-                                attendanceResponse = response
+                                message = response.message,
+                                retCode = response.retCode
                             ).let { notification ->
                                 if (context.packageManager.checkPermission(
                                         CroissantPermission.PostNotifications.permission,
@@ -147,7 +156,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                                     )
                                 }
                             }
-                        }.also { response ->
+
                             val executionLogId = insertWorkerExecutionLogUseCase(
                                 WorkerExecutionLog(
                                     attendanceId = attendanceId,
@@ -160,15 +169,39 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                                 SuccessLog(
                                     executionLogId = executionLogId,
                                     gameName = game.type,
-                                    retCode = response.retcode,
+                                    retCode = response.retCode,
                                     message = response.message
                                 )
                             )
                         }
                     } catch (cause: Throwable) {
-                        FirebaseCrashlytics.getInstance().apply {
-                            log(this@AttendCheckInEventWorker.javaClass.simpleName)
-                            recordException(cause)
+                        if (cause is HoYoLABUnsuccessfulResponseException) {
+                            createAttendanceNotification(
+                                context = context,
+                                channelId = context.getString(R.string.attendance_notification_channel_id),
+                                nickname = attendanceWithGames.attendance.nickname,
+                                hoYoLABGame = game.type,
+                                region = game.region,
+                                message = cause.responseMessage,
+                                retCode = cause.retCode
+                            ).let { notification ->
+                                if (context.packageManager.checkPermission(
+                                        CroissantPermission.PostNotifications.permission,
+                                        context.packageName
+                                    ) == PackageManager.PERMISSION_GRANTED
+                                ) {
+                                    NotificationManagerCompat.from(context).notify(
+                                        UUID.randomUUID().toString(),
+                                        game.type.gameId,
+                                        notification
+                                    )
+                                }
+                            }
+                        } else {
+                            FirebaseCrashlytics.getInstance().apply {
+                                log(this@AttendCheckInEventWorker.javaClass.simpleName)
+                                recordException(cause)
+                            }
                         }
 
                         val executionLogId = insertWorkerExecutionLogUseCase(
