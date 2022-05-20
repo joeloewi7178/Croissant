@@ -175,6 +175,11 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                             )
                         }
                     } catch (cause: Throwable) {
+                        FirebaseCrashlytics.getInstance().apply {
+                            log(this@AttendCheckInEventWorker.javaClass.simpleName)
+                            recordException(cause)
+                        }
+
                         if (cause is HoYoLABUnsuccessfulResponseException) {
                             createAttendanceNotification(
                                 context = context,
@@ -196,11 +201,6 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                                         notification
                                     )
                                 }
-                            }
-                        } else {
-                            FirebaseCrashlytics.getInstance().apply {
-                                log(this@AttendCheckInEventWorker.javaClass.simpleName)
-                                recordException(cause)
                             }
                         }
 
