@@ -104,11 +104,14 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
                                     OneTimeWorkRequest.Builder(RefreshResinStatusWorker::class.java)
                                         .setInputData(
                                             workDataOf(RefreshResinStatusWorker.APP_WIDGET_ID to appWidgetId)
-                                        ).setConstraints(
+                                        )
+                                        .setConstraints(
                                             Constraints.Builder()
                                                 .setRequiredNetworkType(NetworkType.CONNECTED)
                                                 .build()
-                                        ).build()
+                                        )
+                                        .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+                                        .build()
 
                                 WorkManager.getInstance(context).enqueueUniqueWork(
                                     it.resinStatusWidget.id.toString(),
