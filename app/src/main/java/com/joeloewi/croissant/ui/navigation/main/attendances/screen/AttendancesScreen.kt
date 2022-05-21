@@ -50,10 +50,6 @@ import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
-import com.google.android.play.core.ktx.launchReview
-import com.google.android.play.core.ktx.requestReview
-import com.google.android.play.core.review.ReviewManagerFactory
-import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.croissant.ui.theme.DefaultDp
@@ -62,6 +58,7 @@ import com.joeloewi.croissant.ui.theme.HalfDp
 import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.isEmpty
+import com.joeloewi.croissant.util.requestReview
 import com.joeloewi.croissant.viewmodel.AttendancesViewModel
 import com.joeloewi.croissant.worker.AttendCheckInEventWorker
 import com.joeloewi.domain.entity.Attendance
@@ -238,18 +235,11 @@ fun AttendanceWithGamesItem(
                     ).enqueue()
 
                     coroutineScope.launch {
-                        runCatching {
-                            ReviewManagerFactory.create(context)
-                        }.mapCatching { reviewManager ->
-                            with(reviewManager) {
-                                launchReview(activity, requestReview())
-                            }
-                        }.onFailure { cause ->
-                            FirebaseCrashlytics.getInstance().apply {
-                                log("ImmediateAttendance")
-                                recordException(cause)
-                            }
-                        }
+                        requestReview(
+                            context = context,
+                            activity = activity,
+                            logMessage = "ImmediateAttendance"
+                        )
                     }
                 },
                 onClickAttendance = onClickAttendance

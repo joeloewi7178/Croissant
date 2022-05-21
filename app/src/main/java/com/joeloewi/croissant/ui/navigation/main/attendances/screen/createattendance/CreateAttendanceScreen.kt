@@ -23,10 +23,6 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
-import com.google.android.play.core.ktx.launchReview
-import com.google.android.play.core.ktx.requestReview
-import com.google.android.play.core.review.ReviewManagerFactory
-import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
@@ -35,10 +31,7 @@ import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattend
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.composable.SelectGames
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.composable.SetTime
 import com.joeloewi.croissant.ui.theme.DefaultDp
-import com.joeloewi.croissant.util.LocalActivity
-import com.joeloewi.croissant.util.ProgressDialog
-import com.joeloewi.croissant.util.getResultFromPreviousComposable
-import com.joeloewi.croissant.util.navigationIconButton
+import com.joeloewi.croissant.util.*
 import com.joeloewi.croissant.viewmodel.CreateAttendanceViewModel
 import com.joeloewi.domain.common.HoYoLABGame
 import com.joeloewi.domain.entity.Game
@@ -151,18 +144,11 @@ fun CreateAttendanceContent(
                 if (createAttendanceState.content.isNotEmpty()) {
                     onNavigateUp()
 
-                    runCatching {
-                        ReviewManagerFactory.create(context)
-                    }.mapCatching { reviewManager ->
-                        with(reviewManager) {
-                            launchReview(activity, requestReview())
-                        }
-                    }.onFailure { cause ->
-                        FirebaseCrashlytics.getInstance().apply {
-                            log("CreateAttendanceScreen")
-                            recordException(cause)
-                        }
-                    }
+                    requestReview(
+                        context = context,
+                        activity = activity,
+                        logMessage = "CreateAttendanceScreen"
+                    )
                 }
             }
 
