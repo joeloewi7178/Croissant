@@ -192,6 +192,7 @@ private fun AttendanceDetailContent(
         Column(
             modifier = Modifier
                 .verticalScroll(scrollableState)
+                .fillMaxSize()
                 .padding(innerPadding)
                 .then(Modifier.padding(DefaultDp)),
             verticalArrangement = Arrangement.spacedBy(

@@ -117,9 +117,9 @@ fun AttendanceLogsContent(
         } else {
             LazyColumn(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxSize()
                     .padding(innerPadding)
-                    .then(Modifier.padding(DefaultDp)),
+                    .then(Modifier.padding(horizontal = DefaultDp)),
                 verticalArrangement = Arrangement.spacedBy(DefaultDp)
             ) {
                 items(

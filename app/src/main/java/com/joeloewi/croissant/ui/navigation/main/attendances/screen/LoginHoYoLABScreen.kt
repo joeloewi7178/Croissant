@@ -180,6 +180,9 @@ fun LoginHoYoLABContent(
                         LoadingState.Finished -> {
 
                         }
+                        LoadingState.Initializing -> {
+
+                        }
                     }
                 }
             }

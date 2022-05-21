@@ -29,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -49,17 +50,23 @@ import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
+import com.google.android.play.core.ktx.launchReview
+import com.google.android.play.core.ktx.requestReview
+import com.google.android.play.core.review.ReviewManagerFactory
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.ui.theme.HalfDp
 import com.joeloewi.croissant.ui.theme.IconDp
+import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.isEmpty
 import com.joeloewi.croissant.viewmodel.AttendancesViewModel
 import com.joeloewi.croissant.worker.AttendCheckInEventWorker
 import com.joeloewi.domain.entity.Attendance
 import com.joeloewi.domain.entity.relational.AttendanceWithGames
+import kotlinx.coroutines.launch
 
 @ExperimentalFoundationApi
 @ExperimentalMaterialApi
@@ -186,7 +193,9 @@ fun AttendanceWithGamesItem(
 ) {
     val dismissState = rememberDismissState()
     val isDismissedEndToStart = dismissState.isDismissed(DismissDirection.EndToStart)
-    val localContext = LocalContext.current
+    val context = LocalContext.current
+    val activity = LocalActivity.current
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(isDismissedEndToStart) {
         if (isDismissedEndToStart) {
@@ -219,13 +228,29 @@ fun AttendanceWithGamesItem(
                                 .setRequiredNetworkType(NetworkType.CONNECTED)
                                 .build()
                         )
+                        .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                         .build()
 
-                    WorkManager.getInstance(localContext).beginUniqueWork(
+                    WorkManager.getInstance(context).beginUniqueWork(
                         attendance.oneTimeAttendCheckInEventWorkerName.toString(),
                         ExistingWorkPolicy.APPEND_OR_REPLACE,
                         oneTimeWork
                     ).enqueue()
+
+                    coroutineScope.launch {
+                        runCatching {
+                            ReviewManagerFactory.create(context)
+                        }.mapCatching { reviewManager ->
+                            with(reviewManager) {
+                                launchReview(activity, requestReview())
+                            }
+                        }.onFailure { cause ->
+                            FirebaseCrashlytics.getInstance().apply {
+                                log("ImmediateAttendance")
+                                recordException(cause)
+                            }
+                        }
+                    }
                 },
                 onClickAttendance = onClickAttendance
             )
