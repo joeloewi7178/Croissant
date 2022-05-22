@@ -1,17 +1,20 @@
 package com.joeloewi.croissant.viewmodel
 
+import android.app.AlarmManager
 import android.app.Application
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import androidx.work.WorkManager
-import androidx.work.await
+import com.joeloewi.croissant.receiver.AlarmReceiver
+import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
 import com.joeloewi.domain.entity.Attendance
 import com.joeloewi.domain.usecase.AttendanceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -33,8 +36,21 @@ class AttendancesViewModel @Inject constructor(
                     attendance.oneTimeAttendCheckInEventWorkerName
                 ).map { it.toString() }.map { uniqueWorkName ->
                     WorkManager.getInstance(application).cancelUniqueWork(uniqueWorkName)
-                        .await()
                 }
+
+                val alarmPendingIntent = PendingIntent.getBroadcast(
+                    application,
+                    attendance.id.toInt(),
+                    Intent(application, AlarmReceiver::class.java).apply {
+                        action = AlarmReceiver.RECEIVE_ATTEND_CHECK_IN_ALARM
+                        putExtra(AlarmReceiver.ATTENDANCE_ID, attendance.id)
+                    },
+                    pendingIntentFlagUpdateCurrent
+                )
+
+                (application.getSystemService(Context.ALARM_SERVICE) as AlarmManager).cancel(
+                    alarmPendingIntent
+                )
 
                 deleteAttendanceUseCase(attendance)
             }.onSuccess {

@@ -13,4 +13,5 @@ interface AttendanceDataSource {
     suspend fun getOne(id: Long): AttendanceWithGames
     suspend fun getByIds(vararg ids: Long): List<AttendanceWithGames>
     fun getAllPaged(): Flow<PagingData<AttendanceWithGames>>
+    suspend fun getAllOneShot(): List<Attendance>
 }

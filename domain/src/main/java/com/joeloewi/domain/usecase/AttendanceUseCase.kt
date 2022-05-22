@@ -48,6 +48,12 @@ sealed class AttendanceUseCase {
     ) : AttendanceUseCase() {
         operator fun invoke() = attendanceRepository.getAllPaged()
     }
+
+    class GetAllOneShot constructor(
+        private val attendanceRepository: AttendanceRepository
+    ) : AttendanceUseCase() {
+        suspend operator fun invoke() = attendanceRepository.getAllOneShot()
+    }
 }
 
 
