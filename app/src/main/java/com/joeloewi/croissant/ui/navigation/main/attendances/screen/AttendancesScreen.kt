@@ -336,10 +336,6 @@ internal fun DismissContent(
                     ),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val workInfo by WorkManager.getInstance(LocalContext.current)
-                        .getWorkInfoByIdLiveData(attendanceWithGames.attendance.attendCheckInEventWorkerId)
-                        .observeAsState()
-
                     Text(
                         text = stringResource(
                             id = R.string.scheduled_time,
@@ -348,8 +344,6 @@ internal fun DismissContent(
                         ),
                         style = MaterialTheme.typography.headlineSmall
                     )
-
-                    WorkInfoStateIndicator(workInfo = workInfo)
                 }
 
                 LazyRow(

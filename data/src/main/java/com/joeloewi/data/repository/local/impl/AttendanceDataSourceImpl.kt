@@ -64,4 +64,9 @@ class AttendanceDataSourceImpl @Inject constructor(
         ).flow
             .map { pagingData -> pagingData.map { attendanceWithGamesMapper.toDomain(it) } }
             .flowOn(coroutineDispatcher)
+
+    override suspend fun getAllOneShot(): List<Attendance> =
+        withContext(coroutineDispatcher) {
+            attendanceDao.getAllOneShot().map { attendanceMapper.toDomain(it) }
+        }
 }

@@ -8,6 +8,7 @@
         android:name="${applicationId}.permission.POST_NOTIFICATIONS"
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <permission
         android:name="${applicationId}.permission.ACCESS_HOYOLAB_SESSION"
@@ -80,6 +81,16 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/resin_status_widget_info" />
+        </receiver>
+        <receiver
+            android:name=".receiver.AlarmReceiver"
+            android:enabled="true"
+            android:exported="true">
+
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="${applicationId}.action.RECEIVE_ATTEND_CHECK_IN_ALARM" />
+            </intent-filter>
         </receiver>
 
         <service

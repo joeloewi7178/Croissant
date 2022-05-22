@@ -30,4 +30,6 @@ class AttendanceRepositoryImpl @Inject constructor(
 
     override fun getAllPaged(): Flow<PagingData<AttendanceWithGames>> =
         attendanceDataSource.getAllPaged()
+
+    override suspend fun getAllOneShot(): List<Attendance> = attendanceDataSource.getAllOneShot()
 }

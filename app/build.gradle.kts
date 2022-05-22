@@ -15,8 +15,8 @@ android {
         applicationId = "com.joeloewi.croissant"
         minSdk = 21
         targetSdk = 32
-        versionCode = 8
-        versionName = "1.0.8"
+        versionCode = 9
+        versionName = "1.0.9"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

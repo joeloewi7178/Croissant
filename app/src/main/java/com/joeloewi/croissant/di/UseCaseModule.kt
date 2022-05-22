@@ -182,4 +182,9 @@ object UseCaseModule {
     @Singleton
     fun provideGetCountByStateWorkerExecutionLogUseCase(workerExecutionLogRepository: WorkerExecutionLogRepository): WorkerExecutionLogUseCase.GetCountByState =
         WorkerExecutionLogUseCase.GetCountByState(workerExecutionLogRepository)
+
+    @Provides
+    @Singleton
+    fun provideGetAllOneShotAttendanceUseCase(attendanceRepository: AttendanceRepository): AttendanceUseCase.GetAllOneShot =
+        AttendanceUseCase.GetAllOneShot(attendanceRepository)
 }

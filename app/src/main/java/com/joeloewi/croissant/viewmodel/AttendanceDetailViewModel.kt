@@ -1,14 +1,20 @@
 package com.joeloewi.croissant.viewmodel
 
+import android.app.AlarmManager
 import android.app.Application
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
 import androidx.compose.runtime.mutableStateListOf
+import androidx.core.app.AlarmManagerCompat
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.*
+import com.joeloewi.croissant.receiver.AlarmReceiver
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
-import com.joeloewi.croissant.worker.AttendCheckInEventWorker
+import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
 import com.joeloewi.croissant.worker.CheckSessionWorker
 import com.joeloewi.domain.common.LoggableWorker
 import com.joeloewi.domain.common.WorkerExecutionLogState
@@ -174,29 +180,28 @@ class AttendanceDetailViewModel @Inject constructor(
                     set(Calendar.MINUTE, _minute.value)
                 }
 
-                val periodicAttendanceCheckInEventWork = PeriodicWorkRequest.Builder(
-                    AttendCheckInEventWorker::class.java,
-                    24L,
-                    TimeUnit.HOURS
-                )
-                    .setInitialDelay(
-                        targetTime.timeInMillis - now.timeInMillis,
-                        TimeUnit.MILLISECONDS
-                    )
-                    .setInputData(workDataOf(AttendCheckInEventWorker.ATTENDANCE_ID to attendance.id))
-                    .setConstraints(
-                        Constraints.Builder()
-                            .setRequiredNetworkType(NetworkType.CONNECTED)
-                            .build()
-                    )
-                    .build()
-
                 WorkManager.getInstance(application)
-                    .enqueueUniquePeriodicWork(
-                        attendance.attendCheckInEventWorkerName.toString(),
-                        ExistingPeriodicWorkPolicy.REPLACE,
-                        periodicAttendanceCheckInEventWork
+                    .cancelUniqueWork(attendance.attendCheckInEventWorkerName.toString())
+
+                val alarmPendingIntent = PendingIntent.getBroadcast(
+                    application,
+                    attendance.id.toInt(),
+                    Intent(application, AlarmReceiver::class.java).apply {
+                        action = AlarmReceiver.RECEIVE_ATTEND_CHECK_IN_ALARM
+                        putExtra(AlarmReceiver.ATTENDANCE_ID, attendance.id)
+                    },
+                    pendingIntentFlagUpdateCurrent
+                )
+
+                with(application.getSystemService(Context.ALARM_SERVICE) as AlarmManager) {
+                    cancel(alarmPendingIntent)
+                    AlarmManagerCompat.setExactAndAllowWhileIdle(
+                        this,
+                        AlarmManager.RTC_WAKEUP,
+                        targetTime.timeInMillis,
+                        alarmPendingIntent
                     )
+                }
 
                 val periodicCheckSessionWork = PeriodicWorkRequest.Builder(
                     CheckSessionWorker::class.java,
@@ -227,7 +232,6 @@ class AttendanceDetailViewModel @Inject constructor(
                         hourOfDay = _hourOfDay.value,
                         minute = _minute.value,
                         timezoneId = ZoneId.systemDefault().id,
-                        attendCheckInEventWorkerId = periodicAttendanceCheckInEventWork.id,
                         checkSessionWorkerId = periodicCheckSessionWork.id
                     )
                 )

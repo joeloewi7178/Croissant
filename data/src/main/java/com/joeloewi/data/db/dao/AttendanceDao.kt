@@ -35,4 +35,8 @@ interface AttendanceDao {
     @Transaction
     @Query("SELECT * FROM AttendanceEntity ORDER BY createdAt DESC")
     fun getAll(): Flow<List<AttendanceWithGamesEntity>>
+
+    @Transaction
+    @Query("SELECT * FROM AttendanceEntity ORDER BY createdAt DESC")
+    suspend fun getAllOneShot(): List<AttendanceEntity>
 }
