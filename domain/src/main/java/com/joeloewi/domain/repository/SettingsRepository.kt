@@ -7,4 +7,5 @@ interface SettingsRepository {
     fun getSettings(): Flow<Settings>
     suspend fun setDarkThemeEnabled(darkThemeEnabled: Boolean): Settings
     suspend fun setIsFirstLaunch(isFirstLaunch: Boolean): Settings
+    suspend fun setNotifyMigrateToAlarmManager(notifyMigrateToAlarmManager: Boolean): Settings
 }

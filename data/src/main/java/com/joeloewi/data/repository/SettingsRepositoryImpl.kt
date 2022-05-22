@@ -17,4 +17,7 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun setIsFirstLaunch(isFirstLaunch: Boolean): Settings =
         settingsDataSource.setIsFirstLaunch(isFirstLaunch)
+
+    override suspend fun setNotifyMigrateToAlarmManager(notifyMigrateToAlarmManager: Boolean): Settings =
+        settingsDataSource.setNotifyMigrateToAlarmManager(notifyMigrateToAlarmManager)
 }

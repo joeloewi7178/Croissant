@@ -11,6 +11,7 @@ object SettingsSerializer : Serializer<Settings> {
     override val defaultValue: Settings = Settings.newBuilder()
         .setDarkThemeEnabled(false)
         .setIsFirstLaunch(true)
+        .setNotifyMigrateToAlarmManager(true)
         .build()
 
     override suspend fun readFrom(input: InputStream): Settings = withContext(Dispatchers.IO) {

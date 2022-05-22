@@ -187,4 +187,9 @@ object UseCaseModule {
     @Singleton
     fun provideGetAllOneShotAttendanceUseCase(attendanceRepository: AttendanceRepository): AttendanceUseCase.GetAllOneShot =
         AttendanceUseCase.GetAllOneShot(attendanceRepository)
+
+    @Provides
+    @Singleton
+    fun provideSetNotifyMigrateToAlarmManager(settingsRepository: SettingsRepository): SettingsUseCase.SetNotifyMigrateToAlarmManager =
+        SettingsUseCase.SetNotifyMigrateToAlarmManager(settingsRepository)
 }

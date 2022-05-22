@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.app.AlarmManagerCompat
 import androidx.work.*
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.joeloewi.croissant.BuildConfig
 import com.joeloewi.croissant.util.goAsync
 import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
@@ -28,7 +29,7 @@ class AlarmReceiver : BroadcastReceiver() {
     lateinit var getOneAttendanceUseCase: AttendanceUseCase.GetOne
 
     @Inject
-    lateinit var getAllOneShot: AttendanceUseCase.GetAllOneShot
+    lateinit var getAllOneShotAttendanceUseCase: AttendanceUseCase.GetAllOneShot
 
     override fun onReceive(p0: Context?, p1: Intent?) {
         when (p1?.action) {
@@ -38,7 +39,7 @@ class AlarmReceiver : BroadcastReceiver() {
                         it.printStackTrace()
                     }
                 ) {
-                    getAllOneShot().map { attendance ->
+                    getAllOneShotAttendanceUseCase().map { attendance ->
                         async {
                             attendance.runCatching {
                                 val alarmIntent =
@@ -83,8 +84,11 @@ class AlarmReceiver : BroadcastReceiver() {
                 val attendanceId = p1.getLongExtra(ATTENDANCE_ID, Long.MIN_VALUE)
 
                 goAsync(
-                    onError = {
-                        it.printStackTrace()
+                    onError = { cause ->
+                        FirebaseCrashlytics.getInstance().apply {
+                            log(this@AlarmReceiver.javaClass.simpleName)
+                            recordException(cause)
+                        }
                     }
                 ) {
                     val attendanceWithGames = getOneAttendanceUseCase(attendanceId)
@@ -97,7 +101,6 @@ class AlarmReceiver : BroadcastReceiver() {
                                 .setRequiredNetworkType(NetworkType.CONNECTED)
                                 .build()
                         )
-                        .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                         .build()
 
                     WorkManager.getInstance(application).beginUniqueWork(
@@ -123,7 +126,7 @@ class AlarmReceiver : BroadcastReceiver() {
                     AlarmManagerCompat.setExactAndAllowWhileIdle(
                         (application.getSystemService(Context.ALARM_SERVICE) as AlarmManager),
                         AlarmManager.RTC_WAKEUP,
-                        targetTime.timeInMillis,
+                        targetTime.time.time,
                         PendingIntent.getBroadcast(
                             application,
                             attendance.id.toInt(),
