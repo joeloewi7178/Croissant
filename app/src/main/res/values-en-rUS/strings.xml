@@ -100,4 +100,6 @@
     <string name="battery_optimization_enabled">Battery optimization for this app is enabled. In this mode, almost features are not working properly. Please disable battery optimization. Confirm button will locate to system settings.</string>
     <string name="change_setting">Change setting</string>
     <string name="experimental_sns_login_feature">Login via SNS account may occurs some errors. Facebook login is not supported.</string>
+    <string name="notify_migrate_alarm_manager_text">At version 1.0.9, problem which not executed at user\'s desire time was modified. If you have made attendance job previous version, please delete and create new job (recommended) or modify in detail screen.</string>
+    <string name="do_not_show_again">Do not show again</string>
 </resources>

@@ -22,4 +22,11 @@ sealed class SettingsUseCase {
         suspend operator fun invoke(isFirstLaunch: Boolean) =
             settingsRepository.setIsFirstLaunch(isFirstLaunch)
     }
+
+    class SetNotifyMigrateToAlarmManager constructor(
+        private val settingsRepository: SettingsRepository
+    ) : SettingsUseCase() {
+        suspend operator fun invoke(notifyMigrateToAlarmManager: Boolean) =
+            settingsRepository.setNotifyMigrateToAlarmManager(notifyMigrateToAlarmManager)
+    }
 }

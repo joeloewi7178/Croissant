@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -25,20 +26,20 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallTopAppBar
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.paging.compose.LazyPagingItems
@@ -76,10 +77,12 @@ fun AttendancesScreen(
 ) {
     val pagedAttendancesWithGames =
         attendancesViewModel.pagedAttendanceWithGames.collectAsLazyPagingItems()
+    val notifyMigrateToAlarmManager by attendancesViewModel.notifyMigrateToAlarmManager.collectAsState()
 
     AttendancesContent(
         snackbarHostState = snackbarHostState,
         pagedAttendancesWithGames = pagedAttendancesWithGames,
+        notifyMigrateToAlarmManager = notifyMigrateToAlarmManager,
         onCreateAttendanceClick = {
             navController.navigate(AttendancesDestination.CreateAttendanceScreen.route)
         },
@@ -88,7 +91,8 @@ fun AttendancesScreen(
             navController.navigate(
                 AttendancesDestination.AttendanceDetailScreen().generateRoute(it.id)
             )
-        }
+        },
+        onNotifyMigrateToAlarmManagerChange = attendancesViewModel::setNotifyMigrateToAlarmManager
     )
 }
 
@@ -99,10 +103,18 @@ fun AttendancesScreen(
 private fun AttendancesContent(
     snackbarHostState: SnackbarHostState,
     pagedAttendancesWithGames: LazyPagingItems<AttendanceWithGames>,
+    notifyMigrateToAlarmManager: Boolean,
     onCreateAttendanceClick: () -> Unit,
     onDeleteAttendance: (Attendance) -> Unit,
-    onClickAttendance: (Attendance) -> Unit
+    onClickAttendance: (Attendance) -> Unit,
+    onNotifyMigrateToAlarmManagerChange: (Boolean) -> Unit
 ) {
+    val (oneTimeAttendanceExecuted, onOneTimeAttendanceExecutedChange) = rememberSaveable {
+        mutableStateOf(
+            false
+        )
+    }
+
     Scaffold(
         topBar = {
             SmallTopAppBar(
@@ -166,7 +178,10 @@ private fun AttendancesContent(
                             modifier = Modifier.animateItemPlacement(),
                             item = item,
                             onDeleteAttendance = onDeleteAttendance,
-                            onClickAttendance = onClickAttendance
+                            onClickAttendance = onClickAttendance,
+                            onClickOneTimeAttend = {
+                                onOneTimeAttendanceExecutedChange(true)
+                            }
                         )
                     } else {
                         AttendanceWithGamesItemPlaceholder(
@@ -175,6 +190,66 @@ private fun AttendancesContent(
                     }
                 }
             }
+        }
+
+        if (oneTimeAttendanceExecuted && notifyMigrateToAlarmManager) {
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = {
+                    onOneTimeAttendanceExecutedChange(false)
+                },
+                confirmButton = {
+                    androidx.compose.material3.TextButton(
+                        onClick = {
+                            onOneTimeAttendanceExecutedChange(false)
+                        }
+                    ) {
+                        Text(text = stringResource(id = R.string.confirm))
+                    }
+                },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.NewReleases,
+                        contentDescription = Icons.Default.NewReleases.name
+                    )
+                },
+                title = {
+                    Text(text = stringResource(id = R.string.note))
+                },
+                text = {
+                    Column {
+                        Text(
+                            textAlign = TextAlign.Center,
+                            text = stringResource(id = R.string.notify_migrate_alarm_manager_text)
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = DefaultDp),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            Row(
+                                modifier = Modifier.toggleable(
+                                    value = notifyMigrateToAlarmManager,
+                                    role = Role.Checkbox,
+                                    onValueChange = onNotifyMigrateToAlarmManagerChange
+                                ),
+                                horizontalArrangement = Arrangement.spacedBy(DefaultDp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                androidx.compose.material3.Checkbox(
+                                    checked = notifyMigrateToAlarmManager,
+                                    onCheckedChange = null
+                                )
+                                Text(text = stringResource(id = R.string.do_not_show_again))
+                            }
+                        }
+                    }
+                },
+                properties = DialogProperties(
+                    dismissOnClickOutside = false,
+                    dismissOnBackPress = false
+                )
+            )
         }
     }
 }
@@ -186,7 +261,8 @@ fun AttendanceWithGamesItem(
     modifier: Modifier,
     item: AttendanceWithGames,
     onDeleteAttendance: (Attendance) -> Unit,
-    onClickAttendance: (Attendance) -> Unit
+    onClickAttendance: (Attendance) -> Unit,
+    onClickOneTimeAttend: () -> Unit
 ) {
     val dismissState = rememberDismissState()
     val isDismissedEndToStart = dismissState.isDismissed(DismissDirection.EndToStart)
@@ -225,7 +301,6 @@ fun AttendanceWithGamesItem(
                                 .setRequiredNetworkType(NetworkType.CONNECTED)
                                 .build()
                         )
-                        .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                         .build()
 
                     WorkManager.getInstance(context).beginUniqueWork(
@@ -233,6 +308,8 @@ fun AttendanceWithGamesItem(
                         ExistingWorkPolicy.APPEND_OR_REPLACE,
                         oneTimeWork
                     ).enqueue()
+
+                    onClickOneTimeAttend()
 
                     coroutineScope.launch {
                         requestReview(

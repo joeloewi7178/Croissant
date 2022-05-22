@@ -110,7 +110,6 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
                                                 .setRequiredNetworkType(NetworkType.CONNECTED)
                                                 .build()
                                         )
-                                        .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                                         .build()
 
                                 WorkManager.getInstance(context).enqueueUniqueWork(
