@@ -7,6 +7,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.window.DialogProperties
 import com.joeloewi.croissant.R
 
@@ -27,7 +28,10 @@ fun ProgressDialog(
             Text(text = stringResource(id = R.string.saving))
         },
         text = {
-            Text(text = stringResource(id = R.string.wait_for_a_moment))
+            Text(
+                text = stringResource(id = R.string.wait_for_a_moment),
+                textAlign = TextAlign.Center
+            )
         },
         properties = DialogProperties(
             dismissOnClickOutside = false,

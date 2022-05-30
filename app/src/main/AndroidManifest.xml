@@ -99,6 +99,7 @@
 
         <activity
             android:name=".MainActivity"
+            android:configChanges="screenLayout|smallestScreenSize|screenSize|orientation"
             android:exported="true"
             android:screenOrientation="portrait">
             <intent-filter>
@@ -120,6 +121,7 @@
 
         <activity
             android:name=".ResinStatusWidgetConfigurationActivity"
+            android:configChanges="screenLayout|smallestScreenSize|screenSize|orientation"
             android:exported="false"
             android:screenOrientation="portrait">
 

@@ -191,66 +191,6 @@ private fun AttendancesContent(
                 }
             }
         }
-
-        if (oneTimeAttendanceExecuted && notifyMigrateToAlarmManager) {
-            androidx.compose.material3.AlertDialog(
-                onDismissRequest = {
-                    onOneTimeAttendanceExecutedChange(false)
-                },
-                confirmButton = {
-                    androidx.compose.material3.TextButton(
-                        onClick = {
-                            onOneTimeAttendanceExecutedChange(false)
-                        }
-                    ) {
-                        Text(text = stringResource(id = R.string.confirm))
-                    }
-                },
-                icon = {
-                    Icon(
-                        imageVector = Icons.Default.NewReleases,
-                        contentDescription = Icons.Default.NewReleases.name
-                    )
-                },
-                title = {
-                    Text(text = stringResource(id = R.string.note))
-                },
-                text = {
-                    Column {
-                        Text(
-                            textAlign = TextAlign.Center,
-                            text = stringResource(id = R.string.notify_migrate_alarm_manager_text)
-                        )
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = DefaultDp),
-                            horizontalArrangement = Arrangement.End
-                        ) {
-                            Row(
-                                modifier = Modifier.toggleable(
-                                    value = notifyMigrateToAlarmManager,
-                                    role = Role.Checkbox,
-                                    onValueChange = onNotifyMigrateToAlarmManagerChange
-                                ),
-                                horizontalArrangement = Arrangement.spacedBy(DefaultDp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                androidx.compose.material3.Checkbox(
-                                    checked = notifyMigrateToAlarmManager,
-                                    onCheckedChange = null
-                                )
-                                Text(text = stringResource(id = R.string.do_not_show_again))
-                            }
-                        }
-                    }
-                },
-                properties = DialogProperties(
-                    dismissOnClickOutside = false,
-                    dismissOnBackPress = false
-                )
-            )
-        }
     }
 }
 

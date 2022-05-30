@@ -171,7 +171,10 @@ fun AttendanceLogsContent(
                     Text(text = stringResource(id = R.string.caution))
                 },
                 text = {
-                    Text(text = stringResource(id = R.string.all_execution_log_will_be_deleted))
+                    Text(
+                        text = stringResource(id = R.string.all_execution_log_will_be_deleted),
+                        textAlign = TextAlign.Center
+                    )
                 }
             )
         }

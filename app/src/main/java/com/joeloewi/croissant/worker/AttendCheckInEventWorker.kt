@@ -40,7 +40,6 @@ class AttendCheckInEventWorker @AssistedInject constructor(
     @Assisted val context: Context,
     @Assisted val params: WorkerParameters,
     val getOneAttendanceUseCase: AttendanceUseCase.GetOne,
-    val getUserFullInfoHoYoLABUseCase: HoYoLABUseCase.GetUserFullInfo,
     val attendCheckInGenshinImpactHoYoLABUseCase: GenshinImpactCheckInUseCase.AttendCheckInGenshinImpact,
     val attendCheckInHonkaiImpact3rdHoYoLABUseCase: HonkaiImpact3rdCheckInUseCase.AttendCheckInHonkaiImpact3rd,
     val attendCheckInTearsOfThemisHoYoLABUseCase: TearsOfThemisCheckInUseCase.AttendCheckInTearsOfThemis,
@@ -113,8 +112,6 @@ class AttendCheckInEventWorker @AssistedInject constructor(
             //check session is valid
             val attendanceWithGames = getOneAttendanceUseCase(attendanceId)
             val cookie = attendanceWithGames.attendance.cookie
-
-            getUserFullInfoHoYoLABUseCase(cookie).getOrThrow()
 
             //attend check in events
             attendanceWithGames.games.map { game ->

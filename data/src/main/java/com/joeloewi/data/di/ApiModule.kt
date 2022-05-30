@@ -21,7 +21,6 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
-import retrofit2.create
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
@@ -80,6 +79,7 @@ object ApiModule {
     fun provideHoYoLabService(retrofitBuilder: Retrofit.Builder): HoYoLABService =
         retrofitBuilder
             .baseUrl("https://bbs-api-os.hoyoverse.com/")
+            .validateEagerly(true)
             .build()
             .create(HoYoLABService::class.java)
 
@@ -88,6 +88,7 @@ object ApiModule {
     fun provideGenshinImpactCheckInService(retrofitBuilder: Retrofit.Builder): GenshinImpactCheckInService =
         retrofitBuilder
             .baseUrl("https://hk4e-api-os.mihoyo.com/")
+            .validateEagerly(true)
             .build()
             .create(GenshinImpactCheckInService::class.java)
 
@@ -96,6 +97,7 @@ object ApiModule {
     fun provideHonkaiImpact3rdCheckInService(retrofitBuilder: Retrofit.Builder): HonkaiImpact3rdCheckInService =
         retrofitBuilder
             .baseUrl("https://api-os-takumi.mihoyo.com/")
+            .validateEagerly(true)
             .build()
             .create(HonkaiImpact3rdCheckInService::class.java)
 
@@ -104,6 +106,7 @@ object ApiModule {
     fun provideTearsOfThemisCheckInService(retrofitBuilder: Retrofit.Builder): TearsOfThemisCheckInService =
         retrofitBuilder
             .baseUrl("https://sg-public-api.hoyolab.com/")
+            .validateEagerly(true)
             .build()
             .create(TearsOfThemisCheckInService::class.java)
 }

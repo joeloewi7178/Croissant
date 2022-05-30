@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.*
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -24,6 +25,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.contentColorFor
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -32,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -44,6 +49,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
@@ -77,6 +83,7 @@ import org.threeten.bp.Instant
 import org.threeten.bp.ZoneId
 import org.threeten.bp.format.DateTimeFormatter
 
+@ExperimentalMaterial3WindowSizeClassApi
 @ExperimentalPermissionsApi
 @ExperimentalFoundationApi
 @ObsoleteCoroutinesApi
@@ -100,7 +107,10 @@ class MainActivity : AppCompatActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    CompositionLocalProvider(LocalActivity provides this) {
+                    CompositionLocalProvider(
+                        LocalActivity provides this,
+                        LocalWindowSizeClass provides calculateWindowSizeClass(activity = this)
+                    ) {
                         RequireAppUpdate {
                             CroissantApp()
                         }
@@ -196,6 +206,14 @@ fun CroissantApp() {
                 }
             }
         }
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentDestination = navBackStackEntry?.destination
+        val windowSizeClass = LocalWindowSizeClass.current
+        val (isFullScreenDestination, onIsFullScreenDestinationChange) = rememberSaveable {
+            mutableStateOf(
+                false
+            )
+        }
 
         Scaffold(
             topBar = {
@@ -208,13 +226,6 @@ fun CroissantApp() {
             },
             bottomBar = {
                 Column {
-                    val navBackStackEntry by navController.currentBackStackEntryAsState()
-                    val currentDestination = navBackStackEntry?.destination
-                    val (isFullScreenDestination, onIsFullScreenDestinationChange) = rememberSaveable {
-                        mutableStateOf(
-                            false
-                        )
-                    }
                     LaunchedEffect(currentDestination) {
                         FirebaseAnalytics.getInstance(context).logEvent(
                             FirebaseAnalytics.Event.SCREEN_VIEW,
@@ -231,10 +242,16 @@ fun CroissantApp() {
                         )
                     }
 
-                    if (!isFullScreenDestination) {
-                        NavigationBar(
-                            containerColor = MaterialTheme.colorScheme.surface
-                        ) {
+                    AnimatedVisibility(
+                        visible = !isFullScreenDestination && windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact,
+                        enter = slideInVertically(
+                            initialOffsetY = { it }
+                        ) + fadeIn(),
+                        exit = slideOutVertically(
+                            targetOffsetY = { it }
+                        ) + fadeOut()
+                    ) {
+                        NavigationBar {
                             croissantNavigations.forEach { croissantNavigation ->
                                 val isSelected = currentDestination?.hierarchy?.any {
                                     it.route == croissantNavigation.route
@@ -293,103 +310,75 @@ fun CroissantApp() {
             }
         ) { innerPadding ->
             Box(modifier = Modifier.padding(innerPadding)) {
-                NavHost(
-                    navController = navController,
-                    startDestination = CroissantNavigation.Attendances.route
-                ) {
-                    navigation(
-                        startDestination = AttendancesDestination.AttendancesScreen.route,
-                        route = CroissantNavigation.Attendances.route
-                    ) {
-                        composable(route = AttendancesDestination.AttendancesScreen.route) {
-                            val attendancesViewModel: AttendancesViewModel = hiltViewModel()
+                when (windowSizeClass.widthSizeClass) {
+                    WindowWidthSizeClass.Compact -> {
+                        CroissantNavHost(
+                            modifier = Modifier.fillMaxSize(),
+                            navController = navController,
+                            snackbarHostState = snackbarHostState,
+                            deepLinkUri = deepLinkUri
+                        )
+                    }
 
-                            AttendancesScreen(
-                                navController = navController,
-                                snackbarHostState = snackbarHostState,
-                                attendancesViewModel = attendancesViewModel
-                            )
-                        }
+                    else -> {
+                        Row {
+                            AnimatedVisibility(
+                                visible = !isFullScreenDestination,
+                                enter = slideInHorizontally() + fadeIn(),
+                                exit = slideOutHorizontally() + fadeOut()
+                            ) {
+                                NavigationRail(
+                                    modifier = Modifier.fillMaxHeight(),
+                                    header = {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                                            contentDescription = null
+                                        )
+                                    }
+                                ) {
+                                    croissantNavigations.forEach { croissantNavigation ->
+                                        val isSelected = currentDestination?.hierarchy?.any {
+                                            it.route == croissantNavigation.route
+                                        } == true
 
-                        composable(route = AttendancesDestination.CreateAttendanceScreen.route) {
-                            val createAttendanceViewModel: CreateAttendanceViewModel =
-                                hiltViewModel()
-
-                            CreateAttendanceScreen(
-                                navController = navController,
-                                createAttendanceViewModel = createAttendanceViewModel
-                            )
-                        }
-
-                        composable(
-                            route = AttendancesDestination.LoginHoYoLabScreen.route,
-                        ) {
-                            LoginHoYoLABScreen(
-                                navController = navController
-                            )
-                        }
-
-                        composable(
-                            route = AttendancesDestination.AttendanceDetailScreen().route,
-                            arguments = AttendancesDestination.AttendanceDetailScreen().arguments.map { argument ->
-                                navArgument(argument.first) {
-                                    type = argument.second
-                                }
-                            },
-                            deepLinks = listOf(
-                                navDeepLink {
-                                    uriPattern =
-                                        "$deepLinkUri/${AttendancesDestination.AttendanceDetailScreen().route}"
-                                }
-                            )
-                        ) { navBackStackEntry ->
-                            val attendanceDetailViewModel: AttendanceDetailViewModel =
-                                hiltViewModel(navBackStackEntry)
-
-                            AttendanceDetailScreen(
-                                navController = navController,
-                                attendanceDetailViewModel = attendanceDetailViewModel
-                            )
-                        }
-
-                        composable(
-                            route = AttendancesDestination.AttendanceLogsScreen().route,
-                            arguments = AttendancesDestination.AttendanceLogsScreen().arguments.map { argument ->
-                                navArgument(argument.first) {
-                                    type = argument.second
+                                        NavigationRailItem(
+                                            icon = {
+                                                if (isSelected) {
+                                                    Icon(
+                                                        imageVector = croissantNavigation.filledIcon,
+                                                        contentDescription = croissantNavigation.filledIcon.name
+                                                    )
+                                                } else {
+                                                    Icon(
+                                                        imageVector = croissantNavigation.outlinedIcon,
+                                                        contentDescription = croissantNavigation.outlinedIcon.name
+                                                    )
+                                                }
+                                            },
+                                            selected = isSelected,
+                                            label = {
+                                                Text(text = stringResource(id = croissantNavigation.resourceId))
+                                            },
+                                            onClick = {
+                                                navController.navigate(croissantNavigation.route) {
+                                                    popUpTo(navController.graph.findStartDestination().id) {
+                                                        saveState = true
+                                                    }
+                                                    launchSingleTop = true
+                                                    restoreState = true
+                                                }
+                                            }
+                                        )
+                                    }
                                 }
                             }
-                        ) { navBackStackEntry ->
-                            val attendanceLogsViewModel: AttendanceLogsViewModel =
-                                hiltViewModel(navBackStackEntry)
-
-                            AttendanceLogsScreen(
+                            CroissantNavHost(
+                                modifier = Modifier
+                                    .weight(1f),
                                 navController = navController,
-                                attendanceLogsViewModel = attendanceLogsViewModel
+                                snackbarHostState = snackbarHostState,
+                                deepLinkUri = deepLinkUri
                             )
-                        }
-                    }
-
-                    navigation(
-                        startDestination = RedemptionCodesNavigation.RedemptionCodesScreen.route,
-                        route = CroissantNavigation.RedemptionCodes.route
-                    ) {
-                        composable(route = RedemptionCodesNavigation.RedemptionCodesScreen.route) {
-                            val redemptionCodesViewModel: RedemptionCodesViewModel = hiltViewModel()
-
-                            RedemptionCodesScreen(
-                                navController = navController,
-                                redemptionCodesViewModel = redemptionCodesViewModel
-                            )
-                        }
-                    }
-
-                    navigation(
-                        startDestination = SettingsDestination.SettingsScreen.route,
-                        route = CroissantNavigation.Settings.route
-                    ) {
-                        composable(route = SettingsDestination.SettingsScreen.route) {
-                            SettingsScreen(navController = navController)
                         }
                     }
                 }
@@ -419,7 +408,10 @@ fun CroissantApp() {
                             Text(text = stringResource(id = R.string.caution))
                         },
                         text = {
-                            Text(text = stringResource(id = R.string.device_rooting_detected))
+                            Text(
+                                text = stringResource(id = R.string.device_rooting_detected),
+                                textAlign = TextAlign.Center
+                            )
                         },
                         properties = DialogProperties(
                             dismissOnClickOutside = false,
@@ -468,6 +460,124 @@ fun CroissantApp() {
                         )
                     )
                 }
+            }
+        }
+    }
+}
+
+@ExperimentalPermissionsApi
+@ExperimentalFoundationApi
+@ObsoleteCoroutinesApi
+@ExperimentalMaterialApi
+@ExperimentalPagerApi
+@ExperimentalMaterial3Api
+@ExperimentalComposeUiApi
+@Composable
+fun CroissantNavHost(
+    modifier: Modifier,
+    navController: NavHostController,
+    snackbarHostState: SnackbarHostState,
+    deepLinkUri: Uri,
+) {
+    NavHost(
+        modifier = modifier.animateContentSize(),
+        navController = navController,
+        startDestination = CroissantNavigation.Attendances.route
+    ) {
+        navigation(
+            startDestination = AttendancesDestination.AttendancesScreen.route,
+            route = CroissantNavigation.Attendances.route
+        ) {
+            composable(route = AttendancesDestination.AttendancesScreen.route) {
+                val attendancesViewModel: AttendancesViewModel = hiltViewModel()
+
+                AttendancesScreen(
+                    navController = navController,
+                    snackbarHostState = snackbarHostState,
+                    attendancesViewModel = attendancesViewModel
+                )
+            }
+
+            composable(route = AttendancesDestination.CreateAttendanceScreen.route) {
+                val createAttendanceViewModel: CreateAttendanceViewModel =
+                    hiltViewModel()
+
+                CreateAttendanceScreen(
+                    navController = navController,
+                    createAttendanceViewModel = createAttendanceViewModel
+                )
+            }
+
+            composable(
+                route = AttendancesDestination.LoginHoYoLabScreen.route,
+            ) {
+                LoginHoYoLABScreen(
+                    navController = navController
+                )
+            }
+
+            composable(
+                route = AttendancesDestination.AttendanceDetailScreen().route,
+                arguments = AttendancesDestination.AttendanceDetailScreen().arguments.map { argument ->
+                    navArgument(argument.first) {
+                        type = argument.second
+                    }
+                },
+                deepLinks = listOf(
+                    navDeepLink {
+                        uriPattern =
+                            "$deepLinkUri/${AttendancesDestination.AttendanceDetailScreen().route}"
+                    }
+                )
+            ) { navBackStackEntry ->
+                val attendanceDetailViewModel: AttendanceDetailViewModel =
+                    hiltViewModel(navBackStackEntry)
+
+                AttendanceDetailScreen(
+                    navController = navController,
+                    attendanceDetailViewModel = attendanceDetailViewModel
+                )
+            }
+
+            composable(
+                route = AttendancesDestination.AttendanceLogsScreen().route,
+                arguments = AttendancesDestination.AttendanceLogsScreen().arguments.map { argument ->
+                    navArgument(argument.first) {
+                        type = argument.second
+                    }
+                }
+            ) { navBackStackEntry ->
+                val attendanceLogsViewModel: AttendanceLogsViewModel =
+                    hiltViewModel(navBackStackEntry)
+
+                AttendanceLogsScreen(
+                    navController = navController,
+                    attendanceLogsViewModel = attendanceLogsViewModel
+                )
+            }
+        }
+
+        navigation(
+            startDestination = RedemptionCodesNavigation.RedemptionCodesScreen.route,
+            route = CroissantNavigation.RedemptionCodes.route
+        ) {
+            composable(route = RedemptionCodesNavigation.RedemptionCodesScreen.route) {
+                val redemptionCodesViewModel: RedemptionCodesViewModel =
+                    hiltViewModel()
+
+                RedemptionCodesScreen(
+                    navController = navController,
+                    redemptionCodesViewModel = redemptionCodesViewModel
+                )
+            }
+        }
+
+        navigation(
+            startDestination = SettingsDestination.SettingsScreen.route,
+            route = CroissantNavigation.Settings.route
+        ) {
+            composable(route = SettingsDestination.SettingsScreen.route) {
+                SettingsScreen(navController = navController)
             }
         }
     }

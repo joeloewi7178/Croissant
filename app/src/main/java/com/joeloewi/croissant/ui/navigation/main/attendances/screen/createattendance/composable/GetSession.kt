@@ -8,7 +8,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Login
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,6 +25,7 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.theme.DefaultDp
+import com.joeloewi.croissant.util.LocalActivity
 
 @ExperimentalPagerApi
 @ExperimentalMaterial3Api
@@ -77,9 +77,12 @@ fun GetSession(
                 style = MaterialTheme.typography.titleMedium
             )
 
+            val responsiveHorizontalPadding =
+                (LocalActivity.current.window.decorView.width * 0.07).dp
+
             HorizontalPager(
                 count = 3,
-                contentPadding = PaddingValues(horizontal = 48.dp),
+                contentPadding = PaddingValues(horizontal = responsiveHorizontalPadding),
                 key = { it }
             ) { page ->
 

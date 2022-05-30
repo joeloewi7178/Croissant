@@ -25,6 +25,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -280,7 +281,10 @@ fun SelectGames(
                     Text(text = stringResource(id = R.string.alert))
                 },
                 text = {
-                    Text(text = stringResource(id = R.string.account_already_exists_fallback))
+                    Text(
+                        text = stringResource(id = R.string.account_already_exists_fallback),
+                        textAlign = TextAlign.Center
+                    )
                 },
                 properties = DialogProperties(
                     dismissOnClickOutside = false,

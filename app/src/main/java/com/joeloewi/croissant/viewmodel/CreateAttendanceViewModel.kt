@@ -14,11 +14,13 @@ import com.joeloewi.croissant.receiver.AlarmReceiver
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
 import com.joeloewi.croissant.worker.CheckSessionWorker
+import com.joeloewi.domain.common.HoYoLABGame
 import com.joeloewi.domain.entity.Attendance
 import com.joeloewi.domain.entity.Game
 import com.joeloewi.domain.usecase.AttendanceUseCase
 import com.joeloewi.domain.usecase.GameUseCase
 import com.joeloewi.domain.usecase.HoYoLABUseCase
+import com.joeloewi.domain.wrapper.ContentOrError
 import com.joeloewi.domain.wrapper.getOrThrow
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -26,6 +28,7 @@ import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.channels.ticker
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.threeten.bp.ZoneId
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -36,7 +39,7 @@ import javax.inject.Inject
 class CreateAttendanceViewModel @Inject constructor(
     private val application: Application,
     getUserFullInfoHoYoLABUseCase: HoYoLABUseCase.GetUserFullInfo,
-    getGameRecordCardHoYoLABUseCase: HoYoLABUseCase.GetGameRecordCard,
+    private val getGameRecordCardHoYoLABUseCase: HoYoLABUseCase.GetGameRecordCard,
     private val insertAttendanceUseCase: AttendanceUseCase.Insert,
     private val updateAttendanceUseCase: AttendanceUseCase.Update,
     private val insertGameUseCase: GameUseCase.Insert,
@@ -47,8 +50,6 @@ class CreateAttendanceViewModel @Inject constructor(
     private val _minute = MutableStateFlow(Calendar.getInstance()[Calendar.MINUTE])
     private val _createAttendanceState = MutableStateFlow<Lce<List<Long>>>(Lce.Content(listOf()))
     private val _duplicatedAttendance = MutableStateFlow<Attendance?>(null)
-
-    val cookie = _cookie.asStateFlow()
     private val _userInfo = _cookie
         .filter { it.isNotEmpty() }
         .map { cookie ->
@@ -62,43 +63,46 @@ class CreateAttendanceViewModel @Inject constructor(
                 }
             }.fold(
                 onSuccess = {
-                    Lce.Content(it)
+                    ContentOrError.Content(it)
                 },
                 onFailure = {
-                    Lce.Error(it)
+                    ContentOrError.Error(it)
                 }
             )
         }.flowOn(Dispatchers.IO).stateIn(
             scope = viewModelScope,
             started = SharingStarted.Lazily,
-            initialValue = Lce.Loading
+            initialValue = ContentOrError.Content(null)
         )
     val connectedGames = _userInfo
         .combine(_cookie) { userInfo, cookie ->
             userInfo to cookie
         }.map { pair ->
+            checkedGames.clear()
             getGameRecordCardHoYoLABUseCase.runCatching {
-                with(pair.first) {
-                    when (this) {
-                        is Lce.Content -> {
-                            Lce.Content(
-                                invoke(
-                                    pair.second,
-                                    content!!.uid
-                                ).getOrThrow()!!.list
+                pair.first.getOrThrow()?.let {
+                    invoke(
+                        pair.second,
+                        it.uid
+                    ).getOrThrow()!!.list.onEach { gameRecord ->
+                        withContext(Dispatchers.Main) {
+                            checkedGames.add(
+                                Game(
+                                    roleId = gameRecord.gameRoleId,
+                                    type = HoYoLABGame.findByGameId(gameId = gameRecord.gameId),
+                                    region = gameRecord.region
+                                )
                             )
-                        }
-                        is Lce.Error -> {
-                            Lce.Error(error = error)
-                        }
-                        Lce.Loading -> {
-                            Lce.Loading
                         }
                     }
                 }
             }.fold(
                 onSuccess = {
-                    it
+                    if (it == null) {
+                        Lce.Loading
+                    } else {
+                        Lce.Content(it)
+                    }
                 },
                 onFailure = {
                     Lce.Error(it)
@@ -109,6 +113,7 @@ class CreateAttendanceViewModel @Inject constructor(
             started = SharingStarted.Lazily,
             initialValue = Lce.Loading
         )
+    val cookie = _cookie.asStateFlow()
     val checkedGames = mutableStateListOf<Game>()
     val tickerCalendar = ticker(delayMillis = 1000).receiveAsFlow()
         .map { Calendar.getInstance() }
@@ -124,9 +129,7 @@ class CreateAttendanceViewModel @Inject constructor(
     val duplicatedAttendance = _duplicatedAttendance.asStateFlow()
 
     fun setCookie(cookie: String) {
-        viewModelScope.launch {
-            _cookie.emit(cookie)
-        }
+        _cookie.value = cookie
     }
 
     fun setHourOfDay(hourOfDay: Int) {
