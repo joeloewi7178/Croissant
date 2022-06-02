@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -26,20 +25,20 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallTopAppBar
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.paging.compose.LazyPagingItems
@@ -77,12 +76,10 @@ fun AttendancesScreen(
 ) {
     val pagedAttendancesWithGames =
         attendancesViewModel.pagedAttendanceWithGames.collectAsLazyPagingItems()
-    val notifyMigrateToAlarmManager by attendancesViewModel.notifyMigrateToAlarmManager.collectAsState()
 
     AttendancesContent(
         snackbarHostState = snackbarHostState,
         pagedAttendancesWithGames = pagedAttendancesWithGames,
-        notifyMigrateToAlarmManager = notifyMigrateToAlarmManager,
         onCreateAttendanceClick = {
             navController.navigate(AttendancesDestination.CreateAttendanceScreen.route)
         },
@@ -92,7 +89,6 @@ fun AttendancesScreen(
                 AttendancesDestination.AttendanceDetailScreen().generateRoute(it.id)
             )
         },
-        onNotifyMigrateToAlarmManagerChange = attendancesViewModel::setNotifyMigrateToAlarmManager
     )
 }
 
@@ -103,17 +99,10 @@ fun AttendancesScreen(
 private fun AttendancesContent(
     snackbarHostState: SnackbarHostState,
     pagedAttendancesWithGames: LazyPagingItems<AttendanceWithGames>,
-    notifyMigrateToAlarmManager: Boolean,
     onCreateAttendanceClick: () -> Unit,
     onDeleteAttendance: (Attendance) -> Unit,
     onClickAttendance: (Attendance) -> Unit,
-    onNotifyMigrateToAlarmManagerChange: (Boolean) -> Unit
 ) {
-    val (oneTimeAttendanceExecuted, onOneTimeAttendanceExecutedChange) = rememberSaveable {
-        mutableStateOf(
-            false
-        )
-    }
 
     Scaffold(
         topBar = {
@@ -178,10 +167,7 @@ private fun AttendancesContent(
                             modifier = Modifier.animateItemPlacement(),
                             item = item,
                             onDeleteAttendance = onDeleteAttendance,
-                            onClickAttendance = onClickAttendance,
-                            onClickOneTimeAttend = {
-                                onOneTimeAttendanceExecutedChange(true)
-                            }
+                            onClickAttendance = onClickAttendance
                         )
                     } else {
                         AttendanceWithGamesItemPlaceholder(
@@ -201,8 +187,7 @@ fun AttendanceWithGamesItem(
     modifier: Modifier,
     item: AttendanceWithGames,
     onDeleteAttendance: (Attendance) -> Unit,
-    onClickAttendance: (Attendance) -> Unit,
-    onClickOneTimeAttend: () -> Unit
+    onClickAttendance: (Attendance) -> Unit
 ) {
     val dismissState = rememberDismissState()
     val isDismissedEndToStart = dismissState.isDismissed(DismissDirection.EndToStart)
@@ -248,8 +233,6 @@ fun AttendanceWithGamesItem(
                         ExistingWorkPolicy.APPEND_OR_REPLACE,
                         oneTimeWork
                     ).enqueue()
-
-                    onClickOneTimeAttend()
 
                     coroutineScope.launch {
                         requestReview(
