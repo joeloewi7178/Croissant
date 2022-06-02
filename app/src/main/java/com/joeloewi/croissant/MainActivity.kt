@@ -33,6 +33,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -70,7 +71,9 @@ import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattend
 import com.joeloewi.croissant.ui.navigation.main.redemptioncodes.RedemptionCodesNavigation
 import com.joeloewi.croissant.ui.navigation.main.redemptioncodes.screen.RedemptionCodesScreen
 import com.joeloewi.croissant.ui.navigation.main.settings.SettingsDestination
+import com.joeloewi.croissant.ui.navigation.main.settings.screen.DeveloperInfoScreen
 import com.joeloewi.croissant.ui.navigation.main.settings.screen.SettingsScreen
+import com.joeloewi.croissant.ui.theme.ContentAlpha
 import com.joeloewi.croissant.ui.theme.CroissantTheme
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
@@ -336,39 +339,48 @@ fun CroissantApp() {
                                         )
                                     }
                                 ) {
-                                    croissantNavigations.forEach { croissantNavigation ->
-                                        val isSelected = currentDestination?.hierarchy?.any {
-                                            it.route == croissantNavigation.route
-                                        } == true
-
-                                        NavigationRailItem(
-                                            icon = {
-                                                if (isSelected) {
-                                                    Icon(
-                                                        imageVector = croissantNavigation.filledIcon,
-                                                        contentDescription = croissantNavigation.filledIcon.name
-                                                    )
-                                                } else {
-                                                    Icon(
-                                                        imageVector = croissantNavigation.outlinedIcon,
-                                                        contentDescription = croissantNavigation.outlinedIcon.name
-                                                    )
-                                                }
-                                            },
-                                            selected = isSelected,
-                                            label = {
-                                                Text(text = stringResource(id = croissantNavigation.resourceId))
-                                            },
-                                            onClick = {
-                                                navController.navigate(croissantNavigation.route) {
-                                                    popUpTo(navController.graph.findStartDestination().id) {
-                                                        saveState = true
-                                                    }
-                                                    launchSingleTop = true
-                                                    restoreState = true
-                                                }
-                                            }
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxHeight(),
+                                        verticalArrangement = Arrangement.spacedBy(
+                                            space = DoubleDp,
+                                            alignment = Alignment.CenterVertically
                                         )
+                                    ) {
+                                        croissantNavigations.forEach { croissantNavigation ->
+                                            val isSelected = currentDestination?.hierarchy?.any {
+                                                it.route == croissantNavigation.route
+                                            } == true
+
+                                            NavigationRailItem(
+                                                icon = {
+                                                    if (isSelected) {
+                                                        Icon(
+                                                            imageVector = croissantNavigation.filledIcon,
+                                                            contentDescription = croissantNavigation.filledIcon.name
+                                                        )
+                                                    } else {
+                                                        Icon(
+                                                            imageVector = croissantNavigation.outlinedIcon,
+                                                            contentDescription = croissantNavigation.outlinedIcon.name
+                                                        )
+                                                    }
+                                                },
+                                                selected = isSelected,
+                                                label = {
+                                                    Text(text = stringResource(id = croissantNavigation.resourceId))
+                                                },
+                                                onClick = {
+                                                    navController.navigate(croissantNavigation.route) {
+                                                        popUpTo(navController.graph.findStartDestination().id) {
+                                                            saveState = true
+                                                        }
+                                                        launchSingleTop = true
+                                                        restoreState = true
+                                                    }
+                                                }
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -579,6 +591,10 @@ fun CroissantNavHost(
             composable(route = SettingsDestination.SettingsScreen.route) {
                 SettingsScreen(navController = navController)
             }
+
+            composable(route = SettingsDestination.DeveloperInfoScreen.route) {
+                DeveloperInfoScreen(navController = navController)
+            }
         }
     }
 }
@@ -719,7 +735,10 @@ fun CroissantAppBottomSheetContent(
                             )
                         },
                         secondaryText = {
-                            Text(text = stringResource(id = item.detailedDescription))
+                            Text(
+                                modifier = Modifier.alpha(ContentAlpha.medium),
+                                text = stringResource(id = item.detailedDescription)
+                            )
                         },
                         text = {
                             Text(text = stringResource(id = item.label))

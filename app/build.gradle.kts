@@ -70,7 +70,7 @@ dependencies {
     implementation(project(":domain"))
 
     implementation("androidx.core:core-ktx:1.7.0")
-    implementation("com.google.android.material:material:1.7.0-alpha01")
+    implementation("com.google.android.material:material:1.7.0-alpha02")
     implementation("androidx.compose.material3:material3:${Versions.material3}")
     implementation("androidx.compose.material3:material3-window-size-class:${Versions.material3}")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:${Versions.lifecycle}")

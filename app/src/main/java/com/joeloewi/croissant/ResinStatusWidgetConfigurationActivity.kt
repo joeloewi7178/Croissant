@@ -5,8 +5,14 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.os.bundleOf
@@ -17,16 +23,16 @@ import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.google.android.material.color.DynamicColors
 import com.google.firebase.analytics.FirebaseAnalytics
-import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.ResinStatusWidgetConfigurationNavigation
 import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration.ResinStatusWidgetConfigurationDestination
 import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration.screen.CreateResinStatusWidgetScreen
+import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration.screen.LoadingScreen
 import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration.screen.ResinStatusWidgetDetailScreen
 import com.joeloewi.croissant.ui.theme.CroissantTheme
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.viewmodel.CreateResinStatusWidgetViewModel
+import com.joeloewi.croissant.viewmodel.LoadingViewModel
 import com.joeloewi.croissant.viewmodel.MainViewModel
-import com.joeloewi.croissant.viewmodel.ResinStatusWidgetConfigurationViewModel
 import com.joeloewi.croissant.viewmodel.ResinStatusWidgetDetailViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.time.ExperimentalTime
@@ -68,19 +74,12 @@ fun ResinStatusWidgetConfigurationApp() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
-    val resinStatusWidgetConfigurationViewModel: ResinStatusWidgetConfigurationViewModel =
-        hiltViewModel()
-    val isAppWidgetConfigured by resinStatusWidgetConfigurationViewModel.isAppWidgetInitialized.collectAsState()
     val context = LocalContext.current
     val activity = LocalActivity.current
     val appWidgetId = activity.intent?.extras?.getInt(
         AppWidgetManager.EXTRA_APPWIDGET_ID,
         AppWidgetManager.INVALID_APPWIDGET_ID
     ) ?: AppWidgetManager.INVALID_APPWIDGET_ID
-
-    LaunchedEffect(navController) {
-        resinStatusWidgetConfigurationViewModel.findResinStatusWidgetByAppWidgetId(appWidgetId)
-    }
 
     LaunchedEffect(navBackStackEntry?.destination) {
         FirebaseAnalytics.getInstance(context).logEvent(
@@ -90,30 +89,6 @@ fun ResinStatusWidgetConfigurationApp() {
                 FirebaseAnalytics.Param.SCREEN_CLASS to activity::class.java.simpleName
             )
         )
-    }
-
-    LaunchedEffect(isAppWidgetConfigured) {
-        when (isAppWidgetConfigured) {
-            is Lce.Content -> {
-                if (isAppWidgetConfigured.content == true) {
-                    navController.navigate(
-                        ResinStatusWidgetConfigurationDestination.ResinStatusWidgetDetailScreen()
-                            .generateRoute(appWidgetId)
-                    )
-                } else {
-                    navController.navigate(
-                        ResinStatusWidgetConfigurationDestination.CreateResinStatusWidgetScreen()
-                            .generateRoute(appWidgetId)
-                    )
-                }
-            }
-            is Lce.Error -> {
-
-            }
-            Lce.Loading -> {
-                navController.navigate(ResinStatusWidgetConfigurationDestination.LoadingScreen.route)
-            }
-        }
     }
 
     Scaffold(
@@ -146,19 +121,15 @@ fun ResinStatusWidgetConfigurationApp() {
                     route = ResinStatusWidgetConfigurationNavigation.Configuration.route
                 ) {
                     composable(
-                        route = ResinStatusWidgetConfigurationDestination.LoadingScreen.route
+                        route = ResinStatusWidgetConfigurationDestination.LoadingScreen.route,
                     ) {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.Center,
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                CircularProgressIndicator()
-                            }
-                        }
+                        val loadingViewModel: LoadingViewModel = hiltViewModel()
+
+                        LoadingScreen(
+                            navController = navController,
+                            loadingViewModel = loadingViewModel,
+                            appWidgetId = appWidgetId
+                        )
                     }
 
                     composable(
