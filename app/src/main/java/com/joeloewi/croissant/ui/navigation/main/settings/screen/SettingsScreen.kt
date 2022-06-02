@@ -1,5 +1,6 @@
 package com.joeloewi.croissant.ui.navigation.main.settings.screen
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -7,17 +8,21 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
+import com.joeloewi.croissant.ui.navigation.main.settings.SettingsDestination
+import com.joeloewi.croissant.ui.theme.ContentAlpha
 import com.joeloewi.croissant.util.ListItem
 import com.joeloewi.croissant.viewmodel.SettingsViewModel
 import com.joeloewi.domain.entity.Settings
@@ -33,7 +38,10 @@ fun SettingsScreen(
 
     SettingsContent(
         settings = settings,
-        onDarkThemeEnabledChange = settingsViewModel::setDarkThemeEnabled
+        onDarkThemeEnabledChange = settingsViewModel::setDarkThemeEnabled,
+        onDeveloperInfoClick = {
+            navController.navigate(SettingsDestination.DeveloperInfoScreen.route)
+        }
     )
 }
 
@@ -42,7 +50,8 @@ fun SettingsScreen(
 @Composable
 fun SettingsContent(
     settings: Settings,
-    onDarkThemeEnabledChange: (Boolean) -> Unit
+    onDarkThemeEnabledChange: (Boolean) -> Unit,
+    onDeveloperInfoClick: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -53,14 +62,13 @@ fun SettingsContent(
             )
         }
     ) { innerPadding ->
-
         LazyColumn(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
         ) {
             item(
-                key = "themeEnabled"
+                key = "themeHeader"
             ) {
                 ListItem(
                     text = {
@@ -91,13 +99,48 @@ fun SettingsContent(
                         Text(text = stringResource(id = R.string.dark_theme))
                     },
                     secondaryText = {
-                        Text(text = stringResource(id = R.string.always_use_dark_theme))
+                        Text(
+                            modifier = Modifier.alpha(ContentAlpha.medium),
+                            text = stringResource(id = R.string.always_use_dark_theme)
+                        )
                     },
                     trailing = {
                         Switch(
                             checked = settings.darkThemeEnabled,
                             onCheckedChange = null
                         )
+                    }
+                )
+            }
+
+            item(
+                key = "othersHeader"
+            ) {
+                ListItem(
+                    text = {
+                        Text(
+                            text = stringResource(id = R.string.others),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                )
+            }
+
+            item(
+                key = "developerInfo"
+            ) {
+                ListItem(
+                    modifier = Modifier.clickable {
+                        onDeveloperInfoClick()
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = Icons.Default.Person.name
+                        )
+                    },
+                    text = {
+                        Text(text = stringResource(id = R.string.developer_info))
                     }
                 )
             }

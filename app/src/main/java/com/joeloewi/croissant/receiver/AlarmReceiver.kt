@@ -83,10 +83,13 @@ class AlarmReceiver : BroadcastReceiver() {
             RECEIVE_ATTEND_CHECK_IN_ALARM -> {
                 val attendanceId = p1.getLongExtra(ATTENDANCE_ID, Long.MIN_VALUE)
 
+                FirebaseCrashlytics.getInstance().apply {
+                    log(this@AlarmReceiver.javaClass.simpleName)
+                }
+
                 goAsync(
                     onError = { cause ->
                         FirebaseCrashlytics.getInstance().apply {
-                            log(this@AlarmReceiver.javaClass.simpleName)
                             recordException(cause)
                         }
                     }
@@ -107,7 +110,7 @@ class AlarmReceiver : BroadcastReceiver() {
                         attendance.oneTimeAttendCheckInEventWorkerName.toString(),
                         ExistingWorkPolicy.APPEND_OR_REPLACE,
                         oneTimeWork
-                    ).enqueue().await()
+                    ).enqueue()
 
                     val alarmIntent = Intent(application, AlarmReceiver::class.java).apply {
                         action = RECEIVE_ATTEND_CHECK_IN_ALARM

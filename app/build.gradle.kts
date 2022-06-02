@@ -15,8 +15,8 @@ android {
         applicationId = "com.joeloewi.croissant"
         minSdk = 21
         targetSdk = 32
-        versionCode = 10
-        versionName = "1.0.10"
+        versionCode = 11
+        versionName = "1.0.11"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -70,8 +70,9 @@ dependencies {
     implementation(project(":domain"))
 
     implementation("androidx.core:core-ktx:1.7.0")
-    implementation("com.google.android.material:material:1.7.0-alpha01")
-    implementation("androidx.compose.material3:material3:1.0.0-alpha11")
+    implementation("com.google.android.material:material:1.7.0-alpha02")
+    implementation("androidx.compose.material3:material3:${Versions.material3}")
+    implementation("androidx.compose.material3:material3-window-size-class:${Versions.material3}")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:${Versions.lifecycle}")
     implementation("androidx.activity:activity-compose:1.4.0")
     testImplementation("junit:junit:4.13.2")
@@ -118,7 +119,7 @@ dependencies {
     implementation("androidx.startup:startup-runtime:${Versions.startup}")
 
     //splashscreen
-    implementation("androidx.core:core-splashscreen:1.0.0-beta02")
+    implementation("androidx.core:core-splashscreen:1.0.0-rc01")
 
     //image load
     implementation("io.coil-kt:coil-compose:${Versions.coil}")
@@ -133,7 +134,7 @@ dependencies {
     implementation("com.jakewharton.threetenabp:threetenabp:1.4.0")
 
     // https://mvnrepository.com/artifact/com.google.android.material/compose-theme-adapter-3
-    implementation("com.google.android.material:compose-theme-adapter-3:1.0.9")
+    implementation("com.google.android.material:compose-theme-adapter-3:1.0.10")
 
     //html parsing
     implementation("org.jsoup:jsoup:1.14.3")

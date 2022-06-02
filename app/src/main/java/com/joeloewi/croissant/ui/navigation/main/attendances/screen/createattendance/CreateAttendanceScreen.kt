@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavBackStackEntry
@@ -33,8 +34,6 @@ import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattend
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.util.*
 import com.joeloewi.croissant.viewmodel.CreateAttendanceViewModel
-import com.joeloewi.domain.common.HoYoLABGame
-import com.joeloewi.domain.entity.Game
 import com.joeloewi.domain.entity.GameRecord
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.launch
@@ -142,13 +141,12 @@ fun CreateAttendanceContent(
             is Lce.Content -> {
                 onShowCreateAttendanceProgressDialogChange(false)
                 if (createAttendanceState.content.isNotEmpty()) {
-                    onNavigateUp()
-
                     requestReview(
                         context = context,
                         activity = activity,
                         logMessage = "CreateAttendanceScreen"
                     )
+                    onNavigateUp()
                 }
             }
 
@@ -255,20 +253,6 @@ fun CreateAttendanceContent(
                                     remember { createAttendanceViewModel.checkedGames }
                                 val duplicatedAttendance by createAttendanceViewModel.duplicatedAttendance.collectAsState()
 
-                                LaunchedEffect(connectedGames) {
-                                    if (connectedGames is Lce.Content) {
-                                        connectedGames.content.onEach { gameRecord ->
-                                            checkedGames.add(
-                                                Game(
-                                                    roleId = gameRecord.gameRoleId,
-                                                    type = HoYoLABGame.findByGameId(gameId = gameRecord.gameId),
-                                                    region = gameRecord.region
-                                                )
-                                            )
-                                        }
-                                    }
-                                }
-
                                 SelectGames(
                                     duplicatedAttendance = duplicatedAttendance,
                                     checkedGames = checkedGames,
@@ -341,7 +325,10 @@ fun CreateAttendanceContent(
                     Text(text = stringResource(id = R.string.caution))
                 },
                 text = {
-                    Text(text = stringResource(id = R.string.unsaved_contents_will_be_disappeared))
+                    Text(
+                        text = stringResource(id = R.string.unsaved_contents_will_be_disappeared),
+                        textAlign = TextAlign.Center
+                    )
                 },
                 properties = DialogProperties(
                     dismissOnClickOutside = false,

@@ -21,7 +21,7 @@ class MainViewModel @Inject constructor(
     val isFirstLaunch = _settings.map { it.isFirstLaunch }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(),
-        initialValue = Settings().isFirstLaunch
+        initialValue = false
     )
 
     init {

@@ -16,7 +16,7 @@ suspend fun requestReview(
     //i guess google tests app by this device
     //and it does not have play store app, because i got an error on crashlytics :
     //Review Error(-1): The Play Store app is either not installed or not the official version
-    if (Build.MODEL != "Nexus 5X") {
+    if (Build.PRODUCT != "Nexus 5X") {
         runCatching {
             ReviewManagerFactory.create(context)
         }.mapCatching { reviewManager ->
@@ -25,7 +25,7 @@ suspend fun requestReview(
             }
         }.onFailure { cause ->
             FirebaseCrashlytics.getInstance().apply {
-                log(Build.MODEL)
+                log(Build.PRODUCT)
                 logMessage?.let { log(it) }
                 recordException(cause)
             }

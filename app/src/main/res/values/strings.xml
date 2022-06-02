@@ -105,4 +105,17 @@
     <string name="experimental_sns_login_feature">Login via SNS account may occurs some errors. Facebook login is not supported.</string>
     <string name="notify_migrate_alarm_manager_text">At version 1.0.9, problem which not executed at user\'s desire time was modified. If you have made attendance job previous version, please delete and create new job (recommended) or modify in detail screen.</string>
     <string name="do_not_show_again">Do not show again</string>
+    <string name="location">Location</string>
+    <string name="seoul_at_south_korea">Seoul, South Korea</string>
+    <string name="careers">Careers</string>
+    <string name="career_now">Now</string>
+    <string name="currently_looking_for_a_job">Currently looking for a job</string>
+    <string name="jongdallab">Jongdal Lab</string>
+    <string name="websites">Websites</string>
+    <string name="contacts">Contacts</string>
+    <string name="email">Email</string>
+    <string name="others">Others</string>
+    <string name="developer_info">Developer information</string>
+    <string name="android_app_developer">Android app developer</string>
+    <string name="jongdallab_tenure">1 year, 9 months</string>
 </resources>

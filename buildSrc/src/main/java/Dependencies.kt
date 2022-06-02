@@ -1,4 +1,5 @@
 object Versions {
+    const val material3 = "1.0.0-alpha13"
     const val compose = "1.2.0-beta02"
     const val hilt = "2.42"
     const val paging = "3.1.1"

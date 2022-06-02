@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
@@ -430,7 +431,8 @@ fun LoginHoYoLABContent(
                                 append("(${it})")
                             }
                             append(stringResource(id = R.string.has_error_in_certification))
-                        }
+                        },
+                        textAlign = TextAlign.Center
                     )
                 }
             )

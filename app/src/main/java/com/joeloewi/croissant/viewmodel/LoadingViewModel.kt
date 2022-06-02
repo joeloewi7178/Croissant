@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class ResinStatusWidgetConfigurationViewModel @Inject constructor(
+class LoadingViewModel @Inject constructor(
     private val getOneByAppWidgetIdResinStatusWidgetUseCase: ResinStatusWidgetUseCase.GetOneByAppWidgetId,
 ) : ViewModel() {
     private val _isAppWidgetInitialized = MutableStateFlow<Lce<Boolean>>(Lce.Loading)

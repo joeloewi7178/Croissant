@@ -31,10 +31,7 @@ import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
-import com.joeloewi.croissant.util.LocalActivity
-import com.joeloewi.croissant.util.ProgressDialog
-import com.joeloewi.croissant.util.isEmpty
-import com.joeloewi.croissant.util.requestReview
+import com.joeloewi.croissant.util.*
 import com.joeloewi.croissant.viewmodel.CreateResinStatusWidgetViewModel
 import com.joeloewi.domain.common.HoYoLABGame
 import com.joeloewi.domain.entity.relational.AttendanceWithGames
@@ -55,7 +52,6 @@ fun CreateResinStatusWidgetScreen(
     val createResinStatusWidgetState by
     createResinStatusWidgetViewModel.createResinStatusWidgetState.collectAsState()
     val activity = LocalActivity.current
-    val context = LocalContext.current
 
     LaunchedEffect(createResinStatusWidgetViewModel) {
         with(activity) {
@@ -67,14 +63,6 @@ fun CreateResinStatusWidgetScreen(
             }
             setResult(Activity.RESULT_CANCELED, resultValue)
         }
-    }
-
-    LaunchedEffect(context) {
-        requestReview(
-            context = context,
-            activity = activity,
-            logMessage = navController.currentDestination?.route
-        )
     }
 
     CreateResinStatusWidgetContent(
@@ -303,7 +291,7 @@ fun AccountListItem(
     item: AttendanceWithGames,
     checkedAccounts: SnapshotStateList<Long>
 ) {
-    Row(
+    ListItem(
         modifier = Modifier
             .fillMaxWidth()
             .toggleable(
@@ -318,22 +306,14 @@ fun AccountListItem(
                     }
                 }
             ),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(DoubleDp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(text = item.attendance.nickname)
-
+        text = { Text(text = item.attendance.nickname)},
+        trailing = {
             Checkbox(
                 checked = checkedAccounts.contains(item.attendance.id),
                 onCheckedChange = null
             )
         }
-    }
+    )
 }
 
 @ExperimentalMaterial3Api
