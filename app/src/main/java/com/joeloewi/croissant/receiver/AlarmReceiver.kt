@@ -33,7 +33,7 @@ class AlarmReceiver : BroadcastReceiver() {
 
     override fun onReceive(p0: Context?, p1: Intent?) {
         when (p1?.action) {
-            Intent.ACTION_BOOT_COMPLETED -> {
+            Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED -> {
                 goAsync(
                     onError = {
                         it.printStackTrace()

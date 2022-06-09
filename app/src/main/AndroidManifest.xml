@@ -100,6 +100,7 @@
 
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
                 <action android:name="${applicationId}.action.RECEIVE_ATTEND_CHECK_IN_ALARM" />
             </intent-filter>
         </receiver>
