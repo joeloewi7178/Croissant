@@ -33,7 +33,7 @@ class AlarmReceiver : BroadcastReceiver() {
 
     override fun onReceive(p0: Context?, p1: Intent?) {
         when (p1?.action) {
-            Intent.ACTION_BOOT_COMPLETED -> {
+            Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED -> {
                 goAsync(
                     onError = {
                         it.printStackTrace()
@@ -63,17 +63,22 @@ class AlarmReceiver : BroadcastReceiver() {
                                     set(Calendar.MINUTE, minute)
                                 }
 
-                                AlarmManagerCompat.setExactAndAllowWhileIdle(
-                                    (application.getSystemService(Context.ALARM_SERVICE) as AlarmManager),
-                                    AlarmManager.RTC_WAKEUP,
-                                    targetTime.timeInMillis,
-                                    PendingIntent.getBroadcast(
-                                        application,
-                                        id.toInt(),
-                                        alarmIntent,
-                                        pendingIntentFlagUpdateCurrent
-                                    )
+                                val pendingIntent = PendingIntent.getBroadcast(
+                                    application,
+                                    id.toInt(),
+                                    alarmIntent,
+                                    pendingIntentFlagUpdateCurrent
                                 )
+
+                                with(application.getSystemService(Context.ALARM_SERVICE) as AlarmManager) {
+                                    cancel(pendingIntent)
+                                    AlarmManagerCompat.setExactAndAllowWhileIdle(
+                                        this,
+                                        AlarmManager.RTC_WAKEUP,
+                                        targetTime.timeInMillis,
+                                        pendingIntent
+                                    )
+                                }
                             }
                         }
                     }.awaitAll()
@@ -126,17 +131,22 @@ class AlarmReceiver : BroadcastReceiver() {
                         set(Calendar.MINUTE, attendance.minute)
                     }
 
-                    AlarmManagerCompat.setExactAndAllowWhileIdle(
-                        (application.getSystemService(Context.ALARM_SERVICE) as AlarmManager),
-                        AlarmManager.RTC_WAKEUP,
-                        targetTime.time.time,
-                        PendingIntent.getBroadcast(
-                            application,
-                            attendance.id.toInt(),
-                            alarmIntent,
-                            pendingIntentFlagUpdateCurrent
-                        )
+                    val pendingIntent = PendingIntent.getBroadcast(
+                        application,
+                        attendance.id.toInt(),
+                        alarmIntent,
+                        pendingIntentFlagUpdateCurrent
                     )
+
+                    with(application.getSystemService(Context.ALARM_SERVICE) as AlarmManager) {
+                        cancel(pendingIntent)
+                        AlarmManagerCompat.setExactAndAllowWhileIdle(
+                            this,
+                            AlarmManager.RTC_WAKEUP,
+                            targetTime.timeInMillis,
+                            pendingIntent
+                        )
+                    }
                 }
             }
 

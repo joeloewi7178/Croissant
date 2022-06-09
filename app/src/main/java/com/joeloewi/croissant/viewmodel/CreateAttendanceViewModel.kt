@@ -182,17 +182,22 @@ class CreateAttendanceViewModel @Inject constructor(
                     putExtra(AlarmReceiver.ATTENDANCE_ID, attendance.id)
                 }
 
-                AlarmManagerCompat.setExactAndAllowWhileIdle(
-                    (application.getSystemService(Context.ALARM_SERVICE) as AlarmManager),
-                    AlarmManager.RTC_WAKEUP,
-                    targetTime.timeInMillis,
-                    PendingIntent.getBroadcast(
-                        application,
-                        attendance.id.toInt(),
-                        alarmIntent,
-                        pendingIntentFlagUpdateCurrent
-                    )
+                val pendingIntent = PendingIntent.getBroadcast(
+                    application,
+                    attendance.id.toInt(),
+                    alarmIntent,
+                    pendingIntentFlagUpdateCurrent
                 )
+
+                with(application.getSystemService(Context.ALARM_SERVICE) as AlarmManager) {
+                    cancel(pendingIntent)
+                    AlarmManagerCompat.setExactAndAllowWhileIdle(
+                        this,
+                        AlarmManager.RTC_WAKEUP,
+                        targetTime.timeInMillis,
+                        pendingIntent
+                    )
+                }
 
                 val periodicCheckSessionWork = PeriodicWorkRequest.Builder(
                     CheckSessionWorker::class.java,
