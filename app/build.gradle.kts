@@ -15,8 +15,8 @@ android {
         applicationId = "com.joeloewi.croissant"
         minSdk = 21
         targetSdk = 32
-        versionCode = 13
-        versionName = "1.0.13"
+        versionCode = 14
+        versionName = "1.0.14"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -69,7 +69,7 @@ dependencies {
     implementation(project(":data"))
     implementation(project(":domain"))
 
-    implementation("androidx.core:core-ktx:1.7.0")
+    implementation("androidx.core:core-ktx:1.8.0")
     implementation("com.google.android.material:material:1.7.0-alpha02")
     implementation("androidx.compose.material3:material3:${Versions.material3}")
     implementation("androidx.compose.material3:material3-window-size-class:${Versions.material3}")
@@ -128,23 +128,23 @@ dependencies {
     implementation("androidx.webkit:webkit:1.4.0")
 
     //paging
-    implementation("androidx.paging:paging-compose:1.0.0-alpha14")
+    implementation("androidx.paging:paging-compose:1.0.0-alpha15")
 
     //java.time back porting
     implementation("com.jakewharton.threetenabp:threetenabp:1.4.0")
 
     // https://mvnrepository.com/artifact/com.google.android.material/compose-theme-adapter-3
-    implementation("com.google.android.material:compose-theme-adapter-3:1.0.10")
+    implementation("com.google.android.material:compose-theme-adapter-3:1.0.11")
 
     //html parsing
-    implementation("org.jsoup:jsoup:1.14.3")
+    implementation("org.jsoup:jsoup:1.15.1")
 
     //in-app update
     implementation("com.google.android.play:core:1.10.3")
     implementation("com.google.android.play:core-ktx:1.8.1")
 
     //firebase
-    implementation(platform("com.google.firebase:firebase-bom:30.0.1"))
+    implementation(platform("com.google.firebase:firebase-bom:30.1.0"))
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.firebase:firebase-crashlytics-ktx")
 }

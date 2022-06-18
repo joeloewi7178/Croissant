@@ -33,7 +33,7 @@ class AlarmReceiver : BroadcastReceiver() {
 
     override fun onReceive(p0: Context?, p1: Intent?) {
         when (p1?.action) {
-            Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED -> {
+            Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED, AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED -> {
                 goAsync(
                     onError = {
                         it.printStackTrace()
@@ -110,6 +110,7 @@ class AlarmReceiver : BroadcastReceiver() {
 
                     val oneTimeWork = OneTimeWorkRequestBuilder<AttendCheckInEventWorker>()
                         .setInputData(workDataOf(AttendCheckInEventWorker.ATTENDANCE_ID to attendance.id))
+                        .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                         .setConstraints(
                             Constraints.Builder()
                                 .setRequiredNetworkType(NetworkType.CONNECTED)

@@ -4,12 +4,15 @@ import android.app.Notification
 import android.app.PendingIntent
 import android.content.Context
 import android.content.pm.PackageManager
+import android.content.pm.ServiceInfo
 import android.os.Build
+import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
+import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import coil.ImageLoader
 import coil.request.ImageRequest
@@ -51,6 +54,62 @@ class AttendCheckInEventWorker @AssistedInject constructor(
     params = params
 ) {
     private val _attendanceId = inputData.getLong(ATTENDANCE_ID, Long.MIN_VALUE)
+
+    override suspend fun getForegroundInfo(): ForegroundInfo =
+        createForegroundInfo(_attendanceId.toInt())
+
+    private fun createForegroundInfo(notificationId: Int): ForegroundInfo = NotificationCompat
+        .Builder(
+            context,
+            getOrCreateNotificationChannel(
+                context.getString(R.string.attendance_foreground_notification_channel_id),
+                context.getString(R.string.attendance_foreground_notification_channel_name)
+            )
+        )
+        .setContentTitle(context.getString(R.string.attendance_foreground_notification_title))
+        .setContentText(context.getString(R.string.wait_for_a_moment))
+        .setSmallIcon(R.drawable.ic_baseline_bakery_dining_24)
+        .apply {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                foregroundServiceBehavior = Notification.FOREGROUND_SERVICE_IMMEDIATE
+            }
+        }
+        .build()
+        .run {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                ForegroundInfo(
+                    notificationId,
+                    this,
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_NONE
+                )
+            } else {
+                ForegroundInfo(
+                    notificationId,
+                    this
+                )
+            }
+        }
+
+    private fun getOrCreateNotificationChannel(
+        channelId: String,
+        channelName: String
+    ): String =
+        if (NotificationManagerCompat.from(context).getNotificationChannel(channelId) != null) {
+            channelId
+        } else {
+            channelId.also {
+                val notificationChannelCompat = NotificationChannelCompat
+                    .Builder(
+                        it,
+                        NotificationManagerCompat.IMPORTANCE_MAX
+                    )
+                    .setName(channelName)
+                    .build()
+
+                NotificationManagerCompat.from(context)
+                    .createNotificationChannel(notificationChannelCompat)
+            }
+        }
 
     private suspend fun createAttendanceNotification(
         context: Context,
