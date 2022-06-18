@@ -20,6 +20,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -249,15 +250,17 @@ fun RedemptionCodeListItem(
                         setBackgroundColor(Color.TRANSPARENT)
                     }
                 },
-                client = object : AccompanistWebViewClient() {
-                    override fun shouldOverrideUrlLoading(
-                        view: WebView?,
-                        request: WebResourceRequest?
-                    ): Boolean {
-                        request?.url?.let {
-                            activity.startActivity(Intent(Intent.ACTION_VIEW, it))
+                client = remember {
+                    object : AccompanistWebViewClient() {
+                        override fun shouldOverrideUrlLoading(
+                            view: WebView?,
+                            request: WebResourceRequest?
+                        ): Boolean {
+                            request?.url?.let {
+                                activity.startActivity(Intent(Intent.ACTION_VIEW, it))
+                            }
+                            return true
                         }
-                        return true
                     }
                 }
             )

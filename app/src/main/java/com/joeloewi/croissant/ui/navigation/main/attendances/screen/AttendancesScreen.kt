@@ -221,6 +221,7 @@ fun AttendanceWithGamesItem(
                     val attendance = item.attendance
                     val oneTimeWork = OneTimeWorkRequestBuilder<AttendCheckInEventWorker>()
                         .setInputData(workDataOf(AttendCheckInEventWorker.ATTENDANCE_ID to attendance.id))
+                        .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                         .setConstraints(
                             Constraints.Builder()
                                 .setRequiredNetworkType(NetworkType.CONNECTED)

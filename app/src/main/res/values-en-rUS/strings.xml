@@ -115,4 +115,7 @@
     <string name="developer_info">Developer information</string>
     <string name="android_app_developer">Android app developer</string>
     <string name="jongdallab_tenure">1 year, 9 months</string>
+    <string name="attendance_foreground_notification_channel_name">attendance execution notification</string>
+    <string name="attendance_foreground_notification_title">Attendance job  is running</string>
+    <string name="schedule_exact_alarm_disabled">App can\'t schedule exact alarm, which is essential for scheduling attendance job. Please allow setting alarms and reminders. Confirm button will locate to system settings.</string>
 </resources>

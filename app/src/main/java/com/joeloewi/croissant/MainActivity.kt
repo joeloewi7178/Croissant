@@ -190,6 +190,11 @@ fun CroissantApp() {
                 false
             )
         }
+        val (showScheduleExactAlarmAlert, onShowScheduleExactAlarmAlertChange) = remember {
+            mutableStateOf(
+                false
+            )
+        }
 
         LaunchedEffect(lifecycle) {
             when (lifecycle) {
@@ -202,6 +207,10 @@ fun CroissantApp() {
 
                     onShowBatteryOptimizationAlertChange(
                         !context.isIgnoringBatteryOptimizations()
+                    )
+
+                    onShowScheduleExactAlarmAlertChange(
+                        !context.canScheduleExactAlarms()
                     )
                 }
                 else -> {
@@ -464,6 +473,47 @@ fun CroissantApp() {
                             Text(
                                 textAlign = TextAlign.Center,
                                 text = stringResource(id = R.string.battery_optimization_enabled)
+                            )
+                        },
+                        properties = DialogProperties(
+                            dismissOnClickOutside = false,
+                            dismissOnBackPress = false
+                        )
+                    )
+                }
+
+                if (!isFirstLaunch && showScheduleExactAlarmAlert) {
+                    AlertDialog(
+                        onDismissRequest = {
+                            onShowBatteryOptimizationAlertChange(false)
+                        },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    onShowBatteryOptimizationAlertChange(false)
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                        Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).also {
+                                            context.startActivity(it)
+                                        }
+                                    }
+                                }
+                            ) {
+                                Text(text = stringResource(id = R.string.confirm))
+                            }
+                        },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.Warning,
+                                contentDescription = Icons.Default.Warning.name
+                            )
+                        },
+                        title = {
+                            Text(text = stringResource(id = R.string.caution))
+                        },
+                        text = {
+                            Text(
+                                textAlign = TextAlign.Center,
+                                text = stringResource(id = R.string.schedule_exact_alarm_disabled)
                             )
                         },
                         properties = DialogProperties(
