@@ -18,4 +18,5 @@ dependencies {
     implementation("com.squareup.moshi:moshi-adapters:${Versions.moshi}")
     kapt("com.squareup.moshi:moshi-kotlin-codegen:${Versions.moshi}")
 
+    implementation("javax.inject:javax.inject:1")
 }
