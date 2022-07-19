@@ -117,4 +117,5 @@
     <string name="attendance_foreground_notification_channel_name">출석 실행 알림</string>
     <string name="attendance_foreground_notification_title">출석 작업 실행 중</string>
     <string name="schedule_exact_alarm_disabled">출석 작업을 예약할 때 필수적인 기능이 허용되어 있지 않습니다. 확인을 눌러 표시되는 화면의 모든 앱 중 크루아상을 찾아 최적화를 해제하여 주세요.</string>
+    <string name="press_save_button_to_commit">새로운 접속 정보가 확인되었습니다. 우측 상단의 저장버튼을 눌러 적용해주세요.</string>
 </resources>

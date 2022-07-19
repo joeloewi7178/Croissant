@@ -8,6 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -21,17 +22,19 @@ class LoadingViewModel @Inject constructor(
 
     fun findResinStatusWidgetByAppWidgetId(appWidgetId: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            _isAppWidgetInitialized.value = getOneByAppWidgetIdResinStatusWidgetUseCase
-                .runCatching {
-                    invoke(appWidgetId).resinStatusWidget.id
-                }.fold(
-                    onSuccess = {
-                        Lce.Content(true)
-                    },
-                    onFailure = {
-                        Lce.Content(false)
-                    }
-                )
+            _isAppWidgetInitialized.update {
+                getOneByAppWidgetIdResinStatusWidgetUseCase
+                    .runCatching {
+                        invoke(appWidgetId).resinStatusWidget.id
+                    }.fold(
+                        onSuccess = {
+                            Lce.Content(true)
+                        },
+                        onFailure = {
+                            Lce.Content(false)
+                        }
+                    )
+            }
         }
     }
 }

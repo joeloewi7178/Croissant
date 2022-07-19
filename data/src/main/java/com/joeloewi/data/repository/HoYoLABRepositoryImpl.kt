@@ -17,8 +17,8 @@ class HoYoLABRepositoryImpl @Inject constructor(
 ) : HoYoLABRepository {
 
     override suspend fun getUserFullInfo(cookie: String): ContentOrError<UserFullInfoResponse> =
-        hoYoLABDataSource.getUserFullInfo(cookie).runCatching {
-            getOrThrow().also { response ->
+        hoYoLABDataSource.runCatching {
+            getUserFullInfo(cookie).getOrThrow().also { response ->
                 if (HoYoLABRetCode.findByCode(response.retCode) != HoYoLABRetCode.OK) {
                     throw HoYoLABUnsuccessfulResponseException(
                         responseMessage = response.message,
@@ -39,8 +39,8 @@ class HoYoLABRepositoryImpl @Inject constructor(
         cookie: String,
         uid: Long
     ): ContentOrError<GameRecordCardData?> =
-        hoYoLABDataSource.getGameRecordCard(cookie, uid).runCatching {
-            getOrThrow().also { response ->
+        hoYoLABDataSource.runCatching {
+            getGameRecordCard(cookie, uid).getOrThrow().also { response ->
                 if (HoYoLABRetCode.findByCode(response.retCode) != HoYoLABRetCode.OK) {
                     throw HoYoLABUnsuccessfulResponseException(
                         responseMessage = response.message,
@@ -61,10 +61,10 @@ class HoYoLABRepositoryImpl @Inject constructor(
         cookie: String,
         roleId: Long,
         server: String
-    ): ContentOrError<GenshinDailyNoteData?> = hoYoLABDataSource.getGenshinDailyNote(
-        cookie = cookie, roleId = roleId, server = server
-    ).runCatching {
-        getOrThrow().also { response ->
+    ): ContentOrError<GenshinDailyNoteData?> = hoYoLABDataSource.runCatching {
+        getGenshinDailyNote(
+            cookie = cookie, roleId = roleId, server = server
+        ).getOrThrow().also { response ->
             if (HoYoLABRetCode.findByCode(response.retCode) != HoYoLABRetCode.OK) {
                 throw HoYoLABUnsuccessfulResponseException(
                     responseMessage = response.message,
@@ -87,8 +87,8 @@ class HoYoLABRepositoryImpl @Inject constructor(
         isPublic: Boolean,
         gameId: Int
     ): ContentOrError<BaseResponse> =
-        hoYoLABDataSource.changeDataSwitch(cookie, switchId, isPublic, gameId).runCatching {
-            getOrThrow().also { response ->
+        hoYoLABDataSource.runCatching {
+            changeDataSwitch(cookie, switchId, isPublic, gameId).getOrThrow().also { response ->
                 if (HoYoLABRetCode.findByCode(response.retCode) != HoYoLABRetCode.OK) {
                     throw HoYoLABUnsuccessfulResponseException(
                         responseMessage = response.message,

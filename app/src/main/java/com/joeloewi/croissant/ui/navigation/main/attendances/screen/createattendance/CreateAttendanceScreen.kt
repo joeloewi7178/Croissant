@@ -11,13 +11,12 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.window.DialogProperties
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import com.google.accompanist.pager.ExperimentalPagerApi
@@ -32,11 +31,17 @@ import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattend
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.composable.SelectGames
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.composable.SetTime
 import com.joeloewi.croissant.ui.theme.DefaultDp
-import com.joeloewi.croissant.util.*
+import com.joeloewi.croissant.util.ProgressDialog
+import com.joeloewi.croissant.util.collectAsStateLifecycleAware
+import com.joeloewi.croissant.util.getResultFromPreviousComposable
+import com.joeloewi.croissant.util.navigationIconButton
 import com.joeloewi.croissant.viewmodel.CreateAttendanceViewModel
+import com.joeloewi.domain.entity.Attendance
+import com.joeloewi.domain.entity.Game
 import com.joeloewi.domain.entity.GameRecord
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.launch
+import java.util.*
 
 @ExperimentalFoundationApi
 @ObsoleteCoroutinesApi
@@ -50,6 +55,12 @@ fun CreateAttendanceScreen(
     val cookie by createAttendanceViewModel.cookie.collectAsState()
     val connectedGames by createAttendanceViewModel.connectedGames.collectAsState()
     val createAttendanceState by createAttendanceViewModel.createAttendanceState.collectAsState()
+    val checkedGames =
+        remember { createAttendanceViewModel.checkedGames }
+    val duplicatedAttendance by createAttendanceViewModel.duplicatedAttendance.collectAsState()
+    val hourOfDay by createAttendanceViewModel.hourOfDay.collectAsState()
+    val minute by createAttendanceViewModel.minute.collectAsState()
+    val tickerCalendar by createAttendanceViewModel.tickerCalendar.collectAsStateLifecycleAware()
 
     LaunchedEffect(createAttendanceViewModel) {
         getResultFromPreviousComposable<String>(
@@ -64,7 +75,14 @@ fun CreateAttendanceScreen(
         previousBackStackEntry = navController.previousBackStackEntry,
         cookie = cookie,
         connectedGames = connectedGames,
+        duplicatedAttendance = duplicatedAttendance,
+        checkedGames = checkedGames,
         createAttendanceState = createAttendanceState,
+        hourOfDay = hourOfDay,
+        minute = minute,
+        tickerCalendar = tickerCalendar,
+        onHourOfDayChange = createAttendanceViewModel::setHourOfDay,
+        onMinuteChange = createAttendanceViewModel::setMinute,
         onLoginHoYoLAB = {
             navController.navigate(AttendancesDestination.LoginHoYoLabScreen.route)
         },
@@ -97,15 +115,20 @@ fun CreateAttendanceContent(
     previousBackStackEntry: NavBackStackEntry?,
     cookie: String,
     connectedGames: Lce<List<GameRecord>>,
+    duplicatedAttendance: Attendance?,
+    checkedGames: SnapshotStateList<Game>,
     createAttendanceState: Lce<List<Long>>,
+    hourOfDay: Int,
+    minute: Int,
+    tickerCalendar: Calendar,
+    onHourOfDayChange: (Int) -> Unit,
+    onMinuteChange: (Int) -> Unit,
     onLoginHoYoLAB: () -> Unit,
     onNavigateUp: () -> Unit,
     onCreateAttendance: () -> Unit,
     onNavigateToAttendanceDetailScreen: (Long) -> Unit,
     onCancelCreateAttendance: () -> Unit
 ) {
-    val context = LocalContext.current
-    val activity = LocalActivity.current
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState()
     val onNextButtonClick: (() -> Unit) = {
@@ -141,11 +164,6 @@ fun CreateAttendanceContent(
             is Lce.Content -> {
                 onShowCreateAttendanceProgressDialogChange(false)
                 if (createAttendanceState.content.isNotEmpty()) {
-                    requestReview(
-                        context = context,
-                        activity = activity,
-                        logMessage = "CreateAttendanceScreen"
-                    )
                     onNavigateUp()
                 }
             }
@@ -247,11 +265,6 @@ fun CreateAttendanceContent(
                                 enter = fadeIn(),
                                 exit = fadeOut()
                             ) {
-                                val createAttendanceViewModel: CreateAttendanceViewModel =
-                                    hiltViewModel()
-                                val checkedGames =
-                                    remember { createAttendanceViewModel.checkedGames }
-                                val duplicatedAttendance by createAttendanceViewModel.duplicatedAttendance.collectAsState()
 
                                 SelectGames(
                                     duplicatedAttendance = duplicatedAttendance,
@@ -270,19 +283,14 @@ fun CreateAttendanceContent(
                                 enter = fadeIn(),
                                 exit = fadeOut()
                             ) {
-                                val createAttendanceViewModel: CreateAttendanceViewModel =
-                                    hiltViewModel()
-                                val hourOfDay by createAttendanceViewModel.hourOfDay.collectAsState()
-                                val minute by createAttendanceViewModel.minute.collectAsState()
-                                val tickerCalendar by createAttendanceViewModel.tickerCalendar.collectAsState()
 
                                 SetTime(
                                     hourOfDay = hourOfDay,
                                     minute = minute,
                                     tickerCalendar = tickerCalendar,
                                     onNextButtonClick = onNextButtonClick,
-                                    onHourOfDayChange = createAttendanceViewModel::setHourOfDay,
-                                    onMinuteChange = createAttendanceViewModel::setMinute
+                                    onHourOfDayChange = onHourOfDayChange,
+                                    onMinuteChange = onMinuteChange
                                 )
                             }
                         }

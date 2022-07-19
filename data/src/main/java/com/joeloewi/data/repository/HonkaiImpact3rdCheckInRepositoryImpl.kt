@@ -14,8 +14,8 @@ class HonkaiImpact3rdCheckInRepositoryImpl @Inject constructor(
 ) : HonkaiImpact3rdCheckInRepository {
 
     override suspend fun attendCheckInHonkaiImpact3rd(cookie: String): ContentOrError<BaseResponse> =
-        honkaiImpact3rdCheckInDataSource.attendCheckInHonkaiImpact3rd(cookie = cookie).runCatching {
-            getOrThrow().also { response ->
+        honkaiImpact3rdCheckInDataSource.runCatching {
+            attendCheckInHonkaiImpact3rd(cookie = cookie).getOrThrow().also { response ->
                 if (HoYoLABRetCode.findByCode(response.retCode) != HoYoLABRetCode.OK) {
                     throw HoYoLABUnsuccessfulResponseException(
                         responseMessage = response.message,

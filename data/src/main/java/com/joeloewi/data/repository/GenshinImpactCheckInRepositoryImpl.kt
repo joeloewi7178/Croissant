@@ -14,8 +14,8 @@ class GenshinImpactCheckInRepositoryImpl @Inject constructor(
 ) : GenshinImpactCheckInRepository {
 
     override suspend fun attendCheckInGenshinImpact(cookie: String): ContentOrError<BaseResponse> =
-        genshinImpactCheckInDataSource.attendCheckInGenshinImpact(cookie).runCatching {
-            getOrThrow().also { response ->
+        genshinImpactCheckInDataSource.runCatching {
+            attendCheckInGenshinImpact(cookie).getOrThrow().also { response ->
                 if (HoYoLABRetCode.findByCode(response.retCode) != HoYoLABRetCode.OK) {
                     throw HoYoLABUnsuccessfulResponseException(
                         responseMessage = response.message,

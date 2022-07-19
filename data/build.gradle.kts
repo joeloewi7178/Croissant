@@ -90,7 +90,7 @@ dependencies {
     implementation("com.google.dagger:hilt-android:${Versions.hilt}")
     kapt("com.google.dagger:hilt-android-compiler:${Versions.hilt}")
 
-    implementation("com.github.skydoves:sandwich:1.2.4")
+    implementation("com.github.skydoves:sandwich:1.2.6")
 }
 
 protobuf {

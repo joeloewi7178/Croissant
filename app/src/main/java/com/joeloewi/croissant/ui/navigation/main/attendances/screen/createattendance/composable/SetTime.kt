@@ -1,7 +1,5 @@
 package com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.composable
 
-import android.os.Build
-import android.widget.TimePicker
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -11,9 +9,6 @@ import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -21,9 +16,9 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.viewinterop.AndroidView
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.theme.DefaultDp
+import com.joeloewi.croissant.util.TimePicker
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import java.util.*
 
@@ -38,23 +33,6 @@ fun SetTime(
     onHourOfDayChange: (Int) -> Unit,
     onMinuteChange: (Int) -> Unit
 ) {
-    val (timePicker, onTimePickerChange) = remember {
-        mutableStateOf<TimePicker?>(
-            null
-        )
-    }
-
-    DisposableEffect(timePicker) {
-        timePicker?.setOnTimeChangedListener { _, hourOfDay, minute ->
-            onHourOfDayChange(hourOfDay)
-            onMinuteChange(minute)
-        }
-
-        onDispose {
-            timePicker?.setOnTimeChangedListener(null)
-        }
-    }
-
     Scaffold(
         bottomBar = {
             FilledTonalButton(
@@ -101,22 +79,13 @@ fun SetTime(
                 style = MaterialTheme.typography.bodyMedium
             )
 
-            AndroidView(
+            TimePicker(
                 modifier = Modifier.fillMaxWidth(),
-                factory = { androidViewContext ->
-                    TimePicker(androidViewContext).apply {
-                        setIs24HourView(true)
-                    }.also(onTimePickerChange)
-                }
-            ) { view ->
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    hourOfDay.takeIf { it != view.hour }?.let(view::setHour)
-                    minute.takeIf { it != view.minute }?.let(view::setMinute)
-                } else {
-                    hourOfDay.takeIf { it != view.currentHour }?.let(view::setCurrentHour)
-                    minute.takeIf { it != view.currentMinute }?.let(view::setCurrentMinute)
-                }
-            }
+                hourOfDay = hourOfDay,
+                minute = minute,
+                onHourOfDayChange = onHourOfDayChange,
+                onMinuteChange = onMinuteChange
+            )
 
             Row(
                 modifier = Modifier.fillMaxWidth(),

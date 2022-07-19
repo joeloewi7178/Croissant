@@ -37,7 +37,7 @@ class MainViewModel @Inject constructor(
 
     fun setIsFirstLaunch(isFirstLaunch: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
-            updateSettingsUseCase.invoke(isFirstLaunch)
+            updateSettingsUseCase(isFirstLaunch)
         }
     }
 }

@@ -15,8 +15,8 @@ android {
         applicationId = "com.joeloewi.croissant"
         minSdk = 21
         targetSdk = 32
-        versionCode = 14
-        versionName = "1.0.14"
+        versionCode = 15
+        versionName = "1.0.15"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -55,7 +55,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = Versions.compose
+        kotlinCompilerExtensionVersion = "1.2.0"
     }
     packagingOptions {
         resources {
@@ -74,7 +74,7 @@ dependencies {
     implementation("androidx.compose.material3:material3:${Versions.material3}")
     implementation("androidx.compose.material3:material3-window-size-class:${Versions.material3}")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:${Versions.lifecycle}")
-    implementation("androidx.activity:activity-compose:1.4.0")
+    implementation("androidx.activity:activity-compose:1.5.0")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.3")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
@@ -96,7 +96,7 @@ dependencies {
     //compose
     implementation("androidx.compose.ui:ui:${Versions.compose}")
     implementation("androidx.compose.foundation:foundation:${Versions.compose}")
-    implementation("androidx.navigation:navigation-compose:2.4.2")
+    implementation("androidx.navigation:navigation-compose:2.5.0")
     implementation("androidx.compose.runtime:runtime:${Versions.compose}")
     implementation("androidx.compose.ui:ui-tooling-preview:${Versions.compose}")
     implementation("androidx.compose.runtime:runtime-livedata:${Versions.compose}")
@@ -134,19 +134,22 @@ dependencies {
     implementation("com.jakewharton.threetenabp:threetenabp:1.4.0")
 
     // https://mvnrepository.com/artifact/com.google.android.material/compose-theme-adapter-3
-    implementation("com.google.android.material:compose-theme-adapter-3:1.0.11")
+    implementation("com.google.android.material:compose-theme-adapter-3:1.0.14")
 
     //html parsing
-    implementation("org.jsoup:jsoup:1.15.1")
+    implementation("org.jsoup:jsoup:1.15.2")
 
     //in-app update
     implementation("com.google.android.play:core:1.10.3")
     implementation("com.google.android.play:core-ktx:1.8.1")
 
     //firebase
-    implementation(platform("com.google.firebase:firebase-bom:30.1.0"))
+    implementation(platform("com.google.firebase:firebase-bom:30.2.0"))
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.firebase:firebase-crashlytics-ktx")
+
+    //leakCanary
+    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.9.1")
 }
 
 kapt {
