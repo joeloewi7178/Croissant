@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
@@ -30,19 +31,20 @@ class RedemptionCodesViewModel @Inject constructor(
     }
 
     fun getRedemptionCodes() {
-        _hoYoLABGameRedemptionCodesState.value = Lce.Loading
-
         viewModelScope.launch(Dispatchers.IO) {
-            _hoYoLABGameRedemptionCodesState.value = HoYoLABGame.values().runCatching {
-                map { it to getRedemptionCodesFromHtml(it) }
-            }.fold(
-                onSuccess = {
-                    Lce.Content(it)
-                },
-                onFailure = {
-                    Lce.Error(it)
-                }
-            )
+            _hoYoLABGameRedemptionCodesState.update { Lce.Loading }
+            _hoYoLABGameRedemptionCodesState.update {
+                HoYoLABGame.values().runCatching {
+                    map { it to getRedemptionCodesFromHtml(it) }
+                }.fold(
+                    onSuccess = {
+                        Lce.Content(it)
+                    },
+                    onFailure = {
+                        Lce.Error(it)
+                    }
+                )
+            }
         }
     }
 

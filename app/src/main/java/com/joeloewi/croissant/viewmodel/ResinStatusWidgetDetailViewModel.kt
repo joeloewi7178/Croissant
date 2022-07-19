@@ -13,6 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -40,23 +41,22 @@ class ResinStatusWidgetDetailViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
                 invoke(appWidgetId = _appWidgetId)
-            }.mapCatching {
-                _interval.value = it.resinStatusWidget.interval
+            }.mapCatching { resinStatusWidgetWithAccounts ->
+                _interval.update { resinStatusWidgetWithAccounts.resinStatusWidget.interval }
             }
         }
     }
 
     fun setInterval(interval: Long) {
         viewModelScope.launch(Dispatchers.IO) {
-            _interval.value = interval
+            _interval.update { interval }
         }
     }
 
     fun updateResinStatusWidget() {
-        _updateResinStatusWidgetState.value = Lce.Loading
-
         viewModelScope.launch(Dispatchers.IO) {
-            _updateResinStatusWidgetState.value =
+            _updateResinStatusWidgetState.update { Lce.Loading }
+            _updateResinStatusWidgetState.update {
                 getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
                     invoke(appWidgetId = _appWidgetId)
                 }.mapCatching {
@@ -94,6 +94,7 @@ class ResinStatusWidgetDetailViewModel @Inject constructor(
                         Lce.Error(it)
                     }
                 )
+            }
         }
     }
 }

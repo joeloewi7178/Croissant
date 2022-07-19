@@ -14,8 +14,8 @@ class TearsOfThemisCheckInRepositoryImpl @Inject constructor(
 ) : TearsOfThemisCheckInRepository {
 
     override suspend fun attendCheckInTearsOfThemis(cookie: String): ContentOrError<BaseResponse> =
-        themisCheckInDataSource.attendCheckInTearsOfThemis(cookie = cookie).runCatching {
-            getOrThrow().also { response ->
+        themisCheckInDataSource.runCatching {
+            attendCheckInTearsOfThemis(cookie = cookie).getOrThrow().also { response ->
                 if (HoYoLABRetCode.findByCode(response.retCode) != HoYoLABRetCode.OK) {
                     throw HoYoLABUnsuccessfulResponseException(
                         responseMessage = response.message,

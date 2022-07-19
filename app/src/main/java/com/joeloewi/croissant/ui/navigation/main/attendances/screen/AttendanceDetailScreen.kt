@@ -1,7 +1,5 @@
 package com.joeloewi.croissant.ui.navigation.main.attendances.screen
 
-import android.os.Build
-import android.widget.TimePicker
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -22,7 +20,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
@@ -36,14 +33,12 @@ import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.IconDp
-import com.joeloewi.croissant.util.ProgressDialog
-import com.joeloewi.croissant.util.gameNameStringResId
-import com.joeloewi.croissant.util.getResultFromPreviousComposable
-import com.joeloewi.croissant.util.navigationIconButton
+import com.joeloewi.croissant.util.*
 import com.joeloewi.croissant.viewmodel.AttendanceDetailViewModel
 import com.joeloewi.domain.common.HoYoLABGame
 import com.joeloewi.domain.common.LoggableWorker
 import com.joeloewi.domain.entity.Game
+import com.joeloewi.domain.entity.relational.AttendanceWithGames
 
 @ExperimentalFoundationApi
 @ExperimentalMaterial3Api
@@ -52,6 +47,8 @@ fun AttendanceDetailScreen(
     navController: NavController,
     attendanceDetailViewModel: AttendanceDetailViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    val activity = LocalActivity.current
     val hourOfDay by attendanceDetailViewModel.hourOfDay.collectAsState()
     val minute by attendanceDetailViewModel.minute.collectAsState()
     val nickname by attendanceDetailViewModel.nickname.collectAsState()
@@ -62,6 +59,8 @@ fun AttendanceDetailScreen(
     val attendCheckInEventWorkerSuccessLogCount by attendanceDetailViewModel.attendCheckInEventWorkerSuccessLogCount.collectAsState()
     val attendCheckInEventWorkerFailureLogCount by attendanceDetailViewModel.attendCheckInEventWorkerFailureLogCount.collectAsState()
     val updateAttendanceState by attendanceDetailViewModel.updateAttendanceState.collectAsState()
+    val attendanceWithGamesState by attendanceDetailViewModel.attendanceWithGamesState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(attendanceDetailViewModel) {
         getResultFromPreviousComposable<String>(
@@ -69,10 +68,29 @@ fun AttendanceDetailScreen(
             key = COOKIE
         )?.let {
             attendanceDetailViewModel.setCookie(cookie = it)
+            snackbarHostState.showSnackbar(context.getString(R.string.press_save_button_to_commit))
+        }
+    }
+
+    LaunchedEffect(
+        attendCheckInEventWorkerSuccessLogCount,
+        attendCheckInEventWorkerFailureLogCount
+    ) {
+        val hasExecutedAtLeastOnce =
+            attendCheckInEventWorkerSuccessLogCount > 0 || attendCheckInEventWorkerFailureLogCount > 0
+
+        if (hasExecutedAtLeastOnce) {
+            requestReview(
+                context = context,
+                activity = activity,
+                logMessage = "ExecutedAtLeastOnce"
+            )
         }
     }
 
     AttendanceDetailContent(
+        snackbarHostState = snackbarHostState,
+        attendanceWithGamesState = attendanceWithGamesState,
         previousBackStackEntry = navController.previousBackStackEntry,
         hourOfDay = hourOfDay,
         minute = minute,
@@ -108,6 +126,8 @@ fun AttendanceDetailScreen(
 @ExperimentalMaterial3Api
 @Composable
 private fun AttendanceDetailContent(
+    snackbarHostState: SnackbarHostState,
+    attendanceWithGamesState: Lce<AttendanceWithGames>,
     previousBackStackEntry: NavBackStackEntry?,
     hourOfDay: Int,
     minute: Int,
@@ -127,24 +147,8 @@ private fun AttendanceDetailContent(
     onClickSave: () -> Unit
 ) {
     val scrollableState = rememberScrollState()
-    val (timePicker, onTimePickerChange) = remember {
-        mutableStateOf<TimePicker?>(
-            null
-        )
-    }
     val (showUpdateAttendanceProgressDialog, onShowUpdateAttendanceProgressDialogChange) = rememberSaveable {
         mutableStateOf(false)
-    }
-
-    DisposableEffect(timePicker) {
-        timePicker?.setOnTimeChangedListener { _, hourOfDay, minute ->
-            onHourOfDayChange(hourOfDay)
-            onMinuteChange(minute)
-        }
-
-        onDispose {
-            timePicker?.setOnTimeChangedListener(null)
-        }
     }
 
     LaunchedEffect(updateAttendanceState) {
@@ -178,7 +182,8 @@ private fun AttendanceDetailContent(
                 ),
                 actions = {
                     IconButton(
-                        onClick = onClickSave
+                        onClick = onClickSave,
+                        enabled = attendanceWithGamesState is Lce.Content
                     ) {
                         Icon(
                             imageVector = Icons.Default.Save,
@@ -187,6 +192,9 @@ private fun AttendanceDetailContent(
                     }
                 }
             )
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
         }
     ) { innerPadding ->
         Column(
@@ -266,22 +274,16 @@ private fun AttendanceDetailContent(
                 style = MaterialTheme.typography.headlineSmall
             )
 
-            AndroidView(
+            TimePicker(
                 modifier = Modifier.fillMaxWidth(),
-                factory = { androidViewContext ->
-                    TimePicker(androidViewContext).apply {
-                        setIs24HourView(true)
-                    }.also(onTimePickerChange)
-                }
-            ) { view ->
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    hourOfDay.takeIf { it != view.hour }?.let(view::setHour)
-                    minute.takeIf { it != view.minute }?.let(view::setMinute)
-                } else {
-                    hourOfDay.takeIf { it != view.currentHour }?.let(view::setCurrentHour)
-                    minute.takeIf { it != view.currentMinute }?.let(view::setCurrentMinute)
-                }
-            }
+                onCreated = { timePicker ->
+                    timePicker.setIs24HourView(true)
+                },
+                hourOfDay = hourOfDay,
+                minute = minute,
+                onHourOfDayChange = onHourOfDayChange,
+                onMinuteChange = onMinuteChange
+            )
 
             Text(
                 text = stringResource(id = R.string.execution_log_summary),

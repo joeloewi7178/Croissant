@@ -19,6 +19,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -53,61 +54,64 @@ class CreateResinStatusWidgetViewModel @Inject constructor(
     val pagedAttendancesWithGames = getAllPagedAttendanceUseCase().cachedIn(viewModelScope)
 
     fun setInterval(interval: Long) {
-        _interval.value = interval
+        viewModelScope.launch(Dispatchers.IO) {
+            _interval.update { interval }
+        }
     }
 
     fun configureAppWidget() {
-        _createResinStatusWidgetState.value = Lce.Loading
-
         viewModelScope.launch(Dispatchers.IO) {
-            _createResinStatusWidgetState.value = this.runCatching {
-                val resinStatusWidget = ResinStatusWidget(
-                    appWidgetId = appWidgetId,
-                    interval = _interval.value,
-                )
-
-                val resinStatusWidgetId = insertResinStatusWidgetUseCase(
-                    resinStatusWidget = resinStatusWidget
-                )
-
-                val accounts = getByIdsAttendanceUseCase(
-                    *checkedAttendanceIds.toLongArray()
-                ).map {
-                    Account(
-                        resinStatusWidgetId = resinStatusWidgetId,
-                        cookie = it.attendance.cookie,
-                        uid = it.attendance.uid
+            _createResinStatusWidgetState.update { Lce.Loading }
+            _createResinStatusWidgetState.update {
+                this.runCatching {
+                    val resinStatusWidget = ResinStatusWidget(
+                        appWidgetId = appWidgetId,
+                        interval = _interval.value,
                     )
-                }
 
-                val periodicWorkRequest = PeriodicWorkRequest.Builder(
-                    RefreshResinStatusWorker::class.java,
-                    _interval.value,
-                    TimeUnit.MINUTES
-                ).setInputData(
-                    workDataOf(RefreshResinStatusWorker.APP_WIDGET_ID to appWidgetId)
-                ).setConstraints(
-                    Constraints.Builder()
-                        .setRequiredNetworkType(NetworkType.CONNECTED)
-                        .build()
-                ).build()
+                    val resinStatusWidgetId = insertResinStatusWidgetUseCase(
+                        resinStatusWidget = resinStatusWidget
+                    )
 
-                WorkManager.getInstance(application)
-                    .enqueueUniquePeriodicWork(
-                        resinStatusWidget.refreshGenshinResinStatusWorkerName.toString(),
-                        ExistingPeriodicWorkPolicy.REPLACE,
-                        periodicWorkRequest
-                    ).await()
+                    val accounts = getByIdsAttendanceUseCase(
+                        *checkedAttendanceIds.toLongArray()
+                    ).map {
+                        Account(
+                            resinStatusWidgetId = resinStatusWidgetId,
+                            cookie = it.attendance.cookie,
+                            uid = it.attendance.uid
+                        )
+                    }
 
-                insertAccountUseCase(*accounts.toTypedArray())
-            }.fold(
-                onSuccess = {
-                    Lce.Content(it)
-                },
-                onFailure = {
-                    Lce.Error(it)
-                }
-            )
+                    val periodicWorkRequest = PeriodicWorkRequest.Builder(
+                        RefreshResinStatusWorker::class.java,
+                        _interval.value,
+                        TimeUnit.MINUTES
+                    ).setInputData(
+                        workDataOf(RefreshResinStatusWorker.APP_WIDGET_ID to appWidgetId)
+                    ).setConstraints(
+                        Constraints.Builder()
+                            .setRequiredNetworkType(NetworkType.CONNECTED)
+                            .build()
+                    ).build()
+
+                    WorkManager.getInstance(application)
+                        .enqueueUniquePeriodicWork(
+                            resinStatusWidget.refreshGenshinResinStatusWorkerName.toString(),
+                            ExistingPeriodicWorkPolicy.REPLACE,
+                            periodicWorkRequest
+                        ).await()
+
+                    insertAccountUseCase(*accounts.toTypedArray())
+                }.fold(
+                    onSuccess = {
+                        Lce.Content(it)
+                    },
+                    onFailure = {
+                        Lce.Error(it)
+                    }
+                )
+            }
         }
     }
 }

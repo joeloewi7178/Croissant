@@ -129,117 +129,124 @@ class CreateAttendanceViewModel @Inject constructor(
     val duplicatedAttendance = _duplicatedAttendance.asStateFlow()
 
     fun setCookie(cookie: String) {
-        _cookie.value = cookie
+        viewModelScope.launch(Dispatchers.IO) {
+            _cookie.update { cookie }
+        }
     }
 
     fun setHourOfDay(hourOfDay: Int) {
-        _hourOfDay.value = hourOfDay
+        viewModelScope.launch(Dispatchers.IO) {
+            _hourOfDay.update { hourOfDay }
+        }
     }
 
     fun setMinute(minute: Int) {
-        _minute.value = minute
+        viewModelScope.launch(Dispatchers.IO) {
+            _minute.update { minute }
+        }
     }
 
     fun createAttendance() {
-        _createAttendanceState.value = Lce.Loading
-
         viewModelScope.launch(Dispatchers.IO) {
-            _createAttendanceState.value = insertAttendanceUseCase.runCatching {
-                val hourOfDay = _hourOfDay.value
-                val minute = _minute.value
-                val attendance = Attendance(
-                    cookie = _cookie.value,
-                    nickname = _userInfo.value.content!!.nickname,
-                    uid = _userInfo.value.content!!.uid,
-                    hourOfDay = hourOfDay,
-                    minute = minute,
-                    timezoneId = ZoneId.systemDefault().id
-                )
-
-                with(attendance) {
-                    copy(
-                        id = invoke(attendance)
+            _createAttendanceState.update { Lce.Loading }
+            _createAttendanceState.update {
+                insertAttendanceUseCase.runCatching {
+                    val hourOfDay = _hourOfDay.value
+                    val minute = _minute.value
+                    val attendance = Attendance(
+                        cookie = _cookie.value,
+                        nickname = _userInfo.value.content!!.nickname,
+                        uid = _userInfo.value.content!!.uid,
+                        hourOfDay = hourOfDay,
+                        minute = minute,
+                        timezoneId = ZoneId.systemDefault().id
                     )
-                }
-            }.mapCatching { attendance ->
-                val now = Calendar.getInstance()
-                val canExecuteToday =
-                    (now[Calendar.HOUR_OF_DAY] < attendance.hourOfDay) || (now[Calendar.HOUR_OF_DAY] == attendance.hourOfDay && now[Calendar.MINUTE] < attendance.minute)
 
-                val targetTime = Calendar.getInstance().apply {
-                    time = now.time
+                    with(attendance) {
+                        copy(
+                            id = invoke(attendance)
+                        )
+                    }
+                }.mapCatching { attendance ->
+                    val now = Calendar.getInstance()
+                    val canExecuteToday =
+                        (now[Calendar.HOUR_OF_DAY] < attendance.hourOfDay) || (now[Calendar.HOUR_OF_DAY] == attendance.hourOfDay && now[Calendar.MINUTE] < attendance.minute)
 
-                    if (!canExecuteToday) {
-                        add(Calendar.DATE, 1)
+                    val targetTime = Calendar.getInstance().apply {
+                        time = now.time
+
+                        if (!canExecuteToday) {
+                            add(Calendar.DATE, 1)
+                        }
+
+                        set(Calendar.HOUR_OF_DAY, attendance.hourOfDay)
+                        set(Calendar.MINUTE, attendance.minute)
                     }
 
-                    set(Calendar.HOUR_OF_DAY, attendance.hourOfDay)
-                    set(Calendar.MINUTE, attendance.minute)
-                }
+                    val alarmIntent = Intent(application, AlarmReceiver::class.java).apply {
+                        action = AlarmReceiver.RECEIVE_ATTEND_CHECK_IN_ALARM
+                        putExtra(AlarmReceiver.ATTENDANCE_ID, attendance.id)
+                    }
 
-                val alarmIntent = Intent(application, AlarmReceiver::class.java).apply {
-                    action = AlarmReceiver.RECEIVE_ATTEND_CHECK_IN_ALARM
-                    putExtra(AlarmReceiver.ATTENDANCE_ID, attendance.id)
-                }
-
-                val pendingIntent = PendingIntent.getBroadcast(
-                    application,
-                    attendance.id.toInt(),
-                    alarmIntent,
-                    pendingIntentFlagUpdateCurrent
-                )
-
-                with(application.getSystemService(Context.ALARM_SERVICE) as AlarmManager) {
-                    cancel(pendingIntent)
-                    AlarmManagerCompat.setExactAndAllowWhileIdle(
-                        this,
-                        AlarmManager.RTC_WAKEUP,
-                        targetTime.timeInMillis,
-                        pendingIntent
-                    )
-                }
-
-                val periodicCheckSessionWork = PeriodicWorkRequest.Builder(
-                    CheckSessionWorker::class.java,
-                    6L,
-                    TimeUnit.HOURS
-                )
-                    .setInputData(workDataOf(CheckSessionWorker.ATTENDANCE_ID to attendance.id))
-                    .setConstraints(
-                        Constraints.Builder()
-                            .setRequiredNetworkType(NetworkType.CONNECTED)
-                            .build()
-                    )
-                    .build()
-
-                WorkManager.getInstance(application)
-                    .enqueueUniquePeriodicWork(
-                        attendance.checkSessionWorkerName.toString(),
-                        ExistingPeriodicWorkPolicy.REPLACE,
-                        periodicCheckSessionWork
+                    val pendingIntent = PendingIntent.getBroadcast(
+                        application,
+                        attendance.id.toInt(),
+                        alarmIntent,
+                        pendingIntentFlagUpdateCurrent
                     )
 
-                updateAttendanceUseCase(
-                    attendance.copy(
-                        checkSessionWorkerId = periodicCheckSessionWork.id
-                    )
-                )
+                    with(application.getSystemService(Context.ALARM_SERVICE) as AlarmManager) {
+                        cancel(pendingIntent)
+                        AlarmManagerCompat.setExactAndAllowWhileIdle(
+                            this,
+                            AlarmManager.RTC_WAKEUP,
+                            targetTime.timeInMillis,
+                            pendingIntent
+                        )
+                    }
 
-                attendance.id
-            }.mapCatching { attendanceId ->
-                insertGameUseCase(
-                    *checkedGames.map {
-                        it.copy(attendanceId = attendanceId)
-                    }.toTypedArray()
+                    val periodicCheckSessionWork = PeriodicWorkRequest.Builder(
+                        CheckSessionWorker::class.java,
+                        6L,
+                        TimeUnit.HOURS
+                    )
+                        .setInputData(workDataOf(CheckSessionWorker.ATTENDANCE_ID to attendance.id))
+                        .setConstraints(
+                            Constraints.Builder()
+                                .setRequiredNetworkType(NetworkType.CONNECTED)
+                                .build()
+                        )
+                        .build()
+
+                    WorkManager.getInstance(application)
+                        .enqueueUniquePeriodicWork(
+                            attendance.checkSessionWorkerName.toString(),
+                            ExistingPeriodicWorkPolicy.REPLACE,
+                            periodicCheckSessionWork
+                        )
+
+                    updateAttendanceUseCase(
+                        attendance.copy(
+                            checkSessionWorkerId = periodicCheckSessionWork.id
+                        )
+                    )
+
+                    attendance.id
+                }.mapCatching { attendanceId ->
+                    insertGameUseCase(
+                        *checkedGames.map {
+                            it.copy(attendanceId = attendanceId)
+                        }.toTypedArray()
+                    )
+                }.fold(
+                    onSuccess = {
+                        Lce.Content(it)
+                    },
+                    onFailure = {
+                        Lce.Error(it)
+                    }
                 )
-            }.fold(
-                onSuccess = {
-                    Lce.Content(it)
-                },
-                onFailure = {
-                    Lce.Error(it)
-                }
-            )
+            }
         }
     }
 }

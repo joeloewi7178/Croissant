@@ -14,7 +14,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.window.DialogProperties
@@ -32,7 +31,10 @@ import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattend
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.composable.SelectGames
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.composable.SetTime
 import com.joeloewi.croissant.ui.theme.DefaultDp
-import com.joeloewi.croissant.util.*
+import com.joeloewi.croissant.util.ProgressDialog
+import com.joeloewi.croissant.util.collectAsStateLifecycleAware
+import com.joeloewi.croissant.util.getResultFromPreviousComposable
+import com.joeloewi.croissant.util.navigationIconButton
 import com.joeloewi.croissant.viewmodel.CreateAttendanceViewModel
 import com.joeloewi.domain.entity.Attendance
 import com.joeloewi.domain.entity.Game
@@ -127,8 +129,6 @@ fun CreateAttendanceContent(
     onNavigateToAttendanceDetailScreen: (Long) -> Unit,
     onCancelCreateAttendance: () -> Unit
 ) {
-    val context = LocalContext.current
-    val activity = LocalActivity.current
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState()
     val onNextButtonClick: (() -> Unit) = {
@@ -164,11 +164,6 @@ fun CreateAttendanceContent(
             is Lce.Content -> {
                 onShowCreateAttendanceProgressDialogChange(false)
                 if (createAttendanceState.content.isNotEmpty()) {
-                    requestReview(
-                        context = context,
-                        activity = activity,
-                        logMessage = "CreateAttendanceScreen"
-                    )
                     onNavigateUp()
                 }
             }
