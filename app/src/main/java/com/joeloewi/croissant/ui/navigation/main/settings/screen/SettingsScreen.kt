@@ -23,7 +23,6 @@ import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
 import com.joeloewi.croissant.ui.navigation.main.settings.SettingsDestination
 import com.joeloewi.croissant.ui.theme.ContentAlpha
-import com.joeloewi.croissant.util.ListItem
 import com.joeloewi.croissant.viewmodel.SettingsViewModel
 import com.joeloewi.domain.entity.Settings
 
@@ -71,7 +70,7 @@ fun SettingsContent(
                 key = "themeHeader"
             ) {
                 ListItem(
-                    text = {
+                    headlineText = {
                         Text(
                             text = stringResource(id = R.string.theme),
                             color = MaterialTheme.colorScheme.primary
@@ -89,22 +88,22 @@ fun SettingsContent(
                         role = Role.Switch,
                         onValueChange = onDarkThemeEnabledChange
                     ),
-                    icon = {
+                    leadingContent = {
                         Icon(
                             imageVector = Icons.Default.DarkMode,
                             contentDescription = Icons.Default.DarkMode.name
                         )
                     },
-                    text = {
+                    headlineText = {
                         Text(text = stringResource(id = R.string.dark_theme))
                     },
-                    secondaryText = {
+                    supportingText = {
                         Text(
                             modifier = Modifier.alpha(ContentAlpha.medium),
                             text = stringResource(id = R.string.always_use_dark_theme)
                         )
                     },
-                    trailing = {
+                    trailingContent = {
                         Switch(
                             checked = settings.darkThemeEnabled,
                             onCheckedChange = null
@@ -117,7 +116,7 @@ fun SettingsContent(
                 key = "othersHeader"
             ) {
                 ListItem(
-                    text = {
+                    headlineText = {
                         Text(
                             text = stringResource(id = R.string.others),
                             color = MaterialTheme.colorScheme.primary
@@ -133,13 +132,13 @@ fun SettingsContent(
                     modifier = Modifier.clickable {
                         onDeveloperInfoClick()
                     },
-                    icon = {
+                    leadingContent = {
                         Icon(
                             imageVector = Icons.Default.Person,
                             contentDescription = Icons.Default.Person.name
                         )
                     },
-                    text = {
+                    headlineText = {
                         Text(text = stringResource(id = R.string.developer_info))
                     }
                 )

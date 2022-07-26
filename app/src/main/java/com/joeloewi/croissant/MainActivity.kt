@@ -78,9 +78,9 @@ import com.joeloewi.croissant.ui.theme.CroissantTheme
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.util.*
-import com.joeloewi.croissant.util.ListItem
 import com.joeloewi.croissant.viewmodel.*
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import org.threeten.bp.Instant
 import org.threeten.bp.ZoneId
@@ -94,6 +94,7 @@ import org.threeten.bp.format.DateTimeFormatter
 @ExperimentalPagerApi
 @ExperimentalMaterial3Api
 @ExperimentalComposeUiApi
+@ExperimentalCoroutinesApi
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -114,8 +115,15 @@ class MainActivity : AppCompatActivity() {
                         LocalActivity provides this,
                         LocalWindowSizeClass provides calculateWindowSizeClass(activity = this)
                     ) {
-                        RequireAppUpdate {
-                            CroissantApp()
+                        val mainViewModel: MainViewModel = hiltViewModel()
+                        val appUpdateResult by mainViewModel.appUpdateResultState.collectAsState()
+
+                        RequireAppUpdate(
+                            appUpdateResultState = appUpdateResult
+                        ) {
+                            CroissantApp(
+                                mainViewModel = mainViewModel
+                            )
                         }
                     }
                 }
@@ -131,12 +139,14 @@ class MainActivity : AppCompatActivity() {
 @ExperimentalPagerApi
 @ExperimentalMaterial3Api
 @ExperimentalComposeUiApi
+@ExperimentalCoroutinesApi
 @Composable
-fun CroissantApp() {
+fun CroissantApp(
+    mainViewModel: MainViewModel
+) {
     val navController = rememberNavController()
 
     //global view model
-    val mainViewModel: MainViewModel = hiltViewModel()
     val isFirstLaunch by mainViewModel.isFirstLaunch.collectAsState()
 
     val modalBottomSheetState = rememberModalBottomSheetState(
@@ -145,21 +155,27 @@ fun CroissantApp() {
         confirmStateChange = { false }
     )
 
-    val croissantNavigations = listOf(
-        CroissantNavigation.Attendances,
-        CroissantNavigation.RedemptionCodes,
-        CroissantNavigation.Settings
-    )
-    val fullScreenDestinations = listOf(
-        AttendancesDestination.CreateAttendanceScreen.route,
-        AttendancesDestination.LoginHoYoLabScreen.route
-    )
+    val croissantNavigations = remember {
+        listOf(
+            CroissantNavigation.Attendances,
+            CroissantNavigation.RedemptionCodes,
+            CroissantNavigation.Settings
+        )
+    }
+    val fullScreenDestinations = remember {
+        listOf(
+            AttendancesDestination.CreateAttendanceScreen.route,
+            AttendancesDestination.LoginHoYoLabScreen.route
+        )
+    }
     val context = LocalContext.current
     val activity = LocalActivity.current
-    val deepLinkUri = Uri.Builder()
-        .scheme(stringResource(id = R.string.deep_link_scheme))
-        .authority(context.packageName)
-        .build()
+    val deepLinkUri = remember(context) {
+        Uri.Builder()
+            .scheme(context.getString(R.string.deep_link_scheme))
+            .authority(context.packageName)
+            .build()
+    }
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(isFirstLaunch) {
@@ -219,7 +235,7 @@ fun CroissantApp() {
             }
         }
         val navBackStackEntry by navController.currentBackStackEntryAsState()
-        val currentDestination = navBackStackEntry?.destination
+        val currentDestination by remember(navBackStackEntry) { derivedStateOf { navBackStackEntry?.destination } }
         val windowSizeClass = LocalWindowSizeClass.current
         val (isFullScreenDestination, onIsFullScreenDestinationChange) = rememberSaveable {
             mutableStateOf(
@@ -527,6 +543,7 @@ fun CroissantApp() {
     }
 }
 
+@ExperimentalCoroutinesApi
 @ExperimentalPermissionsApi
 @ExperimentalFoundationApi
 @ObsoleteCoroutinesApi
@@ -658,7 +675,7 @@ fun CroissantAppBottomSheetContent(
     modalBottomSheetState: ModalBottomSheetState,
     snackbarHostState: SnackbarHostState,
 ) {
-    val croissantPermissions = CroissantPermission.values()
+    val croissantPermissions = remember { CroissantPermission.values() }
 
     val multiplePermissionsState = rememberMultiplePermissionsState(
         permissions = croissantPermissions.map { it.permission }

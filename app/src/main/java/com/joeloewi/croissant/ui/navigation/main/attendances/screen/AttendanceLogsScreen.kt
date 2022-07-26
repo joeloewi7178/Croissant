@@ -7,9 +7,7 @@ import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -186,29 +184,37 @@ fun AttendanceLogsContent(
 fun WorkerExecutionLogWithStateItem(
     item: WorkerExecutionLogWithState
 ) {
-    val colorByState = when (item.workerExecutionLog.state) {
-        WorkerExecutionLogState.SUCCESS -> {
-            MaterialTheme.colorScheme.surfaceVariant
+    val colorByState by rememberUpdatedState(
+        when (item.workerExecutionLog.state) {
+            WorkerExecutionLogState.SUCCESS -> {
+                MaterialTheme.colorScheme.surfaceVariant
+            }
+            WorkerExecutionLogState.FAILURE -> {
+                MaterialTheme.colorScheme.errorContainer
+            }
         }
-        WorkerExecutionLogState.FAILURE -> {
-            MaterialTheme.colorScheme.errorContainer
+    )
+    val textByState by rememberUpdatedState(
+        when (item.workerExecutionLog.state) {
+            WorkerExecutionLogState.SUCCESS -> {
+                stringResource(id = R.string.success)
+            }
+            WorkerExecutionLogState.FAILURE -> {
+                stringResource(id = R.string.failure)
+            }
+        }
+    )
+    val readableTimestamp by remember(item.workerExecutionLog.createdAt) {
+        derivedStateOf {
+            val dateTimeFormatter =
+                DateTimeFormatter.ofLocalizedDateTime(org.threeten.bp.format.FormatStyle.MEDIUM)
+            val localDateTime =
+                Instant.ofEpochMilli(item.workerExecutionLog.createdAt)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDateTime()
+            dateTimeFormatter.format(localDateTime)
         }
     }
-    val textByState = when (item.workerExecutionLog.state) {
-        WorkerExecutionLogState.SUCCESS -> {
-            stringResource(id = R.string.success)
-        }
-        WorkerExecutionLogState.FAILURE -> {
-            stringResource(id = R.string.failure)
-        }
-    }
-    val dateTimeFormatter =
-        DateTimeFormatter.ofLocalizedDateTime(org.threeten.bp.format.FormatStyle.MEDIUM)
-    val localDateTime =
-        Instant.ofEpochMilli(item.workerExecutionLog.createdAt)
-            .atZone(ZoneId.systemDefault())
-            .toLocalDateTime()
-    val readableTimestamp = dateTimeFormatter.format(localDateTime)
 
     Card(
         modifier = Modifier.fillMaxWidth(),

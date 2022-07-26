@@ -1,9 +1,9 @@
 object Versions {
-    const val material3 = "1.0.0-alpha13"
+    const val material3 = "1.0.0-alpha14"
     const val compose = "1.2.0-rc03"
-    const val hilt = "2.42"
+    const val hilt = "2.43"
     const val paging = "3.1.1"
-    const val lifecycle = "2.4.1"
+    const val lifecycle = "2.5.0"
     const val accompanist = "0.24.13-rc"
     const val startup = "1.1.1"
     const val hiltExtension = "1.0.0"
@@ -12,5 +12,5 @@ object Versions {
     const val moshi = "1.13.0"
     const val retrofit = "2.9.0"
     const val coil = "2.1.0"
-    const val protobuf = "3.21.1"
+    const val protobuf = "3.21.3"
 }

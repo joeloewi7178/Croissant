@@ -37,7 +37,6 @@ import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.theme.ContentAlpha
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.IconDp
-import com.joeloewi.croissant.util.ListItem
 import com.joeloewi.croissant.util.gameNameStringResId
 import com.joeloewi.domain.common.HoYoLABGame
 import com.joeloewi.domain.entity.Attendance
@@ -63,11 +62,13 @@ fun SelectGames(
             false to 0L
         )
     }
-    val supportedGames = listOf(
-        HoYoLABGame.HonkaiImpact3rd,
-        HoYoLABGame.GenshinImpact,
-        HoYoLABGame.TearsOfThemis
-    )
+    val supportedGames = remember {
+        listOf(
+            HoYoLABGame.HonkaiImpact3rd,
+            HoYoLABGame.GenshinImpact,
+            HoYoLABGame.TearsOfThemis
+        )
+    }
     val containsNotSupportedGame = stringResource(id = R.string.contains_not_supported_game)
 
     LaunchedEffect(connectedGames) {
@@ -300,9 +301,49 @@ fun SelectGames(
 @Composable
 fun ConnectedGamesListItemPlaceholder() {
     ListItem(
-        modifier = Modifier
-            .fillMaxWidth(),
-        icon = {
+        headlineText = {
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .placeholder(
+                        visible = true,
+                        color = MaterialTheme.colorScheme.outline,
+                        highlight = PlaceholderHighlight.fade(
+                            highlightColor = MaterialTheme.colorScheme.background,
+                        )
+                    ),
+                text = ""
+            )
+        },
+        trailingContent = {
+            Checkbox(
+                modifier = Modifier
+                    .placeholder(
+                        visible = true,
+                        color = MaterialTheme.colorScheme.outline,
+                        highlight = PlaceholderHighlight.fade(
+                            highlightColor = MaterialTheme.colorScheme.background,
+                        )
+                    ),
+                checked = false,
+                onCheckedChange = null
+            )
+        },
+        supportingText = {
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .placeholder(
+                        visible = true,
+                        color = MaterialTheme.colorScheme.outline,
+                        highlight = PlaceholderHighlight.fade(
+                            highlightColor = MaterialTheme.colorScheme.background,
+                        )
+                    ),
+                text = ""
+            )
+        },
+        leadingContent = {
             AsyncImage(
                 modifier = Modifier
                     .size(IconDp)
@@ -319,46 +360,8 @@ fun ConnectedGamesListItemPlaceholder() {
                 contentDescription = null
             )
         },
-        trailing = {
-            Checkbox(
-                modifier = Modifier
-                    .placeholder(
-                        visible = true,
-                        color = MaterialTheme.colorScheme.outline,
-                        highlight = PlaceholderHighlight.fade(
-                            highlightColor = MaterialTheme.colorScheme.background,
-                        )
-                    ),
-                checked = false,
-                onCheckedChange = null
-            )
-        },
-        text = {
-            Text(
-                modifier = Modifier
-                    .placeholder(
-                        visible = true,
-                        color = MaterialTheme.colorScheme.outline,
-                        highlight = PlaceholderHighlight.fade(
-                            highlightColor = MaterialTheme.colorScheme.background,
-                        )
-                    ),
-                text = ""
-            )
-        },
-        secondaryText = {
-            Text(
-                modifier = Modifier
-                    .placeholder(
-                        visible = true,
-                        color = MaterialTheme.colorScheme.outline,
-                        highlight = PlaceholderHighlight.fade(
-                            highlightColor = MaterialTheme.colorScheme.background,
-                        )
-                    ),
-                text = ""
-            )
-        }
+        modifier = Modifier
+            .fillMaxWidth(),
     )
 }
 
@@ -402,7 +405,7 @@ fun ConnectedGamesContentListItem(
                     }
                 }
             ),
-        icon = {
+        leadingContent = {
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -417,16 +420,16 @@ fun ConnectedGamesContentListItem(
                 )
             }
         },
-        trailing = {
+        trailingContent = {
             Checkbox(
                 checked = checkedGames.contains(game),
                 onCheckedChange = null
             )
         },
-        text = {
+        headlineText = {
             Text(text = stringResource(id = hoYoLABGame.gameNameStringResId()))
         },
-        secondaryText = {
+        supportingText = {
             with(gameRecord) {
                 if (regionName.isNotEmpty() && region.isNotEmpty()) {
                     Text(

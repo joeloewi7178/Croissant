@@ -131,14 +131,19 @@ fun CreateAttendanceContent(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState()
-    val onNextButtonClick: (() -> Unit) = {
-        coroutineScope.launch {
-            val nextPage = pagerState.currentPage + 1
+    val onNextButtonClick: ((Int) -> Unit) by remember(coroutineScope, pagerState) {
+        derivedStateOf {
+            { currentPage ->
+                coroutineScope.launch {
+                    val nextPage = currentPage + 1
 
-            if (nextPage < pagerState.pageCount) {
-                pagerState.scrollToPage(nextPage)
-            } else if (nextPage == pagerState.pageCount) {
-                onCreateAttendance()
+                    if (nextPage < pagerState.pageCount) {
+                        pagerState.scrollToPage(nextPage)
+                    } else if (nextPage == pagerState.pageCount) {
+                        onCreateAttendance()
+                    }
+                }
+                Unit
             }
         }
     }
@@ -270,7 +275,9 @@ fun CreateAttendanceContent(
                                     duplicatedAttendance = duplicatedAttendance,
                                     checkedGames = checkedGames,
                                     connectedGames = connectedGames,
-                                    onNextButtonClick = onNextButtonClick,
+                                    onNextButtonClick = {
+                                        onNextButtonClick(pagerState.currentPage)
+                                    },
                                     onNavigateToAttendanceDetailScreen = onNavigateToAttendanceDetailScreen,
                                     onCancelCreateAttendance = onCancelCreateAttendance
                                 )
@@ -288,7 +295,9 @@ fun CreateAttendanceContent(
                                     hourOfDay = hourOfDay,
                                     minute = minute,
                                     tickerCalendar = tickerCalendar,
-                                    onNextButtonClick = onNextButtonClick,
+                                    onNextButtonClick = {
+                                        onNextButtonClick(pagerState.currentPage)
+                                    },
                                     onHourOfDayChange = onHourOfDayChange,
                                     onMinuteChange = onMinuteChange
                                 )

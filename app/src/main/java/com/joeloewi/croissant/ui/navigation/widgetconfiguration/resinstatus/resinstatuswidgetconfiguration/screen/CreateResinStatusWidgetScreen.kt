@@ -16,7 +16,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
@@ -31,7 +30,9 @@ import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
-import com.joeloewi.croissant.util.*
+import com.joeloewi.croissant.util.LocalActivity
+import com.joeloewi.croissant.util.ProgressDialog
+import com.joeloewi.croissant.util.isEmpty
 import com.joeloewi.croissant.viewmodel.CreateResinStatusWidgetViewModel
 import com.joeloewi.domain.common.HoYoLABGame
 import com.joeloewi.domain.entity.relational.AttendanceWithGames
@@ -48,7 +49,7 @@ fun CreateResinStatusWidgetScreen(
     val interval by createResinStatusWidgetViewModel.interval.collectAsState()
     val pagedAttendancesWithGames =
         createResinStatusWidgetViewModel.pagedAttendancesWithGames.collectAsLazyPagingItems()
-    val checkedAttendanceIds = createResinStatusWidgetViewModel.checkedAttendanceIds
+    val checkedAttendanceIds = remember { createResinStatusWidgetViewModel.checkedAttendanceIds }
     val createResinStatusWidgetState by
     createResinStatusWidgetViewModel.createResinStatusWidgetState.collectAsState()
     val activity = LocalActivity.current
@@ -306,8 +307,8 @@ fun AccountListItem(
                     }
                 }
             ),
-        text = { Text(text = item.attendance.nickname)},
-        trailing = {
+        headlineText = { Text(text = item.attendance.nickname) },
+        trailingContent = {
             Checkbox(
                 checked = checkedAccounts.contains(item.attendance.id),
                 onCheckedChange = null
@@ -319,19 +320,13 @@ fun AccountListItem(
 @ExperimentalMaterial3Api
 @Composable
 fun AccountListItemPlaceholder() {
-    Row(
+    ListItem(
         modifier = Modifier
             .fillMaxWidth(),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(DoubleDp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        headlineText = {
             Text(
                 modifier = Modifier
+                    .fillMaxWidth()
                     .placeholder(
                         visible = true,
                         color = MaterialTheme.colorScheme.outline,
@@ -341,7 +336,8 @@ fun AccountListItemPlaceholder() {
                     ),
                 text = ""
             )
-
+        },
+        trailingContent = {
             Checkbox(
                 modifier = Modifier
                     .placeholder(
@@ -355,5 +351,5 @@ fun AccountListItemPlaceholder() {
                 onCheckedChange = null
             )
         }
-    }
+    )
 }

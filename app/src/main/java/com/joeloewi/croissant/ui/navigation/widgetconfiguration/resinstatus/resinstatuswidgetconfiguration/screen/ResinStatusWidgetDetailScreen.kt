@@ -31,7 +31,7 @@ fun ResinStatusWidgetDetailScreen(
     navController: NavController,
     resinStatusWidgetDetailViewModel: ResinStatusWidgetDetailViewModel = hiltViewModel()
 ) {
-    val selectableIntervals = resinStatusWidgetDetailViewModel.selectableIntervals
+    val selectableIntervals = remember { resinStatusWidgetDetailViewModel.selectableIntervals }
     val interval by resinStatusWidgetDetailViewModel.interval.collectAsState()
     val updateResinStatusWidgetState by resinStatusWidgetDetailViewModel.updateResinStatusWidgetState.collectAsState()
 
