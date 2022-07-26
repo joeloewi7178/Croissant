@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -25,7 +26,6 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.theme.ContentAlpha
-import com.joeloewi.croissant.util.ListItem
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.navigationIconButton
 
@@ -100,7 +100,7 @@ private fun DeveloperInfoContent(
                 key = "locationHeader"
             ) {
                 ListItem(
-                    text = {
+                    headlineText = {
                         Text(
                             text = stringResource(id = R.string.location),
                             color = MaterialTheme.colorScheme.primary
@@ -113,13 +113,13 @@ private fun DeveloperInfoContent(
                 key = "location"
             ) {
                 ListItem(
-                    icon = {
+                    leadingContent = {
                         Icon(
                             imageVector = Icons.Default.LocationCity,
                             contentDescription = Icons.Default.LocationCity.name
                         )
                     },
-                    text = {
+                    headlineText = {
                         Text(text = stringResource(id = R.string.seoul_at_south_korea))
                     }
                 )
@@ -129,7 +129,7 @@ private fun DeveloperInfoContent(
                 key = "careersHeader"
             ) {
                 ListItem(
-                    text = {
+                    headlineText = {
                         Text(
                             text = stringResource(id = R.string.careers),
                             color = MaterialTheme.colorScheme.primary
@@ -142,7 +142,7 @@ private fun DeveloperInfoContent(
                 key = "current"
             ) {
                 ListItem(
-                    icon = {
+                    leadingContent = {
                         Icon(
                             imageVector = Icons.Default.Pending,
                             contentDescription = Icons.Default.Pending.name
@@ -151,7 +151,7 @@ private fun DeveloperInfoContent(
                     overlineText = {
                         Text(text = stringResource(id = R.string.career_now))
                     },
-                    text = {
+                    headlineText = {
                         Text(text = stringResource(id = R.string.currently_looking_for_a_job))
                     }
                 )
@@ -161,7 +161,7 @@ private fun DeveloperInfoContent(
                 key = "jongdallab"
             ) {
                 ListItem(
-                    icon = {
+                    leadingContent = {
                         Icon(
                             imageVector = Icons.Default.Work,
                             contentDescription = Icons.Default.Work.name
@@ -176,10 +176,10 @@ private fun DeveloperInfoContent(
                             }
                         )
                     },
-                    text = {
+                    headlineText = {
                         Text(text = stringResource(id = R.string.jongdallab))
                     },
-                    secondaryText = {
+                    supportingText = {
                         Text(
                             modifier = Modifier.alpha(ContentAlpha.medium),
                             text = stringResource(id = R.string.android_app_developer)
@@ -192,7 +192,7 @@ private fun DeveloperInfoContent(
                 key = "websitesHeader"
             ) {
                 ListItem(
-                    text = {
+                    headlineText = {
                         Text(
                             text = stringResource(id = R.string.websites),
                             color = MaterialTheme.colorScheme.primary
@@ -204,7 +204,8 @@ private fun DeveloperInfoContent(
             item(
                 key = "github"
             ) {
-                val developerGithub = "https://github.com/joeloewi7178"
+                val developerGithub = remember { "https://github.com/joeloewi7178" }
+
                 ListItem(
                     modifier = Modifier.clickable {
                         Intent(
@@ -216,7 +217,7 @@ private fun DeveloperInfoContent(
                             }
                         }
                     },
-                    icon = {
+                    leadingContent = {
                         Icon(
                             imageVector = Icons.Default.Public,
                             contentDescription = Icons.Default.Public.name
@@ -225,7 +226,7 @@ private fun DeveloperInfoContent(
                     overlineText = {
                         Text(text = "Github")
                     },
-                    text = {
+                    headlineText = {
                         Text(text = developerGithub)
                     }
                 )
@@ -235,7 +236,7 @@ private fun DeveloperInfoContent(
                 key = "contactsHeader"
             ) {
                 ListItem(
-                    text = {
+                    headlineText = {
                         Text(
                             text = stringResource(id = R.string.contacts),
                             color = MaterialTheme.colorScheme.primary
@@ -247,7 +248,7 @@ private fun DeveloperInfoContent(
             item(
                 key = "email"
             ) {
-                val developerEmail = "joeloewi7178@gmail.com"
+                val developerEmail = remember { "joeloewi7178@gmail.com" }
 
                 ListItem(
                     modifier = Modifier.clickable {
@@ -259,7 +260,7 @@ private fun DeveloperInfoContent(
                             }
                         }
                     },
-                    icon = {
+                    leadingContent = {
                         Icon(
                             imageVector = Icons.Default.Email,
                             contentDescription = Icons.Default.Email.name
@@ -268,7 +269,7 @@ private fun DeveloperInfoContent(
                     overlineText = {
                         Text(text = stringResource(id = R.string.email))
                     },
-                    text = {
+                    headlineText = {
                         Text(text = developerEmail)
                     }
                 )

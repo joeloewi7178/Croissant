@@ -25,11 +25,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallTopAppBar
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -306,10 +303,12 @@ internal fun DismissContent(
     onClickAttendance: (Attendance) -> Unit,
     onClickOneTimeAttend: () -> Unit
 ) {
+    val attendanceWithGamesState by rememberUpdatedState(attendanceWithGames)
+
     Row(
         modifier = Modifier
             .shadow(elevation = elevation)
-            .clickable { onClickAttendance(attendanceWithGames.attendance) }
+            .clickable { onClickAttendance(attendanceWithGamesState.attendance) }
             .background(MaterialTheme.colorScheme.background)
             .fillMaxWidth(),
     ) {
@@ -326,7 +325,7 @@ internal fun DismissContent(
                 Text(
                     text = stringResource(
                         id = R.string.attendance_of_nickname,
-                        attendanceWithGames.attendance.nickname
+                        attendanceWithGamesState.attendance.nickname
                     ),
                     style = MaterialTheme.typography.titleMedium
                 )
@@ -340,8 +339,9 @@ internal fun DismissContent(
                     Text(
                         text = stringResource(
                             id = R.string.scheduled_time,
-                            attendanceWithGames.attendance.hourOfDay.toString().padStart(2, '0'),
-                            attendanceWithGames.attendance.minute.toString().padStart(2, '0')
+                            attendanceWithGamesState.attendance.hourOfDay.toString()
+                                .padStart(2, '0'),
+                            attendanceWithGamesState.attendance.minute.toString().padStart(2, '0')
                         ),
                         style = MaterialTheme.typography.headlineSmall
                     )
@@ -351,7 +351,7 @@ internal fun DismissContent(
                     horizontalArrangement = Arrangement.spacedBy(space = DefaultDp)
                 ) {
                     items(
-                        items = attendanceWithGames.games,
+                        items = attendanceWithGamesState.games,
                         key = { it.id }
                     ) { game ->
                         AsyncImage(
@@ -371,11 +371,14 @@ internal fun DismissContent(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                val attendance = attendanceWithGames.attendance
                 val workInfos by WorkManager.getInstance(LocalContext.current)
-                    .getWorkInfosForUniqueWorkLiveData(attendance.oneTimeAttendCheckInEventWorkerName.toString())
+                    .getWorkInfosForUniqueWorkLiveData(attendanceWithGamesState.attendance.oneTimeAttendCheckInEventWorkerName.toString())
                     .observeAsState()
-                val isRunning = workInfos?.any { it.state == WorkInfo.State.RUNNING }
+                val isRunning by remember(workInfos) {
+                    derivedStateOf {
+                        workInfos?.any { it.state == WorkInfo.State.RUNNING }
+                    }
+                }
 
                 IconButton(
                     enabled = isRunning == false,

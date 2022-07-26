@@ -61,7 +61,7 @@ fun RedemptionCodesScreen(
     redemptionCodesViewModel: RedemptionCodesViewModel = hiltViewModel()
 ) {
     val hoYoLABGameRedemptionCodesState by redemptionCodesViewModel.hoYoLABGameRedemptionCodesState.collectAsState()
-    val expandedItems = redemptionCodesViewModel.expandedItems
+    val expandedItems = remember { redemptionCodesViewModel.expandedItems }
 
     RedemptionCodesContent(
         hoYoLABGameRedemptionCodesState = hoYoLABGameRedemptionCodesState,

@@ -181,6 +181,7 @@ class CreateAttendanceViewModel @Inject constructor(
 
                         set(Calendar.HOUR_OF_DAY, attendance.hourOfDay)
                         set(Calendar.MINUTE, attendance.minute)
+                        set(Calendar.SECOND, 30)
                     }
 
                     val alarmIntent = Intent(application, AlarmReceiver::class.java).apply {

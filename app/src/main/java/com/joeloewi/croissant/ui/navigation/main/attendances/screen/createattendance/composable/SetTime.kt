@@ -9,6 +9,9 @@ import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -97,8 +100,11 @@ fun SetTime(
                 )
             }
 
-            val canExecuteToday =
-                (tickerCalendar[Calendar.HOUR_OF_DAY] < hourOfDay) || (tickerCalendar[Calendar.HOUR_OF_DAY] == hourOfDay && tickerCalendar[Calendar.MINUTE] < minute)
+            val canExecuteToday by remember(tickerCalendar, hourOfDay, minute) {
+                derivedStateOf {
+                    (tickerCalendar[Calendar.HOUR_OF_DAY] < hourOfDay) || (tickerCalendar[Calendar.HOUR_OF_DAY] == hourOfDay && tickerCalendar[Calendar.MINUTE] < minute)
+                }
+            }
 
             val todayOrTomorrow = if (canExecuteToday) {
                 stringResource(id = R.string.today)

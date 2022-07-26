@@ -10,19 +10,15 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.webkit.*
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -36,12 +32,18 @@ import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import com.google.accompanist.web.*
 import com.joeloewi.croissant.R
+import com.joeloewi.croissant.state.Lce
+import com.joeloewi.data.BuildConfig
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 
 const val COOKIE = "cookie"
 
+@ExperimentalCoroutinesApi
 @ExperimentalComposeUiApi
 @ExperimentalMaterial3Api
 @Composable
@@ -61,6 +63,7 @@ fun LoginHoYoLABScreen(
     )
 }
 
+@ExperimentalCoroutinesApi
 @ExperimentalComposeUiApi
 @SuppressLint("SetJavaScriptEnabled")
 @ExperimentalMaterial3Api
@@ -69,11 +72,10 @@ fun LoginHoYoLABContent(
     onClickClose: () -> Unit,
     onCatchCookie: (String) -> Unit
 ) {
-    val hoyolabUrl = "https://m.hoyolab.com/#/home"
+    val hoyolabUrl = remember { "https://m.hoyolab.com/#/home" }
     val webViewState = rememberWebViewState(url = hoyolabUrl)
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
-    val (currentUrl, onCurrentUrlChange) = remember { mutableStateOf(hoyolabUrl) }
     val webViewNavigator = rememberWebViewNavigator()
     val (showSslErrorDialog, onShowSslErrorDialogChange) = remember {
         mutableStateOf<Pair<SslErrorHandler?, SslError?>?>(
@@ -162,7 +164,7 @@ fun LoginHoYoLABContent(
                                 maxLines = 1
                             )
                             Text(
-                                text = currentUrl,
+                                text = webViewState.content.getCurrentUrl() ?: "URL",
                                 style = MaterialTheme.typography.bodyMedium,
                                 overflow = TextOverflow.Ellipsis,
                                 maxLines = 1
@@ -192,202 +194,237 @@ fun LoginHoYoLABContent(
             SnackbarHost(hostState = snackbarHostState)
         }
     ) { innerPadding ->
-        var navigateUpJob: Job? = remember { null }
-        val localContext = LocalContext.current
-        val excludedUrls =
-            listOf("www.webstatic-sea.mihoyo.com", "www.webstatic-sea.hoyolab.com")
-        val securityPopUpUrl =
-            "https://m.hoyolab.com/account-system-sea/security.html?origin=hoyolab"
-        val darkTheme = isSystemInDarkTheme()
+        val removeAllCookiesState by callbackFlow<Lce<Boolean>> {
+            var valueCallback: ValueCallback<Boolean>? = ValueCallback<Boolean> { hasRemoved ->
+                trySend(Lce.Content(hasRemoved))
+            }
 
-        WebView(
-            modifier = Modifier.padding(innerPadding),
-            state = webViewState,
-            navigator = webViewNavigator,
-            onCreated = { webView ->
-                webView.settings.apply {
-                    javaScriptEnabled = true
-                    domStorageEnabled = true
-                    databaseEnabled = true
-                    cacheMode = WebSettings.LOAD_NO_CACHE
-                    setSupportMultipleWindows(true)
-                    javaScriptCanOpenWindowsAutomatically = true
-                    userAgentString = userAgentString.replace("; wv", "")
+            CookieManager.getInstance().runCatching {
+                removeAllCookies(valueCallback)
+            }.onFailure { cause ->
+                close(cause)
+            }
+
+            awaitClose { valueCallback = null }
+        }.collectAsState(initial = Lce.Loading)
+
+        when (removeAllCookiesState) {
+            is Lce.Content -> {
+                var navigateUpJob: Job? = remember { null }
+                val localContext = LocalContext.current
+                val excludedUrls = remember {
+                    listOf("www.webstatic-sea.mihoyo.com", "www.webstatic-sea.hoyolab.com")
                 }
-
-                if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK) && darkTheme) {
-                    WebSettingsCompat.setForceDark(
-                        webView.settings,
-                        WebSettingsCompat.FORCE_DARK_ON
-                    )
+                val securityPopUpUrl = remember {
+                    "https://m.hoyolab.com/account-system-sea/security.html?origin=hoyolab"
                 }
+                val darkTheme = isSystemInDarkTheme()
 
-                WebStorage.getInstance().deleteAllData()
-
-                with(webView) {
-                    clearCache(true)
-                    clearFormData()
-                    clearHistory()
-                    clearMatches()
-                    clearSslPreferences()
-                }
-
-                CookieManager.getInstance().apply {
-                    acceptCookie()
-                    setAcceptThirdPartyCookies(webView, true)
-                    flush()
-                    removeAllCookies {}
-                }
-            },
-            client = remember {
-                object : AccompanistWebViewClient() {
-                    override fun onReceivedSslError(
-                        view: WebView?,
-                        handler: SslErrorHandler?,
-                        error: SslError?
-                    ) {
-                        super.onReceivedSslError(view, handler, error)
-                        onShowSslErrorDialogChange(handler to error)
-                    }
-
-                    override fun shouldInterceptRequest(
-                        view: WebView?,
-                        request: WebResourceRequest?
-                    ): WebResourceResponse? {
-                        val currentCookie =
-                            CookieManager.getInstance().getCookie(hoyolabUrl)
-
-                        //in this block, codes are executed in io thread.
-                        //onCatchCookie callback's role is to execute navController.navigateUp()
-                        //which is must executed in main thread.
-                        //in addition, shouldInterceptRequest() callback is called many times
-                        //but navController.navigateUp() has to be called only once
-
-                        //so, after switching context to main thread, store that job in variable
-                        //if the variable is null to ensure execute only once
-
-                        if (currentCookie.checkContainsHoYoLABCookies() && navigateUpJob == null) {
-                            navigateUpJob = coroutineScope.launch(Dispatchers.Main) {
-                                onCatchCookie(currentCookie)
-                            }
+                WebView(
+                    modifier = Modifier.padding(innerPadding),
+                    state = webViewState,
+                    navigator = webViewNavigator,
+                    onCreated = { webView ->
+                        webView.settings.apply {
+                            javaScriptEnabled = true
+                            domStorageEnabled = true
+                            databaseEnabled = true
+                            cacheMode = WebSettings.LOAD_NO_CACHE
+                            setSupportMultipleWindows(true)
+                            javaScriptCanOpenWindowsAutomatically = true
+                            userAgentString = userAgentString.replace("; wv", "")
                         }
 
-                        return super.shouldInterceptRequest(view, request)
-                    }
-
-                    override fun shouldOverrideUrlLoading(
-                        view: WebView?,
-                        request: WebResourceRequest?
-                    ): Boolean {
-                        request?.url?.toString()?.let(onCurrentUrlChange)
-                        return if (
-                            mutableListOf(hoyolabUrl)
-                                .apply { addAll(excludedUrls) }
-                                .map { request?.url?.toString()?.contains(it) }
-                                .all { it == false }
-                        ) {
-                            coroutineScope.launch {
-                                request?.url?.let {
-                                    localContext.startActivity(
-                                        Intent(
-                                            Intent.ACTION_VIEW,
-                                            it
-                                        )
-                                    )
-                                }
-                            }
-                            true
-                        } else {
-                            false
+                        if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK) && darkTheme) {
+                            WebSettingsCompat.setForceDark(
+                                webView.settings,
+                                WebSettingsCompat.FORCE_DARK_ON
+                            )
                         }
-                    }
-                }
-            },
-            chromeClient = remember {
-                object : AccompanistWebChromeClient() {
-                    override fun onCreateWindow(
-                        view: WebView?,
-                        isDialog: Boolean,
-                        isUserGesture: Boolean,
-                        resultMsg: Message?
-                    ): Boolean {
-                        val popUpWebView = WebView(localContext).apply {
-                            settings.apply {
-                                javaScriptEnabled = true
-                                domStorageEnabled = true
-                                databaseEnabled = true
-                                setSupportMultipleWindows(true)
-                                javaScriptCanOpenWindowsAutomatically = true
-                                userAgentString = userAgentString.replace("; wv", "")
-                            }
 
-                            if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK) && darkTheme) {
-                                WebSettingsCompat.setForceDark(
-                                    settings,
-                                    WebSettingsCompat.FORCE_DARK_ON
-                                )
-                            }
+                        WebStorage.getInstance().deleteAllData()
+
+                        with(webView) {
+                            clearCache(true)
+                            clearFormData()
+                            clearHistory()
+                            clearMatches()
+                            clearSslPreferences()
                         }
 
                         CookieManager.getInstance().apply {
                             acceptCookie()
-                            setAcceptThirdPartyCookies(popUpWebView, true)
+                            setAcceptThirdPartyCookies(webView, true)
+                            flush()
                         }
-
-                        val dialog = Dialog(localContext).apply {
-                            setContentView(popUpWebView)
-                        }
-
-                        dialog.window?.run {
-                            attributes = attributes?.apply {
-                                width = ViewGroup.LayoutParams.MATCH_PARENT
-                                height = ViewGroup.LayoutParams.MATCH_PARENT
-                            } as WindowManager.LayoutParams
-                        }
-
-                        dialog.apply {
-                            setOnDismissListener {
-                                popUpWebView.destroy()
+                    },
+                    client = remember {
+                        object : AccompanistWebViewClient() {
+                            override fun onReceivedSslError(
+                                view: WebView?,
+                                handler: SslErrorHandler?,
+                                error: SslError?
+                            ) {
+                                super.onReceivedSslError(view, handler, error)
+                                onShowSslErrorDialogChange(handler to error)
                             }
-                        }
 
-                        popUpWebView.apply {
-                            webChromeClient = object : WebChromeClient() {
-                                override fun onCloseWindow(window: WebView?) {
-                                    dialog.dismiss()
-                                }
-                            }
-                            webViewClient = object : WebViewClient() {
-                                override fun onPageStarted(
-                                    view: WebView?,
-                                    url: String?,
-                                    favicon: Bitmap?
-                                ) {
-                                    if (url == securityPopUpUrl) {
-                                        dialog.dismiss()
-                                    } else {
-                                        dialog.show()
+                            override fun shouldInterceptRequest(
+                                view: WebView?,
+                                request: WebResourceRequest?
+                            ): WebResourceResponse? {
+                                val currentCookie =
+                                    CookieManager.getInstance().getCookie(hoyolabUrl)
+
+                                //in this block, codes are executed in io thread.
+                                //onCatchCookie callback's role is to execute navController.navigateUp()
+                                //which is must executed in main thread.
+                                //in addition, shouldInterceptRequest() callback is called many times
+                                //but navController.navigateUp() has to be called only once
+
+                                //so, after switching context to main thread, store that job in variable
+                                //if the variable is null to ensure execute only once
+
+                                if (currentCookie.checkContainsHoYoLABCookies() && navigateUpJob == null) {
+                                    navigateUpJob = coroutineScope.launch(Dispatchers.Main) {
+                                        onCatchCookie(currentCookie)
                                     }
-                                    super.onPageStarted(view, url, favicon)
                                 }
 
-                                override fun shouldOverrideUrlLoading(
-                                    view: WebView?,
-                                    request: WebResourceRequest?
-                                ): Boolean = false
+                                return super.shouldInterceptRequest(view, request)
+                            }
+
+                            override fun shouldOverrideUrlLoading(
+                                view: WebView?,
+                                request: WebResourceRequest?
+                            ): Boolean = if (
+                                mutableListOf(hoyolabUrl)
+                                    .apply { addAll(excludedUrls) }
+                                    .map { request?.url?.toString()?.contains(it) }
+                                    .all { it == false }
+                            ) {
+                                coroutineScope.launch {
+                                    request?.url?.let {
+                                        localContext.startActivity(
+                                            Intent(
+                                                Intent.ACTION_VIEW,
+                                                it
+                                            )
+                                        )
+                                    }
+                                }
+                                true
+                            } else {
+                                false
                             }
                         }
+                    },
+                    chromeClient = remember {
+                        object : AccompanistWebChromeClient() {
+                            override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean =
+                                if (BuildConfig.DEBUG) {
+                                    super.onConsoleMessage(consoleMessage)
+                                } else {
+                                    true
+                                }
 
-                        resultMsg?.run {
-                            (this.obj as WebView.WebViewTransport).webView = popUpWebView
-                            sendToTarget()
+                            override fun onCreateWindow(
+                                view: WebView?,
+                                isDialog: Boolean,
+                                isUserGesture: Boolean,
+                                resultMsg: Message?
+                            ): Boolean {
+                                val popUpWebView = WebView(localContext).apply {
+                                    settings.apply {
+                                        javaScriptEnabled = true
+                                        domStorageEnabled = true
+                                        databaseEnabled = true
+                                        setSupportMultipleWindows(true)
+                                        javaScriptCanOpenWindowsAutomatically = true
+                                        userAgentString = userAgentString.replace("; wv", "")
+                                    }
+
+                                    if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK) && darkTheme) {
+                                        WebSettingsCompat.setForceDark(
+                                            settings,
+                                            WebSettingsCompat.FORCE_DARK_ON
+                                        )
+                                    }
+                                }
+
+                                CookieManager.getInstance().apply {
+                                    acceptCookie()
+                                    setAcceptThirdPartyCookies(popUpWebView, true)
+                                }
+
+                                val dialog = Dialog(localContext).apply {
+                                    setContentView(popUpWebView)
+                                }
+
+                                dialog.window?.run {
+                                    attributes = attributes?.apply {
+                                        width = ViewGroup.LayoutParams.MATCH_PARENT
+                                        height = ViewGroup.LayoutParams.MATCH_PARENT
+                                    } as WindowManager.LayoutParams
+                                }
+
+                                dialog.apply {
+                                    setOnDismissListener {
+                                        popUpWebView.destroy()
+                                    }
+                                }
+
+                                popUpWebView.apply {
+                                    webChromeClient = object : WebChromeClient() {
+                                        override fun onCloseWindow(window: WebView?) {
+                                            dialog.dismiss()
+                                        }
+                                    }
+                                    webViewClient = object : WebViewClient() {
+                                        override fun onPageStarted(
+                                            view: WebView?,
+                                            url: String?,
+                                            favicon: Bitmap?
+                                        ) {
+                                            if (url == securityPopUpUrl) {
+                                                dialog.dismiss()
+                                            } else {
+                                                dialog.show()
+                                            }
+                                            super.onPageStarted(view, url, favicon)
+                                        }
+
+                                        override fun shouldOverrideUrlLoading(
+                                            view: WebView?,
+                                            request: WebResourceRequest?
+                                        ): Boolean = false
+                                    }
+                                }
+
+                                resultMsg?.run {
+                                    (this.obj as WebView.WebViewTransport).webView = popUpWebView
+                                    sendToTarget()
+                                }
+
+                                return true
+                            }
                         }
-
-                        return true
                     }
+                )
+            }
+            is Lce.Error -> {
+
+            }
+            Lce.Loading -> {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    CircularProgressIndicator()
                 }
             }
-        )
+        }
 
         if (showSslErrorDialog != null) {
             AlertDialog(

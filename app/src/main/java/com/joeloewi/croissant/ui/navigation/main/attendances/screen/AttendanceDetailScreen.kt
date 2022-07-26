@@ -53,7 +53,7 @@ fun AttendanceDetailScreen(
     val minute by attendanceDetailViewModel.minute.collectAsState()
     val nickname by attendanceDetailViewModel.nickname.collectAsState()
     val uid by attendanceDetailViewModel.uid.collectAsState()
-    val checkedGame = attendanceDetailViewModel.checkedGames
+    val checkedGame = remember { attendanceDetailViewModel.checkedGames }
     val checkSessionWorkerSuccessLogCount by attendanceDetailViewModel.checkSessionWorkerSuccessLogCount.collectAsState()
     val checkSessionWorkerFailureLogCount by attendanceDetailViewModel.checkSessionWorkerFailureLogCount.collectAsState()
     val attendCheckInEventWorkerSuccessLogCount by attendanceDetailViewModel.attendCheckInEventWorkerSuccessLogCount.collectAsState()
@@ -61,6 +61,12 @@ fun AttendanceDetailScreen(
     val updateAttendanceState by attendanceDetailViewModel.updateAttendanceState.collectAsState()
     val attendanceWithGamesState by attendanceDetailViewModel.attendanceWithGamesState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val hasExecutedAtLeastOnce by remember(
+        attendCheckInEventWorkerSuccessLogCount,
+        attendCheckInEventWorkerFailureLogCount
+    ) {
+        derivedStateOf { attendCheckInEventWorkerSuccessLogCount > 0 || attendCheckInEventWorkerFailureLogCount > 0 }
+    }
 
     LaunchedEffect(attendanceDetailViewModel) {
         getResultFromPreviousComposable<String>(
@@ -72,13 +78,7 @@ fun AttendanceDetailScreen(
         }
     }
 
-    LaunchedEffect(
-        attendCheckInEventWorkerSuccessLogCount,
-        attendCheckInEventWorkerFailureLogCount
-    ) {
-        val hasExecutedAtLeastOnce =
-            attendCheckInEventWorkerSuccessLogCount > 0 || attendCheckInEventWorkerFailureLogCount > 0
-
+    LaunchedEffect(hasExecutedAtLeastOnce) {
         if (hasExecutedAtLeastOnce) {
             requestReview(
                 context = context,
@@ -197,6 +197,9 @@ private fun AttendanceDetailContent(
             SnackbarHost(hostState = snackbarHostState)
         }
     ) { innerPadding ->
+        val loggableWorkers =
+            remember { LoggableWorker.values().filter { it != LoggableWorker.UNKNOWN } }
+
         Column(
             modifier = Modifier
                 .verticalScroll(scrollableState)
@@ -276,9 +279,6 @@ private fun AttendanceDetailContent(
 
             TimePicker(
                 modifier = Modifier.fillMaxWidth(),
-                onCreated = { timePicker ->
-                    timePicker.setIs24HourView(true)
-                },
                 hourOfDay = hourOfDay,
                 minute = minute,
                 onHourOfDayChange = onHourOfDayChange,
@@ -290,7 +290,7 @@ private fun AttendanceDetailContent(
                 style = MaterialTheme.typography.headlineSmall
             )
 
-            LoggableWorker.values().filter { it != LoggableWorker.UNKNOWN }.forEach {
+            loggableWorkers.forEach {
                 when (it) {
                     LoggableWorker.ATTEND_CHECK_IN_EVENT -> {
                         LogSummaryRow(
@@ -341,8 +341,10 @@ fun ConnectedGameListItem(
     hoYoLABGame: HoYoLABGame,
     checkedGames: SnapshotStateList<Game>
 ) {
-    val game = Game(
-        type = hoYoLABGame,
+    val game by rememberUpdatedState(
+        Game(
+            type = hoYoLABGame,
+        )
     )
 
     Card(

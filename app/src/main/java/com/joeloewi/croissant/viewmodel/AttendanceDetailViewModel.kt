@@ -183,6 +183,7 @@ class AttendanceDetailViewModel @Inject constructor(
 
                         set(Calendar.HOUR_OF_DAY, _hourOfDay.value)
                         set(Calendar.MINUTE, _minute.value)
+                        set(Calendar.SECOND, 30)
                     }
 
                     WorkManager.getInstance(application)
@@ -285,7 +286,6 @@ class AttendanceDetailViewModel @Inject constructor(
                         Lce.Content(Unit)
                     },
                     onFailure = {
-                        it.printStackTrace()
                         Lce.Error(it)
                     }
                 )

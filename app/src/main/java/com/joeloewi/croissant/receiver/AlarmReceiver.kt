@@ -32,11 +32,17 @@ class AlarmReceiver : BroadcastReceiver() {
     lateinit var getAllOneShotAttendanceUseCase: AttendanceUseCase.GetAllOneShot
 
     override fun onReceive(p0: Context?, p1: Intent?) {
+        FirebaseCrashlytics.getInstance().apply {
+            log(this@AlarmReceiver.javaClass.simpleName)
+        }
+
         when (p1?.action) {
             Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED, AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED -> {
                 goAsync(
-                    onError = {
-                        it.printStackTrace()
+                    onError = { cause ->
+                        FirebaseCrashlytics.getInstance().apply {
+                            recordException(cause)
+                        }
                     }
                 ) {
                     getAllOneShotAttendanceUseCase().map { attendance ->
@@ -64,6 +70,7 @@ class AlarmReceiver : BroadcastReceiver() {
 
                                     set(Calendar.HOUR_OF_DAY, hourOfDay)
                                     set(Calendar.MINUTE, minute)
+                                    set(Calendar.SECOND, 30)
                                 }
 
                                 val pendingIntent = PendingIntent.getBroadcast(
@@ -90,10 +97,6 @@ class AlarmReceiver : BroadcastReceiver() {
 
             RECEIVE_ATTEND_CHECK_IN_ALARM -> {
                 val attendanceId = p1.getLongExtra(ATTENDANCE_ID, Long.MIN_VALUE)
-
-                FirebaseCrashlytics.getInstance().apply {
-                    log(this@AlarmReceiver.javaClass.simpleName)
-                }
 
                 goAsync(
                     onError = { cause ->
@@ -136,6 +139,7 @@ class AlarmReceiver : BroadcastReceiver() {
                         add(Calendar.DATE, 1)
                         set(Calendar.HOUR_OF_DAY, attendance.hourOfDay)
                         set(Calendar.MINUTE, attendance.minute)
+                        set(Calendar.SECOND, 30)
                     }
 
                     val pendingIntent = PendingIntent.getBroadcast(
