@@ -7,6 +7,9 @@ import com.joeloewi.data.entity.relational.ResinStatusWidgetWithAccountsEntity
 @Dao
 interface ResinStatusWidgetDao {
 
+    @Query("SELECT * FROM ResinStatusWidgetEntity")
+    suspend fun getAll(): List<ResinStatusWidgetEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(resinStatusWidgetEntity: ResinStatusWidgetEntity): Long
 

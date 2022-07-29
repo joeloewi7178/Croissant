@@ -1,6 +1,9 @@
 package com.joeloewi.domain.repository
 
-import com.joeloewi.domain.entity.*
+import com.joeloewi.domain.entity.BaseResponse
+import com.joeloewi.domain.entity.GameRecordCardData
+import com.joeloewi.domain.entity.GenshinDailyNoteData
+import com.joeloewi.domain.entity.UserFullInfoResponse
 import com.joeloewi.domain.wrapper.ContentOrError
 
 interface HoYoLABRepository {

@@ -7,6 +7,12 @@ import javax.inject.Singleton
 
 @Singleton
 sealed class ResinStatusWidgetUseCase {
+    class GetAll @Inject constructor(
+        private val resinStatusWidgetRepository: ResinStatusWidgetRepository
+    ) : ResinStatusWidgetUseCase() {
+        suspend operator fun invoke() = resinStatusWidgetRepository.getAll()
+    }
+
     class Insert @Inject constructor(
         private val resinStatusWidgetRepository: ResinStatusWidgetRepository
     ) : ResinStatusWidgetUseCase() {

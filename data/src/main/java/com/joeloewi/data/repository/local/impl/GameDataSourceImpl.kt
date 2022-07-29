@@ -1,7 +1,6 @@
 package com.joeloewi.data.repository.local.impl
 
 import com.joeloewi.data.db.dao.GameDao
-import com.joeloewi.data.entity.GameEntity
 import com.joeloewi.data.mapper.GameMapper
 import com.joeloewi.data.repository.local.GameDataSource
 import com.joeloewi.domain.entity.Game

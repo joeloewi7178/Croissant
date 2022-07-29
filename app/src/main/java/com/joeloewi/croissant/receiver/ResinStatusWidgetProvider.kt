@@ -22,11 +22,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import kotlin.time.ExperimentalTime
 
-@ExperimentalTime
 @AndroidEntryPoint
 class ResinStatusWidgetProvider : AppWidgetProvider() {
 
@@ -47,105 +44,106 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
         super.onUpdate(context, appWidgetManager, appWidgetIds)
         //this method also called when user put widget on home screen
 
-        if (context != null) {
-            goAsync(onError = {}) {
-                appWidgetIds?.map { appWidgetId ->
-                    async {
-                        if (context.isPowerSaveMode() && !context.isIgnoringBatteryOptimizations()) {
-                            RemoteViews(
-                                context.packageName,
-                                R.layout.widget_resin_status_battery_optimization_enabled
-                            ).apply {
+        goAsync(
+            onError = {},
+            coroutineContext = Dispatchers.IO
+        ) {
+            appWidgetIds?.map { appWidgetId ->
+                async {
+                    if (application.isPowerSaveMode() && !application.isIgnoringBatteryOptimizations()) {
+                        RemoteViews(
+                            application.packageName,
+                            R.layout.widget_resin_status_battery_optimization_enabled
+                        ).apply {
+                            setOnClickPendingIntent(
+                                R.id.button_retry,
+                                PendingIntent.getBroadcast(
+                                    application,
+                                    appWidgetId,
+                                    Intent(
+                                        application,
+                                        ResinStatusWidgetProvider::class.java
+                                    ).apply {
+                                        action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+
+                                        putExtra(
+                                            AppWidgetManager.EXTRA_APPWIDGET_IDS,
+                                            intArrayOf(appWidgetId)
+                                        )
+                                    },
+                                    pendingIntentFlagUpdateCurrent
+                                )
+                            )
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                                 setOnClickPendingIntent(
-                                    R.id.button_retry,
-                                    PendingIntent.getBroadcast(
-                                        context,
+                                    R.id.button_change_setting,
+                                    PendingIntent.getActivity(
+                                        application,
                                         appWidgetId,
                                         Intent(
-                                            context,
-                                            ResinStatusWidgetProvider::class.java
-                                        ).apply {
-                                            action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-
-                                            putExtra(
-                                                AppWidgetManager.EXTRA_APPWIDGET_IDS,
-                                                intArrayOf(appWidgetId)
-                                            )
-                                        },
+                                            Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS
+                                        ),
                                         pendingIntentFlagUpdateCurrent
                                     )
                                 )
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                    setOnClickPendingIntent(
-                                        R.id.button_change_setting,
-                                        PendingIntent.getActivity(
-                                            context,
-                                            appWidgetId,
-                                            Intent(
-                                                Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS
-                                            ),
-                                            pendingIntentFlagUpdateCurrent
-                                        )
+                            } else {
+                                setViewVisibility(R.id.button_change_setting, View.INVISIBLE)
+                            }
+                        }.also { remoteViews ->
+                            appWidgetManager?.updateAppWidget(
+                                appWidgetId,
+                                remoteViews
+                            )
+                        }
+                    } else {
+                        getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
+                            invoke(appWidgetId)
+                        }.mapCatching {
+                            val oneTimeWorkRequest =
+                                OneTimeWorkRequest.Builder(RefreshResinStatusWorker::class.java)
+                                    .setInputData(
+                                        workDataOf(RefreshResinStatusWorker.APP_WIDGET_ID to appWidgetId)
                                     )
-                                } else {
-                                    setViewVisibility(R.id.button_change_setting, View.INVISIBLE)
-                                }
-                            }.also { remoteViews ->
-                                appWidgetManager?.updateAppWidget(
-                                    appWidgetId,
-                                    remoteViews
-                                )
-                            }
-                        } else {
-                            getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
-                                invoke(appWidgetId)
-                            }.mapCatching {
-                                val oneTimeWorkRequest =
-                                    OneTimeWorkRequest.Builder(RefreshResinStatusWorker::class.java)
-                                        .setInputData(
-                                            workDataOf(RefreshResinStatusWorker.APP_WIDGET_ID to appWidgetId)
-                                        )
-                                        .setConstraints(
-                                            Constraints.Builder()
-                                                .setRequiredNetworkType(NetworkType.CONNECTED)
-                                                .build()
-                                        )
-                                        .build()
+                                    .setConstraints(
+                                        Constraints.Builder()
+                                            .setRequiredNetworkType(NetworkType.CONNECTED)
+                                            .build()
+                                    )
+                                    .build()
 
-                                WorkManager.getInstance(context).enqueueUniqueWork(
-                                    it.resinStatusWidget.id.toString(),
-                                    ExistingWorkPolicy.APPEND_OR_REPLACE,
-                                    oneTimeWorkRequest
-                                ).await()
-                            }.onFailure {
+                            WorkManager.getInstance(application).enqueueUniqueWork(
+                                it.resinStatusWidget.id.toString(),
+                                ExistingWorkPolicy.APPEND_OR_REPLACE,
+                                oneTimeWorkRequest
+                            ).await()
+                        }.onFailure {
 
-                            }
                         }
                     }
-                }?.awaitAll()
-            }
+                }
+            }?.awaitAll()
         }
     }
 
     override fun onDeleted(context: Context?, appWidgetIds: IntArray?) {
         super.onDeleted(context, appWidgetIds)
-        goAsync(onError = {}) {
-            if (context != null && appWidgetIds != null) {
-                appWidgetIds.map { appWidgetId ->
-                    withContext(Dispatchers.Default) {
-                        async {
-                            val resinStatusWithAccounts =
-                                getOneByAppWidgetIdResinStatusWidgetUseCase(appWidgetId)
-
-                            WorkManager.getInstance(context)
-                                .cancelUniqueWork(resinStatusWithAccounts.resinStatusWidget.refreshGenshinResinStatusWorkerName.toString())
-                                .await()
-                        }
+        goAsync(
+            onError = {},
+            coroutineContext = Dispatchers.IO
+        ) {
+            appWidgetIds?.map { appWidgetId ->
+                async {
+                    getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
+                        invoke(appWidgetId)
+                    }.onSuccess {
+                        WorkManager.getInstance(application)
+                            .cancelUniqueWork(it.resinStatusWidget.refreshGenshinResinStatusWorkerName.toString())
+                            .await()
                     }
-                }.awaitAll()
+                }
+            }?.awaitAll()
 
-                deleteByAppWidgetIdResinStatusWidgetUseCase(*appWidgetIds)
-            }
+            appWidgetIds?.let { deleteByAppWidgetIdResinStatusWidgetUseCase(*it) }
         }
     }
 }

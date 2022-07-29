@@ -1,6 +1,5 @@
 package com.joeloewi.data.repository.local
 
-import com.joeloewi.data.entity.AccountEntity
 import com.joeloewi.domain.entity.Account
 
 interface AccountDataSource {

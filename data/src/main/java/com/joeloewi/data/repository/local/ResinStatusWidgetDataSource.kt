@@ -4,6 +4,7 @@ import com.joeloewi.domain.entity.ResinStatusWidget
 import com.joeloewi.domain.entity.relational.ResinStatusWidgetWithAccounts
 
 interface ResinStatusWidgetDataSource {
+    suspend fun getAll(): List<ResinStatusWidget>
     suspend fun insert(resinStatusWidget: ResinStatusWidget): Long
     suspend fun delete(vararg resinStatusWidgets: ResinStatusWidget): Int
     suspend fun update(resinStatusWidget: ResinStatusWidget): Int

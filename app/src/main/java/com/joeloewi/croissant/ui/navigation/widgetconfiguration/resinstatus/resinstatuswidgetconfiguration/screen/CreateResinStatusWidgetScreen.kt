@@ -36,16 +36,14 @@ import com.joeloewi.croissant.util.isEmpty
 import com.joeloewi.croissant.viewmodel.CreateResinStatusWidgetViewModel
 import com.joeloewi.domain.common.HoYoLABGame
 import com.joeloewi.domain.entity.relational.AttendanceWithGames
-import kotlin.time.ExperimentalTime
 
-@ExperimentalTime
 @ExperimentalMaterial3Api
 @Composable
 fun CreateResinStatusWidgetScreen(
     navController: NavController,
     createResinStatusWidgetViewModel: CreateResinStatusWidgetViewModel
 ) {
-    val selectableIntervals = createResinStatusWidgetViewModel.selectableIntervals
+    val selectableIntervals = remember { createResinStatusWidgetViewModel.selectableIntervals }
     val interval by createResinStatusWidgetViewModel.interval.collectAsState()
     val pagedAttendancesWithGames =
         createResinStatusWidgetViewModel.pagedAttendancesWithGames.collectAsLazyPagingItems()
@@ -54,7 +52,7 @@ fun CreateResinStatusWidgetScreen(
     createResinStatusWidgetViewModel.createResinStatusWidgetState.collectAsState()
     val activity = LocalActivity.current
 
-    LaunchedEffect(createResinStatusWidgetViewModel) {
+    LaunchedEffect(activity) {
         with(activity) {
             val resultValue = Intent().apply {
                 putExtra(

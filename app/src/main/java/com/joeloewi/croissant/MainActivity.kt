@@ -116,10 +116,10 @@ class MainActivity : AppCompatActivity() {
                         LocalWindowSizeClass provides calculateWindowSizeClass(activity = this)
                     ) {
                         val mainViewModel: MainViewModel = hiltViewModel()
-                        val appUpdateResult by mainViewModel.appUpdateResultState.collectAsState()
+                        val appUpdateResultState by mainViewModel.appUpdateResultState.collectAsState()
 
                         RequireAppUpdate(
-                            appUpdateResultState = appUpdateResult
+                            appUpdateResultState = appUpdateResultState
                         ) {
                             CroissantApp(
                                 mainViewModel = mainViewModel

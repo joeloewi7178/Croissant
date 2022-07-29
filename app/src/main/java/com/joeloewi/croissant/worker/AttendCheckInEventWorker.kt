@@ -164,7 +164,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
         }
         .build()
 
-    override suspend fun doWork(): Result = withContext(Dispatchers.Default) {
+    override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         _attendanceId.runCatching {
             takeIf { it != Long.MIN_VALUE }!!
         }.mapCatching { attendanceId ->

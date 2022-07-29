@@ -1,8 +1,6 @@
 package com.joeloewi.data.repository.local
 
 import androidx.paging.PagingData
-import com.joeloewi.data.entity.WorkerExecutionLogEntity
-import com.joeloewi.data.entity.relational.WorkerExecutionLogWithStateEntity
 import com.joeloewi.domain.common.LoggableWorker
 import com.joeloewi.domain.common.WorkerExecutionLogState
 import com.joeloewi.domain.entity.WorkerExecutionLog

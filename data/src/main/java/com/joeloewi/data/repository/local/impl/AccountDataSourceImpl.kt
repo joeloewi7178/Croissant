@@ -1,7 +1,6 @@
 package com.joeloewi.data.repository.local.impl
 
 import com.joeloewi.data.db.dao.AccountDao
-import com.joeloewi.data.entity.AccountEntity
 import com.joeloewi.data.mapper.AccountMapper
 import com.joeloewi.data.repository.local.AccountDataSource
 import com.joeloewi.domain.entity.Account

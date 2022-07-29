@@ -9,6 +9,8 @@ import javax.inject.Inject
 class ResinStatusWidgetRepositoryImpl @Inject constructor(
     private val resinStatusWidgetDataSource: ResinStatusWidgetDataSource
 ) : ResinStatusWidgetRepository {
+    override suspend fun getAll(): List<ResinStatusWidget> =
+        resinStatusWidgetDataSource.getAll()
 
     override suspend fun insert(resinStatusWidget: ResinStatusWidget): Long =
         resinStatusWidgetDataSource.insert(resinStatusWidget)

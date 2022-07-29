@@ -9,16 +9,14 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.os.bundleOf
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.google.android.material.color.DynamicColors
@@ -51,14 +49,14 @@ class ResinStatusWidgetConfigurationActivity : AppCompatActivity() {
         DynamicColors.applyToActivityIfAvailable(this)
 
         setContent {
-            val mainViewModel: MainViewModel = hiltViewModel()
-
             CroissantTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
                     CompositionLocalProvider(LocalActivity provides this) {
+                        val mainViewModel: MainViewModel = hiltViewModel()
+
                         ResinStatusWidgetConfigurationApp()
                     }
                 }
@@ -67,21 +65,24 @@ class ResinStatusWidgetConfigurationActivity : AppCompatActivity() {
     }
 }
 
-@ExperimentalTime
 @ExperimentalMaterial3Api
 @Composable
 fun ResinStatusWidgetConfigurationApp() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentDestination = navBackStackEntry?.destination
+    val currentDestination by remember(navBackStackEntry) { derivedStateOf { navBackStackEntry?.destination } }
     val context = LocalContext.current
     val activity = LocalActivity.current
-    val appWidgetId = activity.intent?.extras?.getInt(
-        AppWidgetManager.EXTRA_APPWIDGET_ID,
-        AppWidgetManager.INVALID_APPWIDGET_ID
-    ) ?: AppWidgetManager.INVALID_APPWIDGET_ID
+    val appWidgetId by remember {
+        lazy {
+            activity.intent?.extras?.getInt(
+                AppWidgetManager.EXTRA_APPWIDGET_ID,
+                AppWidgetManager.INVALID_APPWIDGET_ID
+            ) ?: AppWidgetManager.INVALID_APPWIDGET_ID
+        }
+    }
 
-    LaunchedEffect(navBackStackEntry?.destination) {
+    LaunchedEffect(currentDestination) {
         FirebaseAnalytics.getInstance(context).logEvent(
             FirebaseAnalytics.Event.SCREEN_VIEW,
             bundleOf(
@@ -122,13 +123,18 @@ fun ResinStatusWidgetConfigurationApp() {
                 ) {
                     composable(
                         route = ResinStatusWidgetConfigurationDestination.LoadingScreen.route,
-                    ) {
-                        val loadingViewModel: LoadingViewModel = hiltViewModel()
+                        arguments = listOf(
+                            navArgument("appWidgetId") {
+                                type = NavType.IntType
+                                defaultValue = appWidgetId
+                            }
+                        )
+                    ) { navBackStackEntry ->
+                        val loadingViewModel: LoadingViewModel = hiltViewModel(navBackStackEntry)
 
                         LoadingScreen(
                             navController = navController,
-                            loadingViewModel = loadingViewModel,
-                            appWidgetId = appWidgetId
+                            loadingViewModel = loadingViewModel
                         )
                     }
 

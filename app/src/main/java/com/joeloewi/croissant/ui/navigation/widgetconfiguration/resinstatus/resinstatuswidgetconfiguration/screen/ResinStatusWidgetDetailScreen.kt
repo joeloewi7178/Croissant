@@ -1,6 +1,5 @@
 package com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration.screen
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -22,9 +21,7 @@ import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.ProgressDialog
 import com.joeloewi.croissant.viewmodel.ResinStatusWidgetDetailViewModel
-import kotlin.time.ExperimentalTime
 
-@ExperimentalTime
 @ExperimentalMaterial3Api
 @Composable
 fun ResinStatusWidgetDetailScreen(
@@ -55,10 +52,6 @@ fun ResinStatusWidgetDetailContent(
 ) {
     val activity = LocalActivity.current
     val (showProgressDialog, onShowProgressDialogChange) = mutableStateOf(false)
-
-    BackHandler {
-        activity.finish()
-    }
 
     LaunchedEffect(updateResinStatusWidgetState) {
         when (updateResinStatusWidgetState) {

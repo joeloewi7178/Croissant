@@ -23,9 +23,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
-import kotlin.time.ExperimentalTime
 
-@ExperimentalTime
 @HiltViewModel
 class CreateResinStatusWidgetViewModel @Inject constructor(
     private val application: Application,
@@ -37,7 +35,7 @@ class CreateResinStatusWidgetViewModel @Inject constructor(
 ) : ViewModel() {
     val appWidgetId =
         savedStateHandle.get<Int>("appWidgetId") ?: AppWidgetManager.INVALID_APPWIDGET_ID
-    val selectableIntervals = listOf(15L, 30L, 60L)
+    val selectableIntervals = listOf(60L, 120L, 240L)
 
     private val _createResinStatusWidgetState = MutableStateFlow<Lce<List<Long>>>(
         Lce.Content(
