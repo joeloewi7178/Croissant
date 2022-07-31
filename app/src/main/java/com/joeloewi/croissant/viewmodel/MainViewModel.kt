@@ -2,6 +2,7 @@ package com.joeloewi.croissant.viewmodel
 
 import android.app.AlarmManager
 import android.app.Application
+import android.os.Build
 import android.os.PowerManager
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.ViewModel
@@ -11,6 +12,7 @@ import com.google.android.play.core.ktx.AppUpdateResult
 import com.google.android.play.core.ktx.requestUpdateFlow
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.joeloewi.croissant.util.RootChecker
+import com.joeloewi.croissant.util.isIgnoringBatteryOptimizations
 import com.joeloewi.domain.usecase.SettingsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -66,9 +68,13 @@ class MainViewModel @Inject constructor(
     }
 
     fun isIgnoringBatteryOptimizations() =
-        powerManager.isIgnoringBatteryOptimizations(application.packageName)
+        powerManager.isIgnoringBatteryOptimizations(application)
 
-    fun canScheduleExactAlarms() = alarmManager.canScheduleExactAlarms()
+    fun canScheduleExactAlarms() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        alarmManager.canScheduleExactAlarms()
+    } else {
+        true
+    }
 
     fun checkIsDeviceRooted() {
         viewModelScope.launch(Dispatchers.IO) {

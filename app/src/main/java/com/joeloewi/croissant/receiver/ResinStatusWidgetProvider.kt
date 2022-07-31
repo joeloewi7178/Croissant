@@ -14,6 +14,7 @@ import android.widget.RemoteViews
 import androidx.work.*
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.util.goAsync
+import com.joeloewi.croissant.util.isIgnoringBatteryOptimizations
 import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
 import com.joeloewi.croissant.worker.RefreshResinStatusWorker
 import com.joeloewi.domain.usecase.ResinStatusWidgetUseCase
@@ -53,7 +54,7 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
             appWidgetIds?.map { appWidgetId ->
                 async {
                     if (powerManager.isPowerSaveMode && !powerManager.isIgnoringBatteryOptimizations(
-                            application.packageName
+                            application
                         )
                     ) {
                         RemoteViews(
