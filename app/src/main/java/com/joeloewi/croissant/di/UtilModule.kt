@@ -3,7 +3,7 @@ package com.joeloewi.croissant.di
 import android.app.AlarmManager
 import android.app.Application
 import android.os.PowerManager
-import androidx.core.content.getSystemService
+import androidx.core.content.ContextCompat
 import com.joeloewi.croissant.util.RootChecker
 import dagger.Module
 import dagger.Provides
@@ -17,15 +17,13 @@ object UtilModule {
 
     @Provides
     @Singleton
-    fun providePowerManager(application: Application): PowerManager = with(application) {
-        getSystemService()!!
-    }
+    fun providePowerManager(application: Application): PowerManager =
+        ContextCompat.getSystemService(application, PowerManager::class.java)!!
 
     @Provides
     @Singleton
-    fun provideAlarmManager(application: Application): AlarmManager = with(application) {
-        getSystemService()!!
-    }
+    fun provideAlarmManager(application: Application): AlarmManager =
+        ContextCompat.getSystemService(application, AlarmManager::class.java)!!
 
     @Provides
     @Singleton
