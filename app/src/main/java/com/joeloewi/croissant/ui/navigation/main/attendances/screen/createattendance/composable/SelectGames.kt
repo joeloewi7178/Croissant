@@ -14,10 +14,7 @@ import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -373,15 +370,20 @@ fun ConnectedGamesContentListItem(
     hoYoLABGame: HoYoLABGame,
     gameRecord: GameRecord
 ) {
-    val game = Game(
-        roleId = gameRecord.gameRoleId,
-        type = hoYoLABGame,
-        region = gameRecord.region
-    )
+    val game = remember {
+        Game(
+            roleId = gameRecord.gameRoleId,
+            type = hoYoLABGame,
+            region = gameRecord.region
+        )
+    }
 
-    val enabled =
-        hoYoLABGame == HoYoLABGame.TearsOfThemis ||
-                gameRecord.gameId != GameRecord.INVALID_GAME_ID
+    val enabled by remember(hoYoLABGame, gameRecord) {
+        derivedStateOf {
+            hoYoLABGame == HoYoLABGame.TearsOfThemis ||
+                    gameRecord.gameId != GameRecord.INVALID_GAME_ID
+        }
+    }
 
     ListItem(
         modifier = modifier

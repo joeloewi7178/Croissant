@@ -7,14 +7,13 @@ import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.PowerManager
 import android.provider.Settings
 import android.view.View
 import android.widget.RemoteViews
 import androidx.work.*
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.util.goAsync
-import com.joeloewi.croissant.util.isIgnoringBatteryOptimizations
-import com.joeloewi.croissant.util.isPowerSaveMode
 import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
 import com.joeloewi.croissant.worker.RefreshResinStatusWorker
 import com.joeloewi.domain.usecase.ResinStatusWidgetUseCase
@@ -26,6 +25,9 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class ResinStatusWidgetProvider : AppWidgetProvider() {
+
+    @Inject
+    lateinit var powerManager: PowerManager
 
     @Inject
     lateinit var application: Application
@@ -50,7 +52,10 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
         ) {
             appWidgetIds?.map { appWidgetId ->
                 async {
-                    if (application.isPowerSaveMode() && !application.isIgnoringBatteryOptimizations()) {
+                    if (powerManager.isPowerSaveMode && !powerManager.isIgnoringBatteryOptimizations(
+                            application.packageName
+                        )
+                    ) {
                         RemoteViews(
                             application.packageName,
                             R.layout.widget_resin_status_battery_optimization_enabled
@@ -115,7 +120,7 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
                                 it.resinStatusWidget.id.toString(),
                                 ExistingWorkPolicy.APPEND_OR_REPLACE,
                                 oneTimeWorkRequest
-                            ).await()
+                            )
                         }.onFailure {
 
                         }
@@ -131,19 +136,21 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
             onError = {},
             coroutineContext = Dispatchers.IO
         ) {
-            appWidgetIds?.map { appWidgetId ->
-                async {
-                    getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
-                        invoke(appWidgetId)
-                    }.onSuccess {
-                        WorkManager.getInstance(application)
-                            .cancelUniqueWork(it.resinStatusWidget.refreshGenshinResinStatusWorkerName.toString())
-                            .await()
+            appWidgetIds?.run {
+                this.map { appWidgetId ->
+                    async {
+                        getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
+                            invoke(appWidgetId)
+                        }.onSuccess {
+                            WorkManager.getInstance(application)
+                                .cancelUniqueWork(it.resinStatusWidget.refreshGenshinResinStatusWorkerName.toString())
+                                .await()
+                        }
                     }
-                }
-            }?.awaitAll()
+                }.awaitAll()
 
-            appWidgetIds?.let { deleteByAppWidgetIdResinStatusWidgetUseCase(*it) }
+                deleteByAppWidgetIdResinStatusWidgetUseCase(*this)
+            }
         }
     }
 }

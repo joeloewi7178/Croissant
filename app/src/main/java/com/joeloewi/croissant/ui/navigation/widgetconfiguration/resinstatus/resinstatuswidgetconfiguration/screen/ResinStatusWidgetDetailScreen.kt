@@ -14,6 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.Lce
@@ -22,6 +24,7 @@ import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.ProgressDialog
 import com.joeloewi.croissant.viewmodel.ResinStatusWidgetDetailViewModel
 
+@ExperimentalLifecycleComposeApi
 @ExperimentalMaterial3Api
 @Composable
 fun ResinStatusWidgetDetailScreen(
@@ -29,8 +32,8 @@ fun ResinStatusWidgetDetailScreen(
     resinStatusWidgetDetailViewModel: ResinStatusWidgetDetailViewModel = hiltViewModel()
 ) {
     val selectableIntervals = remember { resinStatusWidgetDetailViewModel.selectableIntervals }
-    val interval by resinStatusWidgetDetailViewModel.interval.collectAsState()
-    val updateResinStatusWidgetState by resinStatusWidgetDetailViewModel.updateResinStatusWidgetState.collectAsState()
+    val interval by resinStatusWidgetDetailViewModel.interval.collectAsStateWithLifecycle()
+    val updateResinStatusWidgetState by resinStatusWidgetDetailViewModel.updateResinStatusWidgetState.collectAsStateWithLifecycle()
 
     ResinStatusWidgetDetailContent(
         selectableIntervals = selectableIntervals,

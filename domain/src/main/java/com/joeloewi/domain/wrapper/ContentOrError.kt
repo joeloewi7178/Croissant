@@ -8,7 +8,7 @@ sealed class ContentOrError<out T> {
     data class Error(override val error: Throwable) : ContentOrError<Nothing>()
 }
 
-fun <T> ContentOrError<T>.getOrThrow() : T = when(this) {
+fun <T> ContentOrError<T>.getOrThrow(): T = when (this) {
     is ContentOrError.Content -> {
         content
     }

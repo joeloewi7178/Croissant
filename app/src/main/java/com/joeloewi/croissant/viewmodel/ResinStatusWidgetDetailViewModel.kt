@@ -27,7 +27,7 @@ class ResinStatusWidgetDetailViewModel @Inject constructor(
 ) : ViewModel() {
     private val _appWidgetId =
         savedStateHandle.get<Int>("appWidgetId") ?: AppWidgetManager.INVALID_APPWIDGET_ID
-    val selectableIntervals = listOf(60L, 120L, 240L)
+    val selectableIntervals = listOf(15L, 30L, 60L)
 
     private val _updateResinStatusWidgetState = MutableStateFlow<Lce<Int>>(Lce.Content(0))
     private val _interval = MutableStateFlow(selectableIntervals.first())

@@ -31,6 +31,9 @@ class AlarmReceiver : BroadcastReceiver() {
     @Inject
     lateinit var getAllOneShotAttendanceUseCase: AttendanceUseCase.GetAllOneShot
 
+    @Inject
+    lateinit var alarmManager: AlarmManager
+
     override fun onReceive(p0: Context?, p1: Intent?) {
         FirebaseCrashlytics.getInstance().apply {
             log(this@AlarmReceiver.javaClass.simpleName)
@@ -77,7 +80,7 @@ class AlarmReceiver : BroadcastReceiver() {
                                     pendingIntentFlagUpdateCurrent
                                 )
 
-                                with(application.getSystemService(Context.ALARM_SERVICE) as AlarmManager) {
+                                with(alarmManager) {
                                     cancel(pendingIntent)
                                     AlarmManagerCompat.setExactAndAllowWhileIdle(
                                         this,
@@ -142,7 +145,7 @@ class AlarmReceiver : BroadcastReceiver() {
                         pendingIntentFlagUpdateCurrent
                     )
 
-                    with(application.getSystemService(Context.ALARM_SERVICE) as AlarmManager) {
+                    with(alarmManager) {
                         cancel(pendingIntent)
                         AlarmManagerCompat.setExactAndAllowWhileIdle(
                             this,

@@ -8,23 +8,27 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.util.TimePicker
+import com.joeloewi.croissant.util.is24HourFormat
 import kotlinx.coroutines.ObsoleteCoroutinesApi
+import org.threeten.bp.LocalTime
+import org.threeten.bp.format.DateTimeFormatter
 import java.util.*
 
+@ExperimentalLifecycleComposeApi
 @ObsoleteCoroutinesApi
 @ExperimentalMaterial3Api
 @Composable
@@ -106,10 +110,36 @@ fun SetTime(
                 }
             }
 
-            val todayOrTomorrow = if (canExecuteToday) {
-                stringResource(id = R.string.today)
-            } else {
-                stringResource(id = R.string.tomorrow)
+            val todayOrTomorrow by rememberUpdatedState(
+                newValue = if (canExecuteToday) {
+                    stringResource(id = R.string.today)
+                } else {
+                    stringResource(id = R.string.tomorrow)
+                }
+            )
+
+            val context = LocalContext.current
+            val is24HourFormat by context.is24HourFormat().collectAsStateWithLifecycle()
+            val time by remember(hourOfDay, minute) {
+                derivedStateOf {
+                    "${hourOfDay.toString().padStart(2, '0')} : ${
+                        minute.toString().padStart(2, '0')
+                    }"
+                }
+            }
+            val formattedTime by remember(is24HourFormat, time) {
+                derivedStateOf {
+                    if (is24HourFormat) {
+                        time
+                    } else {
+                        LocalTime.parse(
+                            time,
+                            DateTimeFormatter.ofPattern(
+                                "HH : mm",
+                            )
+                        ).format(DateTimeFormatter.ofPattern("a hh : mm"))
+                    }
+                }
             }
 
             Row(
@@ -117,9 +147,7 @@ fun SetTime(
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "$todayOrTomorrow ${
-                        hourOfDay.toString().padStart(2, '0')
-                    } : ${minute.toString().padStart(2, '0')}",
+                    text = "$todayOrTomorrow $formattedTime",
                     style = MaterialTheme.typography.headlineMedium
                 )
             }

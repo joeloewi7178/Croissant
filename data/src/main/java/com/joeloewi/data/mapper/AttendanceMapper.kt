@@ -4,7 +4,7 @@ import com.joeloewi.data.entity.AttendanceEntity
 import com.joeloewi.data.mapper.base.Mapper
 import com.joeloewi.domain.entity.Attendance
 
-class AttendanceMapper: Mapper<Attendance, AttendanceEntity> {
+class AttendanceMapper : Mapper<Attendance, AttendanceEntity> {
     override fun toData(domainEntity: Attendance): AttendanceEntity = with(domainEntity) {
         AttendanceEntity(
             id,

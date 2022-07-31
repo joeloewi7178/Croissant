@@ -55,7 +55,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.2.0"
+        kotlinCompilerExtensionVersion = "1.3.0-rc01"
     }
     packagingOptions {
         resources {
@@ -73,13 +73,15 @@ dependencies {
     implementation("com.google.android.material:material:1.7.0-alpha03")
     implementation("androidx.compose.material3:material3:${Versions.material3}")
     implementation("androidx.compose.material3:material3-window-size-class:${Versions.material3}")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:${Versions.lifecycle}")
-    implementation("androidx.activity:activity-compose:1.5.0")
+    implementation("androidx.activity:activity-ktx:1.5.1")
+    implementation("androidx.activity:activity-compose:1.5.1")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.3")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
     androidTestImplementation("androidx.compose.ui:ui-test-junit4:${Versions.compose}")
 
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:${Versions.lifecycle}")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:${Versions.lifecycle}")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:${Versions.lifecycle}")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:${Versions.lifecycle}")
     implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:${Versions.lifecycle}")
@@ -134,7 +136,7 @@ dependencies {
     implementation("com.jakewharton.threetenabp:threetenabp:1.4.0")
 
     // https://mvnrepository.com/artifact/com.google.android.material/compose-theme-adapter-3
-    implementation("com.google.android.material:compose-theme-adapter-3:1.0.14")
+    implementation("com.google.android.material:compose-theme-adapter-3:1.0.15")
 
     //html parsing
     implementation("org.jsoup:jsoup:1.15.2")
@@ -144,7 +146,7 @@ dependencies {
     implementation("com.google.android.play:core-ktx:1.8.1")
 
     //firebase
-    implementation(platform("com.google.firebase:firebase-bom:30.2.0"))
+    implementation(platform("com.google.firebase:firebase-bom:30.3.1"))
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.firebase:firebase-crashlytics-ktx")
 

@@ -16,6 +16,7 @@ import androidx.core.os.bundleOf
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
@@ -33,10 +34,9 @@ import com.joeloewi.croissant.viewmodel.LoadingViewModel
 import com.joeloewi.croissant.viewmodel.MainViewModel
 import com.joeloewi.croissant.viewmodel.ResinStatusWidgetDetailViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlin.time.ExperimentalTime
 
 //app widget configuration intent does not provide app widget provider's name
-@ExperimentalTime
+@ExperimentalLifecycleComposeApi
 @ExperimentalMaterial3Api
 @AndroidEntryPoint
 class ResinStatusWidgetConfigurationActivity : AppCompatActivity() {
@@ -65,6 +65,7 @@ class ResinStatusWidgetConfigurationActivity : AppCompatActivity() {
     }
 }
 
+@ExperimentalLifecycleComposeApi
 @ExperimentalMaterial3Api
 @Composable
 fun ResinStatusWidgetConfigurationApp() {

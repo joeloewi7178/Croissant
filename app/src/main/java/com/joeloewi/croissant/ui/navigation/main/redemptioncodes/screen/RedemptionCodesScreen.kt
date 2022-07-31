@@ -17,10 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +27,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
@@ -43,6 +42,7 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.google.accompanist.web.AccompanistWebViewClient
 import com.google.accompanist.web.WebView
 import com.google.accompanist.web.rememberWebViewStateWithHTMLData
+import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
 import com.joeloewi.croissant.ui.theme.DefaultDp
@@ -53,6 +53,7 @@ import com.joeloewi.croissant.util.gameNameStringResId
 import com.joeloewi.croissant.viewmodel.RedemptionCodesViewModel
 import com.joeloewi.domain.common.HoYoLABGame
 
+@ExperimentalLifecycleComposeApi
 @ExperimentalFoundationApi
 @ExperimentalMaterial3Api
 @Composable
@@ -60,7 +61,7 @@ fun RedemptionCodesScreen(
     navController: NavController,
     redemptionCodesViewModel: RedemptionCodesViewModel = hiltViewModel()
 ) {
-    val hoYoLABGameRedemptionCodesState by redemptionCodesViewModel.hoYoLABGameRedemptionCodesState.collectAsState()
+    val hoYoLABGameRedemptionCodesState by redemptionCodesViewModel.hoYoLABGameRedemptionCodesState.collectAsStateWithLifecycle()
     val expandedItems = remember { redemptionCodesViewModel.expandedItems }
 
     RedemptionCodesContent(
@@ -78,7 +79,12 @@ private fun RedemptionCodesContent(
     expandedItems: SnapshotStateList<HoYoLABGame>,
     onRefresh: () -> Unit
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+
     Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        },
         topBar = {
             SmallTopAppBar(
                 title = {
@@ -88,6 +94,7 @@ private fun RedemptionCodesContent(
         }
     ) { innerPadding ->
         val swipeRefreshState = rememberSwipeRefreshState(hoYoLABGameRedemptionCodesState.isLoading)
+        val errorOccurredString = stringResource(id = R.string.error_occurred)
 
         SwipeRefresh(
             modifier = Modifier.fillMaxSize(),
@@ -132,7 +139,13 @@ private fun RedemptionCodesContent(
                         }
                     }
                     is Lce.Error -> {
-
+                        item {
+                            LaunchedEffect(hoYoLABGameRedemptionCodesState) {
+                                snackbarHostState.showSnackbar(
+                                    message = errorOccurredString,
+                                )
+                            }
+                        }
                     }
                     Lce.Loading -> {
                         items(
@@ -224,10 +237,14 @@ fun RedemptionCodeListItem(
                 }
             }
 
-            val height = if (expandedItems.contains(item.first)) {
-                Dp.Unspecified
-            } else {
-                216.dp
+            val height by remember(expandedItems, item.first) {
+                derivedStateOf {
+                    if (expandedItems.contains(item.first)) {
+                        Dp.Unspecified
+                    } else {
+                        216.dp
+                    }
+                }
             }
 
             WebView(

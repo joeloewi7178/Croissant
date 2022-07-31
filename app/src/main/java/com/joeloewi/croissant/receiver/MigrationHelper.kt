@@ -4,21 +4,17 @@ import android.app.Application
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import androidx.work.*
+import androidx.work.WorkManager
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.joeloewi.croissant.util.goAsync
-import com.joeloewi.croissant.worker.RefreshResinStatusWorker
 import com.joeloewi.domain.usecase.AttendanceUseCase
 import com.joeloewi.domain.usecase.ResinStatusWidgetUseCase
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
-import kotlin.time.ExperimentalTime
 
-@ExperimentalTime
 @AndroidEntryPoint
 class MigrationHelper : BroadcastReceiver() {
 
@@ -49,37 +45,6 @@ class MigrationHelper : BroadcastReceiver() {
                     },
                     coroutineContext = Dispatchers.IO
                 ) {
-                    //there is call count restriction on hoyolab api
-                    //reduce call count by increasing interval
-                    //minimum is 60 minutes
-
-                    val minimumInterval = 60L
-
-                    getAllResinStatusWidgetUseCase().filter { it.interval == 15L }.map {
-                        async {
-                            val periodicWorkRequest = PeriodicWorkRequest.Builder(
-                                RefreshResinStatusWorker::class.java,
-                                minimumInterval,
-                                TimeUnit.MINUTES
-                            ).setInputData(
-                                workDataOf(RefreshResinStatusWorker.APP_WIDGET_ID to it.appWidgetId)
-                            ).setConstraints(
-                                Constraints.Builder()
-                                    .setRequiredNetworkType(NetworkType.CONNECTED)
-                                    .build()
-                            ).build()
-
-                            WorkManager.getInstance(application)
-                                .enqueueUniquePeriodicWork(
-                                    it.refreshGenshinResinStatusWorkerName.toString(),
-                                    ExistingPeriodicWorkPolicy.REPLACE,
-                                    periodicWorkRequest
-                                )
-
-                            updateResinStatusWidgetUseCase(it.copy(interval = minimumInterval))
-                        }
-                    }.awaitAll()
-
                     //because work manager's job can be deferred, cancel check in event worker
                     //instead of work manager, use alarm manager
                     getAllOneShotAttendanceUseCase().map { attendance ->

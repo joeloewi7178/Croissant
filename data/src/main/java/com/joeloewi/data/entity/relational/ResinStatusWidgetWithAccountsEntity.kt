@@ -12,5 +12,5 @@ data class ResinStatusWidgetWithAccountsEntity(
         parentColumn = "id",
         entityColumn = "resinStatusWidgetId"
     )
-     val accountEntities: List<AccountEntity> = listOf()
+    val accountEntities: List<AccountEntity> = listOf()
 )

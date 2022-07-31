@@ -17,6 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import com.google.accompanist.pager.ExperimentalPagerApi
@@ -32,7 +34,6 @@ import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattend
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.composable.SetTime
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.util.ProgressDialog
-import com.joeloewi.croissant.util.collectAsStateLifecycleAware
 import com.joeloewi.croissant.util.getResultFromPreviousComposable
 import com.joeloewi.croissant.util.navigationIconButton
 import com.joeloewi.croissant.viewmodel.CreateAttendanceViewModel
@@ -43,6 +44,7 @@ import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.launch
 import java.util.*
 
+@ExperimentalLifecycleComposeApi
 @ExperimentalFoundationApi
 @ObsoleteCoroutinesApi
 @ExperimentalPagerApi
@@ -52,15 +54,15 @@ fun CreateAttendanceScreen(
     navController: NavController,
     createAttendanceViewModel: CreateAttendanceViewModel
 ) {
-    val cookie by createAttendanceViewModel.cookie.collectAsState()
-    val connectedGames by createAttendanceViewModel.connectedGames.collectAsState()
-    val createAttendanceState by createAttendanceViewModel.createAttendanceState.collectAsState()
+    val cookie by createAttendanceViewModel.cookie.collectAsStateWithLifecycle()
+    val connectedGames by createAttendanceViewModel.connectedGames.collectAsStateWithLifecycle()
+    val createAttendanceState by createAttendanceViewModel.createAttendanceState.collectAsStateWithLifecycle()
     val checkedGames =
         remember { createAttendanceViewModel.checkedGames }
-    val duplicatedAttendance by createAttendanceViewModel.duplicatedAttendance.collectAsState()
-    val hourOfDay by createAttendanceViewModel.hourOfDay.collectAsState()
-    val minute by createAttendanceViewModel.minute.collectAsState()
-    val tickerCalendar by createAttendanceViewModel.tickerCalendar.collectAsStateLifecycleAware()
+    val duplicatedAttendance by createAttendanceViewModel.duplicatedAttendance.collectAsStateWithLifecycle()
+    val hourOfDay by createAttendanceViewModel.hourOfDay.collectAsStateWithLifecycle()
+    val minute by createAttendanceViewModel.minute.collectAsStateWithLifecycle()
+    val tickerCalendar by createAttendanceViewModel.tickerCalendar.collectAsStateWithLifecycle()
 
     LaunchedEffect(createAttendanceViewModel) {
         getResultFromPreviousComposable<String>(
@@ -106,6 +108,7 @@ fun CreateAttendanceScreen(
     )
 }
 
+@ExperimentalLifecycleComposeApi
 @ExperimentalFoundationApi
 @ObsoleteCoroutinesApi
 @ExperimentalPagerApi

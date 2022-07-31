@@ -16,7 +16,7 @@ sealed class WorkerExecutionLogUseCase {
             workerExecutionLogRepository.insert(workerExecutionLog)
     }
 
-    class Delete @Inject  constructor(
+    class Delete @Inject constructor(
         private val workerExecutionLogRepository: WorkerExecutionLogRepository
     ) {
         suspend operator fun invoke(vararg workerExecutionLogs: WorkerExecutionLog) =
