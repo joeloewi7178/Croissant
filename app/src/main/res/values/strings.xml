@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <string name="attendance_notification_channel_id" translatable="false">attendance_notification_channel_id</string>
     <string name="check_session_notification_channel_id" translatable="false">check_session_notification_channel_id</string>
     <string name="time_zone_changed_notification_channel_id" translatable="false">timezone_changed_notification_channel_id</string>

@@ -10,10 +10,15 @@ import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import com.joeloewi.croissant.receiver.TimeChangedReceiver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.stateIn
 
-private val Context.is24HourFormatFlow: Flow<Boolean>
-    get() = callbackFlow {
+private fun Context.is24HourFormatFlow(
+    coroutineScope: CoroutineScope
+): StateFlow<Boolean> =
+    callbackFlow {
         val timeChangedReceiver = TimeChangedReceiver(
             onReceiveActionTimeChanged = {
                 trySend(DateFormat.is24HourFormat(this@is24HourFormatFlow))
@@ -26,14 +31,14 @@ private val Context.is24HourFormatFlow: Flow<Boolean>
         awaitClose {
             unregisterReceiver(timeChangedReceiver)
         }
-    }
+    }.stateIn(
+        scope = coroutineScope,
+        started = SharingStarted.Lazily,
+        initialValue = DateFormat.is24HourFormat(this)
+    )
 
 @ExperimentalLifecycleComposeApi
 @Composable
 fun Context.is24HourFormat(
     coroutineScope: CoroutineScope = rememberCoroutineScope()
-): StateFlow<Boolean> = is24HourFormatFlow.stateIn(
-    scope = coroutineScope,
-    started = SharingStarted.Lazily,
-    initialValue = DateFormat.is24HourFormat(this)
-)
+): StateFlow<Boolean> = is24HourFormatFlow(coroutineScope)
