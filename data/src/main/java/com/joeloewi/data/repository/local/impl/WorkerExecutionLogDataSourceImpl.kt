@@ -5,8 +5,6 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
 import com.joeloewi.data.db.dao.WorkerExecutionLogDao
-import com.joeloewi.data.entity.WorkerExecutionLogEntity
-import com.joeloewi.data.entity.relational.WorkerExecutionLogWithStateEntity
 import com.joeloewi.data.mapper.WorkerExecutionLogMapper
 import com.joeloewi.data.mapper.WorkerExecutionLogWithStateMapper
 import com.joeloewi.data.repository.local.WorkerExecutionLogDataSource

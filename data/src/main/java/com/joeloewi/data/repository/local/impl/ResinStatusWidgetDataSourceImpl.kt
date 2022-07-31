@@ -1,8 +1,6 @@
 package com.joeloewi.data.repository.local.impl
 
 import com.joeloewi.data.db.dao.ResinStatusWidgetDao
-import com.joeloewi.data.entity.ResinStatusWidgetEntity
-import com.joeloewi.data.entity.relational.ResinStatusWidgetWithAccountsEntity
 import com.joeloewi.data.mapper.ResinStatusWidgetMapper
 import com.joeloewi.data.mapper.ResinStatusWithAccountsMapper
 import com.joeloewi.data.repository.local.ResinStatusWidgetDataSource
@@ -18,6 +16,10 @@ class ResinStatusWidgetDataSourceImpl @Inject constructor(
     private val resinStatusWidgetMapper: ResinStatusWidgetMapper,
     private val resinStatusWidgetWithAccountsMapper: ResinStatusWithAccountsMapper
 ) : ResinStatusWidgetDataSource {
+
+    override suspend fun getAll(): List<ResinStatusWidget> = withContext(coroutineDispatcher) {
+        resinStatusWidgetDao.getAll().map { resinStatusWidgetMapper.toDomain(it) }
+    }
 
     override suspend fun insert(resinStatusWidget: ResinStatusWidget): Long =
         withContext(coroutineDispatcher) {

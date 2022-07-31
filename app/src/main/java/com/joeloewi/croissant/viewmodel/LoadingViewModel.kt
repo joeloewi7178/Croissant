@@ -1,40 +1,45 @@
 package com.joeloewi.croissant.viewmodel
 
+import android.appwidget.AppWidgetManager
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.domain.usecase.ResinStatusWidgetUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
 class LoadingViewModel @Inject constructor(
     private val getOneByAppWidgetIdResinStatusWidgetUseCase: ResinStatusWidgetUseCase.GetOneByAppWidgetId,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    private val _isAppWidgetInitialized = MutableStateFlow<Lce<Boolean>>(Lce.Loading)
+    val appWidgetId =
+        savedStateHandle.get<Int>("appWidgetId") ?: AppWidgetManager.INVALID_APPWIDGET_ID
 
-    val isAppWidgetInitialized = _isAppWidgetInitialized.asStateFlow()
-
-    fun findResinStatusWidgetByAppWidgetId(appWidgetId: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
-            _isAppWidgetInitialized.update {
-                getOneByAppWidgetIdResinStatusWidgetUseCase
-                    .runCatching {
-                        invoke(appWidgetId).resinStatusWidget.id
-                    }.fold(
-                        onSuccess = {
-                            Lce.Content(true)
-                        },
-                        onFailure = {
-                            Lce.Content(false)
-                        }
-                    )
-            }
-        }
-    }
+    val isAppWidgetInitialized = flow {
+        emit(Lce.Loading)
+        emit(
+            getOneByAppWidgetIdResinStatusWidgetUseCase
+                .runCatching {
+                    invoke(appWidgetId).resinStatusWidget.id
+                }.fold(
+                    onSuccess = {
+                        Lce.Content(true)
+                    },
+                    onFailure = {
+                        Lce.Content(false)
+                    }
+                )
+        )
+    }.flowOn(Dispatchers.IO).stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Lazily,
+        initialValue = Lce.Loading
+    )
 }

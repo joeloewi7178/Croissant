@@ -3,7 +3,6 @@ package com.joeloewi.croissant.viewmodel
 import android.app.AlarmManager
 import android.app.Application
 import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -21,6 +20,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AttendancesViewModel @Inject constructor(
     private val application: Application,
+    private val alarmManager: AlarmManager,
     getAllPagedAttendanceWithGamesUseCase: AttendanceUseCase.GetAllPaged,
     private val deleteAttendanceUseCase: AttendanceUseCase.Delete,
 ) : ViewModel() {
@@ -47,7 +47,7 @@ class AttendancesViewModel @Inject constructor(
                     pendingIntentFlagUpdateCurrent
                 )
 
-                (application.getSystemService(Context.ALARM_SERVICE) as AlarmManager).cancel(
+                alarmManager.cancel(
                     alarmPendingIntent
                 )
 

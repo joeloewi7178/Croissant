@@ -39,13 +39,13 @@
                 android:textColor="?android:attr/colorAccent" />
 
             <ImageButton
-                style="@style/Widget.Material3.Button.IconButton"
                 android:id="@+id/widget_refresh"
+                style="@style/Widget.Material3.Button.IconButton"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:padding="8dp"
                 android:layout_gravity="center"
-                android:background="@drawable/image_placeholder" />
+                android:background="@drawable/image_placeholder"
+                android:padding="8dp" />
         </LinearLayout>
 
         <LinearLayout

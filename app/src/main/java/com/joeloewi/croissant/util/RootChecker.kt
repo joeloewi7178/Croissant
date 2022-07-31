@@ -1,10 +1,7 @@
 package com.joeloewi.croissant.util
 
 import android.content.Context
-import android.content.pm.PackageManager
-import com.google.android.gms.common.util.ClientLibraryUtils.getPackageInfo
 import java.io.File
-import java.io.IOException
 import java.nio.charset.Charset
 
 class RootChecker(

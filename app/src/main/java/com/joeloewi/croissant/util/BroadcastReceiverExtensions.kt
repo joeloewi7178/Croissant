@@ -12,7 +12,7 @@ fun BroadcastReceiver.goAsync(
     val coroutineScope = CoroutineScope(SupervisorJob() + coroutineContext)
     val pendingResult = goAsync()
 
-    return coroutineScope.launch() {
+    return coroutineScope.launch {
         try {
             try {
                 block()

@@ -3,7 +3,6 @@ package com.joeloewi.croissant.viewmodel
 import android.app.AlarmManager
 import android.app.Application
 import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
 import androidx.compose.runtime.mutableStateListOf
 import androidx.core.app.AlarmManagerCompat
@@ -38,6 +37,7 @@ import javax.inject.Inject
 @HiltViewModel
 class CreateAttendanceViewModel @Inject constructor(
     private val application: Application,
+    private val alarmManager: AlarmManager,
     getUserFullInfoHoYoLABUseCase: HoYoLABUseCase.GetUserFullInfo,
     private val getGameRecordCardHoYoLABUseCase: HoYoLABUseCase.GetGameRecordCard,
     private val insertAttendanceUseCase: AttendanceUseCase.Insert,
@@ -196,7 +196,7 @@ class CreateAttendanceViewModel @Inject constructor(
                         pendingIntentFlagUpdateCurrent
                     )
 
-                    with(application.getSystemService(Context.ALARM_SERVICE) as AlarmManager) {
+                    with(alarmManager) {
                         cancel(pendingIntent)
                         AlarmManagerCompat.setExactAndAllowWhileIdle(
                             this,

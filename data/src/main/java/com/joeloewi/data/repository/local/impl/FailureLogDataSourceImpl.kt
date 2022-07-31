@@ -1,7 +1,6 @@
 package com.joeloewi.data.repository.local.impl
 
 import com.joeloewi.data.db.dao.FailureLogDao
-import com.joeloewi.data.entity.FailureLogEntity
 import com.joeloewi.data.mapper.FailureLogMapper
 import com.joeloewi.data.repository.local.FailureLogDataSource
 import com.joeloewi.domain.entity.FailureLog

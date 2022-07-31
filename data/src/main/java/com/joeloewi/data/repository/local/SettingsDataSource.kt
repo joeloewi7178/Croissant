@@ -1,7 +1,6 @@
 package com.joeloewi.data.repository.local
 
 import com.joeloewi.domain.entity.Settings
-import com.joeloewi.domain.usecase.SettingsUseCase
 import kotlinx.coroutines.flow.Flow
 
 interface SettingsDataSource {

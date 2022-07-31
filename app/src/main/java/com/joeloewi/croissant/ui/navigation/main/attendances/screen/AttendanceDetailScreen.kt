@@ -21,6 +21,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -40,6 +42,7 @@ import com.joeloewi.domain.common.LoggableWorker
 import com.joeloewi.domain.entity.Game
 import com.joeloewi.domain.entity.relational.AttendanceWithGames
 
+@ExperimentalLifecycleComposeApi
 @ExperimentalFoundationApi
 @ExperimentalMaterial3Api
 @Composable
@@ -49,17 +52,17 @@ fun AttendanceDetailScreen(
 ) {
     val context = LocalContext.current
     val activity = LocalActivity.current
-    val hourOfDay by attendanceDetailViewModel.hourOfDay.collectAsState()
-    val minute by attendanceDetailViewModel.minute.collectAsState()
-    val nickname by attendanceDetailViewModel.nickname.collectAsState()
-    val uid by attendanceDetailViewModel.uid.collectAsState()
+    val hourOfDay by attendanceDetailViewModel.hourOfDay.collectAsStateWithLifecycle()
+    val minute by attendanceDetailViewModel.minute.collectAsStateWithLifecycle()
+    val nickname by attendanceDetailViewModel.nickname.collectAsStateWithLifecycle()
+    val uid by attendanceDetailViewModel.uid.collectAsStateWithLifecycle()
     val checkedGame = remember { attendanceDetailViewModel.checkedGames }
-    val checkSessionWorkerSuccessLogCount by attendanceDetailViewModel.checkSessionWorkerSuccessLogCount.collectAsState()
-    val checkSessionWorkerFailureLogCount by attendanceDetailViewModel.checkSessionWorkerFailureLogCount.collectAsState()
-    val attendCheckInEventWorkerSuccessLogCount by attendanceDetailViewModel.attendCheckInEventWorkerSuccessLogCount.collectAsState()
-    val attendCheckInEventWorkerFailureLogCount by attendanceDetailViewModel.attendCheckInEventWorkerFailureLogCount.collectAsState()
-    val updateAttendanceState by attendanceDetailViewModel.updateAttendanceState.collectAsState()
-    val attendanceWithGamesState by attendanceDetailViewModel.attendanceWithGamesState.collectAsState()
+    val checkSessionWorkerSuccessLogCount by attendanceDetailViewModel.checkSessionWorkerSuccessLogCount.collectAsStateWithLifecycle()
+    val checkSessionWorkerFailureLogCount by attendanceDetailViewModel.checkSessionWorkerFailureLogCount.collectAsStateWithLifecycle()
+    val attendCheckInEventWorkerSuccessLogCount by attendanceDetailViewModel.attendCheckInEventWorkerSuccessLogCount.collectAsStateWithLifecycle()
+    val attendCheckInEventWorkerFailureLogCount by attendanceDetailViewModel.attendCheckInEventWorkerFailureLogCount.collectAsStateWithLifecycle()
+    val updateAttendanceState by attendanceDetailViewModel.updateAttendanceState.collectAsStateWithLifecycle()
+    val attendanceWithGamesState by attendanceDetailViewModel.attendanceWithGamesState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val hasExecutedAtLeastOnce by remember(
         attendCheckInEventWorkerSuccessLogCount,
@@ -122,6 +125,7 @@ fun AttendanceDetailScreen(
     )
 }
 
+@ExperimentalLifecycleComposeApi
 @ExperimentalFoundationApi
 @ExperimentalMaterial3Api
 @Composable

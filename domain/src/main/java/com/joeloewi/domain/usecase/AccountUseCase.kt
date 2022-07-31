@@ -9,7 +9,7 @@ import javax.inject.Singleton
 sealed class AccountUseCase {
     class Insert @Inject constructor(
         private val accountRepository: AccountRepository
-    ): AccountUseCase() {
+    ) : AccountUseCase() {
         suspend operator fun invoke(vararg accounts: Account) =
             accountRepository.insert(*accounts)
     }

@@ -37,6 +37,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -54,6 +56,7 @@ import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.ui.theme.HalfDp
 import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.LocalActivity
+import com.joeloewi.croissant.util.is24HourFormat
 import com.joeloewi.croissant.util.isEmpty
 import com.joeloewi.croissant.util.requestReview
 import com.joeloewi.croissant.viewmodel.AttendancesViewModel
@@ -61,7 +64,10 @@ import com.joeloewi.croissant.worker.AttendCheckInEventWorker
 import com.joeloewi.domain.entity.Attendance
 import com.joeloewi.domain.entity.relational.AttendanceWithGames
 import kotlinx.coroutines.launch
+import org.threeten.bp.LocalTime
+import org.threeten.bp.format.DateTimeFormatter
 
+@ExperimentalLifecycleComposeApi
 @ExperimentalFoundationApi
 @ExperimentalMaterialApi
 @ExperimentalMaterial3Api
@@ -89,6 +95,7 @@ fun AttendancesScreen(
     )
 }
 
+@ExperimentalLifecycleComposeApi
 @ExperimentalFoundationApi
 @ExperimentalMaterialApi
 @ExperimentalMaterial3Api
@@ -177,6 +184,7 @@ private fun AttendancesContent(
     }
 }
 
+@ExperimentalLifecycleComposeApi
 @ExperimentalFoundationApi
 @ExperimentalMaterialApi
 @Composable
@@ -295,6 +303,7 @@ internal fun SwipeToDismissBackground(
     }
 }
 
+@ExperimentalLifecycleComposeApi
 @ExperimentalFoundationApi
 @Composable
 internal fun DismissContent(
@@ -336,13 +345,34 @@ internal fun DismissContent(
                     ),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    val context = LocalContext.current
+                    val is24HourFormat by context.is24HourFormat().collectAsStateWithLifecycle()
+                    val time by remember(attendanceWithGamesState.attendance) {
+                        derivedStateOf {
+                            with(attendanceWithGamesState.attendance) {
+                                "${hourOfDay.toString().padStart(2, '0')} : ${
+                                    minute.toString().padStart(2, '0')
+                                }"
+                            }
+                        }
+                    }
+                    val formattedTime by remember(is24HourFormat, time) {
+                        derivedStateOf {
+                            if (is24HourFormat) {
+                                time
+                            } else {
+                                LocalTime.parse(
+                                    time,
+                                    DateTimeFormatter.ofPattern(
+                                        "HH : mm",
+                                    )
+                                ).format(DateTimeFormatter.ofPattern("a hh : mm"))
+                            }
+                        }
+                    }
+
                     Text(
-                        text = stringResource(
-                            id = R.string.scheduled_time,
-                            attendanceWithGamesState.attendance.hourOfDay.toString()
-                                .padStart(2, '0'),
-                            attendanceWithGamesState.attendance.minute.toString().padStart(2, '0')
-                        ),
+                        text = formattedTime,
                         style = MaterialTheme.typography.headlineSmall
                     )
                 }

@@ -6,27 +6,26 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration.ResinStatusWidgetConfigurationDestination
 import com.joeloewi.croissant.viewmodel.LoadingViewModel
 
+@ExperimentalLifecycleComposeApi
 @ExperimentalMaterial3Api
 @Composable
 fun LoadingScreen(
     navController: NavController,
-    loadingViewModel: LoadingViewModel,
-    appWidgetId: Int
+    loadingViewModel: LoadingViewModel
 ) {
-    val isAppWidgetConfigured by loadingViewModel.isAppWidgetInitialized.collectAsState()
-
-    LaunchedEffect(loadingViewModel) {
-        loadingViewModel.findResinStatusWidgetByAppWidgetId(appWidgetId)
-    }
+    val isAppWidgetConfigured by loadingViewModel.isAppWidgetInitialized.collectAsStateWithLifecycle()
+    val appWidgetId = remember { loadingViewModel.appWidgetId }
 
     LaunchedEffect(isAppWidgetConfigured) {
         when (isAppWidgetConfigured) {
@@ -36,12 +35,20 @@ fun LoadingScreen(
                         navController.navigate(
                             ResinStatusWidgetConfigurationDestination.ResinStatusWidgetDetailScreen()
                                 .generateRoute(appWidgetId)
-                        )
+                        ) {
+                            popUpTo(ResinStatusWidgetConfigurationDestination.LoadingScreen.route) {
+                                inclusive = true
+                            }
+                        }
                     } else {
                         navController.navigate(
                             ResinStatusWidgetConfigurationDestination.CreateResinStatusWidgetScreen()
                                 .generateRoute(appWidgetId)
-                        )
+                        ) {
+                            popUpTo(ResinStatusWidgetConfigurationDestination.LoadingScreen.route) {
+                                inclusive = true
+                            }
+                        }
                     }
                 }.onFailure { cause ->
                     FirebaseCrashlytics.getInstance().apply {

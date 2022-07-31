@@ -31,6 +31,9 @@ class AlarmReceiver : BroadcastReceiver() {
     @Inject
     lateinit var getAllOneShotAttendanceUseCase: AttendanceUseCase.GetAllOneShot
 
+    @Inject
+    lateinit var alarmManager: AlarmManager
+
     override fun onReceive(p0: Context?, p1: Intent?) {
         FirebaseCrashlytics.getInstance().apply {
             log(this@AlarmReceiver.javaClass.simpleName)
@@ -48,9 +51,6 @@ class AlarmReceiver : BroadcastReceiver() {
                     getAllOneShotAttendanceUseCase().map { attendance ->
                         async {
                             attendance.runCatching {
-                                WorkManager.getInstance(application)
-                                    .cancelUniqueWork(attendance.attendCheckInEventWorkerName.toString())
-
                                 val alarmIntent =
                                     Intent(application, AlarmReceiver::class.java).apply {
                                         action = RECEIVE_ATTEND_CHECK_IN_ALARM
@@ -80,7 +80,7 @@ class AlarmReceiver : BroadcastReceiver() {
                                     pendingIntentFlagUpdateCurrent
                                 )
 
-                                with(application.getSystemService(Context.ALARM_SERVICE) as AlarmManager) {
+                                with(alarmManager) {
                                     cancel(pendingIntent)
                                     AlarmManagerCompat.setExactAndAllowWhileIdle(
                                         this,
@@ -107,10 +107,6 @@ class AlarmReceiver : BroadcastReceiver() {
                 ) {
                     val attendanceWithGames = getOneAttendanceUseCase(attendanceId)
                     val attendance = attendanceWithGames.attendance
-
-                    WorkManager.getInstance(application)
-                        .cancelUniqueWork(attendance.attendCheckInEventWorkerName.toString())
-
                     val oneTimeWork = OneTimeWorkRequestBuilder<AttendCheckInEventWorker>()
                         .setInputData(workDataOf(AttendCheckInEventWorker.ATTENDANCE_ID to attendance.id))
                         .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
@@ -149,7 +145,7 @@ class AlarmReceiver : BroadcastReceiver() {
                         pendingIntentFlagUpdateCurrent
                     )
 
-                    with(application.getSystemService(Context.ALARM_SERVICE) as AlarmManager) {
+                    with(alarmManager) {
                         cancel(pendingIntent)
                         AlarmManagerCompat.setExactAndAllowWhileIdle(
                             this,

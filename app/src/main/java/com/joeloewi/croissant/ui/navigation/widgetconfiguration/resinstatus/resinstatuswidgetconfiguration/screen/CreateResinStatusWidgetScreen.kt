@@ -19,6 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
+import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -36,25 +38,24 @@ import com.joeloewi.croissant.util.isEmpty
 import com.joeloewi.croissant.viewmodel.CreateResinStatusWidgetViewModel
 import com.joeloewi.domain.common.HoYoLABGame
 import com.joeloewi.domain.entity.relational.AttendanceWithGames
-import kotlin.time.ExperimentalTime
 
-@ExperimentalTime
+@ExperimentalLifecycleComposeApi
 @ExperimentalMaterial3Api
 @Composable
 fun CreateResinStatusWidgetScreen(
     navController: NavController,
     createResinStatusWidgetViewModel: CreateResinStatusWidgetViewModel
 ) {
-    val selectableIntervals = createResinStatusWidgetViewModel.selectableIntervals
-    val interval by createResinStatusWidgetViewModel.interval.collectAsState()
+    val selectableIntervals = remember { createResinStatusWidgetViewModel.selectableIntervals }
+    val interval by createResinStatusWidgetViewModel.interval.collectAsStateWithLifecycle()
     val pagedAttendancesWithGames =
         createResinStatusWidgetViewModel.pagedAttendancesWithGames.collectAsLazyPagingItems()
     val checkedAttendanceIds = remember { createResinStatusWidgetViewModel.checkedAttendanceIds }
     val createResinStatusWidgetState by
-    createResinStatusWidgetViewModel.createResinStatusWidgetState.collectAsState()
+    createResinStatusWidgetViewModel.createResinStatusWidgetState.collectAsStateWithLifecycle()
     val activity = LocalActivity.current
 
-    LaunchedEffect(createResinStatusWidgetViewModel) {
+    LaunchedEffect(activity) {
         with(activity) {
             val resultValue = Intent().apply {
                 putExtra(

@@ -48,6 +48,8 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -86,6 +88,7 @@ import org.threeten.bp.Instant
 import org.threeten.bp.ZoneId
 import org.threeten.bp.format.DateTimeFormatter
 
+@ExperimentalLifecycleComposeApi
 @ExperimentalMaterial3WindowSizeClassApi
 @ExperimentalPermissionsApi
 @ExperimentalFoundationApi
@@ -116,10 +119,10 @@ class MainActivity : AppCompatActivity() {
                         LocalWindowSizeClass provides calculateWindowSizeClass(activity = this)
                     ) {
                         val mainViewModel: MainViewModel = hiltViewModel()
-                        val appUpdateResult by mainViewModel.appUpdateResultState.collectAsState()
+                        val appUpdateResultState by mainViewModel.appUpdateResultState.collectAsStateWithLifecycle()
 
                         RequireAppUpdate(
-                            appUpdateResultState = appUpdateResult
+                            appUpdateResultState = appUpdateResultState
                         ) {
                             CroissantApp(
                                 mainViewModel = mainViewModel
@@ -132,6 +135,7 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
+@ExperimentalLifecycleComposeApi
 @ExperimentalPermissionsApi
 @ExperimentalFoundationApi
 @ObsoleteCoroutinesApi
@@ -200,34 +204,35 @@ fun CroissantApp(
         }
     ) {
         val lifecycle by LocalLifecycleOwner.current.lifecycle.observeAsState()
-        val (showRootedDeviceAlert, onShowRootedDeviceAlertChange) = remember { mutableStateOf(false) }
-        val (showBatteryOptimizationAlert, onShowBatteryOptimizationAlertChange) = remember {
+        val isDeviceRooted by mainViewModel.isDeviceRooted.collectAsStateWithLifecycle()
+        val (showRootedDeviceAlert, onShowRootedDeviceAlertChange) = remember(isDeviceRooted) {
+            mutableStateOf(isDeviceRooted)
+        }
+        val (showBatteryOptimizationAlert, onShowBatteryOptimizationAlertChange) = remember(
+            lifecycle
+        ) {
             mutableStateOf(
-                false
+                if (lifecycle == Lifecycle.Event.ON_RESUME) {
+                    !mainViewModel.isIgnoringBatteryOptimizations()
+                } else {
+                    false
+                }
             )
         }
-        val (showScheduleExactAlarmAlert, onShowScheduleExactAlarmAlertChange) = remember {
+        val (showScheduleExactAlarmAlert, onShowScheduleExactAlarmAlertChange) = remember(lifecycle) {
             mutableStateOf(
-                false
+                if (lifecycle == Lifecycle.Event.ON_RESUME) {
+                    !mainViewModel.canScheduleExactAlarms()
+                } else {
+                    false
+                }
             )
         }
 
         LaunchedEffect(lifecycle) {
             when (lifecycle) {
                 Lifecycle.Event.ON_RESUME -> {
-                    onShowRootedDeviceAlertChange(
-                        RootChecker(
-                            context = context
-                        ).isDeviceRooted()
-                    )
-
-                    onShowBatteryOptimizationAlertChange(
-                        !context.isIgnoringBatteryOptimizations()
-                    )
-
-                    onShowScheduleExactAlarmAlertChange(
-                        !context.canScheduleExactAlarms()
-                    )
+                    mainViewModel.checkIsDeviceRooted()
                 }
                 else -> {
 
@@ -501,7 +506,7 @@ fun CroissantApp(
                 if (!isFirstLaunch && showScheduleExactAlarmAlert) {
                     AlertDialog(
                         onDismissRequest = {
-                            onShowBatteryOptimizationAlertChange(false)
+                            onShowScheduleExactAlarmAlertChange(false)
                         },
                         confirmButton = {
                             TextButton(
@@ -543,6 +548,7 @@ fun CroissantApp(
     }
 }
 
+@ExperimentalLifecycleComposeApi
 @ExperimentalCoroutinesApi
 @ExperimentalPermissionsApi
 @ExperimentalFoundationApi

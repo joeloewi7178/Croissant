@@ -1,7 +1,6 @@
 package com.joeloewi.data.repository.local.impl
 
 import com.joeloewi.data.db.dao.SuccessLogDao
-import com.joeloewi.data.entity.SuccessLogEntity
 import com.joeloewi.data.mapper.SuccessLogMapper
 import com.joeloewi.data.repository.local.SuccessLogDataSource
 import com.joeloewi.domain.entity.SuccessLog
