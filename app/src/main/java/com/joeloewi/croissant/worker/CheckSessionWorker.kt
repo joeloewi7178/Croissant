@@ -46,16 +46,18 @@ class CheckSessionWorker @AssistedInject constructor(
 ) {
     private val _attendanceId = inputData.getLong(ATTENDANCE_ID, Long.MIN_VALUE)
 
-    private val _attendanceDetailDeepLinkUri = Uri.Builder()
-        .scheme(context.getString(R.string.deep_link_scheme))
-        .authority(context.packageName)
-        .appendPath(AttendancesDestination.AttendanceDetailScreen().plainRoute)
-        .appendPath(_attendanceId.toString())
-        .build()
+    private fun generateAttendanceDetailDeepLinkUri(attendanceId: Long) =
+        Uri.Builder()
+            .scheme(context.getString(R.string.deep_link_scheme))
+            .authority(context.packageName)
+            .appendEncodedPath(
+                AttendancesDestination.AttendanceDetailScreen().generateRoute(attendanceId)
+            )
+            .build()
 
-    private fun getAttendanceDetailIntent(): Intent = Intent(
+    private fun getAttendanceDetailIntent(attendanceId: Long): Intent = Intent(
         Intent.ACTION_VIEW,
-        _attendanceDetailDeepLinkUri
+        generateAttendanceDetailDeepLinkUri(attendanceId)
     )
 
     private fun createCheckSessionNotification(
@@ -69,7 +71,7 @@ class CheckSessionWorker @AssistedInject constructor(
         .setSmallIcon(R.drawable.ic_baseline_bakery_dining_24)
         .apply {
             val pendingIntent = TaskStackBuilder.create(context).run {
-                addNextIntentWithParentStack(getAttendanceDetailIntent())
+                addNextIntentWithParentStack(getAttendanceDetailIntent(_attendanceId))
                 getPendingIntent(0, pendingIntentFlagUpdateCurrent)
             }
 

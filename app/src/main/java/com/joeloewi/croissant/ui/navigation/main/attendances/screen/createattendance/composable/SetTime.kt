@@ -11,18 +11,16 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.theme.DefaultDp
+import com.joeloewi.croissant.util.LocalIs24HourFormat
 import com.joeloewi.croissant.util.TimePicker
-import com.joeloewi.croissant.util.is24HourFormat
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import org.threeten.bp.LocalTime
 import org.threeten.bp.format.DateTimeFormatter
@@ -118,8 +116,7 @@ fun SetTime(
                 }
             )
 
-            val context = LocalContext.current
-            val is24HourFormat by context.is24HourFormat().collectAsStateWithLifecycle()
+            val is24HourFormat = LocalIs24HourFormat.current
             val time by remember(hourOfDay, minute) {
                 derivedStateOf {
                     "${hourOfDay.toString().padStart(2, '0')} : ${

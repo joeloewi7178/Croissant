@@ -4,10 +4,8 @@ import android.os.Build
 import android.widget.TimePicker
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @ExperimentalLifecycleComposeApi
 @Composable
@@ -20,11 +18,10 @@ fun TimePicker(
     onHourOfDayChange: (Int) -> Unit,
     onMinuteChange: (Int) -> Unit
 ) {
-    val context = LocalContext.current
+    val is24HourFormat = LocalIs24HourFormat.current
     val (timePicker, onTimePickerChange) = remember { mutableStateOf<TimePicker?>(null) }
     val currentOnHourOfDayChange by rememberUpdatedState(newValue = onHourOfDayChange)
     val currentOnMinuteChange by rememberUpdatedState(newValue = onMinuteChange)
-    val currentIs24HourView by context.is24HourFormat().collectAsStateWithLifecycle()
 
     DisposableEffect(timePicker) {
         timePicker?.setOnTimeChangedListener { _, hourOfDay, minute ->
@@ -43,7 +40,7 @@ fun TimePicker(
     ) { view ->
         view.apply {
             isEnabled = enabled
-            setIs24HourView(currentIs24HourView)
+            setIs24HourView(is24HourFormat)
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {

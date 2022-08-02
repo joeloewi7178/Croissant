@@ -98,7 +98,7 @@ dependencies {
     //compose
     implementation("androidx.compose.ui:ui:${Versions.compose}")
     implementation("androidx.compose.foundation:foundation:${Versions.compose}")
-    implementation("androidx.navigation:navigation-compose:2.5.0")
+    implementation("androidx.navigation:navigation-compose:2.5.1")
     implementation("androidx.compose.runtime:runtime:${Versions.compose}")
     implementation("androidx.compose.ui:ui-tooling-preview:${Versions.compose}")
     implementation("androidx.compose.runtime:runtime-livedata:${Versions.compose}")
@@ -121,7 +121,7 @@ dependencies {
     implementation("androidx.startup:startup-runtime:${Versions.startup}")
 
     //splashscreen
-    implementation("androidx.core:core-splashscreen:1.0.0-rc01")
+    implementation("androidx.core:core-splashscreen:1.0.0")
 
     //image load
     implementation("io.coil-kt:coil-compose:${Versions.coil}")

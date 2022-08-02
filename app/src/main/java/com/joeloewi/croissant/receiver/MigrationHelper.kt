@@ -48,7 +48,7 @@ class MigrationHelper : BroadcastReceiver() {
                     //because work manager's job can be deferred, cancel check in event worker
                     //instead of work manager, use alarm manager
                     getAllOneShotAttendanceUseCase().map { attendance ->
-                        async {
+                        async(Dispatchers.IO) {
                             WorkManager.getInstance(application)
                                 .cancelUniqueWork(attendance.attendCheckInEventWorkerName.toString())
                         }

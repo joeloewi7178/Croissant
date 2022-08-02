@@ -15,6 +15,7 @@ import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
 import com.joeloewi.croissant.worker.AttendCheckInEventWorker
 import com.joeloewi.domain.usecase.AttendanceUseCase
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import java.util.*
@@ -46,10 +47,11 @@ class AlarmReceiver : BroadcastReceiver() {
                         FirebaseCrashlytics.getInstance().apply {
                             recordException(cause)
                         }
-                    }
+                    },
+                    coroutineContext = Dispatchers.IO
                 ) {
                     getAllOneShotAttendanceUseCase().map { attendance ->
-                        async {
+                        async(Dispatchers.IO) {
                             attendance.runCatching {
                                 val alarmIntent =
                                     Intent(application, AlarmReceiver::class.java).apply {
@@ -103,7 +105,8 @@ class AlarmReceiver : BroadcastReceiver() {
                         FirebaseCrashlytics.getInstance().apply {
                             recordException(cause)
                         }
-                    }
+                    },
+                    coroutineContext = Dispatchers.IO
                 ) {
                     val attendanceWithGames = getOneAttendanceUseCase(attendanceId)
                     val attendance = attendanceWithGames.attendance

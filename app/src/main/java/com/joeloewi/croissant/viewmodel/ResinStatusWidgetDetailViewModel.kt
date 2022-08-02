@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.*
 import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration.ResinStatusWidgetConfigurationDestination
 import com.joeloewi.croissant.worker.RefreshResinStatusWorker
 import com.joeloewi.domain.usecase.ResinStatusWidgetUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,8 +26,10 @@ class ResinStatusWidgetDetailViewModel @Inject constructor(
     private val updateResinStatusWidgetUseCase: ResinStatusWidgetUseCase.Update,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
+    private val _appWidgetIdKey =
+        ResinStatusWidgetConfigurationDestination.ResinStatusWidgetDetailScreen.APP_WIDGET_ID
     private val _appWidgetId =
-        savedStateHandle.get<Int>("appWidgetId") ?: AppWidgetManager.INVALID_APPWIDGET_ID
+        savedStateHandle.get<Int>(_appWidgetIdKey) ?: AppWidgetManager.INVALID_APPWIDGET_ID
     val selectableIntervals = listOf(15L, 30L, 60L)
 
     private val _updateResinStatusWidgetState = MutableStateFlow<Lce<Int>>(Lce.Content(0))

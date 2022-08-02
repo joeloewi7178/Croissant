@@ -42,9 +42,8 @@ import dagger.hilt.android.AndroidEntryPoint
 class ResinStatusWidgetConfigurationActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        super.onCreate(savedInstanceState)
-
         installSplashScreen()
+        super.onCreate(savedInstanceState)
 
         DynamicColors.applyToActivityIfAvailable(this)
 
@@ -125,7 +124,7 @@ fun ResinStatusWidgetConfigurationApp() {
                     composable(
                         route = ResinStatusWidgetConfigurationDestination.LoadingScreen.route,
                         arguments = listOf(
-                            navArgument("appWidgetId") {
+                            navArgument(ResinStatusWidgetConfigurationDestination.LoadingScreen.route) {
                                 type = NavType.IntType
                                 defaultValue = appWidgetId
                             }

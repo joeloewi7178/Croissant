@@ -70,7 +70,7 @@ import com.joeloewi.croissant.ui.navigation.main.attendances.screen.AttendanceLo
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.AttendancesScreen
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.LoginHoYoLABScreen
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.CreateAttendanceScreen
-import com.joeloewi.croissant.ui.navigation.main.redemptioncodes.RedemptionCodesNavigation
+import com.joeloewi.croissant.ui.navigation.main.redemptioncodes.RedemptionCodesDestination
 import com.joeloewi.croissant.ui.navigation.main.redemptioncodes.screen.RedemptionCodesScreen
 import com.joeloewi.croissant.ui.navigation.main.settings.SettingsDestination
 import com.joeloewi.croissant.ui.navigation.main.settings.screen.DeveloperInfoScreen
@@ -102,9 +102,8 @@ import org.threeten.bp.format.DateTimeFormatter
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        super.onCreate(savedInstanceState)
-
         installSplashScreen()
+        super.onCreate(savedInstanceState)
 
         DynamicColors.applyToActivityIfAvailable(this)
 
@@ -114,11 +113,14 @@ class MainActivity : AppCompatActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    val mainViewModel: MainViewModel = hiltViewModel()
+                    val is24HourFormat by mainViewModel.is24HourFormat.collectAsStateWithLifecycle()
+
                     CompositionLocalProvider(
                         LocalActivity provides this,
-                        LocalWindowSizeClass provides calculateWindowSizeClass(activity = this)
+                        LocalWindowSizeClass provides calculateWindowSizeClass(activity = this),
+                        LocalIs24HourFormat provides is24HourFormat
                     ) {
-                        val mainViewModel: MainViewModel = hiltViewModel()
                         val appUpdateResultState by mainViewModel.appUpdateResultState.collectAsStateWithLifecycle()
 
                         RequireAppUpdate(
@@ -151,7 +153,7 @@ fun CroissantApp(
     val navController = rememberNavController()
 
     //global view model
-    val isFirstLaunch by mainViewModel.isFirstLaunch.collectAsState()
+    val isFirstLaunch by mainViewModel.isFirstLaunch.collectAsStateWithLifecycle()
 
     val modalBottomSheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden,
@@ -643,10 +645,10 @@ fun CroissantNavHost(
         }
 
         navigation(
-            startDestination = RedemptionCodesNavigation.RedemptionCodesScreen.route,
+            startDestination = RedemptionCodesDestination.RedemptionCodesScreen.route,
             route = CroissantNavigation.RedemptionCodes.route
         ) {
-            composable(route = RedemptionCodesNavigation.RedemptionCodesScreen.route) {
+            composable(route = RedemptionCodesDestination.RedemptionCodesScreen.route) {
                 val redemptionCodesViewModel: RedemptionCodesViewModel =
                     hiltViewModel()
 

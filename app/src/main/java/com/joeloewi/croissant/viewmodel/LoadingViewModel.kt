@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration.ResinStatusWidgetConfigurationDestination
 import com.joeloewi.domain.usecase.ResinStatusWidgetUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -19,8 +20,9 @@ class LoadingViewModel @Inject constructor(
     private val getOneByAppWidgetIdResinStatusWidgetUseCase: ResinStatusWidgetUseCase.GetOneByAppWidgetId,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+    private val _appWidgetIdKey = ResinStatusWidgetConfigurationDestination.LoadingScreen.route
     val appWidgetId =
-        savedStateHandle.get<Int>("appWidgetId") ?: AppWidgetManager.INVALID_APPWIDGET_ID
+        savedStateHandle.get<Int>(_appWidgetIdKey) ?: AppWidgetManager.INVALID_APPWIDGET_ID
 
     val isAppWidgetInitialized = flow {
         emit(Lce.Loading)
@@ -39,7 +41,7 @@ class LoadingViewModel @Inject constructor(
         )
     }.flowOn(Dispatchers.IO).stateIn(
         scope = viewModelScope,
-        started = SharingStarted.Lazily,
+        started = SharingStarted.WhileSubscribed(),
         initialValue = Lce.Loading
     )
 }

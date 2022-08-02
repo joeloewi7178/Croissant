@@ -1,8 +1,8 @@
-package com.joeloewi.croissant.ui.navigation.main.settings
+package com.joeloewi.croissant.ui.navigation.main.redemptioncodes
 
 import androidx.navigation.NavType
 
-sealed class SettingsDestination {
+sealed class RedemptionCodesDestination {
     abstract val arguments: List<Pair<String, NavType<*>>>
     protected abstract val plainRoute: String
     val route: String by lazy {
@@ -18,13 +18,8 @@ sealed class SettingsDestination {
         }"
     }
 
-    object SettingsScreen : SettingsDestination() {
+    object RedemptionCodesScreen : RedemptionCodesDestination() {
         override val arguments: List<Pair<String, NavType<*>>> = listOf()
-        override val plainRoute: String = "settingsScreen"
-    }
-
-    object DeveloperInfoScreen : SettingsDestination() {
-        override val arguments: List<Pair<String, NavType<*>>> = listOf()
-        override val plainRoute: String = "developerInfoScreen"
+        override val plainRoute: String = "redemptionCodesScreen"
     }
 }

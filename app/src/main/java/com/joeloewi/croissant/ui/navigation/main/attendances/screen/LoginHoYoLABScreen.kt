@@ -27,6 +27,8 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
@@ -43,6 +45,7 @@ import kotlinx.coroutines.launch
 
 const val COOKIE = "cookie"
 
+@ExperimentalLifecycleComposeApi
 @ExperimentalCoroutinesApi
 @ExperimentalComposeUiApi
 @ExperimentalMaterial3Api
@@ -63,6 +66,7 @@ fun LoginHoYoLABScreen(
     )
 }
 
+@ExperimentalLifecycleComposeApi
 @ExperimentalCoroutinesApi
 @ExperimentalComposeUiApi
 @SuppressLint("SetJavaScriptEnabled")
@@ -206,7 +210,7 @@ fun LoginHoYoLABContent(
             }
 
             awaitClose { valueCallback = null }
-        }.collectAsState(initial = Lce.Loading)
+        }.collectAsStateWithLifecycle(Lce.Loading)
 
         when (removeAllCookiesState) {
             is Lce.Content -> {
