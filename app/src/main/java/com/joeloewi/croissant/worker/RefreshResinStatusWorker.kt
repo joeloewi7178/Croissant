@@ -41,7 +41,7 @@ class RefreshResinStatusWorker @AssistedInject constructor(
     @Assisted val context: Context,
     @Assisted val params: WorkerParameters,
     private val powerManager: PowerManager,
-    val getGameRecordCardHoYoLABUseCase: HoYoLABUseCase.GetGameRecordCard,
+    private val getGameRecordCardHoYoLABUseCase: HoYoLABUseCase.GetGameRecordCard,
     val getOneByAppWidgetIdResinStatusWidgetUseCase: ResinStatusWidgetUseCase.GetOneByAppWidgetId,
     val getGenshinDailyNoteHoYoLABUseCase: HoYoLABUseCase.GetGenshinDailyNote,
     val changeDataSwitchHoYoLABUseCase: HoYoLABUseCase.ChangeDataSwitch

@@ -31,7 +31,6 @@ import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.Lce
-import com.joeloewi.croissant.ui.theme.ContentAlpha
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.gameNameStringResId
@@ -435,7 +434,6 @@ fun ConnectedGamesContentListItem(
             with(gameRecord) {
                 if (regionName.isNotEmpty() && region.isNotEmpty()) {
                     Text(
-                        modifier = Modifier.alpha(ContentAlpha.medium),
                         text = "$regionName (${region})"
                     )
                 }

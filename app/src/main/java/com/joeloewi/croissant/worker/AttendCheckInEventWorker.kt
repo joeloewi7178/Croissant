@@ -215,7 +215,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                 )
             } - ${context.getString(hoYoLABGame.gameNameStringResId())}"
         )
-        .setContentText("알 수 없는 문제로 인해 출석하지 못 했습니다.")
+        .setContentText(context.getString(R.string.attendance_failed))
         .setAutoCancel(true)
         .setSmallIcon(R.drawable.ic_baseline_bakery_dining_24)
         .apply {
@@ -353,33 +353,35 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                                     )
                                 }
                             }
-                        } /*else {
+                        } else {
                             //if result is unsuccessful with unknown error
                             //retry for three times
 
-                            if (runAttemptCount > 3) {
+                            /*if (runAttemptCount > 3) {
                                 addFailureLog(attendanceId, cause)
                             } else {
-                                createUnsuccessfulAttendanceNotification(
-                                    context = context,
-                                    channelId = context.getString(R.string.attendance_notification_channel_id),
-                                    nickname = attendanceWithGames.attendance.nickname,
-                                    hoYoLABGame = game.type,
-                                ).let { notification ->
-                                    if (context.packageManager.checkPermission(
-                                            CroissantPermission.PostNotifications.permission,
-                                            context.packageName
-                                        ) == PackageManager.PERMISSION_GRANTED
-                                    ) {
-                                        NotificationManagerCompat.from(context).notify(
-                                            UUID.randomUUID().toString(),
-                                            game.type.gameId,
-                                            notification
-                                        )
-                                    }
+
+                            }*/
+
+                            createUnsuccessfulAttendanceNotification(
+                                context = context,
+                                channelId = context.getString(R.string.attendance_notification_channel_id),
+                                nickname = attendanceWithGames.attendance.nickname,
+                                hoYoLABGame = game.type,
+                            ).let { notification ->
+                                if (context.packageManager.checkPermission(
+                                        CroissantPermission.PostNotifications.permission,
+                                        context.packageName
+                                    ) == PackageManager.PERMISSION_GRANTED
+                                ) {
+                                    NotificationManagerCompat.from(context).notify(
+                                        UUID.randomUUID().toString(),
+                                        game.type.gameId,
+                                        notification
+                                    )
                                 }
                             }
-                        }*/
+                        }
 
                         addFailureLog(attendanceId, cause)
                     }

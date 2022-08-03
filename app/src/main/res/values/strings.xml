@@ -123,4 +123,5 @@
     <string name="attendance_foreground_notification_title">Attendance job is running</string>
     <string name="schedule_exact_alarm_disabled">App can\'t schedule exact alarm, which is essential for scheduling attendance job. Please allow setting alarms and reminders. Confirm button will locate to system settings.</string>
     <string name="press_save_button_to_commit">New cookie was found. Press save button which is in the upper-right to commit changes.</string>
+    <string name="attendance_failed">Attendance failed due to unknown error. Please try manually.</string>
 </resources>

@@ -75,7 +75,6 @@ import com.joeloewi.croissant.ui.navigation.main.redemptioncodes.screen.Redempti
 import com.joeloewi.croissant.ui.navigation.main.settings.SettingsDestination
 import com.joeloewi.croissant.ui.navigation.main.settings.screen.DeveloperInfoScreen
 import com.joeloewi.croissant.ui.navigation.main.settings.screen.SettingsScreen
-import com.joeloewi.croissant.ui.theme.ContentAlpha
 import com.joeloewi.croissant.ui.theme.CroissantTheme
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
