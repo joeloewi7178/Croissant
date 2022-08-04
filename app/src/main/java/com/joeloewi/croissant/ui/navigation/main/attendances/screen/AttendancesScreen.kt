@@ -38,7 +38,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -56,7 +55,7 @@ import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.ui.theme.HalfDp
 import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.LocalActivity
-import com.joeloewi.croissant.util.is24HourFormat
+import com.joeloewi.croissant.util.LocalIs24HourFormat
 import com.joeloewi.croissant.util.isEmpty
 import com.joeloewi.croissant.util.requestReview
 import com.joeloewi.croissant.viewmodel.AttendancesViewModel
@@ -345,8 +344,7 @@ internal fun DismissContent(
                     ),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val context = LocalContext.current
-                    val is24HourFormat by context.is24HourFormat().collectAsStateWithLifecycle()
+                    val is24HourFormat = LocalIs24HourFormat.current
                     val time by remember(attendanceWithGamesState.attendance) {
                         derivedStateOf {
                             with(attendanceWithGamesState.attendance) {

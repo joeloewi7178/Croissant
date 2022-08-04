@@ -13,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -25,7 +24,6 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.ui.theme.ContentAlpha
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.navigationIconButton
 
@@ -90,7 +88,6 @@ private fun DeveloperInfoContent(
                     )
                     Text(text = "joeloewi", style = MaterialTheme.typography.headlineMedium)
                     Text(
-                        modifier = Modifier.alpha(ContentAlpha.medium),
                         text = stringResource(id = R.string.android_app_developer)
                     )
                 }
@@ -181,7 +178,6 @@ private fun DeveloperInfoContent(
                     },
                     supportingText = {
                         Text(
-                            modifier = Modifier.alpha(ContentAlpha.medium),
                             text = stringResource(id = R.string.android_app_developer)
                         )
                     }

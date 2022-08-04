@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import androidx.work.*
 import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration.ResinStatusWidgetConfigurationDestination
 import com.joeloewi.croissant.worker.RefreshResinStatusWorker
 import com.joeloewi.domain.entity.Account
 import com.joeloewi.domain.entity.ResinStatusWidget
@@ -33,8 +34,10 @@ class CreateResinStatusWidgetViewModel @Inject constructor(
     private val insertAccountUseCase: AccountUseCase.Insert,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
+    private val _appWidgetIdKey =
+        ResinStatusWidgetConfigurationDestination.CreateResinStatusWidgetScreen.APP_WIDGET_ID
     val appWidgetId =
-        savedStateHandle.get<Int>("appWidgetId") ?: AppWidgetManager.INVALID_APPWIDGET_ID
+        savedStateHandle.get<Int>(_appWidgetIdKey) ?: AppWidgetManager.INVALID_APPWIDGET_ID
     val selectableIntervals = listOf(15L, 30L, 60L)
 
     private val _createResinStatusWidgetState = MutableStateFlow<Lce<List<Long>>>(

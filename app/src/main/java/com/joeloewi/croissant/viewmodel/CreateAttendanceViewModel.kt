@@ -71,7 +71,7 @@ class CreateAttendanceViewModel @Inject constructor(
             )
         }.flowOn(Dispatchers.IO).stateIn(
             scope = viewModelScope,
-            started = SharingStarted.Lazily,
+            started = SharingStarted.WhileSubscribed(),
             initialValue = ContentOrError.Content(null)
         )
     val connectedGames = _userInfo
@@ -110,7 +110,7 @@ class CreateAttendanceViewModel @Inject constructor(
             )
         }.flowOn(Dispatchers.IO).stateIn(
             scope = viewModelScope,
-            started = SharingStarted.Lazily,
+            started = SharingStarted.WhileSubscribed(),
             initialValue = Lce.Loading
         )
     val cookie = _cookie.asStateFlow()
@@ -120,7 +120,7 @@ class CreateAttendanceViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.Lazily,
+            started = SharingStarted.WhileSubscribed(),
             initialValue = Calendar.getInstance()
         )
     val hourOfDay = _hourOfDay.asStateFlow()

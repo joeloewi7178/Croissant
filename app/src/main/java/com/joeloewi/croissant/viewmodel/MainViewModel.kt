@@ -4,6 +4,7 @@ import android.app.AlarmManager
 import android.app.Application
 import android.os.Build
 import android.os.PowerManager
+import android.text.format.DateFormat
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,6 +13,7 @@ import com.google.android.play.core.ktx.AppUpdateResult
 import com.google.android.play.core.ktx.requestUpdateFlow
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.joeloewi.croissant.util.RootChecker
+import com.joeloewi.croissant.util.is24HourFormat
 import com.joeloewi.croissant.util.isIgnoringBatteryOptimizations
 import com.joeloewi.domain.usecase.SettingsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,6 +34,11 @@ class MainViewModel @Inject constructor(
     private val _settings = getSettingsUseCase()
     private val _isDeviceRooted = MutableStateFlow(false)
 
+    val is24HourFormat = application.is24HourFormat.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Lazily,
+        initialValue = DateFormat.is24HourFormat(application)
+    )
     val isFirstLaunch = _settings.map { it.isFirstLaunch }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(),

@@ -7,11 +7,11 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.util.CroissantPermission
+import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.*
 import javax.inject.Inject
@@ -38,11 +38,7 @@ class TimeZoneChangedReceiver @Inject constructor(
         .setAutoCancel(true)
         .setSmallIcon(R.drawable.ic_baseline_bakery_dining_24)
         .apply {
-            val pendingIntentFlag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            } else {
-                PendingIntent.FLAG_UPDATE_CURRENT
-            }
+            val pendingIntentFlag = pendingIntentFlagUpdateCurrent
 
             val pendingIntent =
                 PendingIntent.getActivity(

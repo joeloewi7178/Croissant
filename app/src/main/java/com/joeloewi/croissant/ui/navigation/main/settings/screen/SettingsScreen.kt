@@ -13,7 +13,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -23,7 +22,6 @@ import androidx.navigation.NavController
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
 import com.joeloewi.croissant.ui.navigation.main.settings.SettingsDestination
-import com.joeloewi.croissant.ui.theme.ContentAlpha
 import com.joeloewi.croissant.viewmodel.SettingsViewModel
 import com.joeloewi.domain.entity.Settings
 
@@ -101,7 +99,6 @@ fun SettingsContent(
                     },
                     supportingText = {
                         Text(
-                            modifier = Modifier.alpha(ContentAlpha.medium),
                             text = stringResource(id = R.string.always_use_dark_theme)
                         )
                     },

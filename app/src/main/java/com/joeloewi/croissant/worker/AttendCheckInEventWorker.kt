@@ -3,12 +3,15 @@ package com.joeloewi.croissant.worker
 import android.app.Notification
 import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
+import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.app.TaskStackBuilder
 import androidx.core.graphics.drawable.toBitmap
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
@@ -18,8 +21,10 @@ import coil.ImageLoader
 import coil.request.ImageRequest
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.joeloewi.croissant.R
+import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.croissant.util.CroissantPermission
 import com.joeloewi.croissant.util.gameNameStringResId
+import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
 import com.joeloewi.data.common.generateGameIntent
 import com.joeloewi.domain.common.HoYoLABGame
 import com.joeloewi.domain.common.LoggableWorker
@@ -54,6 +59,20 @@ class AttendCheckInEventWorker @AssistedInject constructor(
     params = params
 ) {
     private val _attendanceId = inputData.getLong(ATTENDANCE_ID, Long.MIN_VALUE)
+
+    private fun generateAttendanceDetailDeepLinkUri(attendanceId: Long) =
+        Uri.Builder()
+            .scheme(context.getString(R.string.deep_link_scheme))
+            .authority(context.packageName)
+            .appendEncodedPath(
+                AttendancesDestination.AttendanceDetailScreen().generateRoute(attendanceId)
+            )
+            .build()
+
+    private fun getAttendanceDetailIntent(attendanceId: Long): Intent = Intent(
+        Intent.ACTION_VIEW,
+        generateAttendanceDetailDeepLinkUri(attendanceId)
+    )
 
     override suspend fun getForegroundInfo(): ForegroundInfo =
         createForegroundInfo(_attendanceId.toInt())
@@ -111,7 +130,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
             }
         }
 
-    private suspend fun createAttendanceNotification(
+    private suspend fun createSuccessfulAttendanceNotification(
         context: Context,
         channelId: String,
         nickname: String,
@@ -133,20 +152,18 @@ class AttendCheckInEventWorker @AssistedInject constructor(
         .setAutoCancel(true)
         .setSmallIcon(R.drawable.ic_baseline_bakery_dining_24)
         .apply {
-            ImageLoader(context).execute(
-                ImageRequest.Builder(context = context)
-                    .data(hoYoLABGame.gameIconUrl)
-                    .build()
-            ).drawable?.run {
+            ImageLoader(context).runCatching {
+                execute(
+                    ImageRequest.Builder(context = context)
+                        .data(hoYoLABGame.gameIconUrl)
+                        .build()
+                ).drawable
+            }.getOrNull()?.run {
                 setLargeIcon(toBitmap())
             }
         }
         .apply {
-            val pendingIntentFlag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            } else {
-                PendingIntent.FLAG_UPDATE_CURRENT
-            }
+            val pendingIntentFlag = pendingIntentFlagUpdateCurrent
 
             val pendingIntent =
                 PendingIntent.getActivity(
@@ -164,6 +181,85 @@ class AttendCheckInEventWorker @AssistedInject constructor(
         }
         .build()
 
+    //with known error
+    private suspend fun createUnsuccessfulAttendanceNotification(
+        context: Context,
+        channelId: String,
+        nickname: String,
+        hoYoLABGame: HoYoLABGame,
+        region: String,
+        hoYoLABUnsuccessfulResponseException: HoYoLABUnsuccessfulResponseException
+    ) = createSuccessfulAttendanceNotification(
+        context = context,
+        channelId = channelId,
+        nickname = nickname,
+        hoYoLABGame = hoYoLABGame,
+        region = region,
+        message = hoYoLABUnsuccessfulResponseException.responseMessage,
+        retCode = hoYoLABUnsuccessfulResponseException.retCode
+    )
+
+    //with unknown error
+    private suspend fun createUnsuccessfulAttendanceNotification(
+        context: Context,
+        channelId: String,
+        nickname: String,
+        hoYoLABGame: HoYoLABGame,
+    ): Notification = NotificationCompat
+        .Builder(context, channelId)
+        .setContentTitle(
+            "${
+                context.getString(
+                    R.string.attendance_of_nickname,
+                    nickname
+                )
+            } - ${context.getString(hoYoLABGame.gameNameStringResId())}"
+        )
+        .setContentText(context.getString(R.string.attendance_failed))
+        .setAutoCancel(true)
+        .setSmallIcon(R.drawable.ic_baseline_bakery_dining_24)
+        .apply {
+            ImageLoader(context).runCatching {
+                execute(
+                    ImageRequest.Builder(context = context)
+                        .data(hoYoLABGame.gameIconUrl)
+                        .build()
+                ).drawable
+            }.getOrNull()?.run {
+                setLargeIcon(toBitmap())
+            }
+        }
+        .apply {
+            val pendingIntent = TaskStackBuilder.create(context).run {
+                addNextIntentWithParentStack(getAttendanceDetailIntent(_attendanceId))
+                getPendingIntent(0, pendingIntentFlagUpdateCurrent)
+            }
+
+            setContentIntent(pendingIntent)
+        }
+        .build()
+
+    private suspend fun addFailureLog(
+        attendanceId: Long,
+        cause: Throwable
+    ) {
+        val executionLogId = insertWorkerExecutionLogUseCase(
+            WorkerExecutionLog(
+                attendanceId = attendanceId,
+                state = WorkerExecutionLogState.FAILURE,
+                loggableWorker = LoggableWorker.ATTEND_CHECK_IN_EVENT
+            )
+        )
+
+        insertFailureLogUseCase(
+            FailureLog(
+                executionLogId = executionLogId,
+                failureMessage = cause.message ?: "",
+                failureStackTrace = cause.stackTraceToString()
+            )
+        )
+    }
+
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         _attendanceId.runCatching {
             takeIf { it != Long.MIN_VALUE }!!
@@ -175,7 +271,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
             //attend check in events
             attendanceWithGames.games.map { game ->
                 //do parallel jobs
-                async {
+                async(Dispatchers.IO) {
                     try {
                         when (game.type) {
                             HoYoLABGame.HonkaiImpact3rd -> {
@@ -191,7 +287,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                                 throw Exception()
                             }
                         }.getOrThrow().also { response ->
-                            createAttendanceNotification(
+                            createSuccessfulAttendanceNotification(
                                 context = context,
                                 channelId = context.getString(R.string.attendance_notification_channel_id),
                                 nickname = attendanceWithGames.attendance.nickname,
@@ -237,14 +333,41 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                         }
 
                         if (cause is HoYoLABUnsuccessfulResponseException) {
-                            createAttendanceNotification(
+                            createUnsuccessfulAttendanceNotification(
                                 context = context,
                                 channelId = context.getString(R.string.attendance_notification_channel_id),
                                 nickname = attendanceWithGames.attendance.nickname,
                                 hoYoLABGame = game.type,
                                 region = game.region,
-                                message = cause.responseMessage,
-                                retCode = cause.retCode
+                                hoYoLABUnsuccessfulResponseException = cause
+                            ).let { notification ->
+                                if (context.packageManager.checkPermission(
+                                        CroissantPermission.PostNotifications.permission,
+                                        context.packageName
+                                    ) == PackageManager.PERMISSION_GRANTED
+                                ) {
+                                    NotificationManagerCompat.from(context).notify(
+                                        UUID.randomUUID().toString(),
+                                        game.type.gameId,
+                                        notification
+                                    )
+                                }
+                            }
+                        } else {
+                            //if result is unsuccessful with unknown error
+                            //retry for three times
+
+                            /*if (runAttemptCount > 3) {
+                                addFailureLog(attendanceId, cause)
+                            } else {
+
+                            }*/
+
+                            createUnsuccessfulAttendanceNotification(
+                                context = context,
+                                channelId = context.getString(R.string.attendance_notification_channel_id),
+                                nickname = attendanceWithGames.attendance.nickname,
+                                hoYoLABGame = game.type,
                             ).let { notification ->
                                 if (context.packageManager.checkPermission(
                                         CroissantPermission.PostNotifications.permission,
@@ -260,21 +383,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                             }
                         }
 
-                        val executionLogId = insertWorkerExecutionLogUseCase(
-                            WorkerExecutionLog(
-                                attendanceId = attendanceId,
-                                state = WorkerExecutionLogState.FAILURE,
-                                loggableWorker = LoggableWorker.ATTEND_CHECK_IN_EVENT
-                            )
-                        )
-
-                        insertFailureLogUseCase(
-                            FailureLog(
-                                executionLogId = executionLogId,
-                                failureMessage = cause.message ?: "",
-                                failureStackTrace = cause.stackTraceToString()
-                            )
-                        )
+                        addFailureLog(attendanceId, cause)
                     }
                 }
             }.awaitAll()

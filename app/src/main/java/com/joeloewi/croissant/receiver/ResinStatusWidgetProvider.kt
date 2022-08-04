@@ -52,7 +52,7 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
             coroutineContext = Dispatchers.IO
         ) {
             appWidgetIds?.map { appWidgetId ->
-                async {
+                async(Dispatchers.IO) {
                     if (powerManager.isPowerSaveMode && !powerManager.isIgnoringBatteryOptimizations(
                             application
                         )
@@ -138,14 +138,14 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
             coroutineContext = Dispatchers.IO
         ) {
             appWidgetIds?.run {
-                this.map { appWidgetId ->
-                    async {
+                map { appWidgetId ->
+                    async(Dispatchers.IO) {
                         getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
                             invoke(appWidgetId)
                         }.onSuccess {
                             WorkManager.getInstance(application)
                                 .cancelUniqueWork(it.resinStatusWidget.refreshGenshinResinStatusWorkerName.toString())
-                                .await()
+
                         }
                     }
                 }.awaitAll()

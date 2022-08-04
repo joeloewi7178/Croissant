@@ -40,8 +40,8 @@ import org.threeten.bp.format.FormatStyle
 class RefreshResinStatusWorker @AssistedInject constructor(
     @Assisted val context: Context,
     @Assisted val params: WorkerParameters,
-    val powerManager: PowerManager,
-    val getGameRecordCardHoYoLABUseCase: HoYoLABUseCase.GetGameRecordCard,
+    private val powerManager: PowerManager,
+    private val getGameRecordCardHoYoLABUseCase: HoYoLABUseCase.GetGameRecordCard,
     val getOneByAppWidgetIdResinStatusWidgetUseCase: ResinStatusWidgetUseCase.GetOneByAppWidgetId,
     val getGenshinDailyNoteHoYoLABUseCase: HoYoLABUseCase.GetGenshinDailyNote,
     val changeDataSwitchHoYoLABUseCase: HoYoLABUseCase.ChangeDataSwitch
@@ -72,42 +72,51 @@ class RefreshResinStatusWorker @AssistedInject constructor(
 
                 val resinStatuses =
                     resinStatusWidgetWithAccounts.accounts.map { account ->
-                        withContext(Dispatchers.IO) {
-                            async {
-                                getGameRecordCardHoYoLABUseCase(
+                        async(Dispatchers.IO) {
+                            getGameRecordCardHoYoLABUseCase.runCatching {
+                                invoke(
                                     cookie = account.cookie,
                                     uid = account.uid
-                                ).getOrThrow()?.list?.find { gameRecord ->
+                                ).getOrThrow()?.list
+                            }.mapCatching { gameRecords ->
+                                gameRecords?.find { gameRecord ->
                                     HoYoLABGame.findByGameId(gameRecord.gameId) == HoYoLABGame.GenshinImpact
-                                }!!.let { gameRecord ->
-                                    val isDailyNoteEnabled =
-                                        gameRecord.dataSwitches.find { it.switchId == DataSwitch.GENSHIN_IMPACT_DAILY_NOTE_SWITCH_ID }?.isPublic
+                                }!!
+                            }.mapCatching { gameRecord ->
+                                val isDailyNoteEnabled =
+                                    gameRecord.dataSwitches.find { it.switchId == DataSwitch.GENSHIN_IMPACT_DAILY_NOTE_SWITCH_ID }?.isPublic
 
-                                    if (isDailyNoteEnabled == false) {
-                                        changeDataSwitchHoYoLABUseCase(
-                                            cookie = account.cookie,
-                                            switchId = DataSwitch.GENSHIN_IMPACT_DAILY_NOTE_SWITCH_ID,
-                                            isPublic = true,
-                                            gameId = gameRecord.gameId,
-                                        ).getOrThrow()
-                                    }
-
-                                    val genshinDailyNote = getGenshinDailyNoteHoYoLABUseCase(
+                                if (isDailyNoteEnabled == false) {
+                                    changeDataSwitchHoYoLABUseCase(
                                         cookie = account.cookie,
-                                        server = gameRecord.region,
-                                        roleId = gameRecord.gameRoleId
+                                        switchId = DataSwitch.GENSHIN_IMPACT_DAILY_NOTE_SWITCH_ID,
+                                        isPublic = true,
+                                        gameId = gameRecord.gameId,
                                     ).getOrThrow()
-
-                                    ResinStatus(
-                                        id = account.id,
-                                        nickname = gameRecord.nickname,
-                                        currentResin = genshinDailyNote?.currentResin
-                                            ?: 0,
-                                        maxResin = genshinDailyNote?.maxResin
-                                            ?: 0
-                                    )
                                 }
-                            }
+
+                                val genshinDailyNote = getGenshinDailyNoteHoYoLABUseCase(
+                                    cookie = account.cookie,
+                                    server = gameRecord.region,
+                                    roleId = gameRecord.gameRoleId
+                                ).getOrThrow()
+
+                                ResinStatus(
+                                    id = account.id,
+                                    nickname = gameRecord.nickname,
+                                    currentResin = genshinDailyNote?.currentResin
+                                        ?: 0,
+                                    maxResin = genshinDailyNote?.maxResin
+                                        ?: 0
+                                )
+                            }.fold(
+                                onSuccess = {
+                                    it
+                                },
+                                onFailure = {
+                                    ResinStatus()
+                                }
+                            )
                         }
                     }.awaitAll()
 
