@@ -15,17 +15,17 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object UtilModule {
 
-    @Provides
     @Singleton
+    @Provides
     fun providePowerManager(application: Application): PowerManager =
         ContextCompat.getSystemService(application, PowerManager::class.java)!!
 
-    @Provides
     @Singleton
+    @Provides
     fun provideAlarmManager(application: Application): AlarmManager =
         ContextCompat.getSystemService(application, AlarmManager::class.java)!!
 
-    @Provides
     @Singleton
+    @Provides
     fun provideRootChecker(application: Application): RootChecker = RootChecker(application)
 }

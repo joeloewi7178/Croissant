@@ -82,11 +82,13 @@ import com.joeloewi.croissant.util.*
 import com.joeloewi.croissant.viewmodel.*
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import org.threeten.bp.Instant
 import org.threeten.bp.ZoneId
 import org.threeten.bp.format.DateTimeFormatter
 
+@FlowPreview
 @ExperimentalLifecycleComposeApi
 @ExperimentalMaterial3WindowSizeClassApi
 @ExperimentalPermissionsApi
@@ -136,6 +138,7 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
+@FlowPreview
 @ExperimentalLifecycleComposeApi
 @ExperimentalPermissionsApi
 @ExperimentalFoundationApi
@@ -673,6 +676,7 @@ fun CroissantNavHost(
     }
 }
 
+@FlowPreview
 @ExperimentalMaterialApi
 @ExperimentalMaterial3Api
 @ExperimentalPermissionsApi

@@ -18,10 +18,12 @@ import com.joeloewi.croissant.util.isIgnoringBatteryOptimizations
 import com.joeloewi.domain.usecase.SettingsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@FlowPreview
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val application: Application,
@@ -34,7 +36,7 @@ class MainViewModel @Inject constructor(
     private val _settings = getSettingsUseCase()
     private val _isDeviceRooted = MutableStateFlow(false)
 
-    val is24HourFormat = application.is24HourFormat.stateIn(
+    val is24HourFormat = application.is24HourFormat.flowOn(Dispatchers.Default).stateIn(
         scope = viewModelScope,
         started = SharingStarted.Lazily,
         initialValue = DateFormat.is24HourFormat(application)
@@ -46,7 +48,11 @@ class MainViewModel @Inject constructor(
     )
     val isDeviceRooted = _isDeviceRooted.asStateFlow()
     val appUpdateResultState =
-        AppUpdateManagerFactory.create(application).requestUpdateFlow().catch { cause ->
+        flow {
+            emit(AppUpdateManagerFactory.create(application))
+        }.flatMapConcat {
+            it.requestUpdateFlow()
+        }.flowOn(Dispatchers.Default).catch { cause ->
             FirebaseCrashlytics.getInstance().apply {
                 log("AppUpdateManager")
                 recordException(cause)

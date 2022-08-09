@@ -120,6 +120,7 @@ obj/
 .idea/jarRepositories.xml
 .idea/navEditor.xml
 .idea/inspectionProfiles
+.idea/deploymentTargetDropDown.xml
 
 # Legacy Eclipse project files
 .classpath
