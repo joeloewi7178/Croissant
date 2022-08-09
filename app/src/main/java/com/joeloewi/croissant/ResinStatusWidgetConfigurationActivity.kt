@@ -34,8 +34,10 @@ import com.joeloewi.croissant.viewmodel.LoadingViewModel
 import com.joeloewi.croissant.viewmodel.MainViewModel
 import com.joeloewi.croissant.viewmodel.ResinStatusWidgetDetailViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.FlowPreview
 
 //app widget configuration intent does not provide app widget provider's name
+@FlowPreview
 @ExperimentalLifecycleComposeApi
 @ExperimentalMaterial3Api
 @AndroidEntryPoint
