@@ -215,7 +215,7 @@ fun LoginHoYoLABContent(
         when (removeAllCookiesState) {
             is Lce.Content -> {
                 var navigateUpJob: Job? = remember { null }
-                val localContext = LocalContext.current
+                val context = LocalContext.current
                 val excludedUrls = remember {
                     listOf("www.webstatic-sea.mihoyo.com", "www.webstatic-sea.hoyolab.com")
                 }
@@ -302,14 +302,14 @@ fun LoginHoYoLABContent(
                                 view: WebView?,
                                 request: WebResourceRequest?
                             ): Boolean = if (
-                                mutableListOf(hoyolabUrl)
-                                    .apply { addAll(excludedUrls) }
+                            //parts of url, not exactly same
+                                (hoyolabUrl + excludedUrls)
                                     .map { request?.url?.toString()?.contains(it) }
-                                    .all { it == false }
+                                    .any { it == false }
                             ) {
                                 coroutineScope.launch {
                                     request?.url?.let {
-                                        localContext.startActivity(
+                                        context.startActivity(
                                             Intent(
                                                 Intent.ACTION_VIEW,
                                                 it
@@ -319,7 +319,7 @@ fun LoginHoYoLABContent(
                                 }
                                 true
                             } else {
-                                false
+                                super.shouldOverrideUrlLoading(view, request)
                             }
                         }
                     },
@@ -338,7 +338,7 @@ fun LoginHoYoLABContent(
                                 isUserGesture: Boolean,
                                 resultMsg: Message?
                             ): Boolean {
-                                val popUpWebView = WebView(localContext).apply {
+                                val popUpWebView = WebView(context).apply {
                                     settings.apply {
                                         javaScriptEnabled = true
                                         domStorageEnabled = true
@@ -361,7 +361,7 @@ fun LoginHoYoLABContent(
                                     setAcceptThirdPartyCookies(popUpWebView, true)
                                 }
 
-                                val dialog = Dialog(localContext).apply {
+                                val dialog = Dialog(context).apply {
                                     setContentView(popUpWebView)
                                 }
 
