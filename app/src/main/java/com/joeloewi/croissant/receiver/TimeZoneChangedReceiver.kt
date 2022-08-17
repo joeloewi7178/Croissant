@@ -63,7 +63,7 @@ class TimeZoneChangedReceiver @Inject constructor(
                         channelId = getString(R.string.time_zone_changed_notification_channel_id)
                     ).let { notification ->
                         if (packageManager?.checkPermission(
-                                CroissantPermission.PostNotifications.permission,
+                                CroissantPermission.POST_NOTIFICATION_PERMISSION_COMPAT,
                                 packageName
                             ) == PackageManager.PERMISSION_GRANTED
                         ) {

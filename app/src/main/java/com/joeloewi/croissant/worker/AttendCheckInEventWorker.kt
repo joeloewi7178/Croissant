@@ -297,7 +297,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                                 retCode = response.retCode
                             ).let { notification ->
                                 if (context.packageManager.checkPermission(
-                                        CroissantPermission.PostNotifications.permission,
+                                        CroissantPermission.POST_NOTIFICATION_PERMISSION_COMPAT,
                                         context.packageName
                                     ) == PackageManager.PERMISSION_GRANTED
                                 ) {
@@ -342,7 +342,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                                 hoYoLABUnsuccessfulResponseException = cause
                             ).let { notification ->
                                 if (context.packageManager.checkPermission(
-                                        CroissantPermission.PostNotifications.permission,
+                                        CroissantPermission.POST_NOTIFICATION_PERMISSION_COMPAT,
                                         context.packageName
                                     ) == PackageManager.PERMISSION_GRANTED
                                 ) {
@@ -370,7 +370,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                                 hoYoLABGame = game.type,
                             ).let { notification ->
                                 if (context.packageManager.checkPermission(
-                                        CroissantPermission.PostNotifications.permission,
+                                        CroissantPermission.POST_NOTIFICATION_PERMISSION_COMPAT,
                                         context.packageName
                                     ) == PackageManager.PERMISSION_GRANTED
                                 ) {

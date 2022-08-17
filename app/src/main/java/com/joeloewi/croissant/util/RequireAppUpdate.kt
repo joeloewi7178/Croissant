@@ -1,13 +1,11 @@
 package com.joeloewi.croissant.util
 
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import com.google.android.play.core.ktx.AppUpdateResult
 
 //under LocalActivity
-@ExperimentalMaterial3Api
 @Composable
 fun RequireAppUpdate(
     appUpdateResultState: AppUpdateResult,

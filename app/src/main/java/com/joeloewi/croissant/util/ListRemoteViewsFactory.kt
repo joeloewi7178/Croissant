@@ -14,10 +14,10 @@ class ListRemoteViewsFactory(
     private fun setResinStatuses(intent: Intent?) {
         resinStatuses.apply {
             clear()
-            addAll(
-                intent?.extras?.getBundle(BUNDLE)?.getParcelableArrayList(RESIN_STATUSES)
-                    ?: arrayListOf()
-            )
+            intent?.extras?.getBundle(BUNDLE)
+                ?.getParcelable(RESIN_STATUSES, resinStatuses::class.java)?.let {
+                    addAll(it)
+                }
         }
     }
 

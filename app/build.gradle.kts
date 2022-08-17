@@ -9,12 +9,12 @@ plugins {
 }
 
 android {
-    compileSdk = 32
+    compileSdk = 33
 
     defaultConfig {
         applicationId = "com.joeloewi.croissant"
         minSdk = 21
-        targetSdk = 32
+        targetSdk = 33
         versionCode = 19
         versionName = "1.0.19"
 
@@ -70,7 +70,7 @@ dependencies {
     implementation(project(":domain"))
 
     implementation("androidx.core:core-ktx:1.8.0")
-    implementation("com.google.android.material:material:1.7.0-alpha03")
+    implementation("com.google.android.material:material:1.7.0-beta01")
     implementation("androidx.compose.material3:material3:${Versions.material3}")
     implementation("androidx.compose.material3:material3-window-size-class:${Versions.material3}")
     implementation("androidx.activity:activity-ktx:1.5.1")
@@ -130,13 +130,13 @@ dependencies {
     implementation("androidx.webkit:webkit:1.4.0")
 
     //paging
-    implementation("androidx.paging:paging-compose:1.0.0-alpha15")
+    implementation("androidx.paging:paging-compose:1.0.0-alpha16")
 
     //java.time back porting
     implementation("com.jakewharton.threetenabp:threetenabp:1.4.0")
 
     // https://mvnrepository.com/artifact/com.google.android.material/compose-theme-adapter-3
-    implementation("com.google.android.material:compose-theme-adapter-3:1.0.15")
+    implementation("com.google.android.material:compose-theme-adapter-3:1.0.16")
 
     //html parsing
     implementation("org.jsoup:jsoup:1.15.2")
@@ -146,12 +146,15 @@ dependencies {
     implementation("com.google.android.play:core-ktx:1.8.1")
 
     //firebase
-    implementation(platform("com.google.firebase:firebase-bom:30.3.1"))
+    implementation(platform("com.google.firebase:firebase-bom:30.3.2"))
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.firebase:firebase-crashlytics-ktx")
 
     //leakCanary
     debugImplementation("com.squareup.leakcanary:leakcanary-android:2.9.1")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:${Versions.coroutines}")
 }
 
 kapt {

@@ -1,6 +1,7 @@
 package com.joeloewi.croissant.util
 
 import android.content.Context
+import android.content.pm.PackageManager
 import java.io.File
 import java.nio.charset.Charset
 
@@ -90,7 +91,7 @@ class RootChecker(
         packageManager
     }.mapCatching {
         for (pkg in rootPackages) {
-            it.getPackageInfo(pkg, 0)
+            it.getPackageInfo(pkg, PackageManager.PackageInfoFlags.of(0))
         }
     }.fold(
         onSuccess = {

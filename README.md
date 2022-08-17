@@ -1,7 +1,9 @@
 # Croissant
+
 Attend HoYoLAB Check-in events automatically
 
 # Stacks
+
 - Room Database
 - Hilt
 - Compose
@@ -11,9 +13,12 @@ Attend HoYoLAB Check-in events automatically
 - App Startup
 
 # Architectures
+
 - Clean Architecture
 - MVVM
 
 # Before Run on Device
-This project uses firebase and not contains *google-services.json* file because it's a server key. 
-There will be errors if you only cloned and run it, so you have to get *google-services.json* from your own firebase project and put in to cloned project directory.
+
+This project uses firebase and not contains *google-services.json* file because it's a server key.
+There will be errors if you only cloned and run it, so you have to get *google-services.json* from
+your own firebase project and put in to cloned project directory.

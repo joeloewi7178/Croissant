@@ -4,6 +4,7 @@
 
     <uses-permission android:name="${applicationId}.permission.ACCESS_HOYOLAB_SESSION" />
     <!-- back porting of notification permission -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission
         android:name="${applicationId}.permission.POST_NOTIFICATIONS"
         android:maxSdkVersion="32" />
@@ -59,9 +60,6 @@
             tools:node="merge">
             <meta-data
                 android:name="com.joeloewi.croissant.initializer.CoilInitializer"
-                android:value="androidx.startup" />
-            <meta-data
-                android:name="com.joeloewi.croissant.initializer.NotificationChannelInitializer"
                 android:value="androidx.startup" />
             <meta-data
                 android:name="com.joeloewi.croissant.initializer.DynamicColorInitializer"
