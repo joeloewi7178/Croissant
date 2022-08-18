@@ -369,7 +369,7 @@ fun LoginHoYoLABContent(
                                     attributes = attributes?.apply {
                                         width = ViewGroup.LayoutParams.MATCH_PARENT
                                         height = ViewGroup.LayoutParams.MATCH_PARENT
-                                    } as WindowManager.LayoutParams
+                                    }
                                 }
 
                                 dialog.apply {
