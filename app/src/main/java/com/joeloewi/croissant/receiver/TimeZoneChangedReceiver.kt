@@ -38,8 +38,6 @@ class TimeZoneChangedReceiver @Inject constructor(
         .setAutoCancel(true)
         .setSmallIcon(R.drawable.ic_baseline_bakery_dining_24)
         .apply {
-            val pendingIntentFlag = pendingIntentFlagUpdateCurrent
-
             val pendingIntent =
                 PendingIntent.getActivity(
                     context,
@@ -47,7 +45,7 @@ class TimeZoneChangedReceiver @Inject constructor(
                     getIntentFromPackageName(
                         context = context
                     ),
-                    pendingIntentFlag
+                    pendingIntentFlagUpdateCurrent
                 )
 
             setContentIntent(pendingIntent)
