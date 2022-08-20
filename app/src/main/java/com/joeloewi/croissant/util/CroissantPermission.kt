@@ -36,7 +36,7 @@ sealed class CroissantPermission(
             PostNotifications
         )
 
-        val POST_NOTIFICATION_PERMISSION_COMPAT =
+        val POST_NOTIFICATIONS_PERMISSION_COMPAT =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 Manifest.permission.POST_NOTIFICATIONS
             } else {

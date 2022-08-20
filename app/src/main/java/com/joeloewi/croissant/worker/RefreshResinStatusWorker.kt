@@ -38,13 +38,13 @@ import org.threeten.bp.format.FormatStyle
 
 @HiltWorker
 class RefreshResinStatusWorker @AssistedInject constructor(
-    @Assisted val context: Context,
-    @Assisted val params: WorkerParameters,
+    @Assisted private val context: Context,
+    @Assisted private val params: WorkerParameters,
     private val powerManager: PowerManager,
     private val getGameRecordCardHoYoLABUseCase: HoYoLABUseCase.GetGameRecordCard,
-    val getOneByAppWidgetIdResinStatusWidgetUseCase: ResinStatusWidgetUseCase.GetOneByAppWidgetId,
-    val getGenshinDailyNoteHoYoLABUseCase: HoYoLABUseCase.GetGenshinDailyNote,
-    val changeDataSwitchHoYoLABUseCase: HoYoLABUseCase.ChangeDataSwitch
+    private val getOneByAppWidgetIdResinStatusWidgetUseCase: ResinStatusWidgetUseCase.GetOneByAppWidgetId,
+    private val getGenshinDailyNoteHoYoLABUseCase: HoYoLABUseCase.GetGenshinDailyNote,
+    private val changeDataSwitchHoYoLABUseCase: HoYoLABUseCase.ChangeDataSwitch
 ) : CoroutineWorker(
     appContext = context,
     params = params

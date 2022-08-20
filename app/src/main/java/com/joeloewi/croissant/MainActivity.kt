@@ -1,6 +1,5 @@
 package com.joeloewi.croissant
 
-import android.Manifest
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -159,14 +158,10 @@ fun CroissantApp(
     val navController = rememberNavController()
     val isFirstLaunch by mainViewModel.isFirstLaunch.collectAsStateWithLifecycle()
     val multiplePermissionsState = rememberMultiplePermissionsState(
-        permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            listOf(
-                CroissantPermission.AccessHoYoLABSession.permission,
-                Manifest.permission.POST_NOTIFICATIONS
-            )
-        } else {
-            CroissantPermission.values().map { it.permission }
-        }
+        permissions = listOf(
+            CroissantPermission.AccessHoYoLABSession.permission,
+            CroissantPermission.POST_NOTIFICATIONS_PERMISSION_COMPAT
+        )
     )
     val isAllPermissionsGranted by remember(multiplePermissionsState) {
         derivedStateOf {

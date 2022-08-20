@@ -61,6 +61,12 @@
             <meta-data
                 android:name="com.joeloewi.croissant.initializer.CoilInitializer"
                 android:value="androidx.startup" />
+            <!-- in android 13, creating notification channel request post_notifications permission -->
+            <!-- so disable auto initializing -->
+            <meta-data
+                android:name="com.joeloewi.croissant.initializer.NotificationChannelInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
             <meta-data
                 android:name="com.joeloewi.croissant.initializer.DynamicColorInitializer"
                 android:value="androidx.startup" />

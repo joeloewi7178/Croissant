@@ -33,13 +33,13 @@ import java.util.*
 
 @HiltWorker
 class CheckSessionWorker @AssistedInject constructor(
-    @Assisted val context: Context,
-    @Assisted val params: WorkerParameters,
-    val getOneAttendanceUseCase: AttendanceUseCase.GetOne,
-    val getUserFullInfoHoYoLABUseCase: HoYoLABUseCase.GetUserFullInfo,
-    val insertWorkerExecutionLogUseCase: WorkerExecutionLogUseCase.Insert,
-    val insertSuccessLogUseCase: SuccessLogUseCase.Insert,
-    val insertFailureLogUseCase: FailureLogUseCase.Insert
+    @Assisted private val context: Context,
+    @Assisted private val params: WorkerParameters,
+    private val getOneAttendanceUseCase: AttendanceUseCase.GetOne,
+    private val getUserFullInfoHoYoLABUseCase: HoYoLABUseCase.GetUserFullInfo,
+    private val insertWorkerExecutionLogUseCase: WorkerExecutionLogUseCase.Insert,
+    private val insertSuccessLogUseCase: SuccessLogUseCase.Insert,
+    private val insertFailureLogUseCase: FailureLogUseCase.Insert
 ) : CoroutineWorker(
     appContext = context,
     params = params
@@ -120,7 +120,7 @@ class CheckSessionWorker @AssistedInject constructor(
                         channelId = context.getString(R.string.check_session_notification_channel_id),
                     ).let { notification ->
                         if (context.packageManager.checkPermission(
-                                CroissantPermission.POST_NOTIFICATION_PERMISSION_COMPAT,
+                                CroissantPermission.POST_NOTIFICATIONS_PERMISSION_COMPAT,
                                 context.packageName
                             ) == PackageManager.PERMISSION_GRANTED
                         ) {

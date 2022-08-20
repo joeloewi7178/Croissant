@@ -2,6 +2,8 @@
 
 Attend HoYoLAB Check-in events automatically
 
+<https://play.google.com/store/apps/details?id=com.joeloewi.croissant>
+
 # Stacks
 
 - Room Database

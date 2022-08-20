@@ -2,6 +2,7 @@ package com.joeloewi.croissant.util
 
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Build
 import java.io.File
 import java.nio.charset.Charset
 
@@ -91,7 +92,11 @@ class RootChecker(
         packageManager
     }.mapCatching {
         for (pkg in rootPackages) {
-            it.getPackageInfo(pkg, PackageManager.PackageInfoFlags.of(0))
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                it.getPackageInfo(pkg, PackageManager.PackageInfoFlags.of(0))
+            } else {
+                it.getPackageInfo(pkg, 0)
+            }
         }
     }.fold(
         onSuccess = {

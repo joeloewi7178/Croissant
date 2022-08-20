@@ -45,15 +45,15 @@ import java.util.*
 
 @HiltWorker
 class AttendCheckInEventWorker @AssistedInject constructor(
-    @Assisted val context: Context,
-    @Assisted val params: WorkerParameters,
-    val getOneAttendanceUseCase: AttendanceUseCase.GetOne,
-    val attendCheckInGenshinImpactHoYoLABUseCase: GenshinImpactCheckInUseCase.AttendCheckInGenshinImpact,
-    val attendCheckInHonkaiImpact3rdHoYoLABUseCase: HonkaiImpact3rdCheckInUseCase.AttendCheckInHonkaiImpact3rd,
-    val attendCheckInTearsOfThemisHoYoLABUseCase: TearsOfThemisCheckInUseCase.AttendCheckInTearsOfThemis,
-    val insertWorkerExecutionLogUseCase: WorkerExecutionLogUseCase.Insert,
-    val insertSuccessLogUseCase: SuccessLogUseCase.Insert,
-    val insertFailureLogUseCase: FailureLogUseCase.Insert
+    @Assisted private val context: Context,
+    @Assisted private val params: WorkerParameters,
+    private val getOneAttendanceUseCase: AttendanceUseCase.GetOne,
+    private val attendCheckInGenshinImpactHoYoLABUseCase: GenshinImpactCheckInUseCase.AttendCheckInGenshinImpact,
+    private val attendCheckInHonkaiImpact3rdHoYoLABUseCase: HonkaiImpact3rdCheckInUseCase.AttendCheckInHonkaiImpact3rd,
+    private val attendCheckInTearsOfThemisHoYoLABUseCase: TearsOfThemisCheckInUseCase.AttendCheckInTearsOfThemis,
+    private val insertWorkerExecutionLogUseCase: WorkerExecutionLogUseCase.Insert,
+    private val insertSuccessLogUseCase: SuccessLogUseCase.Insert,
+    private val insertFailureLogUseCase: FailureLogUseCase.Insert
 ) : CoroutineWorker(
     appContext = context,
     params = params
@@ -297,7 +297,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                                 retCode = response.retCode
                             ).let { notification ->
                                 if (context.packageManager.checkPermission(
-                                        CroissantPermission.POST_NOTIFICATION_PERMISSION_COMPAT,
+                                        CroissantPermission.POST_NOTIFICATIONS_PERMISSION_COMPAT,
                                         context.packageName
                                     ) == PackageManager.PERMISSION_GRANTED
                                 ) {
@@ -342,7 +342,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                                 hoYoLABUnsuccessfulResponseException = cause
                             ).let { notification ->
                                 if (context.packageManager.checkPermission(
-                                        CroissantPermission.POST_NOTIFICATION_PERMISSION_COMPAT,
+                                        CroissantPermission.POST_NOTIFICATIONS_PERMISSION_COMPAT,
                                         context.packageName
                                     ) == PackageManager.PERMISSION_GRANTED
                                 ) {
@@ -370,7 +370,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                                 hoYoLABGame = game.type,
                             ).let { notification ->
                                 if (context.packageManager.checkPermission(
-                                        CroissantPermission.POST_NOTIFICATION_PERMISSION_COMPAT,
+                                        CroissantPermission.POST_NOTIFICATIONS_PERMISSION_COMPAT,
                                         context.packageName
                                     ) == PackageManager.PERMISSION_GRANTED
                                 ) {

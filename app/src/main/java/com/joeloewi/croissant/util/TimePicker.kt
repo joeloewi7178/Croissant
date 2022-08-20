@@ -1,5 +1,6 @@
 package com.joeloewi.croissant.util
 
+import android.os.Build
 import android.widget.TimePicker
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -42,8 +43,13 @@ fun TimePicker(
             setIs24HourView(is24HourFormat)
         }
 
-        hourOfDay.takeIf { it != view.hour }?.let(view::setHour)
-        minute.takeIf { it != view.minute }?.let(view::setMinute)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            hourOfDay.takeIf { it != view.hour }?.let(view::setHour)
+            minute.takeIf { it != view.minute }?.let(view::setMinute)
+        } else {
+            hourOfDay.takeIf { it != view.currentHour }?.let(view::setCurrentHour)
+            minute.takeIf { it != view.currentMinute }?.let(view::setCurrentMinute)
+        }
     }
 }
 
