@@ -2,6 +2,7 @@ package com.joeloewi.croissant.util
 
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
 
@@ -14,10 +15,12 @@ class ListRemoteViewsFactory(
     private fun setResinStatuses(intent: Intent?) {
         resinStatuses.apply {
             clear()
-            addAll(
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                intent?.extras?.getBundle(BUNDLE)
+                    ?.getParcelable(RESIN_STATUSES, resinStatuses::class.java)
+            } else {
                 intent?.extras?.getBundle(BUNDLE)?.getParcelableArrayList(RESIN_STATUSES)
-                    ?: arrayListOf()
-            )
+            }?.let(this::addAll)
         }
     }
 

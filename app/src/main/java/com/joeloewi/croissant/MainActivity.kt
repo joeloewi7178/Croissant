@@ -56,13 +56,16 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import androidx.startup.AppInitializer
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.android.material.color.DynamicColors
 import com.google.firebase.analytics.FirebaseAnalytics
+import com.joeloewi.croissant.initializer.NotificationChannelInitializer
 import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.AttendanceDetailScreen
@@ -153,9 +156,18 @@ fun CroissantApp(
     mainViewModel: MainViewModel
 ) {
     val navController = rememberNavController()
-
-    //global view model
     val isFirstLaunch by mainViewModel.isFirstLaunch.collectAsStateWithLifecycle()
+    val multiplePermissionsState = rememberMultiplePermissionsState(
+        permissions = listOf(
+            CroissantPermission.AccessHoYoLABSession.permission,
+            CroissantPermission.POST_NOTIFICATIONS_PERMISSION_COMPAT
+        )
+    )
+    val isAllPermissionsGranted by remember(multiplePermissionsState) {
+        derivedStateOf {
+            multiplePermissionsState.allPermissionsGranted
+        }
+    }
 
     val modalBottomSheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden,
@@ -186,10 +198,12 @@ fun CroissantApp(
     }
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(isFirstLaunch) {
-        if (isFirstLaunch) {
+    LaunchedEffect(isFirstLaunch, isAllPermissionsGranted) {
+        if (isFirstLaunch || !isAllPermissionsGranted) {
             modalBottomSheetState.show()
         } else {
+            AppInitializer.getInstance(context)
+                .initializeComponent(NotificationChannelInitializer::class.java)
             modalBottomSheetState.hide()
         }
     }
@@ -201,9 +215,10 @@ fun CroissantApp(
         scrimColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.32f),
         sheetContent = {
             CroissantAppBottomSheetContent(
-                mainViewModel = mainViewModel,
+                multiplePermissionsState = multiplePermissionsState,
                 modalBottomSheetState = modalBottomSheetState,
-                snackbarHostState = snackbarHostState
+                snackbarHostState = snackbarHostState,
+                onFirstLaunchChange = mainViewModel::setIsFirstLaunch
             )
         }
     ) {
@@ -682,15 +697,12 @@ fun CroissantNavHost(
 @ExperimentalPermissionsApi
 @Composable
 fun CroissantAppBottomSheetContent(
-    mainViewModel: MainViewModel,
+    multiplePermissionsState: MultiplePermissionsState,
     modalBottomSheetState: ModalBottomSheetState,
     snackbarHostState: SnackbarHostState,
+    onFirstLaunchChange: (Boolean) -> Unit
 ) {
     val croissantPermissions = remember { CroissantPermission.values() }
-
-    val multiplePermissionsState = rememberMultiplePermissionsState(
-        permissions = croissantPermissions.map { it.permission }
-    )
     val context = LocalContext.current
 
     LaunchedEffect(multiplePermissionsState.allPermissionsGranted) {
@@ -703,7 +715,7 @@ fun CroissantAppBottomSheetContent(
                     .toLocalDateTime()
             val readableTimestamp = dateTimeFormatter.format(localDateTime)
 
-            mainViewModel.setIsFirstLaunch(false)
+            onFirstLaunchChange(false)
 
             if (modalBottomSheetState.isVisible) {
                 snackbarHostState.showSnackbar(

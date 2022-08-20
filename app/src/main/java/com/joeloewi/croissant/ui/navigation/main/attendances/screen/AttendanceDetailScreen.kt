@@ -41,6 +41,7 @@ import com.joeloewi.domain.common.HoYoLABGame
 import com.joeloewi.domain.common.LoggableWorker
 import com.joeloewi.domain.entity.Game
 import com.joeloewi.domain.entity.relational.AttendanceWithGames
+import kotlinx.coroutines.launch
 
 @ExperimentalLifecycleComposeApi
 @ExperimentalFoundationApi
@@ -52,6 +53,7 @@ fun AttendanceDetailScreen(
 ) {
     val context = LocalContext.current
     val activity = LocalActivity.current
+    val coroutineScope = rememberCoroutineScope()
     val hourOfDay by attendanceDetailViewModel.hourOfDay.collectAsStateWithLifecycle()
     val minute by attendanceDetailViewModel.minute.collectAsStateWithLifecycle()
     val nickname by attendanceDetailViewModel.nickname.collectAsStateWithLifecycle()
@@ -121,7 +123,15 @@ fun AttendanceDetailScreen(
         onClickRefreshSession = {
             navController.navigate(AttendancesDestination.LoginHoYoLabScreen.route)
         },
-        onClickSave = attendanceDetailViewModel::updateAttendance
+        onClickSave = {
+            if (checkedGame.isEmpty()) {
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar(context.getString(R.string.select_at_least_one_game))
+                }
+            } else {
+                attendanceDetailViewModel.updateAttendance()
+            }
+        }
     )
 }
 

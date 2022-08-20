@@ -4,6 +4,7 @@
 
     <uses-permission android:name="${applicationId}.permission.ACCESS_HOYOLAB_SESSION" />
     <!-- back porting of notification permission -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission
         android:name="${applicationId}.permission.POST_NOTIFICATIONS"
         android:maxSdkVersion="32" />
@@ -60,9 +61,12 @@
             <meta-data
                 android:name="com.joeloewi.croissant.initializer.CoilInitializer"
                 android:value="androidx.startup" />
+            <!-- in android 13, creating notification channel request post_notifications permission -->
+            <!-- so disable auto initializing -->
             <meta-data
                 android:name="com.joeloewi.croissant.initializer.NotificationChannelInitializer"
-                android:value="androidx.startup" />
+                android:value="androidx.startup"
+                tools:node="remove" />
             <meta-data
                 android:name="com.joeloewi.croissant.initializer.DynamicColorInitializer"
                 android:value="androidx.startup" />

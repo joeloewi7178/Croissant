@@ -1,5 +1,7 @@
 package com.joeloewi.croissant.util
 
+import android.Manifest
+import android.os.Build
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cookie
@@ -33,5 +35,12 @@ sealed class CroissantPermission(
             AccessHoYoLABSession,
             PostNotifications
         )
+
+        val POST_NOTIFICATIONS_PERMISSION_COMPAT =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                Manifest.permission.POST_NOTIFICATIONS
+            } else {
+                PostNotifications.permission
+            }
     }
 }

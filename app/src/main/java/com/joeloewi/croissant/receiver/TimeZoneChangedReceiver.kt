@@ -38,8 +38,6 @@ class TimeZoneChangedReceiver @Inject constructor(
         .setAutoCancel(true)
         .setSmallIcon(R.drawable.ic_baseline_bakery_dining_24)
         .apply {
-            val pendingIntentFlag = pendingIntentFlagUpdateCurrent
-
             val pendingIntent =
                 PendingIntent.getActivity(
                     context,
@@ -47,7 +45,7 @@ class TimeZoneChangedReceiver @Inject constructor(
                     getIntentFromPackageName(
                         context = context
                     ),
-                    pendingIntentFlag
+                    pendingIntentFlagUpdateCurrent
                 )
 
             setContentIntent(pendingIntent)
@@ -63,7 +61,7 @@ class TimeZoneChangedReceiver @Inject constructor(
                         channelId = getString(R.string.time_zone_changed_notification_channel_id)
                     ).let { notification ->
                         if (packageManager?.checkPermission(
-                                CroissantPermission.PostNotifications.permission,
+                                CroissantPermission.POST_NOTIFICATIONS_PERMISSION_COMPAT,
                                 packageName
                             ) == PackageManager.PERMISSION_GRANTED
                         ) {
