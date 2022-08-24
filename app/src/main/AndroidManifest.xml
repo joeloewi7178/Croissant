@@ -2,8 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-permission android:name="${applicationId}.permission.ACCESS_HOYOLAB_SESSION" />
-    <!-- back porting of notification permission -->
+    <uses-permission android:name="${applicationId}.permission.ACCESS_HOYOLAB_SESSION" /> <!-- back porting of notification permission -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission
         android:name="${applicationId}.permission.POST_NOTIFICATIONS"
@@ -15,10 +14,12 @@
     <queries>
         <intent>
             <action android:name="android.intent.action.SENDTO" />
+
             <data android:scheme="*" />
         </intent>
         <intent>
             <action android:name="android.intent.action.VIEW" />
+
             <data android:scheme="*" />
         </intent>
     </queries>
@@ -29,7 +30,6 @@
         android:icon="@drawable/ic_baseline_cookie_24"
         android:label="@string/permission_access_hoyolab_session_label"
         android:protectionLevel="dangerous" />
-
     <permission
         android:name="${applicationId}.permission.POST_NOTIFICATIONS"
         android:description="@string/permission_post_notification_description"
@@ -45,6 +45,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppSplash">
+        <profileable
+            android:shell="true"
+            tools:targetApi="q" />
 
         <meta-data
             android:name="android.supports_size_changes"
@@ -102,7 +105,6 @@
             android:name=".receiver.AlarmReceiver"
             android:enabled="true"
             android:exported="true">
-
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
@@ -114,7 +116,6 @@
             android:name=".receiver.MigrationHelper"
             android:enabled="true"
             android:exported="true">
-
             <intent-filter>
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
@@ -145,13 +146,11 @@
                     android:scheme="@string/deep_link_scheme" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".ResinStatusWidgetConfigurationActivity"
             android:configChanges="screenLayout|smallestScreenSize|screenSize|orientation"
             android:exported="false"
             android:screenOrientation="portrait">
-
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>

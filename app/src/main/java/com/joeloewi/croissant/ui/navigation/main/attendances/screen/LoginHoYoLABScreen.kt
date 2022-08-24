@@ -8,7 +8,6 @@ import android.net.http.SslError
 import android.os.Message
 import android.view.ViewGroup
 import android.webkit.*
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -30,7 +29,6 @@ import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.webkit.WebSettingsCompat
-import androidx.webkit.WebViewFeature
 import com.google.accompanist.web.*
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.Lce
@@ -221,39 +219,33 @@ fun LoginHoYoLABContent(
                 val securityPopUpUrl = remember {
                     "https://m.hoyolab.com/account-system-sea/security.html?origin=hoyolab"
                 }
-                val darkTheme = isSystemInDarkTheme()
 
                 WebView(
                     modifier = Modifier.padding(innerPadding),
                     state = webViewState,
                     navigator = webViewNavigator,
                     onCreated = { webView ->
-                        webView.settings.apply {
-                            javaScriptEnabled = true
-                            domStorageEnabled = true
-                            databaseEnabled = true
-                            cacheMode = WebSettings.LOAD_NO_CACHE
-                            setSupportMultipleWindows(true)
-                            javaScriptCanOpenWindowsAutomatically = true
-                            userAgentString = userAgentString.replace("; wv", "")
-                        }
-
-                        if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK) && darkTheme) {
-                            WebSettingsCompat.setForceDark(
-                                webView.settings,
-                                WebSettingsCompat.FORCE_DARK_ON
-                            )
-                        }
-
-                        WebStorage.getInstance().deleteAllData()
-
                         with(webView) {
+                            settings.apply {
+                                javaScriptEnabled = true
+                                domStorageEnabled = true
+                                databaseEnabled = true
+                                cacheMode = WebSettings.LOAD_NO_CACHE
+                                setSupportMultipleWindows(true)
+                                javaScriptCanOpenWindowsAutomatically = true
+                                userAgentString = userAgentString.replace("; wv", "")
+                            }
+
+                            WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, true)
+
                             clearCache(true)
                             clearFormData()
                             clearHistory()
                             clearMatches()
                             clearSslPreferences()
                         }
+
+                        WebStorage.getInstance().deleteAllData()
 
                         CookieManager.getInstance().apply {
                             acceptCookie()
@@ -347,12 +339,7 @@ fun LoginHoYoLABContent(
                                         userAgentString = userAgentString.replace("; wv", "")
                                     }
 
-                                    if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK) && darkTheme) {
-                                        WebSettingsCompat.setForceDark(
-                                            settings,
-                                            WebSettingsCompat.FORCE_DARK_ON
-                                        )
-                                    }
+                                    WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, true)
                                 }
 
                                 CookieManager.getInstance().apply {

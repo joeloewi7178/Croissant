@@ -14,14 +14,3 @@ buildscript {
         classpath("com.google.dagger:hilt-android-gradle-plugin:${Versions.hilt}")
     }
 }
-
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-    }
-}
-
-tasks.register("clean", Delete::class) {
-    delete(rootProject.buildDir)
-}

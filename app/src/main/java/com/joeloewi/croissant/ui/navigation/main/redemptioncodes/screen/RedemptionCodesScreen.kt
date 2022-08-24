@@ -8,7 +8,6 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -31,7 +30,6 @@ import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.webkit.WebSettingsCompat
-import androidx.webkit.WebViewFeature
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
@@ -183,7 +181,6 @@ fun RedemptionCodeListItem(
                 space = DefaultDp
             )
         ) {
-            val darkTheme = isSystemInDarkTheme()
             val activity = LocalActivity.current
 
             Row(
@@ -257,12 +254,7 @@ fun RedemptionCodeListItem(
                 ),
                 onCreated = { webView ->
                     with(webView) {
-                        if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK) && darkTheme) {
-                            WebSettingsCompat.setForceDark(
-                                settings,
-                                WebSettingsCompat.FORCE_DARK_ON
-                            )
-                        }
+                        WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, true)
                         isVerticalScrollBarEnabled = false
                         setBackgroundColor(Color.TRANSPARENT)
                     }

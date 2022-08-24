@@ -25,19 +25,11 @@ android {
     }
 
     buildTypes {
-        debug {
-            isMinifyEnabled = false
-            isDebuggable = true
-            isShrinkResources = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+        val debug by getting {
+
         }
-        release {
+        val release by getting {
             isMinifyEnabled = true
-            isDebuggable = false
-            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -74,6 +66,8 @@ dependencies {
     implementation("androidx.compose.material3:material3:${Versions.material3}")
     implementation("androidx.compose.material3:material3-window-size-class:${Versions.material3}")
     implementation("androidx.activity:activity-ktx:1.5.1")
+    implementation("androidx.appcompat:appcompat:1.5.0")
+    implementation("androidx.appcompat:appcompat-resources:1.5.0")
     implementation("androidx.activity:activity-compose:1.5.1")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.3")
@@ -127,7 +121,7 @@ dependencies {
     implementation("io.coil-kt:coil-compose:${Versions.coil}")
 
     //webkit
-    implementation("androidx.webkit:webkit:1.4.0")
+    implementation("androidx.webkit:webkit:1.5.0-rc01")
 
     //paging
     implementation("androidx.paging:paging-compose:1.0.0-alpha16")
@@ -155,6 +149,8 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:${Versions.coroutines}")
+
+    implementation("androidx.savedstate:savedstate-ktx:1.2.0")
 }
 
 kapt {
