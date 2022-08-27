@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.joeloewi.croissant">
 
     <uses-permission android:name="${applicationId}.permission.ACCESS_HOYOLAB_SESSION" /> <!-- back porting of notification permission -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
