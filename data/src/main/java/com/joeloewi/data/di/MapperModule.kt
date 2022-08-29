@@ -69,4 +69,41 @@ object MapperModule {
         successLogMapper,
         failureLogMapper
     )
+
+    @Singleton
+    @Provides
+    fun provideUserInfoMapper(): UserInfoMapper = UserInfoMapper()
+
+    @Singleton
+    @Provides
+    fun provideUserFullInfoDataMapper(
+        userInfoMapper: UserInfoMapper
+    ): UserFullInfoDataMapper = UserFullInfoDataMapper(userInfoMapper)
+
+    @Singleton
+    @Provides
+    fun provideUserFullInfoMapper(
+        userFullInfoDataMapper: UserFullInfoDataMapper
+    ): UserFullInfoMapper = UserFullInfoMapper(userFullInfoDataMapper)
+
+    @Singleton
+    @Provides
+    fun provideDataSwitchMapper(): DataSwitchMapper = DataSwitchMapper()
+
+    @Singleton
+    @Provides
+    fun provideGameRecordMapper(
+        dataSwitchMapper: DataSwitchMapper
+    ): GameRecordMapper = GameRecordMapper(dataSwitchMapper)
+
+    @Singleton
+    @Provides
+    fun provideGameRecordCardDataMapper(
+        gameRecordMapper: GameRecordMapper
+    ): GameRecordCardDataMapper = GameRecordCardDataMapper(gameRecordMapper)
+
+    @Singleton
+    @Provides
+    fun provideGenshinDailyNoteDataMapper(): GenshinDailyNoteDataMapper =
+        GenshinDailyNoteDataMapper()
 }

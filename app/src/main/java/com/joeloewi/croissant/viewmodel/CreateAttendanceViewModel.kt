@@ -19,8 +19,6 @@ import com.joeloewi.domain.entity.Game
 import com.joeloewi.domain.usecase.AttendanceUseCase
 import com.joeloewi.domain.usecase.GameUseCase
 import com.joeloewi.domain.usecase.HoYoLABUseCase
-import com.joeloewi.domain.wrapper.ContentOrError
-import com.joeloewi.domain.wrapper.getOrThrow
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ObsoleteCoroutinesApi
@@ -38,7 +36,7 @@ import javax.inject.Inject
 class CreateAttendanceViewModel @Inject constructor(
     private val application: Application,
     private val alarmManager: AlarmManager,
-    getUserFullInfoHoYoLABUseCase: HoYoLABUseCase.GetUserFullInfo,
+    private val getUserFullInfoHoYoLABUseCase: HoYoLABUseCase.GetUserFullInfo,
     private val getGameRecordCardHoYoLABUseCase: HoYoLABUseCase.GetGameRecordCard,
     private val insertAttendanceUseCase: AttendanceUseCase.Insert,
     private val updateAttendanceUseCase: AttendanceUseCase.Update,
@@ -63,16 +61,16 @@ class CreateAttendanceViewModel @Inject constructor(
                 }
             }.fold(
                 onSuccess = {
-                    ContentOrError.Content(it)
+                    Lce.Content(it)
                 },
                 onFailure = {
-                    ContentOrError.Error(it)
+                    Lce.Error(it)
                 }
             )
         }.flowOn(Dispatchers.IO).stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(),
-            initialValue = ContentOrError.Content(null)
+            initialValue = Lce.Loading
         )
     val connectedGames = _userInfo
         .combine(_cookie) { userInfo, cookie ->
@@ -80,7 +78,7 @@ class CreateAttendanceViewModel @Inject constructor(
         }.map { pair ->
             checkedGames.clear()
             getGameRecordCardHoYoLABUseCase.runCatching {
-                pair.first.getOrThrow()?.let {
+                pair.first.content?.let {
                     invoke(
                         pair.second,
                         it.uid

@@ -2,8 +2,8 @@ package com.joeloewi.data.db.dao
 
 import androidx.paging.PagingSource
 import androidx.room.*
-import com.joeloewi.data.entity.AttendanceEntity
-import com.joeloewi.data.entity.relational.AttendanceWithGamesEntity
+import com.joeloewi.data.entity.local.AttendanceEntity
+import com.joeloewi.data.entity.local.relational.AttendanceWithGamesEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

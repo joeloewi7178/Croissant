@@ -1,6 +1,6 @@
 package com.joeloewi.data.mapper
 
-import com.joeloewi.data.entity.relational.WorkerExecutionLogWithStateEntity
+import com.joeloewi.data.entity.local.relational.WorkerExecutionLogWithStateEntity
 import com.joeloewi.data.mapper.base.ReadOnlyMapper
 import com.joeloewi.domain.entity.relational.WorkerExecutionLogWithState
 

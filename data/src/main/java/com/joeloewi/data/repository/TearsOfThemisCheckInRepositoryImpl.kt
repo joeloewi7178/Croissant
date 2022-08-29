@@ -5,7 +5,6 @@ import com.joeloewi.domain.common.HoYoLABRetCode
 import com.joeloewi.domain.common.exception.HoYoLABUnsuccessfulResponseException
 import com.joeloewi.domain.entity.BaseResponse
 import com.joeloewi.domain.repository.TearsOfThemisCheckInRepository
-import com.joeloewi.domain.wrapper.ContentOrError
 import com.skydoves.sandwich.getOrThrow
 import javax.inject.Inject
 
@@ -13,7 +12,7 @@ class TearsOfThemisCheckInRepositoryImpl @Inject constructor(
     private val themisCheckInDataSource: TearsOfThemisCheckInDataSource
 ) : TearsOfThemisCheckInRepository {
 
-    override suspend fun attendCheckInTearsOfThemis(cookie: String): ContentOrError<BaseResponse> =
+    override suspend fun attendCheckInTearsOfThemis(cookie: String): Result<BaseResponse> =
         themisCheckInDataSource.runCatching {
             attendCheckInTearsOfThemis(cookie = cookie).getOrThrow().also { response ->
                 if (HoYoLABRetCode.findByCode(response.retCode) != HoYoLABRetCode.OK) {
@@ -23,12 +22,5 @@ class TearsOfThemisCheckInRepositoryImpl @Inject constructor(
                     )
                 }
             }
-        }.fold(
-            onSuccess = {
-                ContentOrError.Content(it)
-            },
-            onFailure = {
-                ContentOrError.Error(it)
-            }
-        )
+        }
 }

@@ -1,9 +1,9 @@
-package com.joeloewi.data.entity.relational
+package com.joeloewi.data.entity.local.relational
 
 import androidx.room.Embedded
 import androidx.room.Relation
-import com.joeloewi.data.entity.AttendanceEntity
-import com.joeloewi.data.entity.GameEntity
+import com.joeloewi.data.entity.local.AttendanceEntity
+import com.joeloewi.data.entity.local.GameEntity
 
 data class AttendanceWithGamesEntity(
     @Embedded val attendanceEntity: AttendanceEntity = AttendanceEntity(),

@@ -1,10 +1,9 @@
-package com.joeloewi.data.entity
+package com.joeloewi.data.entity.local
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.joeloewi.domain.common.HoYoLABGame
 
 @Entity(
     indices = [Index("executionLogId")],
@@ -17,11 +16,10 @@ import com.joeloewi.domain.common.HoYoLABGame
         )
     ]
 )
-data class SuccessLogEntity(
+data class FailureLogEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val executionLogId: Long = 0,
-    val gameName: HoYoLABGame = HoYoLABGame.Unknown,
-    val retCode: Int = 0,
-    val message: String = ""
+    val failureMessage: String = "",
+    val failureStackTrace: String = "",
 )

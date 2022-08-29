@@ -1,4 +1,4 @@
-package com.joeloewi.data.entity
+package com.joeloewi.data.entity.local
 
 import androidx.room.Entity
 import androidx.room.ForeignKey

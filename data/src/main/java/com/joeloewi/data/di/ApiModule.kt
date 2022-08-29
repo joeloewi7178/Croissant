@@ -4,12 +4,8 @@ import com.joeloewi.data.api.dao.GenshinImpactCheckInService
 import com.joeloewi.data.api.dao.HoYoLABService
 import com.joeloewi.data.api.dao.HonkaiImpact3rdCheckInService
 import com.joeloewi.data.api.dao.TearsOfThemisCheckInService
-import com.joeloewi.data.api.model.response.AttendanceResponse
-import com.joeloewi.data.api.model.response.ChangeDataSwitchResponse
-import com.joeloewi.data.api.model.response.GameRecordCardResponse
-import com.joeloewi.data.api.model.response.GenshinDailyNoteResponse
+import com.joeloewi.data.api.model.response.*
 import com.joeloewi.domain.entity.BaseResponse
-import com.joeloewi.domain.entity.UserFullInfoResponse
 import com.skydoves.sandwich.adapters.ApiResponseCallAdapterFactory
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory

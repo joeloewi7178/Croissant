@@ -1,6 +1,6 @@
 package com.joeloewi.data.mapper
 
-import com.joeloewi.data.entity.SuccessLogEntity
+import com.joeloewi.data.entity.local.SuccessLogEntity
 import com.joeloewi.data.mapper.base.Mapper
 import com.joeloewi.domain.entity.SuccessLog
 

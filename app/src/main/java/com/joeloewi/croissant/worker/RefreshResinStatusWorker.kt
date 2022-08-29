@@ -24,7 +24,6 @@ import com.joeloewi.domain.common.HoYoLABGame
 import com.joeloewi.domain.entity.DataSwitch
 import com.joeloewi.domain.usecase.HoYoLABUseCase
 import com.joeloewi.domain.usecase.ResinStatusWidgetUseCase
-import com.joeloewi.domain.wrapper.getOrThrow
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers

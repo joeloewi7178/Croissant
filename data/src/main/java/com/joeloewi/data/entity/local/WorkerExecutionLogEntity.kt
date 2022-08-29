@@ -1,10 +1,12 @@
-package com.joeloewi.data.entity
+package com.joeloewi.data.entity.local
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.joeloewi.domain.common.HoYoLABGame
+import com.joeloewi.domain.common.LoggableWorker
+import com.joeloewi.domain.common.WorkerExecutionLogState
+import java.util.*
 
 @Entity(
     indices = [Index("attendanceId")],
@@ -17,11 +19,12 @@ import com.joeloewi.domain.common.HoYoLABGame
         )
     ]
 )
-data class GameEntity(
+data class WorkerExecutionLogEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val attendanceId: Long = 0,
-    val roleId: Long = 0,
-    val type: HoYoLABGame = HoYoLABGame.Unknown,
-    val region: String = ""
+    val createdAt: Long = System.currentTimeMillis(),
+    val timezoneId: String = TimeZone.getDefault().id,
+    val state: WorkerExecutionLogState = WorkerExecutionLogState.SUCCESS,
+    val loggableWorker: LoggableWorker = LoggableWorker.UNKNOWN,
 )

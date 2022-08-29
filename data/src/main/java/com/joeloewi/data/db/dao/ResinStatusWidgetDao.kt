@@ -1,8 +1,8 @@
 package com.joeloewi.data.db.dao
 
 import androidx.room.*
-import com.joeloewi.data.entity.ResinStatusWidgetEntity
-import com.joeloewi.data.entity.relational.ResinStatusWidgetWithAccountsEntity
+import com.joeloewi.data.entity.local.ResinStatusWidgetEntity
+import com.joeloewi.data.entity.local.relational.ResinStatusWidgetWithAccountsEntity
 
 @Dao
 interface ResinStatusWidgetDao {

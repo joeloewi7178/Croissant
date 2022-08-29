@@ -1,9 +1,9 @@
-package com.joeloewi.data.entity.relational
+package com.joeloewi.data.entity.local.relational
 
 import androidx.room.Embedded
 import androidx.room.Relation
-import com.joeloewi.data.entity.AccountEntity
-import com.joeloewi.data.entity.ResinStatusWidgetEntity
+import com.joeloewi.data.entity.local.AccountEntity
+import com.joeloewi.data.entity.local.ResinStatusWidgetEntity
 
 data class ResinStatusWidgetWithAccountsEntity(
     @Embedded
