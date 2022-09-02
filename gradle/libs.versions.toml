@@ -1,12 +1,12 @@
 [versions]
-accompanist = "0.26.1-alpha"
+accompanist = "0.26.2-beta"
 androidDesugarJdkLibs = "1.1.5"
 androidGradlePlugin = "7.2.2"
 androidxActivity = "1.5.1"
 androidxAppCompat = "1.5.0"
-androidxCompose = "1.3.0-alpha03"
+androidxCompose = "1.3.0-beta01"
 androidxComposeCompiler = "1.3.0"
-androidxComposeMaterial3 = "1.0.0-alpha15"
+androidxComposeMaterial3 = "1.0.0-beta01"
 androidxCore = "1.8.0"
 androidxCoreSplashscreen = "1.0.0"
 androidxDataStore = "1.0.0"
@@ -22,13 +22,13 @@ androidxTestExt = "1.1.3"
 androidxTracing = "1.1.0"
 androidxUiAutomator = "2.2.0"
 androidxWork = "2.7.1"
-androidxWebkit = "1.5.0-rc01"
+androidxWebkit = "1.5.0"
 androidxPagingCommon = "3.1.1"
 androidxPagingCompose = "1.0.0-alpha16"
 androidxTestExtJunit = "1.1.3"
 androidxTestEspresso = "3.4.0"
 androidMaterial = "1.7.0-beta01"
-coil = "2.1.0"
+coil = "2.2.0"
 hilt = "2.43.2"
 hiltExt = "1.0.0"
 kotlin = "1.7.10"
@@ -38,10 +38,9 @@ protobufPlugin = "0.8.19"
 retrofit = "2.9.0"
 room = "2.4.3"
 moshi = "1.13.0"
-threetenabp = "1.4.0"
 androidPlayCore = "1.10.3"
 androidPlayCoreKtx = "1.8.1"
-materialComposeThemeAdapter3 = "1.0.16"
+materialComposeThemeAdapter3 = "1.0.17"
 firebaseCrashlyticsPlugin = "2.9.1"
 gmsGoogleServicesGradlePlugin = "4.3.13"
 firebaseBom = "30.3.2"
@@ -111,7 +110,6 @@ room-paging = { group = "androidx.room", name = "room-paging", version.ref = "ro
 androidx-webkit = { group = "androidx.webkit", name = "webkit", version.ref = "androidxWebkit" }
 androidx-paging-common = { group = "androidx.paging", name = "paging-common", version.ref = "androidxPagingCommon" }
 androidx-paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "androidxPagingCompose" }
-threetenabp = { group = "com.jakewharton.threetenabp", name = "threetenabp", version.ref = "threetenabp" }
 material-compose-theme-adapter3 = { group = "com.google.android.material", name = "compose-theme-adapter-3", version.ref = "materialComposeThemeAdapter3" }
 android-play-core = { group = "com.google.android.play", name = "core", version.ref = "androidPlayCore" }
 android-play-core-ktx = { group = "com.google.android.play", name = "core-ktx", version.ref = "androidPlayCoreKtx" }

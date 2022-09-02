@@ -13,14 +13,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.*
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetLayout
+import androidx.compose.material.ModalBottomSheetState
+import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.*
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -33,7 +35,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -87,9 +88,10 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.ObsoleteCoroutinesApi
-import org.threeten.bp.Instant
-import org.threeten.bp.ZoneId
-import org.threeten.bp.format.DateTimeFormatter
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 @FlowPreview
 @ExperimentalLifecycleComposeApi
@@ -708,7 +710,7 @@ fun CroissantAppBottomSheetContent(
     LaunchedEffect(multiplePermissionsState.allPermissionsGranted) {
         if (multiplePermissionsState.allPermissionsGranted) {
             val dateTimeFormatter =
-                DateTimeFormatter.ofLocalizedDate(org.threeten.bp.format.FormatStyle.SHORT)
+                DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)
             val localDateTime =
                 Instant.now()
                     .atZone(ZoneId.systemDefault())
@@ -817,21 +819,21 @@ fun CroissantAppBottomSheetContent(
                     items = croissantPermissions,
                     key = { it.permission }
                 ) { item ->
+
                     ListItem(
-                        icon = {
+                        headlineText = {
+                            Text(text = stringResource(id = item.label))
+                        },
+                        leadingContent = {
                             Icon(
                                 imageVector = item.icon,
                                 contentDescription = item.icon.name
                             )
                         },
-                        secondaryText = {
+                        supportingText = {
                             Text(
-                                modifier = Modifier.alpha(ContentAlpha.medium),
                                 text = stringResource(id = item.detailedDescription)
                             )
-                        },
-                        text = {
-                            Text(text = stringResource(id = item.label))
                         }
                     )
                 }

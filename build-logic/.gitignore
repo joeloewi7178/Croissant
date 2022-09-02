@@ -172,4 +172,3 @@ buildSrc/.gradle
 /build
 /captures
 .cxx
-/data/schemas/

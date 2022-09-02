@@ -22,8 +22,8 @@ import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.util.LocalIs24HourFormat
 import com.joeloewi.croissant.util.TimePicker
 import kotlinx.coroutines.ObsoleteCoroutinesApi
-import org.threeten.bp.LocalTime
-import org.threeten.bp.format.DateTimeFormatter
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 @ExperimentalLifecycleComposeApi

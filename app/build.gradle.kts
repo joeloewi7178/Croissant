@@ -112,9 +112,6 @@ dependencies {
     //paging
     implementation(libs.androidx.paging.compose)
 
-    //java.time back porting
-    implementation(libs.threetenabp)
-
     // https://mvnrepository.com/artifact/com.google.android.material/compose-theme-adapter-3
     implementation(libs.material.compose.theme.adapter3)
 

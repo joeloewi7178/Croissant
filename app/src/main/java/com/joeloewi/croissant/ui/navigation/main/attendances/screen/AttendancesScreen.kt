@@ -63,8 +63,8 @@ import com.joeloewi.croissant.worker.AttendCheckInEventWorker
 import com.joeloewi.domain.entity.Attendance
 import com.joeloewi.domain.entity.relational.AttendanceWithGames
 import kotlinx.coroutines.launch
-import org.threeten.bp.LocalTime
-import org.threeten.bp.format.DateTimeFormatter
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 @ExperimentalLifecycleComposeApi
 @ExperimentalFoundationApi
