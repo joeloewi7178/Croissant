@@ -711,29 +711,28 @@ fun CroissantAppBottomSheetContent(
             Spacer(modifier = Modifier.padding(top = 1.dp))
         },
         bottomBar = {
-            Column {
-                FilledTonalButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(DefaultDp)
-                        .background(MaterialTheme.colorScheme.surface),
-                    onClick = {
-                        multiplePermissionsState.launchMultiplePermissionRequest()
-                    }
+            FilledTonalButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(DefaultDp)
+                    .background(MaterialTheme.colorScheme.surface),
+                onClick = {
+                    multiplePermissionsState.launchMultiplePermissionRequest()
+                }
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(
+                        space = DefaultDp,
+                        alignment = Alignment.CenterHorizontally
+                    ),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(
-                            space = DefaultDp,
-                            alignment = Alignment.CenterHorizontally
-                        ),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Checklist,
-                            contentDescription = Icons.Default.Checklist.name
-                        )
-                        Text(text = stringResource(id = R.string.grant_permissions_and_start))
-                    }
+                    Icon(
+                        imageVector = Icons.Default.Checklist,
+                        contentDescription = Icons.Default.Checklist.name
+                    )
+                    Text(text = stringResource(id = R.string.grant_permissions_and_start))
                 }
             }
         }
