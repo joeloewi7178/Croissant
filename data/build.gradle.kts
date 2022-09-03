@@ -3,39 +3,29 @@ import com.google.protobuf.gradle.generateProtoTasks
 import com.google.protobuf.gradle.protobuf
 import com.google.protobuf.gradle.protoc
 
+@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
-    id("com.android.library")
-    id("kotlin-android")
-    id("kotlin-kapt")
-    id("com.google.protobuf")
+    id("croissant.android.library")
+    kotlin("kapt")
+    alias(libs.plugins.protobuf)
+    alias(libs.plugins.ksp)
     id("dagger.hilt.android.plugin")
 }
 
 android {
-    compileSdk = 33
-
     defaultConfig {
-        minSdk = 21
-        targetSdk = 33
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
 
-        javaCompileOptions {
-            annotationProcessorOptions {
-                arguments.putAll(
-                    mapOf(
-                        "room.schemaLocation" to "$projectDir/schemas",
-                        "room.incremental" to "true",
-                        "room.expandProjection" to "true"
-                    )
-                )
-            }
+        ksp {
+            arg("room.schemaLocation", "$projectDir/schemas")
+            arg("room.incremental", "true")
+            arg("room.expandProjection", "true")
         }
     }
 
     buildTypes {
-        release {
+        val release by getting {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -43,69 +33,64 @@ android {
             )
         }
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = "11"
-    }
     namespace = "com.joeloewi.data"
 }
 
 dependencies {
     implementation(project(":domain"))
 
-    implementation("androidx.core:core-ktx:1.8.0")
-    implementation("androidx.appcompat:appcompat:1.5.0")
-    implementation("com.google.android.material:material:1.6.1")
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.3")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.android.material)
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.espresso)
 
     //room
-    implementation("androidx.room:room-runtime:${Versions.room}")
-    kapt("androidx.room:room-compiler:${Versions.room}")
-    implementation("androidx.room:room-ktx:${Versions.room}")
-    implementation("androidx.room:room-paging:${Versions.room}")
+    implementation(libs.room.runtime)
+    ksp(libs.room.compiler)
+    implementation(libs.room.ktx)
+    implementation(libs.room.paging)
 
     //retrofit2
-    implementation("com.squareup.retrofit2:retrofit:${Versions.retrofit}")
-    implementation("com.squareup.retrofit2:converter-moshi:${Versions.retrofit}")
-    implementation("com.squareup.retrofit2:converter-scalars:${Versions.retrofit}")
-    implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.2")
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.moshi)
+    implementation(libs.retrofit.converter.scalars)
+    implementation(libs.okhttp3.logging.interceptor)
 
     //moshi
-    implementation("com.squareup.moshi:moshi:${Versions.moshi}")
-    implementation("com.squareup.moshi:moshi-adapters:${Versions.moshi}")
-    kapt("com.squareup.moshi:moshi-kotlin-codegen:${Versions.moshi}")
+    implementation(libs.moshi)
+    implementation(libs.moshi.adapters)
+    ksp(libs.moshi.kotlin.codegen)
 
     //protobuf
-    implementation("com.google.protobuf:protobuf-javalite:${Versions.protobuf}")
+    implementation(libs.protobuf.kotlin.lite)
 
     //datastore
-    implementation("androidx.datastore:datastore:1.0.0")
+    implementation(libs.androidx.dataStore.core)
 
     //hilt
-    implementation("com.google.dagger:hilt-android:${Versions.hilt}")
-    kapt("com.google.dagger:hilt-android-compiler:${Versions.hilt}")
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
 
-    implementation("com.github.skydoves:sandwich:1.2.7")
+    implementation(libs.sandwich)
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:${Versions.coroutines}")
+    implementation(libs.kotlinx.coroutines.android)
 }
 
 protobuf {
 
     protoc {
-        artifact = "com.google.protobuf:protoc:${Versions.protobuf}"
+        artifact = libs.protobuf.protoc.get().toString()
     }
 
     generateProtoTasks {
         all().forEach { task ->
             task.builtins {
-                create("java") {
+                val java by registering {
+                    option("lite")
+                }
+                val kotlin by registering {
                     option("lite")
                 }
             }

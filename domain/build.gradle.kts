@@ -1,22 +1,11 @@
+@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
-    id("java-library")
-    id("kotlin")
-    id("kotlin-kapt")
-}
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    alias(libs.plugins.kotlin.jvm)
+    `java-library`
 }
 
 dependencies {
+    implementation(libs.androidx.paging.common)
 
-    implementation("androidx.paging:paging-common-ktx:${Versions.paging}")
-
-    //moshi
-    implementation("com.squareup.moshi:moshi:${Versions.moshi}")
-    implementation("com.squareup.moshi:moshi-adapters:${Versions.moshi}")
-    kapt("com.squareup.moshi:moshi-kotlin-codegen:${Versions.moshi}")
-
-    implementation("javax.inject:javax.inject:1")
+    implementation(libs.javax.inject)
 }

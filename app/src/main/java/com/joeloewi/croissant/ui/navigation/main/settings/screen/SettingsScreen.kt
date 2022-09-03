@@ -1,6 +1,7 @@
 package com.joeloewi.croissant.ui.navigation.main.settings.screen
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -59,6 +61,9 @@ fun SettingsContent(
                     Text(text = stringResource(id = CroissantNavigation.Settings.resourceId))
                 }
             )
+        },
+        bottomBar = {
+            Spacer(modifier = Modifier.padding(top = 1.dp))
         }
     ) { innerPadding ->
         LazyColumn(

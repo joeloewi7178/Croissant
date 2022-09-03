@@ -7,7 +7,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Public
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -17,7 +18,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
@@ -61,13 +61,15 @@ private fun DeveloperInfoContent(
                     Text(text = stringResource(id = R.string.developer_info))
                 }
             )
+        },
+        bottomBar = {
+            Spacer(modifier = Modifier.padding(top = 1.dp))
         }
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item(
@@ -91,97 +93,6 @@ private fun DeveloperInfoContent(
                         text = stringResource(id = R.string.android_app_developer)
                     )
                 }
-            }
-
-            item(
-                key = "locationHeader"
-            ) {
-                ListItem(
-                    headlineText = {
-                        Text(
-                            text = stringResource(id = R.string.location),
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                )
-            }
-
-            item(
-                key = "location"
-            ) {
-                ListItem(
-                    leadingContent = {
-                        Icon(
-                            imageVector = Icons.Default.LocationCity,
-                            contentDescription = Icons.Default.LocationCity.name
-                        )
-                    },
-                    headlineText = {
-                        Text(text = stringResource(id = R.string.seoul_at_south_korea))
-                    }
-                )
-            }
-
-            item(
-                key = "careersHeader"
-            ) {
-                ListItem(
-                    headlineText = {
-                        Text(
-                            text = stringResource(id = R.string.careers),
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                )
-            }
-
-            item(
-                key = "current"
-            ) {
-                ListItem(
-                    leadingContent = {
-                        Icon(
-                            imageVector = Icons.Default.Pending,
-                            contentDescription = Icons.Default.Pending.name
-                        )
-                    },
-                    overlineText = {
-                        Text(text = stringResource(id = R.string.career_now))
-                    },
-                    headlineText = {
-                        Text(text = stringResource(id = R.string.currently_looking_for_a_job))
-                    }
-                )
-            }
-
-            item(
-                key = "jongdallab"
-            ) {
-                ListItem(
-                    leadingContent = {
-                        Icon(
-                            imageVector = Icons.Default.Work,
-                            contentDescription = Icons.Default.Work.name
-                        )
-                    },
-                    overlineText = {
-                        Text(
-                            text = buildAnnotatedString {
-                                append("2020.04 - 2021.12")
-                                append(" ")
-                                append("(${stringResource(id = R.string.jongdallab_tenure)})")
-                            }
-                        )
-                    },
-                    headlineText = {
-                        Text(text = stringResource(id = R.string.jongdallab))
-                    },
-                    supportingText = {
-                        Text(
-                            text = stringResource(id = R.string.android_app_developer)
-                        )
-                    }
-                )
             }
 
             item(

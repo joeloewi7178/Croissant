@@ -209,6 +209,9 @@ private fun AttendanceDetailContent(
         },
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
+        },
+        bottomBar = {
+            Spacer(modifier = Modifier.padding(top = 1.dp))
         }
     ) { innerPadding ->
         val loggableWorkers =

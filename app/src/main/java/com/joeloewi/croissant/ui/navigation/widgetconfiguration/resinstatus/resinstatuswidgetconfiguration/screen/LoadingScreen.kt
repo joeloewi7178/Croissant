@@ -3,7 +3,6 @@ package com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.res
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -69,19 +68,17 @@ fun LoadingScreen(
 @ExperimentalMaterial3Api
 @Composable
 private fun LoadingContent() {
-    Scaffold { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
+    Column(
+        modifier = Modifier
+            .safeDrawingPadding()
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                CircularProgressIndicator()
-            }
+            CircularProgressIndicator()
         }
     }
 }

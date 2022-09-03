@@ -4,17 +4,17 @@ import android.appwidget.AppWidgetManager
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.os.bundleOf
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.navigation.NavType
@@ -43,14 +43,15 @@ import kotlinx.coroutines.FlowPreview
 @AndroidEntryPoint
 class ResinStatusWidgetConfigurationActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        WindowCompat.setDecorFitsSystemWindows(window, false)
         installSplashScreen()
         super.onCreate(savedInstanceState)
 
         DynamicColors.applyToActivityIfAvailable(this)
 
         setContent {
-            CroissantTheme {
+            CroissantTheme(
+                window = window
+            ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -94,85 +95,66 @@ fun ResinStatusWidgetConfigurationApp() {
         )
     }
 
-    Scaffold(
-        topBar = {
-            Spacer(
-                modifier = Modifier.padding(
-                    WindowInsets.statusBars.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
-                        .asPaddingValues()
-                )
-            )
-        },
-        bottomBar = {
-            Spacer(
-                modifier = Modifier
-                    .windowInsetsBottomHeight(WindowInsets.navigationBars)
-                    .fillMaxWidth(),
-            )
-        }
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .padding(innerPadding)
+    Box(
+        modifier = Modifier.navigationBarsPadding()
+    ) {
+        NavHost(
+            navController = navController,
+            startDestination = ResinStatusWidgetConfigurationNavigation.Configuration.route
         ) {
-            NavHost(
-                navController = navController,
-                startDestination = ResinStatusWidgetConfigurationNavigation.Configuration.route
+            navigation(
+                startDestination = ResinStatusWidgetConfigurationDestination.LoadingScreen.route,
+                route = ResinStatusWidgetConfigurationNavigation.Configuration.route
             ) {
-                navigation(
-                    startDestination = ResinStatusWidgetConfigurationDestination.LoadingScreen.route,
-                    route = ResinStatusWidgetConfigurationNavigation.Configuration.route
-                ) {
-                    composable(
-                        route = ResinStatusWidgetConfigurationDestination.LoadingScreen.route,
-                        arguments = listOf(
-                            navArgument(ResinStatusWidgetConfigurationDestination.LoadingScreen.route) {
-                                type = NavType.IntType
-                                defaultValue = appWidgetId
-                            }
-                        )
-                    ) { navBackStackEntry ->
-                        val loadingViewModel: LoadingViewModel = hiltViewModel(navBackStackEntry)
-
-                        LoadingScreen(
-                            navController = navController,
-                            loadingViewModel = loadingViewModel
-                        )
-                    }
-
-                    composable(
-                        route = ResinStatusWidgetConfigurationDestination.CreateResinStatusWidgetScreen().route,
-                        arguments = ResinStatusWidgetConfigurationDestination.CreateResinStatusWidgetScreen().arguments.map { argument ->
-                            navArgument(argument.first) {
-                                type = argument.second
-                            }
-                        },
-                    ) { navBackStackEntry ->
-                        val createResinStatusWidgetViewModel: CreateResinStatusWidgetViewModel =
-                            hiltViewModel(navBackStackEntry)
-
-                        CreateResinStatusWidgetScreen(
-                            navController = navController,
-                            createResinStatusWidgetViewModel = createResinStatusWidgetViewModel
-                        )
-                    }
-
-                    composable(
-                        route = ResinStatusWidgetConfigurationDestination.ResinStatusWidgetDetailScreen().route,
-                        arguments = ResinStatusWidgetConfigurationDestination.ResinStatusWidgetDetailScreen().arguments.map { argument ->
-                            navArgument(argument.first) {
-                                type = argument.second
-                            }
+                composable(
+                    route = ResinStatusWidgetConfigurationDestination.LoadingScreen.route,
+                    arguments = listOf(
+                        navArgument(ResinStatusWidgetConfigurationDestination.LoadingScreen.route) {
+                            type = NavType.IntType
+                            defaultValue = appWidgetId
                         }
-                    ) { navBackStackEntry ->
-                        val resinStatusWidgetDetailViewModel: ResinStatusWidgetDetailViewModel =
-                            hiltViewModel(navBackStackEntry)
+                    )
+                ) { navBackStackEntry ->
+                    val loadingViewModel: LoadingViewModel = hiltViewModel(navBackStackEntry)
 
-                        ResinStatusWidgetDetailScreen(
-                            navController = navController,
-                            resinStatusWidgetDetailViewModel = resinStatusWidgetDetailViewModel
-                        )
+                    LoadingScreen(
+                        navController = navController,
+                        loadingViewModel = loadingViewModel
+                    )
+                }
+
+                composable(
+                    route = ResinStatusWidgetConfigurationDestination.CreateResinStatusWidgetScreen().route,
+                    arguments = ResinStatusWidgetConfigurationDestination.CreateResinStatusWidgetScreen().arguments.map { argument ->
+                        navArgument(argument.first) {
+                            type = argument.second
+                        }
+                    },
+                ) { navBackStackEntry ->
+                    val createResinStatusWidgetViewModel: CreateResinStatusWidgetViewModel =
+                        hiltViewModel(navBackStackEntry)
+
+                    CreateResinStatusWidgetScreen(
+                        navController = navController,
+                        createResinStatusWidgetViewModel = createResinStatusWidgetViewModel
+                    )
+                }
+
+                composable(
+                    route = ResinStatusWidgetConfigurationDestination.ResinStatusWidgetDetailScreen().route,
+                    arguments = ResinStatusWidgetConfigurationDestination.ResinStatusWidgetDetailScreen().arguments.map { argument ->
+                        navArgument(argument.first) {
+                            type = argument.second
+                        }
                     }
+                ) { navBackStackEntry ->
+                    val resinStatusWidgetDetailViewModel: ResinStatusWidgetDetailViewModel =
+                        hiltViewModel(navBackStackEntry)
+
+                    ResinStatusWidgetDetailScreen(
+                        navController = navController,
+                        resinStatusWidgetDetailViewModel = resinStatusWidgetDetailViewModel
+                    )
                 }
             }
         }

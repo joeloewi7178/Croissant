@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -153,6 +154,9 @@ fun SelectGames(
                     }
                 }
             }
+        },
+        topBar = {
+            Spacer(modifier = Modifier.padding(top = 1.dp))
         }
     ) { innerPadding ->
         LazyColumn(
@@ -369,12 +373,14 @@ fun ConnectedGamesContentListItem(
     hoYoLABGame: HoYoLABGame,
     gameRecord: GameRecord
 ) {
-    val game = remember {
-        Game(
-            roleId = gameRecord.gameRoleId,
-            type = hoYoLABGame,
-            region = gameRecord.region
-        )
+    val game by remember(hoYoLABGame, gameRecord) {
+        derivedStateOf {
+            Game(
+                roleId = gameRecord.gameRoleId,
+                type = hoYoLABGame,
+                region = gameRecord.region
+            )
+        }
     }
 
     val enabled by remember(hoYoLABGame, gameRecord) {

@@ -1,7 +1,7 @@
 package com.joeloewi.data.api.model.response
 
+import com.joeloewi.data.entity.remote.GameRecordCardDataEntity
 import com.joeloewi.domain.entity.BaseResponse
-import com.joeloewi.domain.entity.GameRecordCardData
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
@@ -10,5 +10,5 @@ data class GameRecordCardResponse(
     @Json(name = "retcode")
     override val retCode: Int = Int.MIN_VALUE,
     override val message: String = "",
-    override val data: GameRecordCardData?
+    override val data: GameRecordCardDataEntity?
 ) : BaseResponse

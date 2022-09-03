@@ -1,7 +1,7 @@
 package com.joeloewi.data.db.dao
 
 import androidx.room.*
-import com.joeloewi.data.entity.GameEntity
+import com.joeloewi.data.entity.local.GameEntity
 
 @Dao
 interface GameDao {

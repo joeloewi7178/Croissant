@@ -2,13 +2,13 @@ package com.joeloewi.croissant.ui.navigation.main.redemptioncodes.screen
 
 import android.content.Intent
 import android.graphics.Color
+import android.os.Build
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -31,7 +31,6 @@ import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.webkit.WebSettingsCompat
-import androidx.webkit.WebViewFeature
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
@@ -91,6 +90,9 @@ private fun RedemptionCodesContent(
                     Text(text = stringResource(id = CroissantNavigation.RedemptionCodes.resourceId))
                 }
             )
+        },
+        bottomBar = {
+            Spacer(Modifier.padding(1.dp))
         }
     ) { innerPadding ->
         val swipeRefreshState = rememberSwipeRefreshState(hoYoLABGameRedemptionCodesState.isLoading)
@@ -183,7 +185,6 @@ fun RedemptionCodeListItem(
                 space = DefaultDp
             )
         ) {
-            val darkTheme = isSystemInDarkTheme()
             val activity = LocalActivity.current
 
             Row(
@@ -257,11 +258,15 @@ fun RedemptionCodeListItem(
                 ),
                 onCreated = { webView ->
                     with(webView) {
-                        if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK) && darkTheme) {
-                            WebSettingsCompat.setForceDark(
-                                settings,
-                                WebSettingsCompat.FORCE_DARK_ON
-                            )
+                        runCatching {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, true)
+                            } else {
+                                WebSettingsCompat.setForceDark(
+                                    settings,
+                                    WebSettingsCompat.FORCE_DARK_AUTO
+                                )
+                            }
                         }
                         isVerticalScrollBarEnabled = false
                         setBackgroundColor(Color.TRANSPARENT)

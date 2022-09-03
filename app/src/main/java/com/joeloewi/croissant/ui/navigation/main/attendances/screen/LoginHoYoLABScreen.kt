@@ -5,10 +5,10 @@ import android.app.Dialog
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.http.SslError
+import android.os.Build
 import android.os.Message
 import android.view.ViewGroup
 import android.webkit.*
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -25,12 +25,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.webkit.WebSettingsCompat
-import androidx.webkit.WebViewFeature
 import com.google.accompanist.web.*
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.Lce
@@ -193,6 +193,9 @@ fun LoginHoYoLABContent(
                 }
             }
         },
+        bottomBar = {
+            Spacer(modifier = Modifier.padding(top = 1.dp))
+        },
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         }
@@ -221,39 +224,42 @@ fun LoginHoYoLABContent(
                 val securityPopUpUrl = remember {
                     "https://m.hoyolab.com/account-system-sea/security.html?origin=hoyolab"
                 }
-                val darkTheme = isSystemInDarkTheme()
 
                 WebView(
                     modifier = Modifier.padding(innerPadding),
                     state = webViewState,
                     navigator = webViewNavigator,
                     onCreated = { webView ->
-                        webView.settings.apply {
-                            javaScriptEnabled = true
-                            domStorageEnabled = true
-                            databaseEnabled = true
-                            cacheMode = WebSettings.LOAD_NO_CACHE
-                            setSupportMultipleWindows(true)
-                            javaScriptCanOpenWindowsAutomatically = true
-                            userAgentString = userAgentString.replace("; wv", "")
-                        }
-
-                        if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK) && darkTheme) {
-                            WebSettingsCompat.setForceDark(
-                                webView.settings,
-                                WebSettingsCompat.FORCE_DARK_ON
-                            )
-                        }
-
-                        WebStorage.getInstance().deleteAllData()
-
                         with(webView) {
+                            settings.apply {
+                                javaScriptEnabled = true
+                                domStorageEnabled = true
+                                databaseEnabled = true
+                                cacheMode = WebSettings.LOAD_NO_CACHE
+                                setSupportMultipleWindows(true)
+                                javaScriptCanOpenWindowsAutomatically = true
+                                userAgentString = userAgentString.replace("; wv", "")
+                            }
+
+                            runCatching {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                    WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, true)
+                                } else {
+                                    WebSettingsCompat.setForceDark(
+                                        settings,
+                                        WebSettingsCompat.FORCE_DARK_AUTO
+                                    )
+                                }
+                            }
+
                             clearCache(true)
                             clearFormData()
                             clearHistory()
                             clearMatches()
                             clearSslPreferences()
                         }
+
+                        WebStorage.getInstance().deleteAllData()
 
                         CookieManager.getInstance().apply {
                             acceptCookie()
@@ -347,11 +353,18 @@ fun LoginHoYoLABContent(
                                         userAgentString = userAgentString.replace("; wv", "")
                                     }
 
-                                    if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK) && darkTheme) {
-                                        WebSettingsCompat.setForceDark(
-                                            settings,
-                                            WebSettingsCompat.FORCE_DARK_ON
-                                        )
+                                    runCatching {
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                            WebSettingsCompat.setAlgorithmicDarkeningAllowed(
+                                                settings,
+                                                true
+                                            )
+                                        } else {
+                                            WebSettingsCompat.setForceDark(
+                                                settings,
+                                                WebSettingsCompat.FORCE_DARK_AUTO
+                                            )
+                                        }
                                     }
                                 }
 

@@ -16,14 +16,15 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.util.LocalIs24HourFormat
 import com.joeloewi.croissant.util.TimePicker
 import kotlinx.coroutines.ObsoleteCoroutinesApi
-import org.threeten.bp.LocalTime
-import org.threeten.bp.format.DateTimeFormatter
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 @ExperimentalLifecycleComposeApi
@@ -39,6 +40,9 @@ fun SetTime(
     onMinuteChange: (Int) -> Unit
 ) {
     Scaffold(
+        topBar = {
+            Spacer(modifier = Modifier.padding(top = 1.dp))
+        },
         bottomBar = {
             FilledTonalButton(
                 modifier = Modifier

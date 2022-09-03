@@ -24,17 +24,16 @@ import com.joeloewi.domain.common.HoYoLABGame
 import com.joeloewi.domain.entity.DataSwitch
 import com.joeloewi.domain.usecase.HoYoLABUseCase
 import com.joeloewi.domain.usecase.ResinStatusWidgetUseCase
-import com.joeloewi.domain.wrapper.getOrThrow
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
-import org.threeten.bp.Instant
-import org.threeten.bp.ZoneId
-import org.threeten.bp.format.DateTimeFormatter
-import org.threeten.bp.format.FormatStyle
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 @HiltWorker
 class RefreshResinStatusWorker @AssistedInject constructor(

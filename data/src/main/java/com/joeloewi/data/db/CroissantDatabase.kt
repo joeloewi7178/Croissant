@@ -3,7 +3,7 @@ package com.joeloewi.data.db
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.joeloewi.data.db.dao.*
-import com.joeloewi.data.entity.*
+import com.joeloewi.data.entity.local.*
 
 @Database(
     entities = [

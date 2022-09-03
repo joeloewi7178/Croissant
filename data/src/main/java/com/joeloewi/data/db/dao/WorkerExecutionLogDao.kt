@@ -2,8 +2,8 @@ package com.joeloewi.data.db.dao
 
 import androidx.paging.PagingSource
 import androidx.room.*
-import com.joeloewi.data.entity.WorkerExecutionLogEntity
-import com.joeloewi.data.entity.relational.WorkerExecutionLogWithStateEntity
+import com.joeloewi.data.entity.local.WorkerExecutionLogEntity
+import com.joeloewi.data.entity.local.relational.WorkerExecutionLogWithStateEntity
 import com.joeloewi.domain.common.LoggableWorker
 import com.joeloewi.domain.common.WorkerExecutionLogState
 import kotlinx.coroutines.flow.Flow

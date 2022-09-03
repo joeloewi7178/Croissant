@@ -58,6 +58,9 @@ fun GetSession(
                     )
                 }
             }
+        },
+        topBar = {
+            Spacer(modifier = Modifier.padding(top = 1.dp))
         }
     ) { innerPadding ->
         Column(
