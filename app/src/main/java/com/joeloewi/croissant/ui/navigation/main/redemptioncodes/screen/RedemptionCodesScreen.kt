@@ -2,6 +2,7 @@ package com.joeloewi.croissant.ui.navigation.main.redemptioncodes.screen
 
 import android.content.Intent
 import android.graphics.Color
+import android.os.Build
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import androidx.compose.animation.animateContentSize
@@ -89,6 +90,9 @@ private fun RedemptionCodesContent(
                     Text(text = stringResource(id = CroissantNavigation.RedemptionCodes.resourceId))
                 }
             )
+        },
+        bottomBar = {
+            Spacer(Modifier.padding(1.dp))
         }
     ) { innerPadding ->
         val swipeRefreshState = rememberSwipeRefreshState(hoYoLABGameRedemptionCodesState.isLoading)
@@ -254,7 +258,16 @@ fun RedemptionCodeListItem(
                 ),
                 onCreated = { webView ->
                     with(webView) {
-                        WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, true)
+                        runCatching {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, true)
+                            } else {
+                                WebSettingsCompat.setForceDark(
+                                    settings,
+                                    WebSettingsCompat.FORCE_DARK_AUTO
+                                )
+                            }
+                        }
                         isVerticalScrollBarEnabled = false
                         setBackgroundColor(Color.TRANSPARENT)
                     }

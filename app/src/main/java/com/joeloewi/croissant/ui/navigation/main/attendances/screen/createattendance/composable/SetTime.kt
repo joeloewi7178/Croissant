@@ -16,6 +16,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.theme.DefaultDp
@@ -39,6 +40,9 @@ fun SetTime(
     onMinuteChange: (Int) -> Unit
 ) {
     Scaffold(
+        topBar = {
+            Spacer(modifier = Modifier.padding(top = 1.dp))
+        },
         bottomBar = {
             FilledTonalButton(
                 modifier = Modifier

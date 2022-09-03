@@ -3,6 +3,8 @@
 
     <style name="Theme.Croissant" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:timePickerStyle">@style/TimePicker</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
 
     <style name="Theme.Croissant.AppWidgetContainerParent" parent="Theme.Material3.DynamicColors.DayNight">

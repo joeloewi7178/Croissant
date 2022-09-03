@@ -13,16 +13,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.ModalBottomSheetLayout
-import androidx.compose.material.ModalBottomSheetState
-import androidx.compose.material.ModalBottomSheetValue
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.*
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -35,7 +34,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
@@ -46,7 +44,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.os.bundleOf
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
@@ -107,14 +104,15 @@ import java.time.format.FormatStyle
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        WindowCompat.setDecorFitsSystemWindows(window, false)
         installSplashScreen()
         super.onCreate(savedInstanceState)
 
         DynamicColors.applyToActivityIfAvailable(this)
 
         setContent {
-            CroissantTheme {
+            CroissantTheme(
+                window = window
+            ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -269,96 +267,77 @@ fun CroissantApp(
             )
         }
 
+        LaunchedEffect(currentDestination) {
+            FirebaseAnalytics.getInstance(context).logEvent(
+                FirebaseAnalytics.Event.SCREEN_VIEW,
+                bundleOf(
+                    FirebaseAnalytics.Param.SCREEN_NAME to currentDestination?.route,
+                    FirebaseAnalytics.Param.SCREEN_CLASS to activity::class.java.simpleName
+                )
+            )
+
+            onIsFullScreenDestinationChange(
+                fullScreenDestinations.contains(
+                    currentDestination?.route
+                )
+            )
+        }
+
         Scaffold(
             topBar = {
-                Spacer(
-                    modifier = Modifier.padding(
-                        WindowInsets.statusBars.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
-                            .asPaddingValues()
-                    )
-                )
+                Spacer(modifier = Modifier.padding(top = 1.dp))
             },
             bottomBar = {
-                Column {
-                    LaunchedEffect(currentDestination) {
-                        FirebaseAnalytics.getInstance(context).logEvent(
-                            FirebaseAnalytics.Event.SCREEN_VIEW,
-                            bundleOf(
-                                FirebaseAnalytics.Param.SCREEN_NAME to currentDestination?.route,
-                                FirebaseAnalytics.Param.SCREEN_CLASS to activity::class.java.simpleName
-                            )
-                        )
-
-                        onIsFullScreenDestinationChange(
-                            fullScreenDestinations.contains(
-                                currentDestination?.route
-                            )
-                        )
+                val visible by remember(isFullScreenDestination, windowSizeClass) {
+                    derivedStateOf {
+                        !isFullScreenDestination && windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact
                     }
+                }
 
-                    AnimatedVisibility(
-                        visible = !isFullScreenDestination && windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact,
-                        enter = slideInVertically(
-                            initialOffsetY = { it }
-                        ) + fadeIn(),
-                        exit = slideOutVertically(
-                            targetOffsetY = { it }
-                        ) + fadeOut()
-                    ) {
-                        NavigationBar {
-                            croissantNavigations.forEach { croissantNavigation ->
-                                val isSelected = currentDestination?.hierarchy?.any {
-                                    it.route == croissantNavigation.route
-                                } == true
+                AnimatedVisibility(
+                    visible = visible,
+                    enter = slideInVertically(
+                        initialOffsetY = { it }
+                    ) + fadeIn(),
+                    exit = slideOutVertically(
+                        targetOffsetY = { it }
+                    ) + fadeOut()
+                ) {
+                    NavigationBar {
+                        croissantNavigations.forEach { croissantNavigation ->
+                            val isSelected = currentDestination?.hierarchy?.any {
+                                it.route == croissantNavigation.route
+                            } == true
 
-                                NavigationBarItem(
-                                    icon = {
-                                        if (isSelected) {
-                                            Icon(
-                                                imageVector = croissantNavigation.filledIcon,
-                                                contentDescription = croissantNavigation.filledIcon.name
-                                            )
-                                        } else {
-                                            Icon(
-                                                imageVector = croissantNavigation.outlinedIcon,
-                                                contentDescription = croissantNavigation.outlinedIcon.name
-                                            )
-                                        }
-                                    },
-                                    selected = isSelected,
-                                    label = {
-                                        Text(text = stringResource(id = croissantNavigation.resourceId))
-                                    },
-                                    onClick = {
-                                        navController.navigate(croissantNavigation.route) {
-                                            popUpTo(navController.graph.findStartDestination().id) {
-                                                saveState = true
-                                            }
-                                            launchSingleTop = true
-                                            restoreState = true
-                                        }
+                            NavigationBarItem(
+                                icon = {
+                                    if (isSelected) {
+                                        Icon(
+                                            imageVector = croissantNavigation.filledIcon,
+                                            contentDescription = croissantNavigation.filledIcon.name
+                                        )
+                                    } else {
+                                        Icon(
+                                            imageVector = croissantNavigation.outlinedIcon,
+                                            contentDescription = croissantNavigation.outlinedIcon.name
+                                        )
                                     }
-                                )
-                            }
+                                },
+                                selected = isSelected,
+                                label = {
+                                    Text(text = stringResource(id = croissantNavigation.resourceId))
+                                },
+                                onClick = {
+                                    navController.navigate(croissantNavigation.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
+                            )
                         }
-                    }
-
-                    Surface(
-                        modifier = Modifier
-                            .windowInsetsBottomHeight(WindowInsets.navigationBars)
-                            .fillMaxWidth(),
-                        color = if (isFullScreenDestination) {
-                            Color.Transparent
-                        } else {
-                            MaterialTheme.colorScheme.surface
-                        },
-                        tonalElevation = if (isFullScreenDestination) {
-                            0.dp
-                        } else {
-                            3.dp
-                        }
-                    ) {
-
                     }
                 }
             }
@@ -729,12 +708,7 @@ fun CroissantAppBottomSheetContent(
 
     Scaffold(
         topBar = {
-            Spacer(
-                modifier = Modifier.padding(
-                    WindowInsets.statusBars.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
-                        .asPaddingValues()
-                )
-            )
+            Spacer(modifier = Modifier.padding(top = 1.dp))
         },
         bottomBar = {
             Column {
@@ -761,12 +735,6 @@ fun CroissantAppBottomSheetContent(
                         Text(text = stringResource(id = R.string.grant_permissions_and_start))
                     }
                 }
-
-                Spacer(
-                    modifier = Modifier
-                        .windowInsetsBottomHeight(WindowInsets.navigationBars)
-                        .fillMaxWidth(),
-                )
             }
         }
     ) { innerPadding ->

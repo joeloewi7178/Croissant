@@ -5,6 +5,7 @@ import android.app.Dialog
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.http.SslError
+import android.os.Build
 import android.os.Message
 import android.view.ViewGroup
 import android.webkit.*
@@ -24,6 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -191,6 +193,9 @@ fun LoginHoYoLABContent(
                 }
             }
         },
+        bottomBar = {
+            Spacer(modifier = Modifier.padding(top = 1.dp))
+        },
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         }
@@ -236,7 +241,16 @@ fun LoginHoYoLABContent(
                                 userAgentString = userAgentString.replace("; wv", "")
                             }
 
-                            WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, true)
+                            runCatching {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                    WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, true)
+                                } else {
+                                    WebSettingsCompat.setForceDark(
+                                        settings,
+                                        WebSettingsCompat.FORCE_DARK_AUTO
+                                    )
+                                }
+                            }
 
                             clearCache(true)
                             clearFormData()
@@ -339,7 +353,19 @@ fun LoginHoYoLABContent(
                                         userAgentString = userAgentString.replace("; wv", "")
                                     }
 
-                                    WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, true)
+                                    runCatching {
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                            WebSettingsCompat.setAlgorithmicDarkeningAllowed(
+                                                settings,
+                                                true
+                                            )
+                                        } else {
+                                            WebSettingsCompat.setForceDark(
+                                                settings,
+                                                WebSettingsCompat.FORCE_DARK_AUTO
+                                            )
+                                        }
+                                    }
                                 }
 
                                 CookieManager.getInstance().apply {

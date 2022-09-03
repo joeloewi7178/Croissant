@@ -61,6 +61,9 @@ private fun DeveloperInfoContent(
                     Text(text = stringResource(id = R.string.developer_info))
                 }
             )
+        },
+        bottomBar = {
+            Spacer(modifier = Modifier.padding(top = 1.dp))
         }
     ) { innerPadding ->
         LazyColumn(

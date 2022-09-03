@@ -128,6 +128,9 @@ private fun AttendancesContent(
                 )
             }
         },
+        bottomBar = {
+            Spacer(modifier = Modifier.padding(top = 1.dp))
+        }
     ) { innerPadding ->
         if (pagedAttendancesWithGames.isEmpty()) {
             Column(
