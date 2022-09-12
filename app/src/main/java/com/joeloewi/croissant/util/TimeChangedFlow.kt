@@ -9,11 +9,11 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
-val Context.is24HourFormat: Flow<Boolean>
+val Context.is24HourFormat: Flow<HourFormat>
     get() = callbackFlow {
         val timeChangedReceiver = TimeChangedReceiver(
             onReceiveActionTimeChanged = {
-                trySend(DateFormat.is24HourFormat(this@is24HourFormat))
+                trySend(HourFormat.fromSystemHourFormat(DateFormat.is24HourFormat(this@is24HourFormat)))
             }
         )
         val intentFilter = IntentFilter(Intent.ACTION_TIME_CHANGED)

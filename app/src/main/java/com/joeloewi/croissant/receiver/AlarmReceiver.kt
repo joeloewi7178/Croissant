@@ -18,7 +18,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import java.util.*
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -59,21 +60,21 @@ class AlarmReceiver : BroadcastReceiver() {
                                         putExtra(ATTENDANCE_ID, id)
                                     }
 
-                                val now = Calendar.getInstance()
+                                val now = ZonedDateTime.now(ZoneId.of(attendance.timezoneId))
                                 val canExecuteToday =
-                                    (now[Calendar.HOUR_OF_DAY] < hourOfDay) || (now[Calendar.HOUR_OF_DAY] == hourOfDay && now[Calendar.MINUTE] < minute)
+                                    (now.hour < hourOfDay) || (now.hour == hourOfDay && now.minute < minute)
 
-                                val targetTime = Calendar.getInstance().apply {
-                                    time = now.time
-
-                                    if (!canExecuteToday) {
-                                        add(Calendar.DATE, 1)
-                                    }
-
-                                    set(Calendar.HOUR_OF_DAY, hourOfDay)
-                                    set(Calendar.MINUTE, minute)
-                                    set(Calendar.SECOND, 30)
-                                }
+                                val targetTime = ZonedDateTime.now(ZoneId.of(attendance.timezoneId))
+                                    .plusDays(
+                                        if (!canExecuteToday) {
+                                            1
+                                        } else {
+                                            0
+                                        }
+                                    )
+                                    .withHour(hourOfDay)
+                                    .withMinute(minute)
+                                    .withSecond(30)
 
                                 val pendingIntent = PendingIntent.getBroadcast(
                                     application,
@@ -87,7 +88,7 @@ class AlarmReceiver : BroadcastReceiver() {
                                     AlarmManagerCompat.setExactAndAllowWhileIdle(
                                         this,
                                         AlarmManager.RTC_WAKEUP,
-                                        targetTime.timeInMillis,
+                                        targetTime.toInstant().toEpochMilli(),
                                         pendingIntent
                                     )
                                 }
@@ -131,15 +132,11 @@ class AlarmReceiver : BroadcastReceiver() {
                         putExtra(ATTENDANCE_ID, attendance.id)
                     }
 
-                    val now = Calendar.getInstance()
-                    val targetTime = Calendar.getInstance().apply {
-                        time = now.time
-
-                        add(Calendar.DATE, 1)
-                        set(Calendar.HOUR_OF_DAY, attendance.hourOfDay)
-                        set(Calendar.MINUTE, attendance.minute)
-                        set(Calendar.SECOND, 30)
-                    }
+                    val targetTime = ZonedDateTime.now(ZoneId.of(attendance.timezoneId))
+                        .plusDays(1)
+                        .withHour(attendance.hourOfDay)
+                        .withMinute(attendance.minute)
+                        .withSecond(30)
 
                     val pendingIntent = PendingIntent.getBroadcast(
                         application,
@@ -153,7 +150,7 @@ class AlarmReceiver : BroadcastReceiver() {
                         AlarmManagerCompat.setExactAndAllowWhileIdle(
                             this,
                             AlarmManager.RTC_WAKEUP,
-                            targetTime.timeInMillis,
+                            targetTime.toInstant().toEpochMilli(),
                             pendingIntent
                         )
                     }

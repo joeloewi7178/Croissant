@@ -13,6 +13,6 @@ val LocalWindowSizeClass = compositionLocalOf<WindowSizeClass> {
     error("CompositionLocal LocalWindowSizeClass not present")
 }
 
-val LocalIs24HourFormat = compositionLocalOf<Boolean> {
-    error("CompositionLocal LocalIs24HourFormat not present")
+val LocalHourFormat = compositionLocalOf<HourFormat> {
+    error("CompositionLocal LocalHourFormat not present")
 }

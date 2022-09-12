@@ -28,7 +28,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.ZoneId
-import java.util.*
+import java.time.ZonedDateTime
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -49,8 +49,8 @@ class AttendanceDetailViewModel @Inject constructor(
 
     private val _attendanceWithGamesState = MutableStateFlow<Lce<AttendanceWithGames>>(Lce.Loading)
     private val _cookie = MutableStateFlow("")
-    private val _hourOfDay = MutableStateFlow(Calendar.getInstance()[Calendar.HOUR_OF_DAY])
-    private val _minute = MutableStateFlow(Calendar.getInstance()[Calendar.MINUTE])
+    private val _hourOfDay = MutableStateFlow(ZonedDateTime.now().hour)
+    private val _minute = MutableStateFlow(ZonedDateTime.now().minute)
     private val _nickname = MutableStateFlow("")
     private val _uid = MutableStateFlow(0L)
     private val _updateAttendanceState = MutableStateFlow<Lce<Unit?>>(Lce.Content(null))
@@ -169,22 +169,23 @@ class AttendanceDetailViewModel @Inject constructor(
                 getOneAttendanceUseCase.runCatching {
                     invoke(attendanceId)
                 }.mapCatching { attendanceWithGames ->
+                    val timeZonedId = ZoneId.systemDefault().id
                     val attendance = attendanceWithGames.attendance
-                    val now = Calendar.getInstance()
+                    val now = ZonedDateTime.now(ZoneId.of(timeZonedId))
                     val canExecuteToday =
-                        (now[Calendar.HOUR_OF_DAY] < _hourOfDay.value) || (now[Calendar.HOUR_OF_DAY] == _hourOfDay.value && now[Calendar.MINUTE] < _minute.value)
+                        (now.hour < _hourOfDay.value) || (now.hour == _hourOfDay.value && now.minute < _minute.value)
 
-                    val targetTime = Calendar.getInstance().apply {
-                        time = now.time
-
-                        if (!canExecuteToday) {
-                            add(Calendar.DATE, 1)
-                        }
-
-                        set(Calendar.HOUR_OF_DAY, _hourOfDay.value)
-                        set(Calendar.MINUTE, _minute.value)
-                        set(Calendar.SECOND, 30)
-                    }
+                    val targetTime = ZonedDateTime.now(ZoneId.of(timeZonedId))
+                        .plusDays(
+                            if (!canExecuteToday) {
+                                1
+                            } else {
+                                0
+                            }
+                        )
+                        .withHour(_hourOfDay.value)
+                        .withMinute(_minute.value)
+                        .withSecond(30)
 
                     WorkManager.getInstance(application)
                         .cancelUniqueWork(attendance.attendCheckInEventWorkerName.toString())
@@ -204,7 +205,7 @@ class AttendanceDetailViewModel @Inject constructor(
                         AlarmManagerCompat.setExactAndAllowWhileIdle(
                             this,
                             AlarmManager.RTC_WAKEUP,
-                            targetTime.timeInMillis,
+                            targetTime.toInstant().toEpochMilli(),
                             alarmPendingIntent
                         )
                     }
@@ -237,7 +238,7 @@ class AttendanceDetailViewModel @Inject constructor(
                             uid = _uid.value,
                             hourOfDay = _hourOfDay.value,
                             minute = _minute.value,
-                            timezoneId = ZoneId.systemDefault().id,
+                            timezoneId = timeZonedId,
                             checkSessionWorkerId = periodicCheckSessionWork.id
                         )
                     )

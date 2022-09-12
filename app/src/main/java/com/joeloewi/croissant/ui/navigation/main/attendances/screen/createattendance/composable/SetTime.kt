@@ -11,21 +11,21 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.dp
+import androidx.core.os.ConfigurationCompat
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.theme.DefaultDp
-import com.joeloewi.croissant.util.LocalIs24HourFormat
+import com.joeloewi.croissant.util.LocalHourFormat
 import com.joeloewi.croissant.util.TimePicker
+import com.joeloewi.croissant.util.dateTimeFormatterPerHourFormat
 import kotlinx.coroutines.ObsoleteCoroutinesApi
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
-import java.util.*
+import java.time.ZonedDateTime
 
 @ExperimentalLifecycleComposeApi
 @ObsoleteCoroutinesApi
@@ -34,15 +34,12 @@ import java.util.*
 fun SetTime(
     hourOfDay: Int,
     minute: Int,
-    tickerCalendar: Calendar,
+    tickPerSecond: ZonedDateTime,
     onNextButtonClick: () -> Unit,
     onHourOfDayChange: (Int) -> Unit,
     onMinuteChange: (Int) -> Unit
 ) {
     Scaffold(
-        topBar = {
-            Spacer(modifier = Modifier.padding(top = 1.dp))
-        },
         bottomBar = {
             FilledTonalButton(
                 modifier = Modifier
@@ -64,7 +61,8 @@ fun SetTime(
                     Text(text = stringResource(id = R.string.completed))
                 }
             }
-        }
+        },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -106,9 +104,9 @@ fun SetTime(
                 )
             }
 
-            val canExecuteToday by remember(tickerCalendar, hourOfDay, minute) {
+            val canExecuteToday by remember(tickPerSecond, hourOfDay, minute) {
                 derivedStateOf {
-                    (tickerCalendar[Calendar.HOUR_OF_DAY] < hourOfDay) || (tickerCalendar[Calendar.HOUR_OF_DAY] == hourOfDay && tickerCalendar[Calendar.MINUTE] < minute)
+                    (tickPerSecond.hour < hourOfDay) || (tickPerSecond.hour == hourOfDay && tickPerSecond.minute < minute)
                 }
             }
 
@@ -120,26 +118,19 @@ fun SetTime(
                 }
             )
 
-            val is24HourFormat = LocalIs24HourFormat.current
-            val time by remember(hourOfDay, minute) {
+            val hourFormat = LocalHourFormat.current
+            val formattedTime by remember(
+                hourOfDay,
+                minute,
+                hourFormat
+            ) {
                 derivedStateOf {
-                    "${hourOfDay.toString().padStart(2, '0')} : ${
-                        minute.toString().padStart(2, '0')
-                    }"
-                }
-            }
-            val formattedTime by remember(is24HourFormat, time) {
-                derivedStateOf {
-                    if (is24HourFormat) {
-                        time
-                    } else {
-                        LocalTime.parse(
-                            time,
-                            DateTimeFormatter.ofPattern(
-                                "HH : mm",
-                            )
-                        ).format(DateTimeFormatter.ofPattern("a hh : mm"))
-                    }
+                    ZonedDateTime.now()
+                        .withHour(hourOfDay)
+                        .withMinute(minute)
+                        .format(
+                            dateTimeFormatterPerHourFormat(hourFormat)
+                        )
                 }
             }
 

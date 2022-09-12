@@ -16,26 +16,29 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.*
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SmallTopAppBar
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.os.ConfigurationCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.navigation.NavController
@@ -54,18 +57,17 @@ import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.ui.theme.HalfDp
 import com.joeloewi.croissant.ui.theme.IconDp
-import com.joeloewi.croissant.util.LocalActivity
-import com.joeloewi.croissant.util.LocalIs24HourFormat
-import com.joeloewi.croissant.util.isEmpty
-import com.joeloewi.croissant.util.requestReview
+import com.joeloewi.croissant.util.*
 import com.joeloewi.croissant.viewmodel.AttendancesViewModel
 import com.joeloewi.croissant.worker.AttendCheckInEventWorker
 import com.joeloewi.domain.entity.Attendance
 import com.joeloewi.domain.entity.relational.AttendanceWithGames
 import kotlinx.coroutines.launch
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.util.*
 
+@ExperimentalLayoutApi
 @ExperimentalLifecycleComposeApi
 @ExperimentalFoundationApi
 @ExperimentalMaterialApi
@@ -94,6 +96,7 @@ fun AttendancesScreen(
     )
 }
 
+@ExperimentalLayoutApi
 @ExperimentalLifecycleComposeApi
 @ExperimentalFoundationApi
 @ExperimentalMaterialApi
@@ -109,14 +112,14 @@ private fun AttendancesContent(
 
     Scaffold(
         topBar = {
-            SmallTopAppBar(
+            TopAppBar(
                 title = {
                     Text(text = stringResource(id = R.string.attendance))
                 }
             )
         },
         snackbarHost = {
-            androidx.compose.material3.SnackbarHost(hostState = snackbarHostState)
+            SnackbarHost(hostState = snackbarHostState)
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -128,9 +131,7 @@ private fun AttendancesContent(
                 )
             }
         },
-        bottomBar = {
-            Spacer(modifier = Modifier.padding(top = 1.dp))
-        }
+        contentWindowInsets = WindowInsets.statusBars
     ) { innerPadding ->
         if (pagedAttendancesWithGames.isEmpty()) {
             Column(
@@ -213,7 +214,8 @@ fun AttendanceWithGamesItem(
         modifier = modifier,
         directions = setOf(DismissDirection.EndToStart),
         dismissThresholds = { direction ->
-            FractionalThreshold(if (direction == DismissDirection.EndToStart) 0.25f else 0.5f)
+            //rarely throws build error (unresolved)
+            androidx.compose.material.FractionalThreshold(if (direction == DismissDirection.EndToStart) 0.25f else 0.5f)
         },
         background = {
             SwipeToDismissBackground(dismissState = dismissState)
@@ -347,34 +349,34 @@ internal fun DismissContent(
                     ),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val is24HourFormat = LocalIs24HourFormat.current
-                    val time by remember(attendanceWithGamesState.attendance) {
+                    val hourFormat = LocalHourFormat.current
+
+                    val formattedTime by remember(
+                        attendanceWithGamesState.attendance,
+                        hourFormat
+                    ) {
                         derivedStateOf {
                             with(attendanceWithGamesState.attendance) {
-                                "${hourOfDay.toString().padStart(2, '0')} : ${
-                                    minute.toString().padStart(2, '0')
-                                }"
-                            }
-                        }
-                    }
-                    val formattedTime by remember(is24HourFormat, time) {
-                        derivedStateOf {
-                            if (is24HourFormat) {
-                                time
-                            } else {
-                                LocalTime.parse(
-                                    time,
-                                    DateTimeFormatter.ofPattern(
-                                        "HH : mm",
-                                    )
-                                ).format(DateTimeFormatter.ofPattern("a hh : mm"))
-                            }
+                                ZonedDateTime.now(ZoneId.of(timezoneId))
+                                    .withHour(hourOfDay)
+                                    .withMinute(minute)
+                            }.format(
+                                dateTimeFormatterPerHourFormat(hourFormat)
+                            )
                         }
                     }
 
                     Text(
-                        text = formattedTime,
-                        style = MaterialTheme.typography.headlineSmall
+                        text = buildAnnotatedString {
+                            append(
+                                AnnotatedString(
+                                    formattedTime,
+                                    spanStyle = MaterialTheme.typography.headlineSmall.toSpanStyle()
+                                )
+                            )
+                            append(" ")
+                            append("(${attendanceWithGamesState.attendance.timezoneId})")
+                        }
                     )
                 }
 
@@ -545,43 +547,5 @@ fun AttendanceWithGamesItemPlaceholder(
                 contentDescription = null
             )
         }
-    }
-}
-
-@Composable
-fun WorkInfoStateIndicator(
-    workInfo: WorkInfo?
-) {
-    if (workInfo != null) {
-        when (workInfo.state) {
-
-            //periodic work has only two states
-
-            WorkInfo.State.ENQUEUED -> {
-                Icon(
-                    imageVector = Icons.Default.PendingActions,
-                    contentDescription = Icons.Default.PendingActions.name
-                )
-            }
-
-            WorkInfo.State.RUNNING -> {
-                Icon(
-                    imageVector = Icons.Default.Pending,
-                    contentDescription = Icons.Default.Pending.name
-                )
-            }
-
-            else -> {
-                Icon(
-                    imageVector = Icons.Default.QuestionMark,
-                    contentDescription = Icons.Default.QuestionMark.name
-                )
-            }
-        }
-    } else {
-        Icon(
-            imageVector = Icons.Default.Error,
-            contentDescription = Icons.Default.Error.name
-        )
     }
 }

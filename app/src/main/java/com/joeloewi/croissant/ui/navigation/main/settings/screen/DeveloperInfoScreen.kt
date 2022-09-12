@@ -52,7 +52,7 @@ private fun DeveloperInfoContent(
 
     Scaffold(
         topBar = {
-            SmallTopAppBar(
+            TopAppBar(
                 navigationIcon = navigationIconButton(
                     previousBackStackEntry = previousBackStackEntry,
                     onClick = onNavigateUp
@@ -62,9 +62,7 @@ private fun DeveloperInfoContent(
                 }
             )
         },
-        bottomBar = {
-            Spacer(modifier = Modifier.padding(top = 1.dp))
-        }
+        contentWindowInsets = WindowInsets.statusBars
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier

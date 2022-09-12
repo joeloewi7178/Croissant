@@ -85,15 +85,13 @@ private fun RedemptionCodesContent(
             SnackbarHost(hostState = snackbarHostState)
         },
         topBar = {
-            SmallTopAppBar(
+            TopAppBar(
                 title = {
                     Text(text = stringResource(id = CroissantNavigation.RedemptionCodes.resourceId))
                 }
             )
         },
-        bottomBar = {
-            Spacer(Modifier.padding(1.dp))
-        }
+        contentWindowInsets = WindowInsets.statusBars
     ) { innerPadding ->
         val swipeRefreshState = rememberSwipeRefreshState(hoYoLABGameRedemptionCodesState.isLoading)
         val errorOccurredString = stringResource(id = R.string.error_occurred)

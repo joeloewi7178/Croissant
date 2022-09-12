@@ -186,7 +186,7 @@ private fun AttendanceDetailContent(
 
     Scaffold(
         topBar = {
-            SmallTopAppBar(
+            TopAppBar(
                 title = {
                     Text(text = stringResource(id = R.string.attendance_of_nickname, nickname))
                 },
@@ -210,9 +210,7 @@ private fun AttendanceDetailContent(
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         },
-        bottomBar = {
-            Spacer(modifier = Modifier.padding(top = 1.dp))
-        }
+        contentWindowInsets = WindowInsets.statusBars
     ) { innerPadding ->
         val loggableWorkers =
             remember { LoggableWorker.values().filter { it != LoggableWorker.UNKNOWN } }

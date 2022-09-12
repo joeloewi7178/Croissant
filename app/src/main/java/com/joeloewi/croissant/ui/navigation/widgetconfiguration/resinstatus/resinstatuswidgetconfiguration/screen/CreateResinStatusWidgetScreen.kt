@@ -136,7 +136,7 @@ fun CreateResinStatusWidgetContent(
 
     Scaffold(
         topBar = {
-            SmallTopAppBar(
+            TopAppBar(
                 title = {
                     Text(text = stringResource(id = R.string.widget_configuration))
                 }

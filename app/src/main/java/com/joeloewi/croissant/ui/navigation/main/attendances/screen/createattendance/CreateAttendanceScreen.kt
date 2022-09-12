@@ -42,8 +42,9 @@ import com.joeloewi.domain.entity.Game
 import com.joeloewi.domain.entity.GameRecord
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.launch
-import java.util.*
+import java.time.ZonedDateTime
 
+@ExperimentalLayoutApi
 @ExperimentalLifecycleComposeApi
 @ExperimentalFoundationApi
 @ObsoleteCoroutinesApi
@@ -62,7 +63,7 @@ fun CreateAttendanceScreen(
     val duplicatedAttendance by createAttendanceViewModel.duplicatedAttendance.collectAsStateWithLifecycle()
     val hourOfDay by createAttendanceViewModel.hourOfDay.collectAsStateWithLifecycle()
     val minute by createAttendanceViewModel.minute.collectAsStateWithLifecycle()
-    val tickerCalendar by createAttendanceViewModel.tickerCalendar.collectAsStateWithLifecycle()
+    val tickPerSecond by createAttendanceViewModel.tickPerSecond.collectAsStateWithLifecycle()
 
     LaunchedEffect(createAttendanceViewModel) {
         getResultFromPreviousComposable<String>(
@@ -82,7 +83,7 @@ fun CreateAttendanceScreen(
         createAttendanceState = createAttendanceState,
         hourOfDay = hourOfDay,
         minute = minute,
-        tickerCalendar = tickerCalendar,
+        tickPerSecond = tickPerSecond,
         onHourOfDayChange = createAttendanceViewModel::setHourOfDay,
         onMinuteChange = createAttendanceViewModel::setMinute,
         onLoginHoYoLAB = {
@@ -108,6 +109,7 @@ fun CreateAttendanceScreen(
     )
 }
 
+@ExperimentalLayoutApi
 @ExperimentalLifecycleComposeApi
 @ExperimentalFoundationApi
 @ObsoleteCoroutinesApi
@@ -123,7 +125,7 @@ fun CreateAttendanceContent(
     createAttendanceState: Lce<List<Long>>,
     hourOfDay: Int,
     minute: Int,
-    tickerCalendar: Calendar,
+    tickPerSecond: ZonedDateTime,
     onHourOfDayChange: (Int) -> Unit,
     onMinuteChange: (Int) -> Unit,
     onLoginHoYoLAB: () -> Unit,
@@ -198,7 +200,7 @@ fun CreateAttendanceContent(
 
     Scaffold(
         topBar = {
-            SmallTopAppBar(
+            TopAppBar(
                 title = {
                     Text(text = stringResource(id = R.string.create_attendance))
                 },
@@ -214,7 +216,9 @@ fun CreateAttendanceContent(
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
             ) {
                 HorizontalPagerIndicator(
                     pagerState = pagerState,
@@ -297,7 +301,7 @@ fun CreateAttendanceContent(
                                 SetTime(
                                     hourOfDay = hourOfDay,
                                     minute = minute,
-                                    tickerCalendar = tickerCalendar,
+                                    tickPerSecond = tickPerSecond,
                                     onNextButtonClick = {
                                         onNextButtonClick(pagerState.currentPage)
                                     },

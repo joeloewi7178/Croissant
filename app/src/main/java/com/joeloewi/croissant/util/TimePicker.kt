@@ -18,7 +18,7 @@ fun TimePicker(
     onHourOfDayChange: (Int) -> Unit,
     onMinuteChange: (Int) -> Unit
 ) {
-    val is24HourFormat = LocalIs24HourFormat.current
+    val hourFormat = LocalHourFormat.current
     val (timePicker, onTimePickerChange) = remember { mutableStateOf<TimePicker?>(null) }
     val currentOnHourOfDayChange by rememberUpdatedState(newValue = onHourOfDayChange)
     val currentOnMinuteChange by rememberUpdatedState(newValue = onMinuteChange)
@@ -40,7 +40,7 @@ fun TimePicker(
     ) { view ->
         view.apply {
             isEnabled = enabled
-            setIs24HourView(is24HourFormat)
+            setIs24HourView(hourFormat == HourFormat.TwentyFourHour)
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
