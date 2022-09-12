@@ -12,6 +12,7 @@ import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.ktx.AppUpdateResult
 import com.google.android.play.core.ktx.requestUpdateFlow
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.joeloewi.croissant.util.HourFormat
 import com.joeloewi.croissant.util.RootChecker
 import com.joeloewi.croissant.util.is24HourFormat
 import com.joeloewi.croissant.util.isIgnoringBatteryOptimizations
@@ -36,10 +37,10 @@ class MainViewModel @Inject constructor(
     private val _settings = getSettingsUseCase()
     private val _isDeviceRooted = MutableStateFlow(false)
 
-    val is24HourFormat = application.is24HourFormat.flowOn(Dispatchers.Default).stateIn(
+    val hourFormat = application.is24HourFormat.flowOn(Dispatchers.Default).stateIn(
         scope = viewModelScope,
         started = SharingStarted.Lazily,
-        initialValue = DateFormat.is24HourFormat(application)
+        initialValue = HourFormat.fromSystemHourFormat(DateFormat.is24HourFormat(application))
     )
     val isFirstLaunch = _settings.map { it.isFirstLaunch }.stateIn(
         scope = viewModelScope,

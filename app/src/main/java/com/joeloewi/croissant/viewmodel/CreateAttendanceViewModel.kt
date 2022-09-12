@@ -4,6 +4,7 @@ import android.app.AlarmManager
 import android.app.Application
 import android.app.PendingIntent
 import android.content.Intent
+import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.core.app.AlarmManagerCompat
 import androidx.lifecycle.ViewModel
@@ -27,7 +28,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.ZoneId
-import java.util.*
+import java.time.ZonedDateTime
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -44,8 +45,8 @@ class CreateAttendanceViewModel @Inject constructor(
     private val getOneByUidAttendanceUseCase: AttendanceUseCase.GetOneByUid
 ) : ViewModel() {
     private val _cookie = MutableStateFlow("")
-    private val _hourOfDay = MutableStateFlow(Calendar.getInstance()[Calendar.HOUR_OF_DAY])
-    private val _minute = MutableStateFlow(Calendar.getInstance()[Calendar.MINUTE])
+    private val _hourOfDay = MutableStateFlow(ZonedDateTime.now().hour)
+    private val _minute = MutableStateFlow(ZonedDateTime.now().minute)
     private val _createAttendanceState = MutableStateFlow<Lce<List<Long>>>(Lce.Content(listOf()))
     private val _duplicatedAttendance = MutableStateFlow<Attendance?>(null)
     private val _userInfo = _cookie
@@ -113,13 +114,13 @@ class CreateAttendanceViewModel @Inject constructor(
         )
     val cookie = _cookie.asStateFlow()
     val checkedGames = mutableStateListOf<Game>()
-    val tickerCalendar = ticker(delayMillis = 1000).receiveAsFlow()
-        .map { Calendar.getInstance() }
+    val tickPerSecond = ticker(delayMillis = 1000).receiveAsFlow()
+        .map { ZonedDateTime.now() }
         .flowOn(Dispatchers.IO)
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(),
-            initialValue = Calendar.getInstance()
+            initialValue = ZonedDateTime.now()
         )
     val hourOfDay = _hourOfDay.asStateFlow()
     val minute = _minute.asStateFlow()
@@ -166,21 +167,21 @@ class CreateAttendanceViewModel @Inject constructor(
                         )
                     }
                 }.mapCatching { attendance ->
-                    val now = Calendar.getInstance()
+                    val now = ZonedDateTime.now(ZoneId.of(attendance.timezoneId))
                     val canExecuteToday =
-                        (now[Calendar.HOUR_OF_DAY] < attendance.hourOfDay) || (now[Calendar.HOUR_OF_DAY] == attendance.hourOfDay && now[Calendar.MINUTE] < attendance.minute)
+                        (now.hour < attendance.hourOfDay) || (now.hour == attendance.hourOfDay && now.minute < attendance.minute)
 
-                    val targetTime = Calendar.getInstance().apply {
-                        time = now.time
-
-                        if (!canExecuteToday) {
-                            add(Calendar.DATE, 1)
-                        }
-
-                        set(Calendar.HOUR_OF_DAY, attendance.hourOfDay)
-                        set(Calendar.MINUTE, attendance.minute)
-                        set(Calendar.SECOND, 30)
-                    }
+                    val targetTime = ZonedDateTime.now(ZoneId.of(attendance.timezoneId))
+                        .plusDays(
+                            if (!canExecuteToday) {
+                                1
+                            } else {
+                                0
+                            }
+                        )
+                        .withHour(attendance.hourOfDay)
+                        .withMinute(attendance.minute)
+                        .withSecond(30)
 
                     val alarmIntent = Intent(application, AlarmReceiver::class.java).apply {
                         action = AlarmReceiver.RECEIVE_ATTEND_CHECK_IN_ALARM
@@ -199,7 +200,9 @@ class CreateAttendanceViewModel @Inject constructor(
                         AlarmManagerCompat.setExactAndAllowWhileIdle(
                             this,
                             AlarmManager.RTC_WAKEUP,
-                            targetTime.timeInMillis,
+                            targetTime.also {
+                                Log.d("HELLO", it.toString())
+                            }.toInstant().toEpochMilli(),
                             pendingIntent
                         )
                     }

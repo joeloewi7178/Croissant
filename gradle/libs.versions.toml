@@ -1,19 +1,19 @@
 [versions]
-accompanist = "0.26.2-beta"
+accompanist = "0.26.3-beta"
 androidDesugarJdkLibs = "1.1.5"
 androidGradlePlugin = "7.2.2"
-androidxActivity = "1.5.1"
-androidxAppCompat = "1.5.0"
+androidxActivity = "1.6.0-rc01"
+androidxAppCompat = "1.6.0-beta01"
 androidxCompose = "1.3.0-beta01"
 androidxComposeCompiler = "1.3.0"
-androidxComposeMaterial3 = "1.0.0-beta01"
-androidxCore = "1.8.0"
+androidxComposeMaterial3 = "1.0.0-beta02"
+androidxCore = "1.9.0-rc01"
 androidxCoreSplashscreen = "1.0.0"
 androidxDataStore = "1.0.0"
 androidxEspresso = "3.4.0"
 androidxHiltNavigationCompose = "1.0.0"
 androidxLifecycle = "2.6.0-alpha01"
-androidxNavigation = "2.5.0"
+androidxNavigation = "2.5.1"
 androidxSavedState = "1.2.0"
 androidxPaging = "3.1.1"
 androidxStartup = "1.1.1"
@@ -22,7 +22,7 @@ androidxTestExt = "1.1.3"
 androidxTracing = "1.1.0"
 androidxUiAutomator = "2.2.0"
 androidxWork = "2.7.1"
-androidxWebkit = "1.5.0"
+androidxWebkit = "1.6.0-alpha01"
 androidxPagingCommon = "3.1.1"
 androidxPagingCompose = "1.0.0-alpha16"
 androidxTestExtJunit = "1.1.3"
@@ -38,7 +38,6 @@ protobufPlugin = "0.8.19"
 retrofit = "2.9.0"
 room = "2.4.3"
 moshi = "1.13.0"
-androidPlayCore = "1.10.3"
 androidPlayCoreKtx = "1.8.1"
 materialComposeThemeAdapter3 = "1.0.17"
 firebaseCrashlyticsPlugin = "2.9.1"
@@ -111,7 +110,6 @@ androidx-webkit = { group = "androidx.webkit", name = "webkit", version.ref = "a
 androidx-paging-common = { group = "androidx.paging", name = "paging-common", version.ref = "androidxPagingCommon" }
 androidx-paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "androidxPagingCompose" }
 material-compose-theme-adapter3 = { group = "com.google.android.material", name = "compose-theme-adapter-3", version.ref = "materialComposeThemeAdapter3" }
-android-play-core = { group = "com.google.android.play", name = "core", version.ref = "androidPlayCore" }
 android-play-core-ktx = { group = "com.google.android.play", name = "core-ktx", version.ref = "androidPlayCoreKtx" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 firebase-analytics-ktx = { group = "com.google.firebase", name = "firebase-analytics-ktx" }

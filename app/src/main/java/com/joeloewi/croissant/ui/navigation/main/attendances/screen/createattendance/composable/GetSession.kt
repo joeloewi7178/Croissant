@@ -59,9 +59,7 @@ fun GetSession(
                 }
             }
         },
-        topBar = {
-            Spacer(modifier = Modifier.padding(top = 1.dp))
-        }
+        contentWindowInsets = WindowInsets.navigationBars
     ) { innerPadding ->
         Column(
             modifier = Modifier

@@ -8,6 +8,7 @@ import android.net.http.SslError
 import android.os.Build
 import android.os.Message
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.webkit.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -25,15 +26,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.webkit.WebSettingsCompat
+import androidx.webkit.WebViewClientCompat
 import com.google.accompanist.web.*
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.data.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -44,6 +46,7 @@ import kotlinx.coroutines.launch
 
 const val COOKIE = "cookie"
 
+@ExperimentalLayoutApi
 @ExperimentalLifecycleComposeApi
 @ExperimentalCoroutinesApi
 @ExperimentalComposeUiApi
@@ -65,6 +68,7 @@ fun LoginHoYoLABScreen(
     )
 }
 
+@ExperimentalLayoutApi
 @ExperimentalLifecycleComposeApi
 @ExperimentalCoroutinesApi
 @ExperimentalComposeUiApi
@@ -75,7 +79,7 @@ fun LoginHoYoLABContent(
     onClickClose: () -> Unit,
     onCatchCookie: (String) -> Unit
 ) {
-    val hoyolabUrl = remember { "https://m.hoyolab.com/#/home" }
+    val hoyolabUrl = remember { "https://m.hoyolab.com" }
     val webViewState = rememberWebViewState(url = hoyolabUrl)
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -85,6 +89,22 @@ fun LoginHoYoLABContent(
             null
         )
     }
+    val removeAllCookiesState by remember {
+        callbackFlow<Lce<Boolean>> {
+            var valueCallback: ValueCallback<Boolean>? = ValueCallback<Boolean> { hasRemoved ->
+                CookieManager.getInstance().flush()
+                trySend(Lce.Content(hasRemoved))
+            }
+
+            CookieManager.getInstance().runCatching {
+                removeAllCookies(valueCallback)
+            }.onFailure { cause ->
+                close(cause)
+            }
+
+            awaitClose { valueCallback = null }
+        }
+    }.collectAsStateWithLifecycle(Lce.Loading)
 
     fun String?.checkContainsHoYoLABCookies(): Boolean =
         if (isNullOrEmpty()) {
@@ -96,7 +116,7 @@ fun LoginHoYoLABContent(
     Scaffold(
         topBar = {
             Column {
-                SmallTopAppBar(
+                TopAppBar(
                     navigationIcon = {
                         IconButton(onClick = onClickClose) {
                             Icon(
@@ -193,31 +213,16 @@ fun LoginHoYoLABContent(
                 }
             }
         },
-        bottomBar = {
-            Spacer(modifier = Modifier.padding(top = 1.dp))
-        },
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
-        }
+        },
+        contentWindowInsets = WindowInsets.ime
     ) { innerPadding ->
-        val removeAllCookiesState by callbackFlow<Lce<Boolean>> {
-            var valueCallback: ValueCallback<Boolean>? = ValueCallback<Boolean> { hasRemoved ->
-                trySend(Lce.Content(hasRemoved))
-            }
-
-            CookieManager.getInstance().runCatching {
-                removeAllCookies(valueCallback)
-            }.onFailure { cause ->
-                close(cause)
-            }
-
-            awaitClose { valueCallback = null }
-        }.collectAsStateWithLifecycle(Lce.Loading)
-
         when (removeAllCookiesState) {
             is Lce.Content -> {
                 var navigateUpJob: Job? = remember { null }
                 val context = LocalContext.current
+                val activity = LocalActivity.current
                 val excludedUrls = remember {
                     listOf("www.webstatic-sea.mihoyo.com", "www.webstatic-sea.hoyolab.com")
                 }
@@ -226,7 +231,10 @@ fun LoginHoYoLABContent(
                 }
 
                 WebView(
-                    modifier = Modifier.padding(innerPadding),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .imeNestedScroll(),
                     state = webViewState,
                     navigator = webViewNavigator,
                     onCreated = { webView ->
@@ -262,9 +270,8 @@ fun LoginHoYoLABContent(
                         WebStorage.getInstance().deleteAllData()
 
                         CookieManager.getInstance().apply {
-                            acceptCookie()
+                            setAcceptCookie(true)
                             setAcceptThirdPartyCookies(webView, true)
-                            flush()
                         }
                     },
                     client = remember {
@@ -308,9 +315,15 @@ fun LoginHoYoLABContent(
                                 request: WebResourceRequest?
                             ): Boolean = if (
                             //parts of url, not exactly same
+                            //list(A,B,C)
+                            /*
+                            url         contains(A) contains(B) contains(C)     all(true)   *all(false) any(true)   any(false)
+                            A/X/Y/Z     true        false       false           false       false       true        true
+                            ...
+                            D/...       false       false       false           false       true        false       true
+                            */
                                 (hoyolabUrl + excludedUrls)
-                                    .map { request?.url?.toString()?.contains(it) }
-                                    .any { it == false }
+                                    .all { request?.url?.toString()?.contains(it) == false }
                             ) {
                                 coroutineScope.launch {
                                     request?.url?.let {
@@ -343,7 +356,7 @@ fun LoginHoYoLABContent(
                                 isUserGesture: Boolean,
                                 resultMsg: Message?
                             ): Boolean {
-                                val popUpWebView = WebView(context).apply {
+                                val popUpWebView = WebView(activity).apply {
                                     settings.apply {
                                         javaScriptEnabled = true
                                         domStorageEnabled = true
@@ -378,6 +391,8 @@ fun LoginHoYoLABContent(
                                 }
 
                                 dialog.window?.run {
+                                    addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+
                                     attributes = attributes?.apply {
                                         width = ViewGroup.LayoutParams.MATCH_PARENT
                                         height = ViewGroup.LayoutParams.MATCH_PARENT
@@ -396,7 +411,7 @@ fun LoginHoYoLABContent(
                                             dialog.dismiss()
                                         }
                                     }
-                                    webViewClient = object : WebViewClient() {
+                                    webViewClient = object : WebViewClientCompat() {
                                         override fun onPageStarted(
                                             view: WebView?,
                                             url: String?,
@@ -409,11 +424,6 @@ fun LoginHoYoLABContent(
                                             }
                                             super.onPageStarted(view, url, favicon)
                                         }
-
-                                        override fun shouldOverrideUrlLoading(
-                                            view: WebView?,
-                                            request: WebResourceRequest?
-                                        ): Boolean = false
                                     }
                                 }
 

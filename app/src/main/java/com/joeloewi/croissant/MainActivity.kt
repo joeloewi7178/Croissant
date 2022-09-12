@@ -90,6 +90,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
+@ExperimentalLayoutApi
 @FlowPreview
 @ExperimentalLifecycleComposeApi
 @ExperimentalMaterial3WindowSizeClassApi
@@ -118,12 +119,12 @@ class MainActivity : AppCompatActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val mainViewModel: MainViewModel = hiltViewModel()
-                    val is24HourFormat by mainViewModel.is24HourFormat.collectAsStateWithLifecycle()
+                    val hourFormat by mainViewModel.hourFormat.collectAsStateWithLifecycle()
 
                     CompositionLocalProvider(
                         LocalActivity provides this,
                         LocalWindowSizeClass provides calculateWindowSizeClass(activity = this),
-                        LocalIs24HourFormat provides is24HourFormat
+                        LocalHourFormat provides hourFormat
                     ) {
                         val appUpdateResultState by mainViewModel.appUpdateResultState.collectAsStateWithLifecycle()
 
@@ -141,6 +142,7 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
+@ExperimentalLayoutApi
 @FlowPreview
 @ExperimentalLifecycleComposeApi
 @ExperimentalPermissionsApi
@@ -284,9 +286,6 @@ fun CroissantApp(
         }
 
         Scaffold(
-            topBar = {
-                Spacer(modifier = Modifier.padding(top = 1.dp))
-            },
             bottomBar = {
                 val visible by remember(isFullScreenDestination, windowSizeClass) {
                     derivedStateOf {
@@ -340,7 +339,8 @@ fun CroissantApp(
                         }
                     }
                 }
-            }
+            },
+            contentWindowInsets = WindowInsets(0, 0, 0, 0)
         ) { innerPadding ->
             Box(modifier = Modifier.padding(innerPadding)) {
                 when (windowSizeClass.widthSizeClass) {
@@ -548,6 +548,7 @@ fun CroissantApp(
     }
 }
 
+@ExperimentalLayoutApi
 @ExperimentalLifecycleComposeApi
 @ExperimentalCoroutinesApi
 @ExperimentalPermissionsApi
@@ -707,9 +708,6 @@ fun CroissantAppBottomSheetContent(
     }
 
     Scaffold(
-        topBar = {
-            Spacer(modifier = Modifier.padding(top = 1.dp))
-        },
         bottomBar = {
             FilledTonalButton(
                 modifier = Modifier
