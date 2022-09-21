@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
@@ -24,60 +25,52 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
 import com.joeloewi.croissant.R
+import com.joeloewi.croissant.state.CreateAttendanceState
 import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.state.rememberSelectGamesState
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.gameNameStringResId
 import com.joeloewi.domain.common.HoYoLABGame
-import com.joeloewi.domain.entity.Attendance
 import com.joeloewi.domain.entity.Game
 import com.joeloewi.domain.entity.GameRecord
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 
-@ExperimentalFoundationApi
+@ExperimentalLifecycleComposeApi
 @ObsoleteCoroutinesApi
+@ExperimentalFoundationApi
 @ExperimentalMaterial3Api
 @Composable
 fun SelectGames(
-    duplicatedAttendance: Attendance?,
-    checkedGames: SnapshotStateList<Game>,
-    connectedGames: Lce<List<GameRecord>>,
-    onNextButtonClick: () -> Unit,
-    onNavigateToAttendanceDetailScreen: (Long) -> Unit,
-    onCancelCreateAttendance: () -> Unit
+    createAttendanceState: CreateAttendanceState
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
-    val (showDuplicatedAttendanceDialog, onShowDuplicatedAttendanceDialogChange) = remember {
-        mutableStateOf(
-            false to 0L
-        )
-    }
-    val supportedGames = remember {
-        listOf(
+    val selectGamesState = rememberSelectGamesState(
+        createAttendanceState = createAttendanceState,
+        supportedGames = listOf(
             HoYoLABGame.HonkaiImpact3rd,
             HoYoLABGame.GenshinImpact,
             HoYoLABGame.TearsOfThemis
-        )
-    }
+        ).toImmutableList()
+    )
+    val connectedGames = selectGamesState.connectedGames
+    val duplicatedAttendance = selectGamesState.duplicatedAttendance
     val containsNotSupportedGame = stringResource(id = R.string.contains_not_supported_game)
+    val chooseAtLeastOneGame = stringResource(id = R.string.choose_at_least_one_game)
+    val lazyListState = rememberLazyListState()
 
     LaunchedEffect(connectedGames) {
         when (connectedGames) {
             is Lce.Content -> {
-                if (connectedGames.content.any {
-                        !supportedGames.contains(
-                            HoYoLABGame.findByGameId(
-                                it.gameId
-                            )
-                        )
-                    }) {
-                    snackbarHostState.apply {
+                if (connectedGames.content.any { !selectGamesState.isSupportedGame(it.gameId) }) {
+                    selectGamesState.snackbarHostState.apply {
                         currentSnackbarData?.dismiss()
                         showSnackbar(message = containsNotSupportedGame)
                     }
@@ -85,7 +78,7 @@ fun SelectGames(
             }
             is Lce.Error -> {
                 connectedGames.error.message?.let {
-                    snackbarHostState.apply {
+                    selectGamesState.snackbarHostState.apply {
                         currentSnackbarData?.dismiss()
                         showSnackbar(it)
                     }
@@ -99,27 +92,23 @@ fun SelectGames(
 
     LaunchedEffect(duplicatedAttendance) {
         if (duplicatedAttendance != null) {
-            onShowDuplicatedAttendanceDialogChange(true to duplicatedAttendance.id)
+            selectGamesState.onShowDuplicatedAttendanceDialogChange(true to duplicatedAttendance.id)
         }
     }
 
     Scaffold(
         snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
+            SnackbarHost(hostState = selectGamesState.snackbarHostState)
         },
         bottomBar = {
-            val noGamesSelected = checkedGames.isEmpty()
-
             AnimatedVisibility(
                 visible = !connectedGames.isLoading && connectedGames.error == null,
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
-                val chooseAtLeastOneGame = stringResource(id = R.string.choose_at_least_one_game)
-
-                LaunchedEffect(noGamesSelected) {
-                    if (noGamesSelected) {
-                        snackbarHostState.apply {
+                LaunchedEffect(selectGamesState.noGamesSelected) {
+                    if (selectGamesState.noGamesSelected) {
+                        selectGamesState.snackbarHostState.apply {
                             currentSnackbarData?.dismiss()
                             showSnackbar(
                                 message = chooseAtLeastOneGame,
@@ -127,7 +116,7 @@ fun SelectGames(
                             )
                         }
                     } else {
-                        snackbarHostState.currentSnackbarData?.dismiss()
+                        selectGamesState.snackbarHostState.currentSnackbarData?.dismiss()
                     }
                 }
 
@@ -135,8 +124,8 @@ fun SelectGames(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(MaterialTheme.colorScheme.surface),
-                    enabled = !noGamesSelected,
-                    onClick = onNextButtonClick
+                    enabled = !selectGamesState.noGamesSelected,
+                    onClick = selectGamesState::onNextButtonClick
                 ) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(
@@ -156,105 +145,92 @@ fun SelectGames(
         },
         contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+        Column(
+            verticalArrangement = Arrangement.spacedBy(DefaultDp)
         ) {
-            item(
-                key = "headline"
-            ) {
-                Text(
-                    modifier = Modifier.animateItemPlacement(),
-                    text = stringResource(id = R.string.select_hoyolab_game_headline),
-                    style = MaterialTheme.typography.headlineSmall
-                )
+            Text(
+                text = stringResource(id = R.string.select_hoyolab_game_headline),
+                style = MaterialTheme.typography.headlineSmall
+            )
 
-                Spacer(modifier = Modifier.padding(DefaultDp))
-            }
+            Text(
+                text = stringResource(id = R.string.select_hoyolab_game_title),
+                style = MaterialTheme.typography.titleMedium
+            )
 
-            item(
-                key = "title"
-            ) {
-                Text(
-                    modifier = Modifier.animateItemPlacement(),
-                    text = stringResource(id = R.string.select_hoyolab_game_title),
-                    style = MaterialTheme.typography.titleMedium
-                )
-
-                Spacer(modifier = Modifier.padding(DefaultDp))
-            }
-
-
-            item(
-                key = "description"
-            ) {
-                Text(
-                    modifier = Modifier.animateItemPlacement(),
-                    text = stringResource(id = R.string.select_hoyolab_game_description),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-
-                Spacer(modifier = Modifier.padding(DefaultDp))
-            }
+            Text(
+                text = stringResource(id = R.string.select_hoyolab_game_description),
+                style = MaterialTheme.typography.bodyMedium
+            )
 
             when (connectedGames) {
                 is Lce.Content -> {
-                    items(
-                        items = HoYoLABGame.values().filter { it != HoYoLABGame.Unknown },
-                        key = { it.name }
-                    ) { item ->
-                        ConnectedGamesContentListItem(
-                            modifier = Modifier.animateItemPlacement(),
-                            checkedGames = checkedGames,
-                            hoYoLABGame = item,
-                            gameRecord = connectedGames.content.find { it.gameId == item.gameId }
-                                ?: GameRecord()
-                        )
-                    }
-                }
-
-                is Lce.Error -> {
-                    item(
-                        key = "error"
+                    LazyColumn(
+                        state = lazyListState,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .animateItemPlacement(),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Error,
-                                contentDescription = Icons.Default.Error.name
+                        items(
+                            items = selectGamesState.supportedGames,
+                            key = { it.name }
+                        ) { item ->
+                            ConnectedGamesContentListItem(
+                                modifier = Modifier.animateItemPlacement(),
+                                checkedGames = selectGamesState.checkedGames,
+                                hoYoLABGame = item,
+                                gameRecord = {
+                                    connectedGames.content.find { it.gameId == item.gameId }
+                                        ?: GameRecord()
+                                }
                             )
-                            Text(text = stringResource(id = R.string.error_occurred))
                         }
                     }
                 }
-
-                Lce.Loading -> {
-                    items(
-                        items = IntArray(5) { it }.toTypedArray(),
-                        key = { "placeholder${it}" }
+                is Lce.Error -> {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        ConnectedGamesListItemPlaceholder()
+                        Icon(
+                            imageVector = Icons.Default.Error,
+                            contentDescription = Icons.Default.Error.name
+                        )
+                        Text(text = stringResource(id = R.string.error_occurred))
+                    }
+                }
+                Lce.Loading -> {
+                    LazyColumn(
+                        state = lazyListState,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                    ) {
+                        items(
+                            items = IntArray(5) { it }.toTypedArray(),
+                            key = { "placeholder${it}" }
+                        ) {
+                            ConnectedGamesListItemPlaceholder()
+                        }
                     }
                 }
             }
         }
 
-        if (showDuplicatedAttendanceDialog.first) {
+        if (selectGamesState.showDuplicatedAttendanceDialog.first) {
             AlertDialog(
                 onDismissRequest = {
-                    onShowDuplicatedAttendanceDialogChange(false to 0L)
+                    selectGamesState.onShowDuplicatedAttendanceDialogChange(false to 0L)
                 },
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            onNavigateToAttendanceDetailScreen(showDuplicatedAttendanceDialog.second)
-                            onShowDuplicatedAttendanceDialogChange(false to 0L)
+                            with(selectGamesState) {
+                                onNavigateToAttendanceDetailScreen(showDuplicatedAttendanceDialog.second)
+                                onShowDuplicatedAttendanceDialogChange(false to 0L)
+                            }
                         }
                     ) {
                         Text(text = stringResource(id = R.string.confirm))
@@ -263,8 +239,10 @@ fun SelectGames(
                 dismissButton = {
                     TextButton(
                         onClick = {
-                            onShowDuplicatedAttendanceDialogChange(false to 0L)
-                            onCancelCreateAttendance()
+                            with(selectGamesState) {
+                                onShowDuplicatedAttendanceDialogChange(false to 0L)
+                                onCancelCreateAttendance()
+                            }
                         }
                     ) {
                         Text(text = stringResource(id = R.string.dismiss))
@@ -368,14 +346,15 @@ fun ConnectedGamesContentListItem(
     modifier: Modifier,
     checkedGames: SnapshotStateList<Game>,
     hoYoLABGame: HoYoLABGame,
-    gameRecord: GameRecord
+    gameRecord: (HoYoLABGame) -> GameRecord
 ) {
+    val currentGameRecord by rememberUpdatedState(newValue = gameRecord(hoYoLABGame))
     val game by remember(hoYoLABGame, gameRecord) {
         derivedStateOf {
             Game(
-                roleId = gameRecord.gameRoleId,
+                roleId = currentGameRecord.gameRoleId,
                 type = hoYoLABGame,
-                region = gameRecord.region
+                region = currentGameRecord.region
             )
         }
     }
@@ -383,7 +362,7 @@ fun ConnectedGamesContentListItem(
     val enabled by remember(hoYoLABGame, gameRecord) {
         derivedStateOf {
             hoYoLABGame == HoYoLABGame.TearsOfThemis ||
-                    gameRecord.gameId != GameRecord.INVALID_GAME_ID
+                    currentGameRecord.gameId != GameRecord.INVALID_GAME_ID
         }
     }
 
@@ -434,7 +413,7 @@ fun ConnectedGamesContentListItem(
             Text(text = stringResource(id = hoYoLABGame.gameNameStringResId()))
         },
         supportingText = {
-            with(gameRecord) {
+            with(currentGameRecord) {
                 if (regionName.isNotEmpty() && region.isNotEmpty()) {
                     Text(
                         text = "$regionName (${region})"

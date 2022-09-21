@@ -91,8 +91,6 @@ class MainViewModel @Inject constructor(
     }
 
     fun checkIsDeviceRooted() {
-        viewModelScope.launch(Dispatchers.IO) {
-            _isDeviceRooted.update { rootChecker.isDeviceRooted() }
-        }
+        _isDeviceRooted.update { rootChecker.isDeviceRooted() }
     }
 }

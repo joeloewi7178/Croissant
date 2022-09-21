@@ -10,8 +10,12 @@ import androidx.compose.material.icons.filled.Login
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -25,7 +29,6 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.theme.DefaultDp
-import com.joeloewi.croissant.util.LocalActivity
 
 @ExperimentalPagerApi
 @ExperimentalMaterial3Api
@@ -33,6 +36,11 @@ import com.joeloewi.croissant.util.LocalActivity
 fun GetSession(
     onLoginHoYoLAB: () -> Unit,
 ) {
+    val configuration = LocalConfiguration.current
+    val responsiveHorizontalPadding by remember(configuration) {
+        derivedStateOf { (configuration.screenWidthDp * 0.15).dp }
+    }
+
     Scaffold(
         bottomBar = {
             FilledTonalButton(
@@ -77,9 +85,6 @@ fun GetSession(
                 text = stringResource(id = R.string.login_hoyolab),
                 style = MaterialTheme.typography.titleMedium
             )
-
-            val responsiveHorizontalPadding =
-                (LocalActivity.current.window.decorView.width * 0.07).dp
 
             HorizontalPager(
                 count = 3,

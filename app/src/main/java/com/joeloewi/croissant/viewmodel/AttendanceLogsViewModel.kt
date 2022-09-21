@@ -4,11 +4,15 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
+import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.domain.common.LoggableWorker
 import com.joeloewi.domain.usecase.WorkerExecutionLogUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,6 +29,9 @@ class AttendanceLogsViewModel @Inject constructor(
     private val _loggableWorker =
         savedStateHandle.get<LoggableWorker>(_loggableWorkerKey) ?: LoggableWorker.UNKNOWN
 
+    private val _deleteAllState = MutableStateFlow<Lce<Int>>(Lce.Content(-1))
+    val deleteAllState = _deleteAllState.asStateFlow()
+
     val pagedAttendanceLogs = getAllPagedWorkerExecutionLogUseCase(
         attendanceId = _attendanceId,
         loggableWorker = _loggableWorker
@@ -32,10 +39,22 @@ class AttendanceLogsViewModel @Inject constructor(
 
     fun deleteAll() {
         viewModelScope.launch(Dispatchers.IO) {
-            deleteAllPagedWorkerExecutionLogUseCase(
-                attendanceId = _attendanceId,
-                loggableWorker = _loggableWorker
-            )
+            _deleteAllState.update { Lce.Loading }
+            deleteAllPagedWorkerExecutionLogUseCase.runCatching {
+                invoke(
+                    attendanceId = _attendanceId,
+                    loggableWorker = _loggableWorker
+                )
+            }.fold(
+                onSuccess = {
+                    Lce.Content(it)
+                },
+                onFailure = {
+                    Lce.Error(it)
+                }
+            ).let {
+                _deleteAllState.update { it }
+            }
         }
     }
 }

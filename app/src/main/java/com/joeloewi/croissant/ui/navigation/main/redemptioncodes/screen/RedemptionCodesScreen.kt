@@ -14,43 +14,53 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.webkit.WebSettingsCompat
+import androidx.webkit.WebViewFeature
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
 import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.google.accompanist.swiperefresh.SwipeRefreshState
 import com.google.accompanist.web.AccompanistWebViewClient
 import com.google.accompanist.web.WebView
 import com.google.accompanist.web.rememberWebViewStateWithHTMLData
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.state.RedemptionCodesState
+import com.joeloewi.croissant.state.rememberRedemptionCodesState
 import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
+import com.joeloewi.croissant.ui.theme.HalfDp
 import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.gameNameStringResId
 import com.joeloewi.croissant.viewmodel.RedemptionCodesViewModel
 import com.joeloewi.domain.common.HoYoLABGame
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 
 @ExperimentalLifecycleComposeApi
 @ExperimentalFoundationApi
@@ -60,29 +70,24 @@ fun RedemptionCodesScreen(
     navController: NavController,
     redemptionCodesViewModel: RedemptionCodesViewModel = hiltViewModel()
 ) {
-    val hoYoLABGameRedemptionCodesState by redemptionCodesViewModel.hoYoLABGameRedemptionCodesState.collectAsStateWithLifecycle()
-    val expandedItems = remember { redemptionCodesViewModel.expandedItems }
+    val redemptionCodesState =
+        rememberRedemptionCodesState(redemptionCodesViewModel = redemptionCodesViewModel)
 
     RedemptionCodesContent(
-        hoYoLABGameRedemptionCodesState = hoYoLABGameRedemptionCodesState,
-        expandedItems = expandedItems,
-        onRefresh = redemptionCodesViewModel::getRedemptionCodes
+        redemptionCodesState = redemptionCodesState,
     )
 }
 
+@ExperimentalLifecycleComposeApi
 @ExperimentalFoundationApi
 @ExperimentalMaterial3Api
 @Composable
 private fun RedemptionCodesContent(
-    hoYoLABGameRedemptionCodesState: Lce<List<Pair<HoYoLABGame, String>>>,
-    expandedItems: SnapshotStateList<HoYoLABGame>,
-    onRefresh: () -> Unit
+    redemptionCodesState: RedemptionCodesState,
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
-
     Scaffold(
         snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
+            SnackbarHost(hostState = redemptionCodesState.snackbarHostState)
         },
         topBar = {
             TopAppBar(
@@ -93,67 +98,113 @@ private fun RedemptionCodesContent(
         },
         contentWindowInsets = WindowInsets.statusBars
     ) { innerPadding ->
-        val swipeRefreshState = rememberSwipeRefreshState(hoYoLABGameRedemptionCodesState.isLoading)
-        val errorOccurredString = stringResource(id = R.string.error_occurred)
-
-        SwipeRefresh(
-            modifier = Modifier.fillMaxSize(),
-            state = swipeRefreshState,
-            onRefresh = {
-                expandedItems.clear()
-                onRefresh()
-            }
-        ) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .then(Modifier.padding(horizontal = DefaultDp)),
-                verticalArrangement = Arrangement.spacedBy(
-                    space = DefaultDp
-                )
-            ) {
-                when (hoYoLABGameRedemptionCodesState) {
+        Box(modifier = Modifier.padding(innerPadding)) {
+            with(redemptionCodesState.hoYoLABGameRedemptionCodesState) {
+                when (this) {
                     is Lce.Content -> {
-                        items(
-                            items = hoYoLABGameRedemptionCodesState.content,
-                            key = { it.first.gameId }
-                        ) { item ->
-                            when (item.first) {
-                                HoYoLABGame.Unknown -> {
-
-                                }
-
-                                HoYoLABGame.TearsOfThemis -> {
-
-                                }
-
-                                else -> {
-                                    RedemptionCodeListItem(
-                                        modifier = Modifier.animateItemPlacement(),
-                                        item = item,
-                                        expandedItems = expandedItems
-                                    )
-                                }
-                            }
-                        }
+                        RedemptionCodes(
+                            hoYoLABGameRedemptionCodes = content.toImmutableList(),
+                            swipeRefreshState = redemptionCodesState.swipeRefreshState,
+                            expandedItems = redemptionCodesState.expandedItems,
+                            onRefresh = redemptionCodesState::onRefresh
+                        )
                     }
                     is Lce.Error -> {
-                        item {
-                            LaunchedEffect(hoYoLABGameRedemptionCodesState) {
-                                snackbarHostState.showSnackbar(
-                                    message = errorOccurredString,
-                                )
-                            }
-                        }
+                        RedemptionCodesError(onRefresh = redemptionCodesState::onRefresh)
                     }
                     Lce.Loading -> {
-                        items(
-                            items = IntArray(3) { it }.toTypedArray(),
-                            key = { "placeholder${it}" }
-                        ) {
-                            RedemptionCodeListItemPlaceholder()
-                        }
+                        RedemptionCodesLoading()
+                    }
+                }
+            }
+        }
+    }
+}
+
+@ExperimentalMaterial3Api
+@Composable
+fun RedemptionCodesLoading() {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(
+            space = DefaultDp
+        )
+    ) {
+        items(
+            items = IntArray(3) { it }.toTypedArray(),
+            key = { "placeholder${it}" }
+        ) {
+            RedemptionCodeListItemPlaceholder()
+        }
+    }
+}
+
+@Composable
+fun RedemptionCodesError(
+    onRefresh: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .then(Modifier.padding(DoubleDp)),
+        verticalArrangement = Arrangement.spacedBy(DefaultDp, Alignment.CenterVertically),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            modifier = Modifier
+                .fillMaxSize(0.3f),
+            imageVector = Icons.Default.Error,
+            contentDescription = Icons.Default.Error.name,
+            tint = MaterialTheme.colorScheme.primaryContainer
+        )
+        Text(
+            text = stringResource(id = R.string.error_occurred),
+            style = MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center
+        )
+        Button(onClick = onRefresh) {
+            Text(text = "Retry")
+        }
+    }
+}
+
+@ExperimentalFoundationApi
+@ExperimentalMaterial3Api
+@Composable
+fun RedemptionCodes(
+    hoYoLABGameRedemptionCodes: ImmutableList<Pair<HoYoLABGame, String>>,
+    swipeRefreshState: SwipeRefreshState,
+    expandedItems: SnapshotStateList<HoYoLABGame>,
+    onRefresh: () -> Unit
+) {
+    SwipeRefresh(
+        modifier = Modifier.fillMaxSize(),
+        state = swipeRefreshState,
+        onRefresh = {
+            expandedItems.clear()
+            onRefresh()
+        }
+    ) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize(),
+        ) {
+            items(
+                items = hoYoLABGameRedemptionCodes,
+                key = { it.first.gameId }
+            ) { item ->
+                when (item.first) {
+                    HoYoLABGame.Unknown, HoYoLABGame.TearsOfThemis -> {
+
+                    }
+
+                    else -> {
+                        RedemptionCodeListItem(
+                            modifier = Modifier.animateItemPlacement(),
+                            item = item,
+                            expandedItems = expandedItems
+                        )
                     }
                 }
             }
@@ -168,6 +219,21 @@ fun RedemptionCodeListItem(
     expandedItems: SnapshotStateList<HoYoLABGame>,
     item: Pair<HoYoLABGame, String>
 ) {
+    val height by remember(expandedItems, item.first) {
+        derivedStateOf {
+            if (expandedItems.contains(item.first)) {
+                Dp.Unspecified
+            } else {
+                216.dp
+            }
+        }
+    }
+    val activity = LocalActivity.current
+    val webViewState = rememberWebViewStateWithHTMLData(
+        data = item.second,
+        baseUrl = "https://arca.live/"
+    )
+
     Card(
         modifier = modifier
             .animateContentSize(
@@ -176,15 +242,14 @@ fun RedemptionCodeListItem(
                     easing = LinearOutSlowInEasing
                 )
             )
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .padding(horizontal = DefaultDp, vertical = HalfDp),
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(
                 space = DefaultDp
             )
         ) {
-            val activity = LocalActivity.current
-
             Row(
                 modifier = Modifier
                     .toggleable(
@@ -236,37 +301,32 @@ fun RedemptionCodeListItem(
                 }
             }
 
-            val height by remember(expandedItems, item.first) {
-                derivedStateOf {
-                    if (expandedItems.contains(item.first)) {
-                        Dp.Unspecified
-                    } else {
-                        216.dp
-                    }
-                }
-            }
-
             WebView(
                 modifier = Modifier
                     .height(height)
                     .fillMaxWidth(),
-                state = rememberWebViewStateWithHTMLData(
-                    data = item.second,
-                    baseUrl = "https://arca.live/"
-                ),
+                state = webViewState,
                 onCreated = { webView ->
                     with(webView) {
                         runCatching {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                                WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, true)
+                                if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
+                                    WebSettingsCompat.setAlgorithmicDarkeningAllowed(
+                                        settings,
+                                        true
+                                    )
+                                }
                             } else {
-                                WebSettingsCompat.setForceDark(
-                                    settings,
-                                    WebSettingsCompat.FORCE_DARK_AUTO
-                                )
+                                if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
+                                    WebSettingsCompat.setForceDark(
+                                        settings,
+                                        WebSettingsCompat.FORCE_DARK_AUTO
+                                    )
+                                }
                             }
                         }
                         isVerticalScrollBarEnabled = false
+                        isHorizontalScrollBarEnabled = false
                         setBackgroundColor(Color.TRANSPARENT)
                     }
                 },

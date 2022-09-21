@@ -4,7 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 
@@ -12,21 +12,30 @@ import androidx.navigation.NavController
 fun navigationIconButton(
     previousBackStackEntry: NavBackStackEntry?,
     onClick: () -> Unit
-): @Composable () -> Unit =
-    if (previousBackStackEntry != null) {
-        {
-            IconButton(onClick = onClick) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = Icons.Default.ArrowBack.name
-                )
+): @Composable () -> Unit {
+    val currentOnClick by rememberUpdatedState(newValue = onClick)
+    val disappearableIconButton: @Composable (() -> Unit) by remember(previousBackStackEntry) {
+        derivedStateOf {
+            if (previousBackStackEntry != null) {
+                {
+                    IconButton(onClick = currentOnClick) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = Icons.Default.ArrowBack.name
+                        )
+                    }
+                }
+            } else {
+                {
+
+                }
             }
         }
-    } else {
-        {
-
-        }
     }
+
+    return disappearableIconButton
+}
+
 
 fun <T> getResultFromPreviousComposable(
     navController: NavController,

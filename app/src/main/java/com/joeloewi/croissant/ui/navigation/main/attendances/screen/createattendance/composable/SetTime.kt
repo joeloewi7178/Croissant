@@ -11,13 +11,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
-import androidx.core.os.ConfigurationCompat
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.theme.DefaultDp
@@ -34,11 +32,42 @@ import java.time.ZonedDateTime
 fun SetTime(
     hourOfDay: Int,
     minute: Int,
-    tickPerSecond: ZonedDateTime,
+    tickPerSecond: @Composable () -> ZonedDateTime,
     onNextButtonClick: () -> Unit,
     onHourOfDayChange: (Int) -> Unit,
     onMinuteChange: (Int) -> Unit
 ) {
+    val currentTickPerSecond by rememberUpdatedState(newValue = tickPerSecond())
+    val canExecuteToday by remember(currentTickPerSecond, hourOfDay, minute) {
+        derivedStateOf {
+            (currentTickPerSecond.hour < hourOfDay) || (currentTickPerSecond.hour == hourOfDay && currentTickPerSecond.minute < minute)
+        }
+    }
+
+    val todayOrTomorrow by rememberUpdatedState(
+        newValue = if (canExecuteToday) {
+            stringResource(id = R.string.today)
+        } else {
+            stringResource(id = R.string.tomorrow)
+        }
+    )
+
+    val hourFormat = LocalHourFormat.current
+    val formattedTime by remember(
+        hourOfDay,
+        minute,
+        hourFormat
+    ) {
+        derivedStateOf {
+            ZonedDateTime.now()
+                .withHour(hourOfDay)
+                .withMinute(minute)
+                .format(
+                    dateTimeFormatterPerHourFormat(hourFormat)
+                )
+        }
+    }
+
     Scaffold(
         bottomBar = {
             FilledTonalButton(
@@ -102,36 +131,6 @@ fun SetTime(
                     text = stringResource(id = R.string.first_execution),
                     style = MaterialTheme.typography.titleMedium
                 )
-            }
-
-            val canExecuteToday by remember(tickPerSecond, hourOfDay, minute) {
-                derivedStateOf {
-                    (tickPerSecond.hour < hourOfDay) || (tickPerSecond.hour == hourOfDay && tickPerSecond.minute < minute)
-                }
-            }
-
-            val todayOrTomorrow by rememberUpdatedState(
-                newValue = if (canExecuteToday) {
-                    stringResource(id = R.string.today)
-                } else {
-                    stringResource(id = R.string.tomorrow)
-                }
-            )
-
-            val hourFormat = LocalHourFormat.current
-            val formattedTime by remember(
-                hourOfDay,
-                minute,
-                hourFormat
-            ) {
-                derivedStateOf {
-                    ZonedDateTime.now()
-                        .withHour(hourOfDay)
-                        .withMinute(minute)
-                        .format(
-                            dateTimeFormatterPerHourFormat(hourFormat)
-                        )
-                }
             }
 
             Row(

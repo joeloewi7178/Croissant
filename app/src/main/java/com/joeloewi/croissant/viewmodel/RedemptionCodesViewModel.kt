@@ -16,8 +16,8 @@ import org.jsoup.Jsoup
 import javax.inject.Inject
 
 @HiltViewModel
-class RedemptionCodesViewModel @Inject constructor(
-) : ViewModel() {
+class RedemptionCodesViewModel @Inject constructor() : ViewModel() {
+    private val userAgent = "Chrome"
     private val _hoYoLABGameRedemptionCodesState =
         MutableStateFlow<Lce<List<Pair<HoYoLABGame, String>>>>(Lce.Loading)
 
@@ -25,9 +25,7 @@ class RedemptionCodesViewModel @Inject constructor(
     val expandedItems = mutableStateListOf<HoYoLABGame>()
 
     init {
-        viewModelScope.launch(Dispatchers.IO) {
-            getRedemptionCodes()
-        }
+        getRedemptionCodes()
     }
 
     fun getRedemptionCodes() {
@@ -52,7 +50,9 @@ class RedemptionCodesViewModel @Inject constructor(
         withContext(Dispatchers.IO) {
             when (hoYoLABGame) {
                 HoYoLABGame.HonkaiImpact3rd -> {
-                    Jsoup.connect(hoYoLABGame.redemptionCodesUrl).get()
+                    Jsoup.connect(hoYoLABGame.redemptionCodesUrl)
+                        .userAgent(userAgent)
+                        .get()
                         .getElementsByClass("article-content")[0]
                         .apply {
                             select("img").remove()
@@ -61,11 +61,14 @@ class RedemptionCodesViewModel @Inject constructor(
                             select("p:last-child").remove()
                             select("p:last-child").remove()
                             select("p:last-child").remove()
-                        }.html()
+                        }.html().replace("모유", "체력")
                 }
                 HoYoLABGame.GenshinImpact -> {
-                    val articleContent = Jsoup.connect(hoYoLABGame.redemptionCodesUrl).get()
-                        .getElementsByClass("article-content")[0]
+                    val articleContent =
+                        Jsoup.connect(hoYoLABGame.redemptionCodesUrl)
+                            .userAgent(userAgent)
+                            .get()
+                            .getElementsByClass("article-content")[0]
 
                     var htmlStrings = ""
                     var siblingIndex = 0

@@ -14,10 +14,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavBackStackEntry
+import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.navigation.NavController
-import androidx.paging.compose.LazyPagingItems
-import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.items
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -25,6 +23,9 @@ import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
 import com.joeloewi.croissant.R
+import com.joeloewi.croissant.state.AttendanceLogsState
+import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.state.rememberAttendanceLogsState
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.isEmpty
@@ -37,52 +38,63 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
+@ExperimentalLifecycleComposeApi
 @ExperimentalMaterial3Api
 @Composable
 fun AttendanceLogsScreen(
     navController: NavController,
     attendanceLogsViewModel: AttendanceLogsViewModel = hiltViewModel()
 ) {
-    val pagedAttendanceLogs = attendanceLogsViewModel.pagedAttendanceLogs.collectAsLazyPagingItems()
+    val attendanceLogsState = rememberAttendanceLogsState(
+        navController = navController,
+        attendanceLogsViewModel = attendanceLogsViewModel
+    )
 
     AttendanceLogsContent(
-        previousBackStackEntry = navController.previousBackStackEntry,
-        pagedAttendanceLogs = pagedAttendanceLogs,
-        onNavigateUp = {
-            navController.navigateUp()
-        },
-        onDeleteAll = attendanceLogsViewModel::deleteAll
+        attendanceLogsState = attendanceLogsState,
     )
 }
 
+@ExperimentalLifecycleComposeApi
 @ExperimentalMaterial3Api
 @Composable
 fun AttendanceLogsContent(
-    previousBackStackEntry: NavBackStackEntry?,
-    pagedAttendanceLogs: LazyPagingItems<WorkerExecutionLogWithState>,
-    onNavigateUp: () -> Unit,
-    onDeleteAll: () -> Unit
+    attendanceLogsState: AttendanceLogsState,
 ) {
-    val (showDeleteConfirmationDialog, onShowDeleteConfirmationDialogChange) = remember {
-        mutableStateOf(
-            false
-        )
+    val pagedAttendanceLogs = attendanceLogsState.pagedAttendanceLogs
+    val deleteAllState = attendanceLogsState.deleteAllState
+
+    LaunchedEffect(deleteAllState) {
+        when (deleteAllState) {
+            is Lce.Content -> {
+                val rowCount = deleteAllState.content
+                if (rowCount != -1) {
+                    attendanceLogsState.snackbarHostState.showSnackbar("${rowCount}개 삭제됨.")
+                }
+            }
+            else -> {
+
+            }
+        }
     }
 
     Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = attendanceLogsState.snackbarHostState)
+        },
         topBar = {
             TopAppBar(
                 title = {
                     Text(text = stringResource(id = R.string.execution_log))
                 },
                 navigationIcon = navigationIconButton(
-                    previousBackStackEntry = previousBackStackEntry,
-                    onClick = onNavigateUp
+                    previousBackStackEntry = attendanceLogsState.previousBackStackEntry,
+                    onClick = attendanceLogsState::onNavigateUp
                 ),
                 actions = {
                     IconButton(
                         onClick = {
-                            onShowDeleteConfirmationDialogChange(true)
+                            attendanceLogsState.showDeleteConfirmationDialog(true)
                         }
                     ) {
                         Icon(
@@ -95,7 +107,6 @@ fun AttendanceLogsContent(
         },
         contentWindowInsets = WindowInsets.statusBars
     ) { innerPadding ->
-
         if (pagedAttendanceLogs.isEmpty()) {
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -128,7 +139,7 @@ fun AttendanceLogsContent(
                 ) { item ->
                     if (item != null) {
                         WorkerExecutionLogWithStateItem(
-                            item = item
+                            item = { item }
                         )
                     } else {
                         WorkerExecutionLogWithStateItemPlaceHolder()
@@ -137,16 +148,15 @@ fun AttendanceLogsContent(
             }
         }
 
-        if (showDeleteConfirmationDialog) {
+        if (attendanceLogsState.isShowingDeleteConfirmationDialog) {
             AlertDialog(
                 onDismissRequest = {
-                    onShowDeleteConfirmationDialogChange(false)
+                    attendanceLogsState.showDeleteConfirmationDialog(false)
                 },
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            onShowDeleteConfirmationDialogChange(false)
-                            onDeleteAll()
+                            attendanceLogsState.onDeleteAll()
                         }
                     ) {
                         Text(text = stringResource(id = R.string.confirm))
@@ -155,7 +165,7 @@ fun AttendanceLogsContent(
                 dismissButton = {
                     TextButton(
                         onClick = {
-                            onShowDeleteConfirmationDialogChange(false)
+                            attendanceLogsState.showDeleteConfirmationDialog(false)
                         }
                     ) {
                         Text(text = stringResource(id = R.string.dismiss))
@@ -184,10 +194,12 @@ fun AttendanceLogsContent(
 @ExperimentalMaterial3Api
 @Composable
 fun WorkerExecutionLogWithStateItem(
-    item: WorkerExecutionLogWithState
+    item: () -> WorkerExecutionLogWithState
 ) {
+    val currentItem by rememberUpdatedState(newValue = item())
+
     val colorByState by rememberUpdatedState(
-        when (item.workerExecutionLog.state) {
+        when (currentItem.workerExecutionLog.state) {
             WorkerExecutionLogState.SUCCESS -> {
                 MaterialTheme.colorScheme.surfaceVariant
             }
@@ -197,7 +209,7 @@ fun WorkerExecutionLogWithStateItem(
         }
     )
     val textByState by rememberUpdatedState(
-        when (item.workerExecutionLog.state) {
+        when (currentItem.workerExecutionLog.state) {
             WorkerExecutionLogState.SUCCESS -> {
                 stringResource(id = R.string.success)
             }
@@ -206,12 +218,12 @@ fun WorkerExecutionLogWithStateItem(
             }
         }
     )
-    val readableTimestamp by remember(item.workerExecutionLog.createdAt) {
+    val readableTimestamp by remember(currentItem.workerExecutionLog.createdAt) {
         derivedStateOf {
             val dateTimeFormatter =
                 DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
             val localDateTime =
-                Instant.ofEpochMilli(item.workerExecutionLog.createdAt)
+                Instant.ofEpochMilli(currentItem.workerExecutionLog.createdAt)
                     .atZone(ZoneId.systemDefault())
                     .toLocalDateTime()
             dateTimeFormatter.format(localDateTime)
@@ -241,13 +253,13 @@ fun WorkerExecutionLogWithStateItem(
 
                     Text(text = readableTimestamp)
 
-                    item.successLog?.run {
+                    currentItem.successLog?.run {
                         Text(text = message)
 
                         Text(text = "$retCode")
                     }
 
-                    item.failureLog?.run {
+                    currentItem.failureLog?.run {
                         Text(text = failureMessage)
 
                         Text(text = failureStackTrace)
@@ -259,7 +271,7 @@ fun WorkerExecutionLogWithStateItem(
                         modifier = Modifier
                             .size(IconDp),
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data(item.successLog?.gameName?.gameIconUrl)
+                            .data(currentItem.successLog?.gameName?.gameIconUrl)
                             .build(),
                         contentDescription = null
                     )

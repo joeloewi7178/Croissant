@@ -8,17 +8,19 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.state.ResinStatusWidgetDetailState
+import com.joeloewi.croissant.state.rememberResinStatusWidgetDetailState
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.ProgressDialog
@@ -31,45 +33,32 @@ fun ResinStatusWidgetDetailScreen(
     navController: NavController,
     resinStatusWidgetDetailViewModel: ResinStatusWidgetDetailViewModel = hiltViewModel()
 ) {
-    val selectableIntervals = remember { resinStatusWidgetDetailViewModel.selectableIntervals }
-    val interval by resinStatusWidgetDetailViewModel.interval.collectAsStateWithLifecycle()
-    val updateResinStatusWidgetState by resinStatusWidgetDetailViewModel.updateResinStatusWidgetState.collectAsStateWithLifecycle()
+    val resinStatusWidgetDetailState = rememberResinStatusWidgetDetailState(
+        resinStatusWidgetDetailViewModel = resinStatusWidgetDetailViewModel
+    )
 
     ResinStatusWidgetDetailContent(
-        selectableIntervals = selectableIntervals,
-        interval = interval,
-        updateResinStatusWidgetState = updateResinStatusWidgetState,
-        onIntervalChange = resinStatusWidgetDetailViewModel::setInterval,
-        onClickDone = resinStatusWidgetDetailViewModel::updateResinStatusWidget
+        resinStatusWidgetDetailState = resinStatusWidgetDetailState
     )
 }
 
+@ExperimentalLifecycleComposeApi
 @ExperimentalMaterial3Api
 @Composable
 fun ResinStatusWidgetDetailContent(
-    selectableIntervals: List<Long>,
-    interval: Long,
-    updateResinStatusWidgetState: Lce<Int>,
-    onIntervalChange: (Long) -> Unit,
-    onClickDone: () -> Unit
+    resinStatusWidgetDetailState: ResinStatusWidgetDetailState
 ) {
     val activity = LocalActivity.current
-    val (showProgressDialog, onShowProgressDialogChange) = mutableStateOf(false)
+    val updateResinStatusWidgetState = resinStatusWidgetDetailState.updateResinStatusWidgetState
 
     LaunchedEffect(updateResinStatusWidgetState) {
         when (updateResinStatusWidgetState) {
             is Lce.Content -> {
                 if (updateResinStatusWidgetState.content != 0) {
-                    onShowProgressDialogChange(false)
                     activity.finish()
                 }
             }
-            is Lce.Error -> {
-                onShowProgressDialogChange(false)
-            }
-            Lce.Loading -> {
-                onShowProgressDialogChange(true)
-            }
+            else -> {}
         }
     }
 
@@ -87,7 +76,7 @@ fun ResinStatusWidgetDetailContent(
                     .fillMaxWidth()
                     .padding(DefaultDp)
                     .background(MaterialTheme.colorScheme.surface),
-                onClick = onClickDone
+                onClick = resinStatusWidgetDetailState::updateResinStatusWidget
             ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(
@@ -126,14 +115,16 @@ fun ResinStatusWidgetDetailContent(
                     alignment = Alignment.CenterHorizontally
                 )
             ) {
-                selectableIntervals.forEach {
+                resinStatusWidgetDetailState.selectableIntervals.forEach {
+                    val isSelected = resinStatusWidgetDetailState.interval == it
+
                     Row(
                         modifier = Modifier.toggleable(
-                            value = interval == it,
+                            value = isSelected,
                             role = Role.RadioButton,
                             onValueChange = { checked ->
                                 if (checked) {
-                                    onIntervalChange(it)
+                                    resinStatusWidgetDetailState.onIntervalChange(it)
                                 }
                             }
                         ),
@@ -144,7 +135,7 @@ fun ResinStatusWidgetDetailContent(
                         )
                     ) {
                         RadioButton(
-                            selected = interval == it,
+                            selected = isSelected,
                             onClick = null
                         )
 
@@ -154,11 +145,9 @@ fun ResinStatusWidgetDetailContent(
             }
         }
 
-        if (showProgressDialog) {
+        if (resinStatusWidgetDetailState.showProgressDialog) {
             ProgressDialog(
-                onDismissRequest = {
-                    onShowProgressDialogChange(false)
-                }
+                onDismissRequest = {}
             )
         }
     }

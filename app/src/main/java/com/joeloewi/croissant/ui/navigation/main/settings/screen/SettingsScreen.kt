@@ -13,19 +13,17 @@ import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.joeloewi.croissant.R
+import com.joeloewi.croissant.state.SettingsState
+import com.joeloewi.croissant.state.rememberSettingsState
 import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
-import com.joeloewi.croissant.ui.navigation.main.settings.SettingsDestination
 import com.joeloewi.croissant.viewmodel.SettingsViewModel
-import com.joeloewi.domain.entity.Settings
 
 @ExperimentalLifecycleComposeApi
 @ExperimentalMaterialApi
@@ -35,24 +33,22 @@ fun SettingsScreen(
     navController: NavController,
     settingsViewModel: SettingsViewModel = hiltViewModel()
 ) {
-    val settings by settingsViewModel.settings.collectAsStateWithLifecycle()
+    val settingsState = rememberSettingsState(
+        navController = navController,
+        settingsViewModel = settingsViewModel
+    )
 
     SettingsContent(
-        settings = settings,
-        onDarkThemeEnabledChange = settingsViewModel::setDarkThemeEnabled,
-        onDeveloperInfoClick = {
-            navController.navigate(SettingsDestination.DeveloperInfoScreen.route)
-        }
+        settingsState = settingsState
     )
 }
 
+@ExperimentalLifecycleComposeApi
 @ExperimentalMaterialApi
 @ExperimentalMaterial3Api
 @Composable
 fun SettingsContent(
-    settings: Settings,
-    onDarkThemeEnabledChange: (Boolean) -> Unit,
-    onDeveloperInfoClick: () -> Unit
+    settingsState: SettingsState,
 ) {
     Scaffold(
         topBar = {
@@ -87,9 +83,9 @@ fun SettingsContent(
             ) {
                 ListItem(
                     modifier = Modifier.toggleable(
-                        value = settings.darkThemeEnabled,
+                        value = settingsState.settings.darkThemeEnabled,
                         role = Role.Switch,
-                        onValueChange = onDarkThemeEnabledChange
+                        onValueChange = settingsState::setDarkThemeEnabled
                     ),
                     leadingContent = {
                         Icon(
@@ -107,7 +103,7 @@ fun SettingsContent(
                     },
                     trailingContent = {
                         Switch(
-                            checked = settings.darkThemeEnabled,
+                            checked = settingsState.settings.darkThemeEnabled,
                             onCheckedChange = null
                         )
                     }
@@ -132,7 +128,7 @@ fun SettingsContent(
             ) {
                 ListItem(
                     modifier = Modifier.clickable {
-                        onDeveloperInfoClick()
+                        settingsState.onDeveloperInfoClick()
                     },
                     leadingContent = {
                         Icon(
