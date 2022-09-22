@@ -34,6 +34,7 @@ import com.joeloewi.croissant.ui.theme.DefaultDp
 @ExperimentalMaterial3Api
 @Composable
 fun GetSession(
+    modifier: Modifier,
     onLoginHoYoLAB: () -> Unit,
 ) {
     val configuration = LocalConfiguration.current
@@ -42,6 +43,7 @@ fun GetSession(
     }
 
     Scaffold(
+        modifier = modifier,
         bottomBar = {
             FilledTonalButton(
                 modifier = Modifier
@@ -67,7 +69,7 @@ fun GetSession(
                 }
             }
         },
-        contentWindowInsets = WindowInsets.navigationBars
+        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
     ) { innerPadding ->
         Column(
             modifier = Modifier

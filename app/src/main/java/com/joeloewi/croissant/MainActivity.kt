@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -44,6 +45,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.os.bundleOf
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -200,6 +202,7 @@ fun CroissantApp(
     val isDeviceRooted = croissantAppState.isDeviceRooted
     val currentDestination = croissantAppState.currentDestination
     val windowSizeClass = LocalWindowSizeClass.current
+    val lifecycle by LocalLifecycleOwner.current.lifecycle.observeAsState()
 
     LaunchedEffect(isFirstLaunch, isAllPermissionsGranted) {
         if (isFirstLaunch || !isAllPermissionsGranted) {
@@ -244,78 +247,77 @@ fun CroissantApp(
                 }
             },
             contentWindowInsets = if (croissantAppState.isCompactWindowWidthSize) {
-                WindowInsets(0, 0, 0, 0)
+                WindowInsets.safeDrawing.exclude(WindowInsets.systemBars)
             } else {
-                WindowInsets.navigationBars
+                WindowInsets.safeDrawing.exclude(WindowInsets.statusBars)
             }
         ) { innerPadding ->
-            Box(
-                modifier = Modifier
-                    .padding(innerPadding)
-            ) {
-                when (windowSizeClass.widthSizeClass) {
-                    WindowWidthSizeClass.Compact -> {
+            when (windowSizeClass.widthSizeClass) {
+                WindowWidthSizeClass.Compact -> {
+                    CroissantNavHost(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .consumedWindowInsets(innerPadding)
+                            .padding(innerPadding)
+                            .imePadding(),
+                        navController = croissantAppState.navController,
+                        snackbarHostState = snackbarHostState,
+                        deepLinkUri = { deepLinkUri }
+                    )
+                }
+
+                else -> {
+                    Row {
+                        CroissantNavigationRail(
+                            croissantAppState = croissantAppState
+                        )
                         CroissantNavHost(
                             modifier = Modifier
-                                .fillMaxSize()
+                                .weight(1f)
                                 .animateContentSize(),
                             navController = croissantAppState.navController,
                             snackbarHostState = snackbarHostState,
                             deepLinkUri = { deepLinkUri }
                         )
                     }
-
-                    else -> {
-                        Row {
-                            CroissantNavigationRail(
-                                croissantAppState = croissantAppState
-                            )
-                            CroissantNavHost(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .animateContentSize(),
-                                navController = croissantAppState.navController,
-                                snackbarHostState = snackbarHostState,
-                                deepLinkUri = { deepLinkUri }
-                            )
-                        }
-                    }
                 }
+            }
 
-                if (isDeviceRooted) {
-                    AlertDialog(
-                        onDismissRequest = {},
-                        confirmButton = {
-                            TextButton(
-                                onClick = {
-                                    activity.finish()
-                                }
-                            ) {
-                                Text(text = stringResource(id = R.string.confirm))
+            if (isDeviceRooted) {
+                AlertDialog(
+                    onDismissRequest = {},
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                activity.finish()
                             }
-                        },
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Default.Warning,
-                                contentDescription = Icons.Default.Warning.name
-                            )
-                        },
-                        title = {
-                            Text(text = stringResource(id = R.string.caution))
-                        },
-                        text = {
-                            Text(
-                                text = stringResource(id = R.string.device_rooting_detected),
-                                textAlign = TextAlign.Center
-                            )
-                        },
-                        properties = DialogProperties(
-                            dismissOnClickOutside = false,
-                            dismissOnBackPress = false
+                        ) {
+                            Text(text = stringResource(id = R.string.confirm))
+                        }
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Warning,
+                            contentDescription = Icons.Default.Warning.name
                         )
+                    },
+                    title = {
+                        Text(text = stringResource(id = R.string.caution))
+                    },
+                    text = {
+                        Text(
+                            text = stringResource(id = R.string.device_rooting_detected),
+                            textAlign = TextAlign.Center
+                        )
+                    },
+                    properties = DialogProperties(
+                        dismissOnClickOutside = false,
+                        dismissOnBackPress = false
                     )
-                }
+                )
+            }
 
+            if (lifecycle == Lifecycle.Event.ON_RESUME) {
                 if (!isFirstLaunch && !croissantAppState.isIgnoringBatteryOptimizations) {
                     AlertDialog(
                         onDismissRequest = {},

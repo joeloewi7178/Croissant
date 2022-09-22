@@ -133,7 +133,7 @@ private fun AttendanceDetailContent(
         snackbarHost = {
             SnackbarHost(hostState = attendanceDetailState.snackbarHostState)
         },
-        contentWindowInsets = WindowInsets.statusBars
+        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier

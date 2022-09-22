@@ -105,7 +105,7 @@ fun AttendanceLogsContent(
                 }
             )
         },
-        contentWindowInsets = WindowInsets.statusBars
+        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
     ) { innerPadding ->
         if (pagedAttendanceLogs.isEmpty()) {
             Column(

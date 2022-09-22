@@ -50,6 +50,7 @@ import kotlinx.coroutines.ObsoleteCoroutinesApi
 @ExperimentalMaterial3Api
 @Composable
 fun SelectGames(
+    modifier: Modifier,
     createAttendanceState: CreateAttendanceState
 ) {
     val selectGamesState = rememberSelectGamesState(
@@ -97,6 +98,7 @@ fun SelectGames(
     }
 
     Scaffold(
+        modifier = modifier,
         snackbarHost = {
             SnackbarHost(hostState = selectGamesState.snackbarHostState)
         },
@@ -143,7 +145,7 @@ fun SelectGames(
                 }
             }
         },
-        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
     ) { innerPadding ->
         Column(
             verticalArrangement = Arrangement.spacedBy(DefaultDp)

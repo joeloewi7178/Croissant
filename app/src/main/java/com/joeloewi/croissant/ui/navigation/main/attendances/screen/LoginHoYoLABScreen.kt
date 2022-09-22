@@ -175,15 +175,14 @@ fun LoginHoYoLABContent(
         snackbarHost = {
             SnackbarHost(hostState = loginHoYoLABState.snackbarHostState)
         },
-        contentWindowInsets = WindowInsets.ime
+        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             when (loginHoYoLABState.removeAllCookiesState) {
                 is Lce.Content -> {
                     WebView(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .imeNestedScroll(),
+                            .fillMaxSize(),
                         state = loginHoYoLABState.webViewState,
                         navigator = loginHoYoLABState.webViewNavigator,
                         onCreated = { webView ->

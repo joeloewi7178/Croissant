@@ -60,7 +60,7 @@ private fun DeveloperInfoContent(
                 }
             )
         },
-        contentWindowInsets = WindowInsets.statusBars
+        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier

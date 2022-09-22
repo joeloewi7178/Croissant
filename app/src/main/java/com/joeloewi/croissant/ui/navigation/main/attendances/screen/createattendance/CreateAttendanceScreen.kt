@@ -2,10 +2,7 @@ package com.joeloewi.croissant.ui.navigation.main.attendances.screen.createatten
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
@@ -130,27 +127,28 @@ fun CreateAttendanceContent(
                     }
                 )
             )
-        }
+        },
+        contentWindowInsets = WindowInsets.safeDrawing.exclude(WindowInsets.ime)
     ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .then(Modifier.padding(DefaultDp))
+            modifier = Modifier.padding(DefaultDp)
         ) {
             when (createAttendanceState.pages[pageIndex]) {
                 CreateAttendancePage.GetSession -> {
                     GetSession(
+                        modifier = Modifier.padding(innerPadding),
                         onLoginHoYoLAB = createAttendanceState::onLoginHoYoLAB
                     )
                 }
                 CreateAttendancePage.SelectGames -> {
                     SelectGames(
+                        modifier = Modifier.padding(innerPadding),
                         createAttendanceState = createAttendanceState
                     )
                 }
                 CreateAttendancePage.SetTime -> {
                     SetTime(
+                        modifier = Modifier.padding(innerPadding),
                         hourOfDay = createAttendanceState.hourOfDay,
                         minute = createAttendanceState.minute,
                         tickPerSecond = { createAttendanceState.tickPerSecond },

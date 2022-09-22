@@ -5,6 +5,7 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -39,7 +40,7 @@ class CroissantAppState(
         @Composable get() = navBackStackEntry?.destination
 
     val isIgnoringBatteryOptimizations
-        get() = mainViewModel.isIgnoringBatteryOptimizations()
+        @Composable get() = rememberUpdatedState(newValue = mainViewModel.isIgnoringBatteryOptimizations).value
 
     val isFullScreenDestination
         @Composable get() = fullScreenDestinations.contains(currentDestination?.route)
@@ -51,7 +52,7 @@ class CroissantAppState(
         @Composable get() = !isFullScreenDestination && isCompactWindowWidthSize
 
     val canScheduleExactAlarms
-        get() = mainViewModel.canScheduleExactAlarms()
+        get() = mainViewModel.canScheduleExactAlarms
 
     @Composable
     fun isSelected(route: String?): Boolean = currentDestination?.hierarchy?.any {
@@ -70,10 +71,6 @@ class CroissantAppState(
             launchSingleTop = true
             restoreState = true
         }
-    }
-
-    init {
-        mainViewModel.checkIsDeviceRooted()
     }
 }
 

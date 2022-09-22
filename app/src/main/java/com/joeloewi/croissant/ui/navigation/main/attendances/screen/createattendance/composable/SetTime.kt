@@ -25,11 +25,13 @@ import com.joeloewi.croissant.util.dateTimeFormatterPerHourFormat
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import java.time.ZonedDateTime
 
+@ExperimentalLayoutApi
 @ExperimentalLifecycleComposeApi
 @ObsoleteCoroutinesApi
 @ExperimentalMaterial3Api
 @Composable
 fun SetTime(
+    modifier: Modifier,
     hourOfDay: Int,
     minute: Int,
     tickPerSecond: @Composable () -> ZonedDateTime,
@@ -69,6 +71,7 @@ fun SetTime(
     }
 
     Scaffold(
+        modifier = modifier,
         bottomBar = {
             FilledTonalButton(
                 modifier = Modifier
@@ -91,7 +94,7 @@ fun SetTime(
                 }
             }
         },
-        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
     ) { innerPadding ->
         Column(
             modifier = Modifier

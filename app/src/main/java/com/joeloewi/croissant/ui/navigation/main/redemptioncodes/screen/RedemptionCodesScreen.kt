@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -96,7 +97,7 @@ private fun RedemptionCodesContent(
                 }
             )
         },
-        contentWindowInsets = WindowInsets.statusBars
+        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             with(redemptionCodesState.hoYoLABGameRedemptionCodesState) {
@@ -163,8 +164,25 @@ fun RedemptionCodesError(
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center
         )
+        Text(
+            text = stringResource(id = R.string.due_to_site_policy),
+            style = MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center
+        )
         Button(onClick = onRefresh) {
-            Text(text = "Retry")
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(
+                    DefaultDp,
+                    Alignment.CenterHorizontally
+                ),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Refresh,
+                    contentDescription = Icons.Default.Refresh.name
+                )
+                Text(text = stringResource(id = R.string.retry))
+            }
         }
     }
 }

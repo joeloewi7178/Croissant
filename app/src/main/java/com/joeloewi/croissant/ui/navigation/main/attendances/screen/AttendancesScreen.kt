@@ -128,7 +128,7 @@ private fun AttendancesContent(
                 )
             }
         },
-        contentWindowInsets = WindowInsets.statusBars
+        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
     ) { innerPadding ->
         if (pagedAttendancesWithGames.isEmpty()) {
             Column(
