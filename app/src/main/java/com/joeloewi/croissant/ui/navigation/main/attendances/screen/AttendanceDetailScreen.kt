@@ -37,6 +37,7 @@ import com.joeloewi.domain.common.HoYoLABGame
 import com.joeloewi.domain.common.LoggableWorker
 import com.joeloewi.domain.entity.Game
 
+@ExperimentalLayoutApi
 @ExperimentalLifecycleComposeApi
 @ExperimentalFoundationApi
 @ExperimentalMaterial3Api
@@ -87,6 +88,7 @@ fun AttendanceDetailScreen(
     )
 }
 
+@ExperimentalLayoutApi
 @ExperimentalLifecycleComposeApi
 @ExperimentalFoundationApi
 @ExperimentalMaterial3Api
@@ -133,11 +135,12 @@ private fun AttendanceDetailContent(
         snackbarHost = {
             SnackbarHost(hostState = attendanceDetailState.snackbarHostState)
         },
-        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
+        contentWindowInsets = WindowInsets.displayCutout
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
+                .consumedWindowInsets(WindowInsets.navigationBars)
                 .padding(innerPadding)
                 .then(Modifier.padding(DefaultDp)),
             verticalArrangement = Arrangement.spacedBy(

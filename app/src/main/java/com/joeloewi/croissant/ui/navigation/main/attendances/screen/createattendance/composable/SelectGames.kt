@@ -98,7 +98,7 @@ fun SelectGames(
     }
 
     Scaffold(
-        modifier = modifier,
+        modifier = modifier.padding(DefaultDp),
         snackbarHost = {
             SnackbarHost(hostState = selectGamesState.snackbarHostState)
         },
@@ -125,6 +125,7 @@ fun SelectGames(
                 FilledTonalButton(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .navigationBarsPadding()
                         .background(MaterialTheme.colorScheme.surface),
                     enabled = !selectGamesState.noGamesSelected,
                     onClick = selectGamesState::onNextButtonClick

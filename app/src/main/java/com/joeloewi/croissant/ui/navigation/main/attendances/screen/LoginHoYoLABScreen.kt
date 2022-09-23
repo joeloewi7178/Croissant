@@ -175,273 +175,274 @@ fun LoginHoYoLABContent(
         snackbarHost = {
             SnackbarHost(hostState = loginHoYoLABState.snackbarHostState)
         },
-        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
+        contentWindowInsets = WindowInsets.safeDrawing.exclude(WindowInsets.navigationBars)
     ) { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding)) {
-            when (loginHoYoLABState.removeAllCookiesState) {
-                is Lce.Content -> {
-                    WebView(
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        state = loginHoYoLABState.webViewState,
-                        navigator = loginHoYoLABState.webViewNavigator,
-                        onCreated = { webView ->
-                            with(webView) {
-                                settings.apply {
-                                    javaScriptEnabled = true
-                                    domStorageEnabled = true
-                                    databaseEnabled = true
-                                    cacheMode = WebSettings.LOAD_NO_CACHE
-                                    setSupportMultipleWindows(true)
-                                    javaScriptCanOpenWindowsAutomatically = true
-                                    userAgentString = userAgentString.replace("; wv", "")
-                                }
+        when (loginHoYoLABState.removeAllCookiesState) {
+            is Lce.Content -> {
+                WebView(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .fillMaxSize(),
+                    state = loginHoYoLABState.webViewState,
+                    navigator = loginHoYoLABState.webViewNavigator,
+                    onCreated = { webView ->
+                        with(webView) {
+                            settings.apply {
+                                javaScriptEnabled = true
+                                domStorageEnabled = true
+                                databaseEnabled = true
+                                cacheMode = WebSettings.LOAD_NO_CACHE
+                                setSupportMultipleWindows(true)
+                                javaScriptCanOpenWindowsAutomatically = true
+                                userAgentString = userAgentString.replace("; wv", "")
+                            }
 
-                                runCatching {
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                                        if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
-                                            WebSettingsCompat.setAlgorithmicDarkeningAllowed(
-                                                settings,
-                                                true
-                                            )
-                                        }
-                                    } else {
-                                        if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
-                                            WebSettingsCompat.setForceDark(
-                                                settings,
-                                                WebSettingsCompat.FORCE_DARK_AUTO
-                                            )
-                                        }
+                            runCatching {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                    if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
+                                        WebSettingsCompat.setAlgorithmicDarkeningAllowed(
+                                            settings,
+                                            true
+                                        )
+                                    }
+                                } else {
+                                    if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
+                                        WebSettingsCompat.setForceDark(
+                                            settings,
+                                            WebSettingsCompat.FORCE_DARK_AUTO
+                                        )
                                     }
                                 }
-
-                                clearCache(true)
-                                clearFormData()
-                                clearHistory()
-                                clearMatches()
-                                clearSslPreferences()
                             }
 
-                            WebStorage.getInstance().deleteAllData()
+                            clearCache(true)
+                            clearFormData()
+                            clearHistory()
+                            clearMatches()
+                            clearSslPreferences()
+                        }
 
-                            CookieManager.getInstance().apply {
-                                setAcceptCookie(true)
-                                setAcceptThirdPartyCookies(webView, true)
+                        WebStorage.getInstance().deleteAllData()
+
+                        CookieManager.getInstance().apply {
+                            setAcceptCookie(true)
+                            setAcceptThirdPartyCookies(webView, true)
+                        }
+                    },
+                    client = remember {
+                        object : AccompanistWebViewClient() {
+                            override fun onReceivedSslError(
+                                view: WebView?,
+                                handler: SslErrorHandler?,
+                                error: SslError?
+                            ) {
+                                super.onReceivedSslError(view, handler, error)
+                                loginHoYoLABState.onShowSslErrorDialogChange(handler to error)
                             }
-                        },
-                        client = remember {
-                            object : AccompanistWebViewClient() {
-                                override fun onReceivedSslError(
-                                    view: WebView?,
-                                    handler: SslErrorHandler?,
-                                    error: SslError?
-                                ) {
-                                    super.onReceivedSslError(view, handler, error)
-                                    loginHoYoLABState.onShowSslErrorDialogChange(handler to error)
+
+                            override fun shouldInterceptRequest(
+                                view: WebView?,
+                                request: WebResourceRequest?
+                            ): WebResourceResponse? {
+                                //in this block, codes are executed in io thread.
+                                //checkAndCatchCookieOnlyOnce callback's role is to execute navController.navigateUp()
+                                //which is must executed in main thread.
+                                //in addition, shouldInterceptRequest() callback is called many times
+                                //but navController.navigateUp() has to be called only once
+
+                                //so, after switching context to main thread, store that job in variable
+                                //if the variable is null to ensure execute only once
+                                loginHoYoLABState.checkAndCatchCookieOnlyOnce()
+
+                                return super.shouldInterceptRequest(view, request)
+                            }
+
+                            override fun shouldOverrideUrlLoading(
+                                view: WebView?,
+                                request: WebResourceRequest?
+                            ): Boolean =
+                                loginHoYoLABState.shouldOverrideUrlLoading(
+                                    request = request,
+                                    runOuterApplication = {
+                                        request?.url?.let {
+                                            context.startActivity(
+                                                Intent(
+                                                    Intent.ACTION_VIEW,
+                                                    it
+                                                )
+                                            )
+                                        }
+                                    },
+                                    processOnWebView = {
+                                        super.shouldOverrideUrlLoading(view, request)
+                                    }
+                                )
+                        }
+                    },
+                    chromeClient = remember {
+                        object : AccompanistWebChromeClient() {
+                            override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean =
+                                if (BuildConfig.DEBUG) {
+                                    super.onConsoleMessage(consoleMessage)
+                                } else {
+                                    true
                                 }
 
-                                override fun shouldInterceptRequest(
-                                    view: WebView?,
-                                    request: WebResourceRequest?
-                                ): WebResourceResponse? {
-                                    //in this block, codes are executed in io thread.
-                                    //checkAndCatchCookieOnlyOnce callback's role is to execute navController.navigateUp()
-                                    //which is must executed in main thread.
-                                    //in addition, shouldInterceptRequest() callback is called many times
-                                    //but navController.navigateUp() has to be called only once
+                            override fun onCreateWindow(
+                                view: WebView?,
+                                isDialog: Boolean,
+                                isUserGesture: Boolean,
+                                resultMsg: Message?
+                            ): Boolean {
+                                val popUpWebView = WebView(activity).apply {
+                                    settings.apply {
+                                        javaScriptEnabled = true
+                                        domStorageEnabled = true
+                                        databaseEnabled = true
+                                        setSupportMultipleWindows(true)
+                                        javaScriptCanOpenWindowsAutomatically = true
+                                        userAgentString = userAgentString.replace("; wv", "")
+                                    }
 
-                                    //so, after switching context to main thread, store that job in variable
-                                    //if the variable is null to ensure execute only once
-                                    loginHoYoLABState.checkAndCatchCookieOnlyOnce()
-
-                                    return super.shouldInterceptRequest(view, request)
-                                }
-
-                                override fun shouldOverrideUrlLoading(
-                                    view: WebView?,
-                                    request: WebResourceRequest?
-                                ): Boolean =
-                                    loginHoYoLABState.shouldOverrideUrlLoading(
-                                        request = request,
-                                        runOuterApplication = {
-                                            request?.url?.let {
-                                                context.startActivity(
-                                                    Intent(
-                                                        Intent.ACTION_VIEW,
-                                                        it
-                                                    )
+                                    runCatching {
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                            if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
+                                                WebSettingsCompat.setAlgorithmicDarkeningAllowed(
+                                                    settings,
+                                                    true
                                                 )
                                             }
-                                        },
-                                        processOnWebView = {
-                                            super.shouldOverrideUrlLoading(view, request)
-                                        }
-                                    )
-                            }
-                        },
-                        chromeClient = remember {
-                            object : AccompanistWebChromeClient() {
-                                override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean =
-                                    if (BuildConfig.DEBUG) {
-                                        super.onConsoleMessage(consoleMessage)
-                                    } else {
-                                        true
-                                    }
-
-                                override fun onCreateWindow(
-                                    view: WebView?,
-                                    isDialog: Boolean,
-                                    isUserGesture: Boolean,
-                                    resultMsg: Message?
-                                ): Boolean {
-                                    val popUpWebView = WebView(activity).apply {
-                                        settings.apply {
-                                            javaScriptEnabled = true
-                                            domStorageEnabled = true
-                                            databaseEnabled = true
-                                            setSupportMultipleWindows(true)
-                                            javaScriptCanOpenWindowsAutomatically = true
-                                            userAgentString = userAgentString.replace("; wv", "")
-                                        }
-
-                                        runCatching {
-                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                                                if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
-                                                    WebSettingsCompat.setAlgorithmicDarkeningAllowed(
-                                                        settings,
-                                                        true
-                                                    )
-                                                }
-                                            } else {
-                                                if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
-                                                    WebSettingsCompat.setForceDark(
-                                                        settings,
-                                                        WebSettingsCompat.FORCE_DARK_AUTO
-                                                    )
-                                                }
+                                        } else {
+                                            if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
+                                                WebSettingsCompat.setForceDark(
+                                                    settings,
+                                                    WebSettingsCompat.FORCE_DARK_AUTO
+                                                )
                                             }
                                         }
                                     }
-
-                                    CookieManager.getInstance().apply {
-                                        acceptCookie()
-                                        setAcceptThirdPartyCookies(popUpWebView, true)
-                                    }
-
-                                    val dialog = Dialog(context).apply {
-                                        setContentView(popUpWebView)
-                                    }
-
-                                    dialog.window?.run {
-                                        addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
-
-                                        attributes = attributes?.apply {
-                                            width = ViewGroup.LayoutParams.MATCH_PARENT
-                                            height = ViewGroup.LayoutParams.MATCH_PARENT
-                                        }
-                                    }
-
-                                    dialog.apply {
-                                        setOnDismissListener {
-                                            popUpWebView.destroy()
-                                        }
-                                    }
-
-                                    popUpWebView.apply {
-                                        webChromeClient = object : WebChromeClient() {
-                                            override fun onCloseWindow(window: WebView?) {
-                                                dialog.dismiss()
-                                            }
-                                        }
-                                        webViewClient = object : WebViewClientCompat() {
-                                            override fun onPageStarted(
-                                                view: WebView?,
-                                                url: String?,
-                                                favicon: Bitmap?
-                                            ) {
-                                                if (url == loginHoYoLABState.securityPopUpUrl) {
-                                                    dialog.dismiss()
-                                                } else {
-                                                    dialog.show()
-                                                }
-                                                super.onPageStarted(view, url, favicon)
-                                            }
-                                        }
-                                    }
-
-                                    resultMsg?.run {
-                                        (this.obj as WebView.WebViewTransport).webView =
-                                            popUpWebView
-                                        sendToTarget()
-                                    }
-
-                                    return true
                                 }
+
+                                CookieManager.getInstance().apply {
+                                    acceptCookie()
+                                    setAcceptThirdPartyCookies(popUpWebView, true)
+                                }
+
+                                val dialog = Dialog(context).apply {
+                                    setContentView(popUpWebView)
+                                }
+
+                                dialog.window?.run {
+                                    addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+
+                                    attributes = attributes?.apply {
+                                        width = ViewGroup.LayoutParams.MATCH_PARENT
+                                        height = ViewGroup.LayoutParams.MATCH_PARENT
+                                    }
+                                }
+
+                                dialog.apply {
+                                    setOnDismissListener {
+                                        popUpWebView.destroy()
+                                    }
+                                }
+
+                                popUpWebView.apply {
+                                    webChromeClient = object : WebChromeClient() {
+                                        override fun onCloseWindow(window: WebView?) {
+                                            dialog.dismiss()
+                                        }
+                                    }
+                                    webViewClient = object : WebViewClientCompat() {
+                                        override fun onPageStarted(
+                                            view: WebView?,
+                                            url: String?,
+                                            favicon: Bitmap?
+                                        ) {
+                                            if (url == loginHoYoLABState.securityPopUpUrl) {
+                                                dialog.dismiss()
+                                            } else {
+                                                dialog.show()
+                                            }
+                                            super.onPageStarted(view, url, favicon)
+                                        }
+                                    }
+                                }
+
+                                resultMsg?.run {
+                                    (this.obj as WebView.WebViewTransport).webView =
+                                        popUpWebView
+                                    sendToTarget()
+                                }
+
+                                return true
                             }
                         }
-                    )
-                }
-                is Lce.Error -> {
-
-                }
-                Lce.Loading -> {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        CircularProgressIndicator()
                     }
+                )
+            }
+            is Lce.Error -> {
+
+            }
+            Lce.Loading -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    CircularProgressIndicator()
                 }
             }
         }
+    }
 
-        if (loginHoYoLABState.showSslErrorDialog != null) {
-            AlertDialog(
-                onDismissRequest = {
-                    loginHoYoLABState.onShowSslErrorDialogChange(null)
-                },
-                properties = DialogProperties(
-                    dismissOnClickOutside = false,
-                    dismissOnBackPress = false,
-                ),
-                confirmButton = {
-                    TextButton(
-                        onClick = loginHoYoLABState::onConfirmSslErrorDialog
-                    ) {
-                        Text(text = stringResource(id = R.string.confirm))
-                    }
-                },
-                dismissButton = {
-                    TextButton(
-                        onClick = loginHoYoLABState::onCancelSslErrorDialog
-                    ) {
-                        Text(text = stringResource(id = R.string.dismiss))
-                    }
-                },
-                icon = {
-                    Icon(
-                        imageVector = Icons.Default.Warning,
-                        contentDescription = Icons.Default.Warning.name
-                    )
-                },
-                title = {
-                    Text(text = stringResource(id = R.string.certification_error))
-                },
-                text = {
-                    Text(
-                        text = buildAnnotatedString {
-                            append(stringResource(id = R.string.website_user_try_to_access))
-                            loginHoYoLABState.showSslErrorDialog?.second?.url?.let {
-                                append("(${it})")
-                            }
-                            append(stringResource(id = R.string.has_error_in_certification))
-                        },
-                        textAlign = TextAlign.Center
-                    )
+    if (loginHoYoLABState.showSslErrorDialog != null) {
+        AlertDialog(
+            onDismissRequest = {
+                loginHoYoLABState.onShowSslErrorDialogChange(null)
+            },
+            properties = DialogProperties(
+                dismissOnClickOutside = false,
+                dismissOnBackPress = false,
+            ),
+            confirmButton = {
+                TextButton(
+                    onClick = loginHoYoLABState::onConfirmSslErrorDialog
+                ) {
+                    Text(text = stringResource(id = R.string.confirm))
                 }
-            )
-        }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = loginHoYoLABState::onCancelSslErrorDialog
+                ) {
+                    Text(text = stringResource(id = R.string.dismiss))
+                }
+            },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = Icons.Default.Warning.name
+                )
+            },
+            title = {
+                Text(text = stringResource(id = R.string.certification_error))
+            },
+            text = {
+                Text(
+                    text = buildAnnotatedString {
+                        append(stringResource(id = R.string.website_user_try_to_access))
+                        loginHoYoLABState.showSslErrorDialog?.second?.url?.let {
+                            append("(${it})")
+                        }
+                        append(stringResource(id = R.string.has_error_in_certification))
+                    },
+                    textAlign = TextAlign.Center
+                )
+            }
+        )
     }
 }
 

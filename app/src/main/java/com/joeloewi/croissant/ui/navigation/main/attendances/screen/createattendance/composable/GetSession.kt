@@ -48,6 +48,7 @@ fun GetSession(
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .navigationBarsPadding()
                     .background(MaterialTheme.colorScheme.surface),
                 onClick = onLoginHoYoLAB
             ) {
@@ -69,13 +70,14 @@ fun GetSession(
                 }
             }
         },
-        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
+        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(state = rememberScrollState())
-                .padding(innerPadding),
+                .padding(innerPadding)
+                .padding(DefaultDp),
             verticalArrangement = Arrangement.spacedBy(space = DefaultDp)
         ) {
             Text(

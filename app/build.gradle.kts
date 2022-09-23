@@ -23,6 +23,15 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            keyAlias = System.getenv("ALIAS")
+            keyPassword = System.getenv("KEY_PASSWORD")
+            storeFile = file("../signing/croissant_key_store")
+            storePassword = System.getenv("KEY_STORE_PASSWORD")
+        }
+    }
+
     buildTypes {
         val debug by getting {
 
@@ -33,6 +42,14 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
+        }
+        val benchmark by creating {
+            initWith(release)
+            signingConfig = signingConfigs.getByName("release")
+            matchingFallbacks += listOf("release")
+            isDebuggable = false
+            proguardFiles("baseline-profiles-rules.pro")
         }
     }
     packagingOptions {
@@ -127,6 +144,7 @@ dependencies {
     implementation(libs.kotlinx.collections.immutable)
 
     implementation(libs.androidx.savedstate.ktx)
+    implementation(libs.androidx.profileinstaller)
 }
 
 kapt {

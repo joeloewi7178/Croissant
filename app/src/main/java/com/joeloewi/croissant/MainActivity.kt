@@ -27,8 +27,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
-import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -39,7 +37,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.os.bundleOf
@@ -128,7 +125,6 @@ class MainActivity : AppCompatActivity() {
 
                     CompositionLocalProvider(
                         LocalActivity provides this,
-                        LocalWindowSizeClass provides calculateWindowSizeClass(activity = this),
                         LocalHourFormat provides mainState.hourFormat
                     ) {
                         RequireAppUpdate(
@@ -145,6 +141,7 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
+@ExperimentalMaterial3WindowSizeClassApi
 @ExperimentalLayoutApi
 @FlowPreview
 @ExperimentalLifecycleComposeApi
@@ -201,7 +198,6 @@ fun CroissantApp(
     val snackbarHostState = remember { SnackbarHostState() }
     val isDeviceRooted = croissantAppState.isDeviceRooted
     val currentDestination = croissantAppState.currentDestination
-    val windowSizeClass = LocalWindowSizeClass.current
     val lifecycle by LocalLifecycleOwner.current.lifecycle.observeAsState()
 
     LaunchedEffect(isFirstLaunch, isAllPermissionsGranted) {
@@ -240,47 +236,35 @@ fun CroissantApp(
     ) {
         Scaffold(
             bottomBar = {
-                if (croissantAppState.isCompactWindowWidthSize) {
+                if (croissantAppState.isBottomNavigationBarVisible) {
                     CroissantBottomNavigationBar(
                         croissantAppState = croissantAppState,
                     )
                 }
             },
             contentWindowInsets = if (croissantAppState.isCompactWindowWidthSize) {
-                WindowInsets.safeDrawing.exclude(WindowInsets.systemBars)
+                WindowInsets.displayCutout
             } else {
-                WindowInsets.safeDrawing.exclude(WindowInsets.statusBars)
+                WindowInsets.displayCutout.add(WindowInsets.navigationBars)
             }
         ) { innerPadding ->
-            when (windowSizeClass.widthSizeClass) {
-                WindowWidthSizeClass.Compact -> {
-                    CroissantNavHost(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .consumedWindowInsets(innerPadding)
-                            .padding(innerPadding)
-                            .imePadding(),
-                        navController = croissantAppState.navController,
-                        snackbarHostState = snackbarHostState,
-                        deepLinkUri = { deepLinkUri }
+            Row(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                if (croissantAppState.isNavigationRailVisible) {
+                    CroissantNavigationRail(
+                        croissantAppState = croissantAppState
                     )
                 }
-
-                else -> {
-                    Row {
-                        CroissantNavigationRail(
-                            croissantAppState = croissantAppState
-                        )
-                        CroissantNavHost(
-                            modifier = Modifier
-                                .weight(1f)
-                                .animateContentSize(),
-                            navController = croissantAppState.navController,
-                            snackbarHostState = snackbarHostState,
-                            deepLinkUri = { deepLinkUri }
-                        )
-                    }
-                }
+                CroissantNavHost(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .consumedWindowInsets(innerPadding)
+                        .animateContentSize(),
+                    navController = croissantAppState.navController,
+                    snackbarHostState = snackbarHostState,
+                    deepLinkUri = { deepLinkUri }
+                )
             }
 
             if (isDeviceRooted) {
@@ -531,16 +515,7 @@ private fun CroissantNavigationRail(
     croissantAppState: CroissantAppState,
 ) {
     NavigationRail(
-        modifier = Modifier
-            .run {
-                if (!croissantAppState.isFullScreenDestination) {
-                    this
-                } else {
-                    width(0.dp)
-                }
-            }
-            .fillMaxHeight()
-            .animateContentSize(),
+        modifier = Modifier.fillMaxHeight(),
         header = {
             Icon(
                 painter = painterResource(id = R.drawable.ic_launcher_foreground),
@@ -602,19 +577,7 @@ private fun CroissantNavigationRail(
 private fun CroissantBottomNavigationBar(
     croissantAppState: CroissantAppState,
 ) {
-    val navigationBarHeightDp by rememberUpdatedState(
-        newValue = if (croissantAppState.isBottomNavigationBarVisible) {
-            Dp.Unspecified
-        } else {
-            0.dp
-        }
-    )
-
-    NavigationBar(
-        modifier = Modifier
-            .height(navigationBarHeightDp)
-            .animateContentSize()
-    ) {
+    NavigationBar {
         croissantAppState.croissantNavigations.forEach { croissantNavigation ->
             key(croissantNavigation.route) {
                 val isSelected = croissantAppState.isSelected(route = croissantNavigation.route)

@@ -2,7 +2,10 @@ package com.joeloewi.croissant.ui.navigation.main.attendances.screen.createatten
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
@@ -24,7 +27,6 @@ import com.joeloewi.croissant.ui.navigation.main.attendances.screen.COOKIE
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.composable.GetSession
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.composable.SelectGames
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.composable.SetTime
-import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.util.ProgressDialog
 import com.joeloewi.croissant.util.getResultFromPreviousComposable
 import com.joeloewi.croissant.util.navigationIconButton
@@ -128,37 +130,33 @@ fun CreateAttendanceContent(
                 )
             )
         },
-        contentWindowInsets = WindowInsets.safeDrawing.exclude(WindowInsets.ime)
+        contentWindowInsets = WindowInsets.displayCutout
     ) { innerPadding ->
-        Column(
-            modifier = Modifier.padding(DefaultDp)
-        ) {
-            when (createAttendanceState.pages[pageIndex]) {
-                CreateAttendancePage.GetSession -> {
-                    GetSession(
-                        modifier = Modifier.padding(innerPadding),
-                        onLoginHoYoLAB = createAttendanceState::onLoginHoYoLAB
-                    )
-                }
-                CreateAttendancePage.SelectGames -> {
-                    SelectGames(
-                        modifier = Modifier.padding(innerPadding),
-                        createAttendanceState = createAttendanceState
-                    )
-                }
-                CreateAttendancePage.SetTime -> {
-                    SetTime(
-                        modifier = Modifier.padding(innerPadding),
-                        hourOfDay = createAttendanceState.hourOfDay,
-                        minute = createAttendanceState.minute,
-                        tickPerSecond = { createAttendanceState.tickPerSecond },
-                        onNextButtonClick = {
-                            createAttendanceState.onNextButtonClick()
-                        },
-                        onHourOfDayChange = createAttendanceState::onHourOfDayChange,
-                        onMinuteChange = createAttendanceState::onMinuteChange
-                    )
-                }
+        when (createAttendanceState.pages[pageIndex]) {
+            CreateAttendancePage.GetSession -> {
+                GetSession(
+                    modifier = Modifier.padding(innerPadding),
+                    onLoginHoYoLAB = createAttendanceState::onLoginHoYoLAB
+                )
+            }
+            CreateAttendancePage.SelectGames -> {
+                SelectGames(
+                    modifier = Modifier.padding(innerPadding),
+                    createAttendanceState = createAttendanceState
+                )
+            }
+            CreateAttendancePage.SetTime -> {
+                SetTime(
+                    modifier = Modifier.padding(innerPadding),
+                    hourOfDay = createAttendanceState.hourOfDay,
+                    minute = createAttendanceState.minute,
+                    tickPerSecond = { createAttendanceState.tickPerSecond },
+                    onNextButtonClick = {
+                        createAttendanceState.onNextButtonClick()
+                    },
+                    onHourOfDayChange = createAttendanceState::onHourOfDayChange,
+                    onMinuteChange = createAttendanceState::onMinuteChange
+                )
             }
         }
 
