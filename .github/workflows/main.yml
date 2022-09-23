@@ -40,12 +40,12 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 30
-          avd-name: croissantAvd
+          avd-name: baseProfGenerator
           target: aosp_atd
           script: ./gradlew :benchmark:connectedBenchmarkAndroidTest -P android.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile
       
       - name: Move generated baseline profile to target folder
-        run: mv -f ${{ github.workspace }}/benchmark/build/outputs/connected_android_test_additional_output/benchmark/connected/croissantAvd/BaselineProfileGenerator_generate-baseline-prof.txt ${{ github.workspace }}/app/src/main/baseline-prof.txt
+        run: ls ./benchmark/build/outputs/connected_android_test_additional_output/benchmark/connected | mv -f ./benchmark/build/outputs/connected_android_test_additional_output/benchmark/connected/baseProfGenerator(AVD) - 11/BaselineProfileGenerator_generate-baseline-prof.txt ./app/src/main/baseline-prof.txt
       
       - name: Build with Gradle
         run: ./gradlew assemble
