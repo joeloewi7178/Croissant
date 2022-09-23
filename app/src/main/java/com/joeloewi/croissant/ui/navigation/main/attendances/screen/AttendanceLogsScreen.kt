@@ -61,6 +61,7 @@ fun AttendanceLogsScreen(
 fun AttendanceLogsContent(
     attendanceLogsState: AttendanceLogsState,
 ) {
+    val context = LocalContext.current
     val pagedAttendanceLogs = attendanceLogsState.pagedAttendanceLogs
     val deleteAllState = attendanceLogsState.deleteAllState
 
@@ -69,7 +70,12 @@ fun AttendanceLogsContent(
             is Lce.Content -> {
                 val rowCount = deleteAllState.content
                 if (rowCount != -1) {
-                    attendanceLogsState.snackbarHostState.showSnackbar("${rowCount}개 삭제됨.")
+                    attendanceLogsState.snackbarHostState.showSnackbar(
+                        context.getString(
+                            R.string.logs_deleted,
+                            rowCount
+                        )
+                    )
                 }
             }
             else -> {

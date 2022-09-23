@@ -137,26 +137,20 @@ class CreateAttendanceViewModel @Inject constructor(
     }
 
     fun setCookie(cookie: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            _cookie.update { cookie }
-        }
+        _cookie.update { cookie }
     }
 
     fun setHourOfDay(hourOfDay: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
-            _hourOfDay.update { hourOfDay }
-        }
+        _hourOfDay.update { hourOfDay }
     }
 
     fun setMinute(minute: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
-            _minute.update { minute }
-        }
+        _minute.update { minute }
     }
 
     fun createAttendance() {
+        _insertAttendanceState.update { Lce.Loading }
         viewModelScope.launch(Dispatchers.IO) {
-            _insertAttendanceState.update { Lce.Loading }
             _insertAttendanceState.update {
                 insertAttendanceUseCase.runCatching {
                     val hourOfDay = _hourOfDay.value

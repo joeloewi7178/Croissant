@@ -122,4 +122,5 @@
     <string name="attendance_failed">Attendance failed due to unknown error. Please try manually.</string>
     <string name="select_at_least_one_game">Please select at least one game</string>
     <string name="due_to_site_policy">Contents may not be shown due to web site\'s policy even after retrying</string>
+    <string name="logs_deleted">%1$d item(s) deleted</string>
 </resources>

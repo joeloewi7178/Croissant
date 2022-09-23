@@ -29,8 +29,8 @@ class RedemptionCodesViewModel @Inject constructor() : ViewModel() {
     }
 
     fun getRedemptionCodes() {
+        _hoYoLABGameRedemptionCodesState.update { Lce.Loading }
         viewModelScope.launch(Dispatchers.IO) {
-            _hoYoLABGameRedemptionCodesState.update { Lce.Loading }
             _hoYoLABGameRedemptionCodesState.update {
                 HoYoLABGame.values().runCatching {
                     map { it to getRedemptionCodesFromHtml(it) }

@@ -38,22 +38,22 @@ class AttendanceLogsViewModel @Inject constructor(
     ).cachedIn(viewModelScope)
 
     fun deleteAll() {
+        _deleteAllState.update { Lce.Loading }
         viewModelScope.launch(Dispatchers.IO) {
-            _deleteAllState.update { Lce.Loading }
-            deleteAllPagedWorkerExecutionLogUseCase.runCatching {
-                invoke(
-                    attendanceId = _attendanceId,
-                    loggableWorker = _loggableWorker
+            _deleteAllState.update {
+                deleteAllPagedWorkerExecutionLogUseCase.runCatching {
+                    invoke(
+                        attendanceId = _attendanceId,
+                        loggableWorker = _loggableWorker
+                    )
+                }.fold(
+                    onSuccess = {
+                        Lce.Content(it)
+                    },
+                    onFailure = {
+                        Lce.Error(it)
+                    }
                 )
-            }.fold(
-                onSuccess = {
-                    Lce.Content(it)
-                },
-                onFailure = {
-                    Lce.Error(it)
-                }
-            ).let {
-                _deleteAllState.update { it }
             }
         }
     }

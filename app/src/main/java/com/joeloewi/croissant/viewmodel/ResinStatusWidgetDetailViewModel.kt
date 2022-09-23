@@ -49,14 +49,12 @@ class ResinStatusWidgetDetailViewModel @Inject constructor(
     }
 
     fun setInterval(interval: Long) {
-        viewModelScope.launch(Dispatchers.IO) {
-            _interval.update { interval }
-        }
+        _interval.update { interval }
     }
 
     fun updateResinStatusWidget() {
+        _updateResinStatusWidgetState.update { Lce.Loading }
         viewModelScope.launch(Dispatchers.IO) {
-            _updateResinStatusWidgetState.update { Lce.Loading }
             _updateResinStatusWidgetState.update {
                 getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
                     invoke(appWidgetId = _appWidgetId)
