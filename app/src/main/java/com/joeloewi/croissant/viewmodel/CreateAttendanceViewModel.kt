@@ -4,9 +4,9 @@ import android.app.AlarmManager
 import android.app.Application
 import android.app.PendingIntent
 import android.content.Intent
-import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.core.app.AlarmManagerCompat
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.*
@@ -42,12 +42,14 @@ class CreateAttendanceViewModel @Inject constructor(
     private val insertAttendanceUseCase: AttendanceUseCase.Insert,
     private val updateAttendanceUseCase: AttendanceUseCase.Update,
     private val insertGameUseCase: GameUseCase.Insert,
-    private val getOneByUidAttendanceUseCase: AttendanceUseCase.GetOneByUid
+    private val getOneByUidAttendanceUseCase: AttendanceUseCase.GetOneByUid,
+    private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
+    private val pageIndexKey = "pageIndex"
     private val _cookie = MutableStateFlow("")
     private val _hourOfDay = MutableStateFlow(ZonedDateTime.now().hour)
     private val _minute = MutableStateFlow(ZonedDateTime.now().minute)
-    private val _createAttendanceState = MutableStateFlow<Lce<List<Long>>>(Lce.Content(listOf()))
+    private val _insertAttendanceState = MutableStateFlow<Lce<List<Long>>>(Lce.Content(listOf()))
     private val _duplicatedAttendance = MutableStateFlow<Attendance?>(null)
     private val _userInfo = _cookie
         .filter { it.isNotEmpty() }
@@ -124,8 +126,15 @@ class CreateAttendanceViewModel @Inject constructor(
         )
     val hourOfDay = _hourOfDay.asStateFlow()
     val minute = _minute.asStateFlow()
-    val createAttendanceState = _createAttendanceState.asStateFlow()
+    val insertAttendanceState = _insertAttendanceState.asStateFlow()
     val duplicatedAttendance = _duplicatedAttendance.asStateFlow()
+    val pageIndex = savedStateHandle.getStateFlow(pageIndexKey, 0)
+
+    fun getCurrentPageIndex() = savedStateHandle.get<Int>(pageIndexKey) ?: 0
+
+    fun setPageIndex(pageIndex: Int) {
+        savedStateHandle[pageIndexKey] = pageIndex
+    }
 
     fun setCookie(cookie: String) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -147,8 +156,8 @@ class CreateAttendanceViewModel @Inject constructor(
 
     fun createAttendance() {
         viewModelScope.launch(Dispatchers.IO) {
-            _createAttendanceState.update { Lce.Loading }
-            _createAttendanceState.update {
+            _insertAttendanceState.update { Lce.Loading }
+            _insertAttendanceState.update {
                 insertAttendanceUseCase.runCatching {
                     val hourOfDay = _hourOfDay.value
                     val minute = _minute.value
@@ -200,9 +209,7 @@ class CreateAttendanceViewModel @Inject constructor(
                         AlarmManagerCompat.setExactAndAllowWhileIdle(
                             this,
                             AlarmManager.RTC_WAKEUP,
-                            targetTime.also {
-                                Log.d("HELLO", it.toString())
-                            }.toInstant().toEpochMilli(),
+                            targetTime.toInstant().toEpochMilli(),
                             pendingIntent
                         )
                     }

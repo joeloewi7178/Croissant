@@ -30,7 +30,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -38,7 +37,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.core.os.ConfigurationCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.navigation.NavController
@@ -65,7 +63,6 @@ import com.joeloewi.domain.entity.relational.AttendanceWithGames
 import kotlinx.coroutines.launch
 import java.time.ZoneId
 import java.time.ZonedDateTime
-import java.util.*
 
 @ExperimentalLayoutApi
 @ExperimentalLifecycleComposeApi
@@ -131,7 +128,7 @@ private fun AttendancesContent(
                 )
             }
         },
-        contentWindowInsets = WindowInsets.statusBars
+        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
     ) { innerPadding ->
         if (pagedAttendancesWithGames.isEmpty()) {
             Column(
@@ -172,7 +169,7 @@ private fun AttendancesContent(
                     if (item != null) {
                         AttendanceWithGamesItem(
                             modifier = Modifier.animateItemPlacement(),
-                            item = item,
+                            item = { item },
                             onDeleteAttendance = onDeleteAttendance,
                             onClickAttendance = onClickAttendance
                         )
@@ -193,7 +190,7 @@ private fun AttendancesContent(
 @Composable
 fun AttendanceWithGamesItem(
     modifier: Modifier,
-    item: AttendanceWithGames,
+    item: () -> AttendanceWithGames,
     onDeleteAttendance: (Attendance) -> Unit,
     onClickAttendance: (Attendance) -> Unit
 ) {
@@ -202,10 +199,11 @@ fun AttendanceWithGamesItem(
     val context = LocalContext.current
     val activity = LocalActivity.current
     val coroutineScope = rememberCoroutineScope()
+    val currentItem by rememberUpdatedState(newValue = item())
 
     LaunchedEffect(isDismissedEndToStart) {
         if (isDismissedEndToStart) {
-            onDeleteAttendance(item.attendance)
+            onDeleteAttendance(currentItem.attendance)
         }
     }
 
@@ -225,9 +223,9 @@ fun AttendanceWithGamesItem(
                 elevation = animateDpAsState(
                     if (dismissState.dismissDirection != null) HalfDp else 0.dp
                 ).value,
-                attendanceWithGames = item,
+                attendanceWithGames = { currentItem },
                 onClickOneTimeAttend = {
-                    val attendance = item.attendance
+                    val attendance = currentItem.attendance
                     val oneTimeWork = OneTimeWorkRequestBuilder<AttendCheckInEventWorker>()
                         .setInputData(workDataOf(AttendCheckInEventWorker.ATTENDANCE_ID to attendance.id))
                         .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
@@ -310,18 +308,18 @@ internal fun SwipeToDismissBackground(
 @ExperimentalLifecycleComposeApi
 @ExperimentalFoundationApi
 @Composable
-internal fun DismissContent(
+private fun DismissContent(
     elevation: Dp,
-    attendanceWithGames: AttendanceWithGames,
+    attendanceWithGames: () -> AttendanceWithGames,
     onClickAttendance: (Attendance) -> Unit,
     onClickOneTimeAttend: () -> Unit
 ) {
-    val attendanceWithGamesState by rememberUpdatedState(attendanceWithGames)
+    val currentAttendanceWithGames by rememberUpdatedState(attendanceWithGames())
 
     Row(
         modifier = Modifier
             .shadow(elevation = elevation)
-            .clickable { onClickAttendance(attendanceWithGamesState.attendance) }
+            .clickable { onClickAttendance(currentAttendanceWithGames.attendance) }
             .background(MaterialTheme.colorScheme.background)
             .fillMaxWidth(),
     ) {
@@ -338,7 +336,7 @@ internal fun DismissContent(
                 Text(
                     text = stringResource(
                         id = R.string.attendance_of_nickname,
-                        attendanceWithGamesState.attendance.nickname
+                        currentAttendanceWithGames.attendance.nickname
                     ),
                     style = MaterialTheme.typography.titleMedium
                 )
@@ -352,11 +350,11 @@ internal fun DismissContent(
                     val hourFormat = LocalHourFormat.current
 
                     val formattedTime by remember(
-                        attendanceWithGamesState.attendance,
+                        currentAttendanceWithGames.attendance,
                         hourFormat
                     ) {
                         derivedStateOf {
-                            with(attendanceWithGamesState.attendance) {
+                            with(currentAttendanceWithGames.attendance) {
                                 ZonedDateTime.now(ZoneId.of(timezoneId))
                                     .withHour(hourOfDay)
                                     .withMinute(minute)
@@ -375,7 +373,7 @@ internal fun DismissContent(
                                 )
                             )
                             append(" ")
-                            append("(${attendanceWithGamesState.attendance.timezoneId})")
+                            append("(${currentAttendanceWithGames.attendance.timezoneId})")
                         }
                     )
                 }
@@ -384,7 +382,7 @@ internal fun DismissContent(
                     horizontalArrangement = Arrangement.spacedBy(space = DefaultDp)
                 ) {
                     items(
-                        items = attendanceWithGamesState.games,
+                        items = currentAttendanceWithGames.games,
                         key = { it.id }
                     ) { game ->
                         AsyncImage(
@@ -405,7 +403,7 @@ internal fun DismissContent(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 val workInfos by WorkManager.getInstance(LocalContext.current)
-                    .getWorkInfosForUniqueWorkLiveData(attendanceWithGamesState.attendance.oneTimeAttendCheckInEventWorkerName.toString())
+                    .getWorkInfosForUniqueWorkLiveData(currentAttendanceWithGames.attendance.oneTimeAttendCheckInEventWorkerName.toString())
                     .observeAsState()
                 val isRunning by remember(workInfos) {
                     derivedStateOf {

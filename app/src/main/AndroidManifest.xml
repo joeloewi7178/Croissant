@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.joeloewi.croissant">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="${applicationId}.permission.ACCESS_HOYOLAB_SESSION" /> <!-- back porting of notification permission -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -128,8 +127,7 @@
             android:name=".MainActivity"
             android:configChanges="screenLayout|smallestScreenSize|screenSize|orientation"
             android:exported="true"
-            android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustResize">
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -150,8 +148,7 @@
             android:name=".ResinStatusWidgetConfigurationActivity"
             android:configChanges="screenLayout|smallestScreenSize|screenSize|orientation"
             android:exported="false"
-            android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustResize">
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>

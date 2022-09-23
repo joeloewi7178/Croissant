@@ -16,7 +16,7 @@ suspend fun requestReview(
     //i guess google tests app by this device
     //and it does not have play store app, because i got an error on crashlytics :
     //Review Error(-1): The Play Store app is either not installed or not the official version
-    if (Build.PRODUCT != "Nexus 5X") {
+    if (!listOf("LG-H790", "LG-H791").contains(Build.MODEL.uppercase())) {
         runCatching {
             ReviewManagerFactory.create(context)
         }.mapCatching { reviewManager ->

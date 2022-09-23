@@ -57,7 +57,6 @@ class AttendanceDetailViewModel @Inject constructor(
 
     val checkedGames = mutableStateListOf<Game>()
     val attendanceWithGamesState = _attendanceWithGamesState.asStateFlow()
-    val cookie = _cookie.asStateFlow()
     val hourOfDay = _hourOfDay.asStateFlow()
     val minute = _minute.asStateFlow()
     val nickname = _nickname.asStateFlow()
@@ -107,21 +106,15 @@ class AttendanceDetailViewModel @Inject constructor(
     val updateAttendanceState = _updateAttendanceState.asStateFlow()
 
     fun setCookie(cookie: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            _cookie.update { cookie }
-        }
+        _cookie.update { cookie }
     }
 
     fun setHourOfDay(hourOfDay: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
-            _hourOfDay.update { hourOfDay }
-        }
+        _hourOfDay.update { hourOfDay }
     }
 
     fun setMinute(minute: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
-            _minute.update { minute }
-        }
+        _minute.update { minute }
     }
 
     init {

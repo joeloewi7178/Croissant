@@ -14,12 +14,21 @@ android {
 
     defaultConfig {
         applicationId = "com.joeloewi.croissant"
-        versionCode = 23
-        versionName = "1.0.22"
+        versionCode = 24
+        versionName = "1.0.23"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
+        }
+    }
+
+    signingConfigs {
+        create("release") {
+            keyAlias = System.getenv("ALIAS")
+            keyPassword = System.getenv("KEY_PASSWORD")
+            storeFile = file("../signing/croissant_key_store")
+            storePassword = System.getenv("KEY_STORE_PASSWORD")
         }
     }
 
@@ -33,13 +42,15 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
-    }
-    buildFeatures {
-        compose = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = libs.versions.androidxComposeCompiler.get()
+        val benchmark by creating {
+            initWith(release)
+            signingConfig = signingConfigs.getByName("release")
+            matchingFallbacks += listOf("release")
+            isDebuggable = false
+            proguardFiles("baseline-profiles-rules.pro")
+        }
     }
     packagingOptions {
         resources {
@@ -130,8 +141,10 @@ dependencies {
     debugImplementation(libs.leakcanary.android)
 
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.collections.immutable)
 
     implementation(libs.androidx.savedstate.ktx)
+    implementation(libs.androidx.profileinstaller)
 }
 
 kapt {

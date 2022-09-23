@@ -1,10 +1,7 @@
 package com.joeloewi.croissant.ui.navigation.main.settings.screen
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.ExperimentalMaterialApi
@@ -13,19 +10,17 @@ import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.joeloewi.croissant.R
+import com.joeloewi.croissant.state.SettingsState
+import com.joeloewi.croissant.state.rememberSettingsState
 import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
-import com.joeloewi.croissant.ui.navigation.main.settings.SettingsDestination
 import com.joeloewi.croissant.viewmodel.SettingsViewModel
-import com.joeloewi.domain.entity.Settings
 
 @ExperimentalLifecycleComposeApi
 @ExperimentalMaterialApi
@@ -35,24 +30,22 @@ fun SettingsScreen(
     navController: NavController,
     settingsViewModel: SettingsViewModel = hiltViewModel()
 ) {
-    val settings by settingsViewModel.settings.collectAsStateWithLifecycle()
+    val settingsState = rememberSettingsState(
+        navController = navController,
+        settingsViewModel = settingsViewModel
+    )
 
     SettingsContent(
-        settings = settings,
-        onDarkThemeEnabledChange = settingsViewModel::setDarkThemeEnabled,
-        onDeveloperInfoClick = {
-            navController.navigate(SettingsDestination.DeveloperInfoScreen.route)
-        }
+        settingsState = settingsState
     )
 }
 
+@ExperimentalLifecycleComposeApi
 @ExperimentalMaterialApi
 @ExperimentalMaterial3Api
 @Composable
 fun SettingsContent(
-    settings: Settings,
-    onDarkThemeEnabledChange: (Boolean) -> Unit,
-    onDeveloperInfoClick: () -> Unit
+    settingsState: SettingsState,
 ) {
     Scaffold(
         topBar = {
@@ -62,7 +55,7 @@ fun SettingsContent(
                 }
             )
         },
-        contentWindowInsets = WindowInsets.statusBars
+        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
@@ -87,9 +80,9 @@ fun SettingsContent(
             ) {
                 ListItem(
                     modifier = Modifier.toggleable(
-                        value = settings.darkThemeEnabled,
+                        value = settingsState.settings.darkThemeEnabled,
                         role = Role.Switch,
-                        onValueChange = onDarkThemeEnabledChange
+                        onValueChange = settingsState::setDarkThemeEnabled
                     ),
                     leadingContent = {
                         Icon(
@@ -107,7 +100,7 @@ fun SettingsContent(
                     },
                     trailingContent = {
                         Switch(
-                            checked = settings.darkThemeEnabled,
+                            checked = settingsState.settings.darkThemeEnabled,
                             onCheckedChange = null
                         )
                     }
@@ -132,7 +125,7 @@ fun SettingsContent(
             ) {
                 ListItem(
                     modifier = Modifier.clickable {
-                        onDeveloperInfoClick()
+                        settingsState.onDeveloperInfoClick()
                     },
                     leadingContent = {
                         Icon(

@@ -32,10 +32,10 @@ class MainViewModel @Inject constructor(
     private val updateSettingsUseCase: SettingsUseCase.SetIsFirstLaunch,
     private val powerManager: PowerManager,
     private val alarmManager: AlarmManager,
-    private val rootChecker: RootChecker,
+    rootChecker: RootChecker,
 ) : ViewModel() {
     private val _settings = getSettingsUseCase()
-    private val _isDeviceRooted = MutableStateFlow(false)
+    private val _isDeviceRooted = MutableStateFlow(rootChecker.isDeviceRooted())
 
     val hourFormat = application.is24HourFormat.flowOn(Dispatchers.Default).stateIn(
         scope = viewModelScope,
@@ -50,7 +50,11 @@ class MainViewModel @Inject constructor(
     val isDeviceRooted = _isDeviceRooted.asStateFlow()
     val appUpdateResultState =
         flow {
-            emit(AppUpdateManagerFactory.create(application))
+            emit(Build.MODEL)
+        }.filter {
+            !listOf("LG-H790", "LG-H791").contains(it.uppercase())
+        }.map {
+            AppUpdateManagerFactory.create(application)
         }.flatMapConcat {
             it.requestUpdateFlow()
         }.flowOn(Dispatchers.Default).catch { cause ->
@@ -81,18 +85,13 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun isIgnoringBatteryOptimizations() =
-        powerManager.isIgnoringBatteryOptimizations(application)
+    val isIgnoringBatteryOptimizations
+        get() = powerManager.isIgnoringBatteryOptimizations(application)
 
-    fun canScheduleExactAlarms() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        alarmManager.canScheduleExactAlarms()
-    } else {
-        true
-    }
-
-    fun checkIsDeviceRooted() {
-        viewModelScope.launch(Dispatchers.IO) {
-            _isDeviceRooted.update { rootChecker.isDeviceRooted() }
+    val canScheduleExactAlarms
+        get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            alarmManager.canScheduleExactAlarms()
+        } else {
+            true
         }
-    }
 }

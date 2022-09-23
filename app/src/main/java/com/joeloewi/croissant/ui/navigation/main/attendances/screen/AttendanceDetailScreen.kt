@@ -3,15 +3,13 @@ package com.joeloewi.croissant.ui.navigation.main.attendances.screen
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,8 +20,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -31,8 +27,8 @@ import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.state.Lce
-import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
+import com.joeloewi.croissant.state.AttendanceDetailState
+import com.joeloewi.croissant.state.rememberAttendanceDetailState
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.*
@@ -40,9 +36,8 @@ import com.joeloewi.croissant.viewmodel.AttendanceDetailViewModel
 import com.joeloewi.domain.common.HoYoLABGame
 import com.joeloewi.domain.common.LoggableWorker
 import com.joeloewi.domain.entity.Game
-import com.joeloewi.domain.entity.relational.AttendanceWithGames
-import kotlinx.coroutines.launch
 
+@ExperimentalLayoutApi
 @ExperimentalLifecycleComposeApi
 @ExperimentalFoundationApi
 @ExperimentalMaterial3Api
@@ -53,25 +48,14 @@ fun AttendanceDetailScreen(
 ) {
     val context = LocalContext.current
     val activity = LocalActivity.current
-    val coroutineScope = rememberCoroutineScope()
-    val hourOfDay by attendanceDetailViewModel.hourOfDay.collectAsStateWithLifecycle()
-    val minute by attendanceDetailViewModel.minute.collectAsStateWithLifecycle()
-    val nickname by attendanceDetailViewModel.nickname.collectAsStateWithLifecycle()
-    val uid by attendanceDetailViewModel.uid.collectAsStateWithLifecycle()
-    val checkedGame = remember { attendanceDetailViewModel.checkedGames }
-    val checkSessionWorkerSuccessLogCount by attendanceDetailViewModel.checkSessionWorkerSuccessLogCount.collectAsStateWithLifecycle()
-    val checkSessionWorkerFailureLogCount by attendanceDetailViewModel.checkSessionWorkerFailureLogCount.collectAsStateWithLifecycle()
-    val attendCheckInEventWorkerSuccessLogCount by attendanceDetailViewModel.attendCheckInEventWorkerSuccessLogCount.collectAsStateWithLifecycle()
-    val attendCheckInEventWorkerFailureLogCount by attendanceDetailViewModel.attendCheckInEventWorkerFailureLogCount.collectAsStateWithLifecycle()
-    val updateAttendanceState by attendanceDetailViewModel.updateAttendanceState.collectAsStateWithLifecycle()
-    val attendanceWithGamesState by attendanceDetailViewModel.attendanceWithGamesState.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
-    val hasExecutedAtLeastOnce by remember(
-        attendCheckInEventWorkerSuccessLogCount,
-        attendCheckInEventWorkerFailureLogCount
-    ) {
-        derivedStateOf { attendCheckInEventWorkerSuccessLogCount > 0 || attendCheckInEventWorkerFailureLogCount > 0 }
-    }
+    val attendanceDetailState =
+        rememberAttendanceDetailState(
+            snackbarHostState = remember { SnackbarHostState() },
+            attendanceDetailViewModel = attendanceDetailViewModel,
+            navController = navController
+        )
+    val isNavigateUpRequested = attendanceDetailState.isNavigateUpRequested
+    val hasExecutedAtLeastOnce = attendanceDetailState.hasExecutedAtLeastOnce
 
     LaunchedEffect(attendanceDetailViewModel) {
         getResultFromPreviousComposable<String>(
@@ -79,7 +63,13 @@ fun AttendanceDetailScreen(
             key = COOKIE
         )?.let {
             attendanceDetailViewModel.setCookie(cookie = it)
-            snackbarHostState.showSnackbar(context.getString(R.string.press_save_button_to_commit))
+            attendanceDetailState.snackbarHostState.showSnackbar(context.getString(R.string.press_save_button_to_commit))
+        }
+    }
+
+    LaunchedEffect(isNavigateUpRequested) {
+        if (isNavigateUpRequested) {
+            navController.navigateUp()
         }
     }
 
@@ -94,110 +84,45 @@ fun AttendanceDetailScreen(
     }
 
     AttendanceDetailContent(
-        snackbarHostState = snackbarHostState,
-        attendanceWithGamesState = attendanceWithGamesState,
-        previousBackStackEntry = navController.previousBackStackEntry,
-        hourOfDay = hourOfDay,
-        minute = minute,
-        nickname = nickname,
-        uid = uid,
-        checkedGames = checkedGame,
-        checkSessionWorkerSuccessLogCount = checkSessionWorkerSuccessLogCount,
-        checkSessionWorkerFailureLogCount = checkSessionWorkerFailureLogCount,
-        attendCheckInEventWorkerSuccessLogCount = attendCheckInEventWorkerSuccessLogCount,
-        attendCheckInEventWorkerFailureLogCount = attendCheckInEventWorkerFailureLogCount,
-        updateAttendanceState = updateAttendanceState,
-        onHourOfDayChange = attendanceDetailViewModel::setHourOfDay,
-        onMinuteChange = attendanceDetailViewModel::setMinute,
-        onNavigateUp = {
-            navController.navigateUp()
-        },
-        onClickLogSummary = {
-            navController.navigate(
-                AttendancesDestination.AttendanceLogsScreen().generateRoute(
-                    attendanceDetailViewModel.attendanceId,
-                    it
-                )
-            )
-        },
-        onClickRefreshSession = {
-            navController.navigate(AttendancesDestination.LoginHoYoLabScreen.route)
-        },
-        onClickSave = {
-            if (checkedGame.isEmpty()) {
-                coroutineScope.launch {
-                    snackbarHostState.showSnackbar(context.getString(R.string.select_at_least_one_game))
-                }
-            } else {
-                attendanceDetailViewModel.updateAttendance()
-            }
-        }
+        attendanceDetailState = attendanceDetailState
     )
 }
 
+@ExperimentalLayoutApi
 @ExperimentalLifecycleComposeApi
 @ExperimentalFoundationApi
 @ExperimentalMaterial3Api
 @Composable
 private fun AttendanceDetailContent(
-    snackbarHostState: SnackbarHostState,
-    attendanceWithGamesState: Lce<AttendanceWithGames>,
-    previousBackStackEntry: NavBackStackEntry?,
-    hourOfDay: Int,
-    minute: Int,
-    nickname: String,
-    uid: Long,
-    checkedGames: SnapshotStateList<Game>,
-    checkSessionWorkerSuccessLogCount: Long,
-    checkSessionWorkerFailureLogCount: Long,
-    attendCheckInEventWorkerSuccessLogCount: Long,
-    attendCheckInEventWorkerFailureLogCount: Long,
-    updateAttendanceState: Lce<Unit?>,
-    onHourOfDayChange: (Int) -> Unit,
-    onMinuteChange: (Int) -> Unit,
-    onNavigateUp: () -> Unit,
-    onClickLogSummary: (LoggableWorker) -> Unit,
-    onClickRefreshSession: () -> Unit,
-    onClickSave: () -> Unit
+    attendanceDetailState: AttendanceDetailState,
 ) {
-    val scrollableState = rememberScrollState()
-    val (showUpdateAttendanceProgressDialog, onShowUpdateAttendanceProgressDialogChange) = rememberSaveable {
-        mutableStateOf(false)
-    }
-
-    LaunchedEffect(updateAttendanceState) {
-        when (updateAttendanceState) {
-            is Lce.Loading -> {
-                onShowUpdateAttendanceProgressDialogChange(true)
-            }
-
-            is Lce.Content -> {
-                onShowUpdateAttendanceProgressDialogChange(false)
-                if (updateAttendanceState.content != null) {
-                    onNavigateUp()
-                }
-            }
-
-            is Lce.Error -> {
-                onShowUpdateAttendanceProgressDialogChange(false)
-            }
-        }
-    }
+    val list by rememberUpdatedState(
+        newValue = listOf(
+            stringResource(id = R.string.uid) to attendanceDetailState.uid.toString(),
+            stringResource(id = R.string.nickname) to attendanceDetailState.nickname,
+            stringResource(id = R.string.games_to_attend) to ""
+        )
+    )
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = stringResource(id = R.string.attendance_of_nickname, nickname))
+                    Text(
+                        text = stringResource(
+                            id = R.string.attendance_of_nickname,
+                            attendanceDetailState.nickname
+                        )
+                    )
                 },
                 navigationIcon = navigationIconButton(
-                    previousBackStackEntry = previousBackStackEntry,
-                    onClick = onNavigateUp
+                    previousBackStackEntry = attendanceDetailState.previousBackStackEntry,
+                    onClick = attendanceDetailState::onNavigateUp
                 ),
                 actions = {
                     IconButton(
-                        onClick = onClickSave,
-                        enabled = attendanceWithGamesState is Lce.Content
+                        onClick = attendanceDetailState::onClickSave,
+                        enabled = attendanceDetailState.isSuccessfullyLoaded
                     ) {
                         Icon(
                             imageVector = Icons.Default.Save,
@@ -208,17 +133,14 @@ private fun AttendanceDetailContent(
             )
         },
         snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
+            SnackbarHost(hostState = attendanceDetailState.snackbarHostState)
         },
-        contentWindowInsets = WindowInsets.statusBars
+        contentWindowInsets = WindowInsets.displayCutout
     ) { innerPadding ->
-        val loggableWorkers =
-            remember { LoggableWorker.values().filter { it != LoggableWorker.UNKNOWN } }
-
-        Column(
+        LazyColumn(
             modifier = Modifier
-                .verticalScroll(scrollableState)
                 .fillMaxSize()
+                .consumedWindowInsets(WindowInsets.navigationBars)
                 .padding(innerPadding)
                 .then(Modifier.padding(DefaultDp)),
             verticalArrangement = Arrangement.spacedBy(
@@ -226,31 +148,23 @@ private fun AttendanceDetailContent(
                 alignment = Alignment.CenterVertically
             )
         ) {
-            Text(
-                text = stringResource(id = R.string.session),
-                style = MaterialTheme.typography.headlineSmall
-            )
-
-            Column(
-                modifier = Modifier
-                    .padding(DefaultDp)
-                    .fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(
-                    space = DefaultDp,
-                    alignment = Alignment.CenterVertically
+            item("userInformationHeadline") {
+                Text(
+                    text = stringResource(id = R.string.session),
+                    style = MaterialTheme.typography.headlineSmall
                 )
-            ) {
-                listOf(
-                    stringResource(id = R.string.uid) to uid.toString(),
-                    stringResource(id = R.string.nickname) to nickname,
-                    stringResource(id = R.string.games_to_attend) to ""
-                ).forEach {
+            }
+
+            item("sessionInfos") {
+                list.forEach {
                     SessionInfoRow(
                         key = it.first,
                         value = it.second
                     )
                 }
+            }
 
+            item("games") {
                 LazyRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(space = DefaultDp)
@@ -262,14 +176,16 @@ private fun AttendanceDetailContent(
                         ConnectedGameListItem(
                             modifier = Modifier.animateItemPlacement(),
                             hoYoLABGame = item,
-                            checkedGames = checkedGames,
+                            checkedGames = attendanceDetailState.checkedGames,
                         )
                     }
                 }
+            }
 
+            item("changeCookie") {
                 FilledTonalButton(
                     modifier = Modifier.fillMaxWidth(),
-                    onClick = onClickRefreshSession
+                    onClick = attendanceDetailState::onClickRefreshSession
                 ) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(
@@ -287,63 +203,56 @@ private fun AttendanceDetailContent(
                 }
             }
 
-            Text(
-                text = stringResource(id = R.string.schedule_time_setting),
-                style = MaterialTheme.typography.headlineSmall
-            )
+            item("timeSettingHeadline") {
+                Text(
+                    text = stringResource(id = R.string.schedule_time_setting),
+                    style = MaterialTheme.typography.headlineSmall
+                )
+            }
 
-            TimePicker(
-                modifier = Modifier.fillMaxWidth(),
-                hourOfDay = hourOfDay,
-                minute = minute,
-                onHourOfDayChange = onHourOfDayChange,
-                onMinuteChange = onMinuteChange
-            )
+            item("timePicker") {
+                TimePicker(
+                    modifier = Modifier.fillMaxWidth(),
+                    hourOfDay = attendanceDetailState.hourOfDay,
+                    minute = attendanceDetailState.minute,
+                    onHourOfDayChange = attendanceDetailState::onHourOfDayChange,
+                    onMinuteChange = attendanceDetailState::onMinuteChange
+                )
+            }
 
-            Text(
-                text = stringResource(id = R.string.execution_log_summary),
-                style = MaterialTheme.typography.headlineSmall
-            )
+            item("logSummaryHeadline") {
+                Text(
+                    text = stringResource(id = R.string.execution_log_summary),
+                    style = MaterialTheme.typography.headlineSmall
+                )
+            }
 
-            loggableWorkers.forEach {
-                when (it) {
-                    LoggableWorker.ATTEND_CHECK_IN_EVENT -> {
-                        LogSummaryRow(
-                            title = stringResource(id = R.string.attendance),
-                            failureLogCount = attendCheckInEventWorkerFailureLogCount,
-                            successLogCount = attendCheckInEventWorkerSuccessLogCount,
-                            onClickLogSummary = {
-                                onClickLogSummary(it)
-                            }
-                        )
+            item(LoggableWorker.ATTEND_CHECK_IN_EVENT) {
+                LogSummaryRow(
+                    title = stringResource(id = R.string.attendance),
+                    failureLogCount = attendanceDetailState.attendCheckInEventWorkerFailureLogCount,
+                    successLogCount = attendanceDetailState.attendCheckInEventWorkerSuccessLogCount,
+                    onClickLogSummary = {
+                        attendanceDetailState.onClickLogSummary(LoggableWorker.ATTEND_CHECK_IN_EVENT)
                     }
-                    LoggableWorker.CHECK_SESSION -> {
-                        LogSummaryRow(
-                            title = stringResource(id = R.string.session_validation),
-                            failureLogCount = checkSessionWorkerFailureLogCount,
-                            successLogCount = checkSessionWorkerSuccessLogCount,
-                            onClickLogSummary = {
-                                onClickLogSummary(it)
-                            }
-                        )
+                )
+            }
+
+            item(LoggableWorker.CHECK_SESSION) {
+                LogSummaryRow(
+                    title = stringResource(id = R.string.session_validation),
+                    failureLogCount = attendanceDetailState.checkSessionWorkerFailureLogCount,
+                    successLogCount = attendanceDetailState.checkSessionWorkerSuccessLogCount,
+                    onClickLogSummary = {
+                        attendanceDetailState.onClickLogSummary(LoggableWorker.CHECK_SESSION)
                     }
-                    LoggableWorker.UNKNOWN -> {
-                        LogSummaryRow(
-                            title = "",
-                            failureLogCount = 0,
-                            successLogCount = 0,
-                            onClickLogSummary = {}
-                        )
-                    }
-                }
+                )
             }
         }
 
-        if (showUpdateAttendanceProgressDialog) {
+        if (attendanceDetailState.isProgressDialogShowing) {
             ProgressDialog(
-                onDismissRequest = {
-                    onShowUpdateAttendanceProgressDialogChange(false)
-                }
+                onDismissRequest = {}
             )
         }
     }

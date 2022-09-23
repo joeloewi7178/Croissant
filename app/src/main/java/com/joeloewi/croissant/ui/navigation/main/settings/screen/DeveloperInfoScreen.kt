@@ -19,11 +19,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.joeloewi.croissant.R
+import com.joeloewi.croissant.state.DeveloperInfoState
+import com.joeloewi.croissant.state.rememberDeveloperInfoState
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.navigationIconButton
 
@@ -33,20 +34,17 @@ import com.joeloewi.croissant.util.navigationIconButton
 fun DeveloperInfoScreen(
     navController: NavController
 ) {
+    val developerInfoState = rememberDeveloperInfoState(navController = navController)
 
     DeveloperInfoContent(
-        previousBackStackEntry = navController.previousBackStackEntry,
-        onNavigateUp = {
-            navController.navigateUp()
-        }
+        developerInfoState = developerInfoState
     )
 }
 
 @ExperimentalMaterial3Api
 @Composable
 private fun DeveloperInfoContent(
-    previousBackStackEntry: NavBackStackEntry?,
-    onNavigateUp: () -> Unit
+    developerInfoState: DeveloperInfoState
 ) {
     val activity = LocalActivity.current
 
@@ -54,15 +52,15 @@ private fun DeveloperInfoContent(
         topBar = {
             TopAppBar(
                 navigationIcon = navigationIconButton(
-                    previousBackStackEntry = previousBackStackEntry,
-                    onClick = onNavigateUp
+                    previousBackStackEntry = developerInfoState.previousBackStackEntry,
+                    onClick = developerInfoState::onNavigateUp
                 ),
                 title = {
                     Text(text = stringResource(id = R.string.developer_info))
                 }
             )
         },
-        contentWindowInsets = WindowInsets.statusBars
+        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier

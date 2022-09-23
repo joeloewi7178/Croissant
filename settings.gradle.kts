@@ -15,5 +15,5 @@ dependencyResolutionManagement {
     }
 }
 
-include(":app", ":domain", ":data")
+include(":app", ":domain", ":data", ":benchmark")
 rootProject.name = "Croissant"
