@@ -8,7 +8,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -18,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import com.joeloewi.croissant.R
+import com.joeloewi.croissant.state.CreateAttendanceState
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.util.LocalHourFormat
 import com.joeloewi.croissant.util.TimePicker
@@ -32,44 +36,8 @@ import java.time.ZonedDateTime
 @Composable
 fun SetTime(
     modifier: Modifier,
-    hourOfDay: Int,
-    minute: Int,
-    tickPerSecond: @Composable () -> ZonedDateTime,
-    onNextButtonClick: () -> Unit,
-    onHourOfDayChange: (Int) -> Unit,
-    onMinuteChange: (Int) -> Unit
+    createAttendanceState: CreateAttendanceState,
 ) {
-    val currentTickPerSecond by rememberUpdatedState(newValue = tickPerSecond())
-    val canExecuteToday by remember(currentTickPerSecond, hourOfDay, minute) {
-        derivedStateOf {
-            (currentTickPerSecond.hour < hourOfDay) || (currentTickPerSecond.hour == hourOfDay && currentTickPerSecond.minute < minute)
-        }
-    }
-
-    val todayOrTomorrow by rememberUpdatedState(
-        newValue = if (canExecuteToday) {
-            stringResource(id = R.string.today)
-        } else {
-            stringResource(id = R.string.tomorrow)
-        }
-    )
-
-    val hourFormat = LocalHourFormat.current
-    val formattedTime by remember(
-        hourOfDay,
-        minute,
-        hourFormat
-    ) {
-        derivedStateOf {
-            ZonedDateTime.now()
-                .withHour(hourOfDay)
-                .withMinute(minute)
-                .format(
-                    dateTimeFormatterPerHourFormat(hourFormat)
-                )
-        }
-    }
-
     Scaffold(
         modifier = modifier,
         bottomBar = {
@@ -78,7 +46,7 @@ fun SetTime(
                     .navigationBarsPadding()
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.surface),
-                onClick = onNextButtonClick
+                onClick = createAttendanceState::onNextButtonClick
             ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(
@@ -120,13 +88,7 @@ fun SetTime(
                 style = MaterialTheme.typography.bodyMedium
             )
 
-            TimePicker(
-                modifier = Modifier.fillMaxWidth(),
-                hourOfDay = hourOfDay,
-                minute = minute,
-                onHourOfDayChange = onHourOfDayChange,
-                onMinuteChange = onMinuteChange
-            )
+            TimePickerWithState(createAttendanceState = createAttendanceState)
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -142,10 +104,7 @@ fun SetTime(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                Text(
-                    text = "$todayOrTomorrow $formattedTime",
-                    style = MaterialTheme.typography.headlineMedium
-                )
+                FirstExecutionTime(createAttendanceState = createAttendanceState)
             }
 
             Card(
@@ -174,4 +133,75 @@ fun SetTime(
             }
         }
     }
+}
+
+@ObsoleteCoroutinesApi
+@ExperimentalLifecycleComposeApi
+@Composable
+private fun TimePickerWithState(
+    createAttendanceState: CreateAttendanceState
+) {
+    TimePicker(
+        modifier = Modifier.fillMaxWidth(),
+        hourOfDay = createAttendanceState.hourOfDay,
+        minute = createAttendanceState.minute,
+        onHourOfDayChange = remember(createAttendanceState) {
+            createAttendanceState::onHourOfDayChange
+        },
+        onMinuteChange = remember(createAttendanceState) { createAttendanceState::onMinuteChange }
+    )
+}
+
+@ObsoleteCoroutinesApi
+@ExperimentalLifecycleComposeApi
+@Composable
+private fun FirstExecutionTime(
+    createAttendanceState: CreateAttendanceState
+) {
+    val hourOfDay = createAttendanceState.hourOfDay
+    val minute = createAttendanceState.minute
+    val currentTickPerSecond = createAttendanceState.tickPerSecond
+    val canExecuteToday by remember(currentTickPerSecond, hourOfDay, minute) {
+        derivedStateOf {
+            (currentTickPerSecond.hour < hourOfDay) || (currentTickPerSecond.hour == hourOfDay && currentTickPerSecond.minute < minute)
+        }
+    }
+    val today = stringResource(id = R.string.today)
+    val tomorrow = stringResource(id = R.string.tomorrow)
+
+    val todayOrTomorrow by remember(canExecuteToday) {
+        derivedStateOf {
+            if (canExecuteToday) {
+                today
+            } else {
+                tomorrow
+            }
+        }
+    }
+
+    val hourFormat = LocalHourFormat.current
+    val formattedTime by remember(
+        hourOfDay,
+        minute,
+        hourFormat
+    ) {
+        derivedStateOf {
+            ZonedDateTime.now()
+                .withHour(hourOfDay)
+                .withMinute(minute)
+                .format(
+                    dateTimeFormatterPerHourFormat(hourFormat)
+                )
+        }
+    }
+    val firstExecutionTime by remember(todayOrTomorrow, formattedTime) {
+        derivedStateOf {
+            "$todayOrTomorrow $formattedTime"
+        }
+    }
+
+    Text(
+        text = firstExecutionTime,
+        style = MaterialTheme.typography.headlineMedium
+    )
 }

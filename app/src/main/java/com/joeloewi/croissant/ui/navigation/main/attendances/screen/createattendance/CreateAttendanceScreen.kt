@@ -148,14 +148,7 @@ fun CreateAttendanceContent(
             CreateAttendancePage.SetTime -> {
                 SetTime(
                     modifier = Modifier.padding(innerPadding),
-                    hourOfDay = createAttendanceState.hourOfDay,
-                    minute = createAttendanceState.minute,
-                    tickPerSecond = { createAttendanceState.tickPerSecond },
-                    onNextButtonClick = {
-                        createAttendanceState.onNextButtonClick()
-                    },
-                    onHourOfDayChange = createAttendanceState::onHourOfDayChange,
-                    onMinuteChange = createAttendanceState::onMinuteChange
+                    createAttendanceState = createAttendanceState,
                 )
             }
         }

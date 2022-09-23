@@ -55,14 +55,12 @@ class CreateResinStatusWidgetViewModel @Inject constructor(
     val pagedAttendancesWithGames = getAllPagedAttendanceUseCase().cachedIn(viewModelScope)
 
     fun setInterval(interval: Long) {
-        viewModelScope.launch(Dispatchers.IO) {
-            _interval.update { interval }
-        }
+        _interval.update { interval }
     }
 
     fun configureAppWidget() {
+        _createResinStatusWidgetState.update { Lce.Loading }
         viewModelScope.launch(Dispatchers.IO) {
-            _createResinStatusWidgetState.update { Lce.Loading }
             _createResinStatusWidgetState.update {
                 this.runCatching {
                     val resinStatusWidget = ResinStatusWidget(

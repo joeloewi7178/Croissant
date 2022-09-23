@@ -9,6 +9,7 @@ import com.joeloewi.croissant.viewmodel.CreateAttendanceViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.ObsoleteCoroutinesApi
+import java.time.ZonedDateTime
 
 @ExperimentalLifecycleComposeApi
 @ObsoleteCoroutinesApi
@@ -34,7 +35,7 @@ class CreateAttendanceState(
         @Composable get() = createAttendanceViewModel.hourOfDay.collectAsStateWithLifecycle().value
     val minute
         @Composable get() = createAttendanceViewModel.minute.collectAsStateWithLifecycle().value
-    val tickPerSecond
+    val tickPerSecond: ZonedDateTime
         @Composable get() = createAttendanceViewModel.tickPerSecond.collectAsStateWithLifecycle().value
     val pageIndex
         @Composable get() = createAttendanceViewModel.pageIndex.collectAsStateWithLifecycle().value

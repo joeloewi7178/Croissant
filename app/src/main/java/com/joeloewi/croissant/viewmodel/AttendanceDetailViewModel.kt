@@ -118,8 +118,8 @@ class AttendanceDetailViewModel @Inject constructor(
     }
 
     init {
+        _attendanceWithGamesState.update { Lce.Loading }
         viewModelScope.launch(Dispatchers.IO) {
-            _attendanceWithGamesState.update { Lce.Loading }
             _attendanceWithGamesState.update {
                 getOneAttendanceUseCase.runCatching {
                     invoke(attendanceId)
@@ -156,8 +156,8 @@ class AttendanceDetailViewModel @Inject constructor(
     }
 
     fun updateAttendance() {
+        _updateAttendanceState.update { Lce.Loading }
         viewModelScope.launch(Dispatchers.IO) {
-            _updateAttendanceState.update { Lce.Loading }
             _updateAttendanceState.update {
                 getOneAttendanceUseCase.runCatching {
                     invoke(attendanceId)

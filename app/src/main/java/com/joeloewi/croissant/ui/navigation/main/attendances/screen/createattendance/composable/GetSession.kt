@@ -39,7 +39,7 @@ fun GetSession(
 ) {
     val configuration = LocalConfiguration.current
     val responsiveHorizontalPadding by remember(configuration) {
-        derivedStateOf { (configuration.screenWidthDp * 0.15).dp }
+        derivedStateOf { (configuration.screenWidthDp * 0.2).dp }
     }
 
     Scaffold(
