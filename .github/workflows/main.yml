@@ -45,7 +45,13 @@ jobs:
           script: ./gradlew :benchmark:connectedBenchmarkAndroidTest -P android.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile
       
       - name: Move generated baseline profile to target folder
-        run: ls ./benchmark/build/outputs/connected_android_test_additional_output/benchmark/connected | mv -f './benchmark/build/outputs/connected_android_test_additional_output/benchmark/connected/baseProfGenerator(AVD) - 11/BaselineProfileGenerator_generate-baseline-prof.txt' ./app/src/main/baseline-prof.txt
+        run: mv -f './benchmark/build/outputs/connected_android_test_additional_output/benchmark/connected/baseProfGenerator(AVD) - 11/BaselineProfileGenerator_generate-baseline-prof.txt' ./app/src/main/baseline-prof.txt
+      
+      - name: Check baseline-prof file status
+        run: stat ./app/src/main/baseline-prof.txt
+        
+      - name: View some lines of baseline-prof file
+        run: head ./app/src/main/baseline-prof.txt
       
       - name: Build with Gradle
         run: ./gradlew assemble
