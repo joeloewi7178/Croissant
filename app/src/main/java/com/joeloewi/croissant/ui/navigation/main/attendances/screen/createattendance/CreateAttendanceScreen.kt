@@ -2,10 +2,7 @@ package com.joeloewi.croissant.ui.navigation.main.attendances.screen.createatten
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.displayCutout
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
@@ -130,24 +127,30 @@ fun CreateAttendanceContent(
                 )
             )
         },
-        contentWindowInsets = WindowInsets.displayCutout
+        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
     ) { innerPadding ->
         when (createAttendanceState.pages[pageIndex]) {
             CreateAttendancePage.GetSession -> {
                 GetSession(
-                    modifier = Modifier.padding(innerPadding),
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .consumedWindowInsets(innerPadding),
                     onLoginHoYoLAB = createAttendanceState::onLoginHoYoLAB
                 )
             }
             CreateAttendancePage.SelectGames -> {
                 SelectGames(
-                    modifier = Modifier.padding(innerPadding),
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .consumedWindowInsets(innerPadding),
                     createAttendanceState = createAttendanceState
                 )
             }
             CreateAttendancePage.SetTime -> {
                 SetTime(
-                    modifier = Modifier.padding(innerPadding),
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .consumedWindowInsets(innerPadding),
                     createAttendanceState = createAttendanceState,
                 )
             }

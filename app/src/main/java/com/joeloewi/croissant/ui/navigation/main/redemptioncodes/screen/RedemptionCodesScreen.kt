@@ -63,6 +63,7 @@ import com.joeloewi.domain.common.HoYoLABGame
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 
+@ExperimentalLayoutApi
 @ExperimentalLifecycleComposeApi
 @ExperimentalFoundationApi
 @ExperimentalMaterial3Api
@@ -79,6 +80,7 @@ fun RedemptionCodesScreen(
     )
 }
 
+@ExperimentalLayoutApi
 @ExperimentalLifecycleComposeApi
 @ExperimentalFoundationApi
 @ExperimentalMaterial3Api
@@ -99,7 +101,11 @@ private fun RedemptionCodesContent(
         },
         contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
     ) { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding)) {
+        Box(
+            modifier = Modifier
+                .padding(innerPadding)
+                .consumedWindowInsets(innerPadding)
+        ) {
             with(redemptionCodesState.hoYoLABGameRedemptionCodesState) {
                 when (this) {
                     is Lce.Content -> {
@@ -127,10 +133,7 @@ private fun RedemptionCodesContent(
 fun RedemptionCodesLoading() {
     LazyColumn(
         modifier = Modifier
-            .fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(
-            space = DefaultDp
-        )
+            .fillMaxSize()
     ) {
         items(
             items = IntArray(3) { it }.toTypedArray(),
@@ -371,7 +374,8 @@ fun RedemptionCodeListItem(
 fun RedemptionCodeListItemPlaceholder() {
     Card(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .padding(horizontal = DefaultDp, vertical = HalfDp),
     ) {
         Column(
             modifier = Modifier

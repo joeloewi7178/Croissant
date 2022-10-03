@@ -140,9 +140,9 @@ private fun AttendanceDetailContent(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .consumedWindowInsets(WindowInsets.navigationBars)
                 .padding(innerPadding)
-                .then(Modifier.padding(DefaultDp)),
+                .consumedWindowInsets(innerPadding)
+                .then(Modifier.padding(horizontal = DefaultDp)),
             verticalArrangement = Arrangement.spacedBy(
                 space = DefaultDp,
                 alignment = Alignment.CenterVertically

@@ -26,6 +26,7 @@ import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.ProgressDialog
 import com.joeloewi.croissant.viewmodel.ResinStatusWidgetDetailViewModel
 
+@ExperimentalLayoutApi
 @ExperimentalLifecycleComposeApi
 @ExperimentalMaterial3Api
 @Composable
@@ -42,6 +43,7 @@ fun ResinStatusWidgetDetailScreen(
     )
 }
 
+@ExperimentalLayoutApi
 @ExperimentalLifecycleComposeApi
 @ExperimentalMaterial3Api
 @Composable
@@ -74,6 +76,7 @@ fun ResinStatusWidgetDetailContent(
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .navigationBarsPadding()
                     .padding(DefaultDp)
                     .background(MaterialTheme.colorScheme.surface),
                 onClick = resinStatusWidgetDetailState::updateResinStatusWidget
@@ -97,6 +100,7 @@ fun ResinStatusWidgetDetailContent(
         Column(
             modifier = Modifier
                 .padding(innerPadding)
+                .consumedWindowInsets(innerPadding)
                 .fillMaxSize()
                 .verticalScroll(state = rememberScrollState())
                 .then(Modifier.padding(DefaultDp)),

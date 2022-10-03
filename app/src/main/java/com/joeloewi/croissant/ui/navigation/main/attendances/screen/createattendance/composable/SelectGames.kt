@@ -44,6 +44,7 @@ import com.joeloewi.domain.entity.GameRecord
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 
+@ExperimentalLayoutApi
 @ExperimentalLifecycleComposeApi
 @ObsoleteCoroutinesApi
 @ExperimentalFoundationApi
@@ -91,14 +92,8 @@ fun SelectGames(
         }
     }
 
-    LaunchedEffect(duplicatedAttendance) {
-        if (duplicatedAttendance != null) {
-            selectGamesState.onShowDuplicatedAttendanceDialogChange(true to duplicatedAttendance.id)
-        }
-    }
-
     Scaffold(
-        modifier = modifier.padding(DefaultDp),
+        modifier = modifier,
         snackbarHost = {
             SnackbarHost(hostState = selectGamesState.snackbarHostState)
         },
@@ -125,6 +120,7 @@ fun SelectGames(
                 FilledTonalButton(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(horizontal = DefaultDp)
                         .navigationBarsPadding()
                         .background(MaterialTheme.colorScheme.surface),
                     enabled = !selectGamesState.noGamesSelected,
@@ -149,6 +145,11 @@ fun SelectGames(
         contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
     ) { innerPadding ->
         Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .consumedWindowInsets(innerPadding)
+                .padding(horizontal = DefaultDp),
             verticalArrangement = Arrangement.spacedBy(DefaultDp)
         ) {
             Text(
@@ -222,18 +223,13 @@ fun SelectGames(
             }
         }
 
-        if (selectGamesState.showDuplicatedAttendanceDialog.first) {
+        if (duplicatedAttendance != null) {
             AlertDialog(
-                onDismissRequest = {
-                    selectGamesState.onShowDuplicatedAttendanceDialogChange(false to 0L)
-                },
+                onDismissRequest = { },
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            with(selectGamesState) {
-                                onNavigateToAttendanceDetailScreen(showDuplicatedAttendanceDialog.second)
-                                onShowDuplicatedAttendanceDialogChange(false to 0L)
-                            }
+                            selectGamesState.onNavigateToAttendanceDetailScreen(duplicatedAttendance.id)
                         }
                     ) {
                         Text(text = stringResource(id = R.string.confirm))
@@ -242,10 +238,7 @@ fun SelectGames(
                 dismissButton = {
                     TextButton(
                         onClick = {
-                            with(selectGamesState) {
-                                onShowDuplicatedAttendanceDialogChange(false to 0L)
-                                onCancelCreateAttendance()
-                            }
+                            selectGamesState.onCancelCreateAttendance()
                         }
                     ) {
                         Text(text = stringResource(id = R.string.dismiss))

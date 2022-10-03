@@ -42,6 +42,7 @@ import com.joeloewi.croissant.viewmodel.CreateResinStatusWidgetViewModel
 import com.joeloewi.domain.common.HoYoLABGame
 import com.joeloewi.domain.entity.relational.AttendanceWithGames
 
+@ExperimentalLayoutApi
 @ExperimentalLifecycleComposeApi
 @ExperimentalMaterial3Api
 @Composable
@@ -70,6 +71,7 @@ fun CreateResinStatusWidgetScreen(
     )
 }
 
+@ExperimentalLayoutApi
 @ExperimentalLifecycleComposeApi
 @ExperimentalMaterial3Api
 @Composable
@@ -157,8 +159,10 @@ fun CreateResinStatusWidgetContent(
         if (pagedAttendancesWithGames.isEmpty()) {
             Column(
                 modifier = Modifier
+                    .padding(innerPadding)
+                    .consumedWindowInsets(innerPadding)
                     .fillMaxSize()
-                    .padding(DoubleDp),
+                    .then(Modifier.padding(DoubleDp)),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -184,6 +188,7 @@ fun CreateResinStatusWidgetContent(
                 state = lazyListState,
                 modifier = Modifier
                     .padding(innerPadding)
+                    .consumedWindowInsets(innerPadding)
                     .fillMaxSize()
                     .then(Modifier.padding(DefaultDp)),
                 verticalArrangement = Arrangement.spacedBy(

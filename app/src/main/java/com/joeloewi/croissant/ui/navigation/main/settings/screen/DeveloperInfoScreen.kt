@@ -28,7 +28,7 @@ import com.joeloewi.croissant.state.rememberDeveloperInfoState
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.navigationIconButton
 
-
+@ExperimentalLayoutApi
 @ExperimentalMaterial3Api
 @Composable
 fun DeveloperInfoScreen(
@@ -41,6 +41,7 @@ fun DeveloperInfoScreen(
     )
 }
 
+@ExperimentalLayoutApi
 @ExperimentalMaterial3Api
 @Composable
 private fun DeveloperInfoContent(
@@ -65,6 +66,7 @@ private fun DeveloperInfoContent(
         LazyColumn(
             modifier = Modifier
                 .padding(innerPadding)
+                .consumedWindowInsets(innerPadding)
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {

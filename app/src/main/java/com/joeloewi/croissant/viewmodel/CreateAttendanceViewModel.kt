@@ -45,65 +45,57 @@ class CreateAttendanceViewModel @Inject constructor(
     private val getOneByUidAttendanceUseCase: AttendanceUseCase.GetOneByUid,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    private val pageIndexKey = "pageIndex"
+    private val _pageIndexKey = "pageIndex"
     private val _cookie = MutableStateFlow("")
     private val _hourOfDay = MutableStateFlow(ZonedDateTime.now().hour)
     private val _minute = MutableStateFlow(ZonedDateTime.now().minute)
     private val _insertAttendanceState = MutableStateFlow<Lce<List<Long>>>(Lce.Content(listOf()))
-    private val _duplicatedAttendance = MutableStateFlow<Attendance?>(null)
     private val _userInfo = _cookie
         .filter { it.isNotEmpty() }
         .map { cookie ->
-            getUserFullInfoHoYoLABUseCase.runCatching {
-                invoke(cookie = cookie).getOrThrow().data?.userInfo?.also {
-                    getOneByUidAttendanceUseCase.runCatching {
-                        invoke(it.uid)
-                    }.onSuccess { attendance ->
-                        _duplicatedAttendance.value = attendance
-                    }
-                }
-            }.fold(
-                onSuccess = {
-                    Lce.Content(it)
-                },
-                onFailure = {
-                    Lce.Error(it)
-                }
-            )
-        }.flowOn(Dispatchers.IO).stateIn(
+            getUserFullInfoHoYoLABUseCase(cookie = cookie).getOrThrow().data?.userInfo
+        }.flowOn(Dispatchers.IO).catch {
+
+        }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(),
-            initialValue = Lce.Loading
+            initialValue = null
+        )
+    val duplicatedAttendance = _userInfo
+        .filterNotNull()
+        .map {
+            getOneByUidAttendanceUseCase(it.uid)
+        }.flowOn(Dispatchers.IO).catch {
+
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(),
+            initialValue = null
         )
     val connectedGames = _userInfo
+        .filterNotNull()
         .combine(_cookie) { userInfo, cookie ->
             userInfo to cookie
         }.map { pair ->
             checkedGames.clear()
             getGameRecordCardHoYoLABUseCase.runCatching {
-                pair.first.content?.let {
-                    invoke(
-                        pair.second,
-                        it.uid
-                    ).getOrThrow()!!.list.onEach { gameRecord ->
-                        withContext(Dispatchers.Main) {
-                            checkedGames.add(
-                                Game(
-                                    roleId = gameRecord.gameRoleId,
-                                    type = HoYoLABGame.findByGameId(gameId = gameRecord.gameId),
-                                    region = gameRecord.region
-                                )
+                invoke(
+                    pair.second,
+                    pair.first.uid
+                ).getOrThrow()!!.list.onEach { gameRecord ->
+                    withContext(Dispatchers.Main) {
+                        checkedGames.add(
+                            Game(
+                                roleId = gameRecord.gameRoleId,
+                                type = HoYoLABGame.findByGameId(gameId = gameRecord.gameId),
+                                region = gameRecord.region
                             )
-                        }
+                        )
                     }
                 }
             }.fold(
                 onSuccess = {
-                    if (it == null) {
-                        Lce.Loading
-                    } else {
-                        Lce.Content(it)
-                    }
+                    Lce.Content(it)
                 },
                 onFailure = {
                     Lce.Error(it)
@@ -127,13 +119,12 @@ class CreateAttendanceViewModel @Inject constructor(
     val hourOfDay = _hourOfDay.asStateFlow()
     val minute = _minute.asStateFlow()
     val insertAttendanceState = _insertAttendanceState.asStateFlow()
-    val duplicatedAttendance = _duplicatedAttendance.asStateFlow()
-    val pageIndex = savedStateHandle.getStateFlow(pageIndexKey, 0)
+    val pageIndex = savedStateHandle.getStateFlow(_pageIndexKey, 0)
 
-    fun getCurrentPageIndex() = savedStateHandle.get<Int>(pageIndexKey) ?: 0
+    fun getCurrentPageIndex() = savedStateHandle.get<Int>(_pageIndexKey) ?: 0
 
     fun setPageIndex(pageIndex: Int) {
-        savedStateHandle[pageIndexKey] = pageIndex
+        savedStateHandle[_pageIndexKey] = pageIndex
     }
 
     fun setCookie(cookie: String) {
@@ -157,8 +148,8 @@ class CreateAttendanceViewModel @Inject constructor(
                     val minute = _minute.value
                     val attendance = Attendance(
                         cookie = _cookie.value,
-                        nickname = _userInfo.value.content!!.nickname,
-                        uid = _userInfo.value.content!!.uid,
+                        nickname = _userInfo.value!!.nickname,
+                        uid = _userInfo.value!!.uid,
                         hourOfDay = hourOfDay,
                         minute = minute,
                         timezoneId = ZoneId.systemDefault().id

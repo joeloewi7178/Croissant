@@ -17,7 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RedemptionCodesViewModel @Inject constructor() : ViewModel() {
-    private val userAgent = "Chrome"
+    private val _userAgent = "Chrome"
     private val _hoYoLABGameRedemptionCodesState =
         MutableStateFlow<Lce<List<Pair<HoYoLABGame, String>>>>(Lce.Loading)
 
@@ -51,7 +51,7 @@ class RedemptionCodesViewModel @Inject constructor() : ViewModel() {
             when (hoYoLABGame) {
                 HoYoLABGame.HonkaiImpact3rd -> {
                     Jsoup.connect(hoYoLABGame.redemptionCodesUrl)
-                        .userAgent(userAgent)
+                        .userAgent(_userAgent)
                         .get()
                         .getElementsByClass("article-content")[0]
                         .apply {
@@ -66,7 +66,7 @@ class RedemptionCodesViewModel @Inject constructor() : ViewModel() {
                 HoYoLABGame.GenshinImpact -> {
                     val articleContent =
                         Jsoup.connect(hoYoLABGame.redemptionCodesUrl)
-                            .userAgent(userAgent)
+                            .userAgent(_userAgent)
                             .get()
                             .getElementsByClass("article-content")[0]
 

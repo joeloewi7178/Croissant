@@ -38,6 +38,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
+@ExperimentalLayoutApi
 @ExperimentalLifecycleComposeApi
 @ExperimentalMaterial3Api
 @Composable
@@ -55,6 +56,7 @@ fun AttendanceLogsScreen(
     )
 }
 
+@ExperimentalLayoutApi
 @ExperimentalLifecycleComposeApi
 @ExperimentalMaterial3Api
 @Composable
@@ -115,7 +117,10 @@ fun AttendanceLogsContent(
     ) { innerPadding ->
         if (pagedAttendanceLogs.isEmpty()) {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .consumedWindowInsets(innerPadding),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -136,6 +141,7 @@ fun AttendanceLogsContent(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
+                    .consumedWindowInsets(innerPadding)
                     .then(Modifier.padding(horizontal = DefaultDp)),
                 verticalArrangement = Arrangement.spacedBy(DefaultDp)
             ) {

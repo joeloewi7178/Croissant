@@ -57,25 +57,28 @@ object ApiModule {
     @Provides
     fun provideOkHttpClient(): OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(1, TimeUnit.MINUTES)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .writeTimeout(15, TimeUnit.SECONDS)
+        .readTimeout(1, TimeUnit.MINUTES)
+        .writeTimeout(1, TimeUnit.MINUTES)
+        .fastFallback(true)
         .build()
 
     @Singleton
     @Provides
-    fun provideRetrofitBuilder(okHttpClient: OkHttpClient, moshi: Moshi): Retrofit.Builder =
-        Retrofit.Builder()
-            .client(okHttpClient)
-            .addConverterFactory(ScalarsConverterFactory.create())
-            .addCallAdapterFactory(ApiResponseCallAdapterFactory.create())
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
+    fun provideRetrofitBuilder(
+        okHttpClient: OkHttpClient,
+        moshi: Moshi
+    ): Retrofit.Builder = Retrofit.Builder()
+        .client(okHttpClient)
+        .addConverterFactory(ScalarsConverterFactory.create())
+        .addCallAdapterFactory(ApiResponseCallAdapterFactory.create())
+        .addConverterFactory(MoshiConverterFactory.create(moshi))
+        .validateEagerly(true)
 
     @Singleton
     @Provides
     fun provideHoYoLabService(retrofitBuilder: Retrofit.Builder): HoYoLABService =
         retrofitBuilder
             .baseUrl("https://bbs-api-os.hoyoverse.com/")
-            .validateEagerly(true)
             .build()
             .create(HoYoLABService::class.java)
 
@@ -84,7 +87,6 @@ object ApiModule {
     fun provideGenshinImpactCheckInService(retrofitBuilder: Retrofit.Builder): GenshinImpactCheckInService =
         retrofitBuilder
             .baseUrl("https://hk4e-api-os.mihoyo.com/")
-            .validateEagerly(true)
             .build()
             .create(GenshinImpactCheckInService::class.java)
 
@@ -93,7 +95,6 @@ object ApiModule {
     fun provideHonkaiImpact3rdCheckInService(retrofitBuilder: Retrofit.Builder): HonkaiImpact3rdCheckInService =
         retrofitBuilder
             .baseUrl("https://api-os-takumi.mihoyo.com/")
-            .validateEagerly(true)
             .build()
             .create(HonkaiImpact3rdCheckInService::class.java)
 
@@ -102,7 +103,6 @@ object ApiModule {
     fun provideTearsOfThemisCheckInService(retrofitBuilder: Retrofit.Builder): TearsOfThemisCheckInService =
         retrofitBuilder
             .baseUrl("https://sg-public-api.hoyolab.com/")
-            .validateEagerly(true)
             .build()
             .create(TearsOfThemisCheckInService::class.java)
 }

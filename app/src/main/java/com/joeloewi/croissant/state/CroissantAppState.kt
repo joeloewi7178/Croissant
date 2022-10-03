@@ -1,10 +1,7 @@
 package com.joeloewi.croissant.state
 
 import android.app.Activity
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
-import androidx.compose.material3.windowsizeclass.WindowSizeClass
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
-import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
+import androidx.compose.material3.windowsizeclass.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
@@ -47,14 +44,15 @@ class CroissantAppState(
     val isFullScreenDestination
         @Composable get() = fullScreenDestinations.contains(currentDestination?.route)
 
-    val isCompactWindowWidthSize
-        get() = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact
+    val isCompactWindowSize
+        get() = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact || windowSizeClass.heightSizeClass == WindowHeightSizeClass.Compact
 
     val isBottomNavigationBarVisible
-        @Composable get() = !isFullScreenDestination && isCompactWindowWidthSize
+        @Composable
+        get() = !isFullScreenDestination && isCompactWindowSize
 
     val isNavigationRailVisible
-        @Composable get() = !isFullScreenDestination && !isCompactWindowWidthSize
+        @Composable get() = !isFullScreenDestination && !isCompactWindowSize
 
     val canScheduleExactAlarms
         get() = mainViewModel.canScheduleExactAlarms

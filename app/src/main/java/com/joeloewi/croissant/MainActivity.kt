@@ -44,7 +44,6 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -242,14 +241,23 @@ fun CroissantApp(
                     )
                 }
             },
-            contentWindowInsets = if (croissantAppState.isCompactWindowWidthSize) {
-                WindowInsets.displayCutout
-            } else {
-                WindowInsets.displayCutout.add(WindowInsets.navigationBars)
+            contentWindowInsets = WindowInsets.safeDrawing.exclude(WindowInsets.statusBars).run {
+                if (croissantAppState.isFullScreenDestination && croissantAppState.isCompactWindowSize) {
+                    if (WindowInsets.isImeVisible) {
+                        this
+                    } else {
+                        exclude(WindowInsets.navigationBars)
+                    }
+                } else {
+                    this
+                }
             }
         ) { innerPadding ->
             Row(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .consumedWindowInsets(innerPadding)
             ) {
                 if (croissantAppState.isNavigationRailVisible) {
                     CroissantNavigationRail(
@@ -257,10 +265,7 @@ fun CroissantApp(
                     )
                 }
                 CroissantNavHost(
-                    modifier = Modifier
-                        .padding(innerPadding)
-                        .consumedWindowInsets(innerPadding)
-                        .animateContentSize(),
+                    modifier = Modifier.animateContentSize(),
                     navController = croissantAppState.navController,
                     snackbarHostState = snackbarHostState,
                     deepLinkUri = { deepLinkUri }
@@ -555,15 +560,6 @@ private fun CroissantNavigationRail(
                         },
                         onClick = {
                             croissantAppState.onClickNavigationButton(croissantNavigation.route)
-                            croissantAppState.navController.navigate(
-                                croissantNavigation.route
-                            ) {
-                                popUpTo(croissantAppState.navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
                         }
                     )
                 }
@@ -577,7 +573,9 @@ private fun CroissantNavigationRail(
 private fun CroissantBottomNavigationBar(
     croissantAppState: CroissantAppState,
 ) {
-    NavigationBar {
+    NavigationBar(
+        windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
+    ) {
         croissantAppState.croissantNavigations.forEach { croissantNavigation ->
             key(croissantNavigation.route) {
                 val isSelected = croissantAppState.isSelected(route = croissantNavigation.route)
