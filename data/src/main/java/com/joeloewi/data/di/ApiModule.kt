@@ -26,32 +26,34 @@ object ApiModule {
 
     @Singleton
     @Provides
-    fun provideMoshi(): Moshi = Moshi.Builder().add(
+    fun providePolymorphicJsonAdapterFactory(): PolymorphicJsonAdapterFactory<BaseResponse> =
         PolymorphicJsonAdapterFactory.of(
             BaseResponse::class.java,
-            BaseResponse::class.java.name
+            "type"
+        ).withSubtype(
+            UserFullInfoResponse::class.java,
+            "userFullInfoResponse"
+        ).withSubtype(
+            GameRecordCardResponse::class.java,
+            "gameRecordCardResponse"
+        ).withSubtype(
+            AttendanceResponse::class.java,
+            "attendanceResponse"
+        ).withSubtype(
+            GenshinDailyNoteResponse::class.java,
+            "genshinDailyNoteResponse"
+        ).withSubtype(
+            ChangeDataSwitchResponse::class.java,
+            "changeDataSwitchResponse"
         )
-            .withSubtype(
-                UserFullInfoResponse::class.java,
-                UserFullInfoResponse::class.java.simpleName
-            )
-            .withSubtype(
-                GameRecordCardResponse::class.java,
-                GameRecordCardResponse::class.java.simpleName
-            )
-            .withSubtype(
-                AttendanceResponse::class.java,
-                AttendanceResponse::class.java.simpleName
-            )
-            .withSubtype(
-                GenshinDailyNoteResponse::class.java,
-                GenshinDailyNoteResponse::class.java.simpleName
-            )
-            .withSubtype(
-                ChangeDataSwitchResponse::class.java,
-                ChangeDataSwitchResponse::class.java.simpleName
-            )
-    ).build()
+
+    @Singleton
+    @Provides
+    fun provideMoshi(
+        polymorphicJsonAdapterFactory: PolymorphicJsonAdapterFactory<BaseResponse>
+    ): Moshi = Moshi.Builder()
+        .add(polymorphicJsonAdapterFactory)
+        .build()
 
     @Singleton
     @Provides

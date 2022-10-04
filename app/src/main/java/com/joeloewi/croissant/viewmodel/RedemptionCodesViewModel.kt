@@ -6,12 +6,10 @@ import androidx.lifecycle.viewModelScope
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.domain.common.HoYoLABGame
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
 import javax.inject.Inject
 
@@ -33,7 +31,13 @@ class RedemptionCodesViewModel @Inject constructor() : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             _hoYoLABGameRedemptionCodesState.update {
                 HoYoLABGame.values().runCatching {
-                    map { it to getRedemptionCodesFromHtml(it) }
+                    map {
+                        async(SupervisorJob() + Dispatchers.IO) {
+                            it to getRedemptionCodesFromHtml(it)
+                        }
+                    }
+                }.mapCatching {
+                    it.awaitAll()
                 }.fold(
                     onSuccess = {
                         Lce.Content(it)

@@ -39,6 +39,7 @@ import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.state.LoginHoYoLABState
 import com.joeloewi.croissant.state.rememberLoginHoYoLABState
 import com.joeloewi.croissant.util.LocalActivity
+import com.joeloewi.croissant.viewmodel.LoginHoYoLABViewModel
 import com.joeloewi.data.BuildConfig
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -52,10 +53,12 @@ const val COOKIE = "cookie"
 @ExperimentalMaterial3Api
 @Composable
 fun LoginHoYoLABScreen(
-    navController: NavController
+    navController: NavController,
+    loginHoYoLABViewModel: LoginHoYoLABViewModel
 ) {
     val loginHoYoLABState = rememberLoginHoYoLABState(
         navController = navController,
+        loginHoYoLABViewModel = loginHoYoLABViewModel,
         hoyolabUrl = remember { "https://m.hoyolab.com" },
         excludedUrls = remember {
             listOf("www.webstatic-sea.mihoyo.com", "www.webstatic-sea.hoyolab.com")

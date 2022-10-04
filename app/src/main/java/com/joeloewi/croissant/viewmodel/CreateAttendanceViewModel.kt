@@ -58,7 +58,7 @@ class CreateAttendanceViewModel @Inject constructor(
 
         }.stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(),
+            started = SharingStarted.Lazily,
             initialValue = null
         )
     val duplicatedAttendance = _userInfo
@@ -69,7 +69,7 @@ class CreateAttendanceViewModel @Inject constructor(
 
         }.stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(),
+            started = SharingStarted.Lazily,
             initialValue = null
         )
     val connectedGames = _userInfo
@@ -103,7 +103,7 @@ class CreateAttendanceViewModel @Inject constructor(
             )
         }.flowOn(Dispatchers.IO).stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(),
+            started = SharingStarted.Lazily,
             initialValue = Lce.Loading
         )
     val cookie = _cookie.asStateFlow()

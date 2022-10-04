@@ -35,6 +35,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -437,9 +438,12 @@ fun CroissantNavHost(
 
             composable(
                 route = AttendancesDestination.LoginHoYoLabScreen.route,
-            ) {
+            ) { navBackStackEntry ->
+                val loginHoYoLABViewModel: LoginHoYoLABViewModel = hiltViewModel(navBackStackEntry)
+
                 LoginHoYoLABScreen(
-                    navController = navController
+                    navController = navController,
+                    loginHoYoLABViewModel = loginHoYoLABViewModel
                 )
             }
 
@@ -528,41 +532,32 @@ private fun CroissantNavigationRail(
             )
         }
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxHeight(),
-            verticalArrangement = Arrangement.spacedBy(
-                space = DoubleDp,
-                alignment = Alignment.CenterVertically
-            )
-        ) {
-            croissantAppState.croissantNavigations.forEach { croissantNavigation ->
-                key(croissantNavigation.route) {
-                    val isSelected = croissantAppState.isSelected(route = croissantNavigation.route)
+        croissantAppState.croissantNavigations.forEach { croissantNavigation ->
+            key(croissantNavigation.route) {
+                val isSelected = croissantAppState.isSelected(route = croissantNavigation.route)
 
-                    NavigationRailItem(
-                        icon = {
-                            if (isSelected) {
-                                Icon(
-                                    imageVector = croissantNavigation.filledIcon,
-                                    contentDescription = croissantNavigation.filledIcon.name
-                                )
-                            } else {
-                                Icon(
-                                    imageVector = croissantNavigation.outlinedIcon,
-                                    contentDescription = croissantNavigation.outlinedIcon.name
-                                )
-                            }
-                        },
-                        selected = isSelected,
-                        label = {
-                            Text(text = stringResource(id = croissantNavigation.resourceId))
-                        },
-                        onClick = {
-                            croissantAppState.onClickNavigationButton(croissantNavigation.route)
+                NavigationRailItem(
+                    icon = {
+                        if (isSelected) {
+                            Icon(
+                                imageVector = croissantNavigation.filledIcon,
+                                contentDescription = croissantNavigation.filledIcon.name
+                            )
+                        } else {
+                            Icon(
+                                imageVector = croissantNavigation.outlinedIcon,
+                                contentDescription = croissantNavigation.outlinedIcon.name
+                            )
                         }
-                    )
-                }
+                    },
+                    selected = isSelected,
+                    label = {
+                        Text(text = stringResource(id = croissantNavigation.resourceId))
+                    },
+                    onClick = {
+                        croissantAppState.onClickNavigationButton(croissantNavigation.route)
+                    }
+                )
             }
         }
     }
@@ -620,6 +615,7 @@ fun CroissantAppBottomSheetContent(
 ) {
     val croissantPermissions = remember { CroissantPermission.values() }
     val context = LocalContext.current
+    Font
 
     LaunchedEffect(multiplePermissionsState.allPermissionsGranted) {
         if (multiplePermissionsState.allPermissionsGranted) {
