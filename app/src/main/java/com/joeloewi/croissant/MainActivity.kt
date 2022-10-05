@@ -35,7 +35,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -130,9 +129,7 @@ class MainActivity : AppCompatActivity() {
                         RequireAppUpdate(
                             appUpdateResultState = mainState.appUpdateResultState
                         ) {
-                            CroissantApp(
-                                mainViewModel = mainViewModel
-                            )
+                            CroissantApp()
                         }
                     }
                 }
@@ -154,9 +151,7 @@ class MainActivity : AppCompatActivity() {
 @ExperimentalComposeUiApi
 @ExperimentalCoroutinesApi
 @Composable
-fun CroissantApp(
-    mainViewModel: MainViewModel,
-) {
+fun CroissantApp() {
     val croissantAppState = rememberCroissantAppState(
         navController = rememberNavController(),
         croissantNavigations = listOf(
@@ -168,7 +163,7 @@ fun CroissantApp(
             AttendancesDestination.CreateAttendanceScreen.route,
             AttendancesDestination.LoginHoYoLabScreen.route
         ).toImmutableList(),
-        mainViewModel = mainViewModel
+        appViewModel = hiltViewModel()
     )
     val isFirstLaunch = croissantAppState.isFirstLaunch
     val multiplePermissionsState = rememberMultiplePermissionsState(
@@ -615,7 +610,6 @@ fun CroissantAppBottomSheetContent(
 ) {
     val croissantPermissions = remember { CroissantPermission.values() }
     val context = LocalContext.current
-    Font
 
     LaunchedEffect(multiplePermissionsState.allPermissionsGranted) {
         if (multiplePermissionsState.allPermissionsGranted) {
