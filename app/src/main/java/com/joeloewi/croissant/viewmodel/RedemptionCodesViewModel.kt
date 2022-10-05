@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RedemptionCodesViewModel @Inject constructor() : ViewModel() {
-    private val _userAgent = "Chrome"
+    private val _userAgent = "live.arca.android.playstore/0.8.331-playstore"
     private val _hoYoLABGameRedemptionCodesState =
         MutableStateFlow<Lce<List<Pair<HoYoLABGame, String>>>>(Lce.Loading)
 

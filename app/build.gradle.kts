@@ -27,7 +27,7 @@ android {
         create("release") {
             keyAlias = System.getenv("ALIAS")
             keyPassword = System.getenv("KEY_PASSWORD")
-            storeFile = file("../signing/croissant_key_store")
+            storeFile = file("../croissant_key_store.jks")
             storePassword = System.getenv("KEY_STORE_PASSWORD")
         }
     }
