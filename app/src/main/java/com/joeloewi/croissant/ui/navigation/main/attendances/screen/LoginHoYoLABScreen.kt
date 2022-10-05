@@ -39,6 +39,7 @@ import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.state.LoginHoYoLABState
 import com.joeloewi.croissant.state.rememberLoginHoYoLABState
 import com.joeloewi.croissant.util.LocalActivity
+import com.joeloewi.croissant.viewmodel.LoginHoYoLABViewModel
 import com.joeloewi.data.BuildConfig
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -52,17 +53,22 @@ const val COOKIE = "cookie"
 @ExperimentalMaterial3Api
 @Composable
 fun LoginHoYoLABScreen(
-    navController: NavController
+    navController: NavController,
+    loginHoYoLABViewModel: LoginHoYoLABViewModel
 ) {
     val loginHoYoLABState = rememberLoginHoYoLABState(
         navController = navController,
+        loginHoYoLABViewModel = loginHoYoLABViewModel,
         hoyolabUrl = remember { "https://m.hoyolab.com" },
         excludedUrls = remember {
             listOf("www.webstatic-sea.mihoyo.com", "www.webstatic-sea.hoyolab.com")
         }.toImmutableList(),
-        securityPopUpUrl = remember {
-            "https://m.hoyolab.com/account-system-sea/security.html?origin=hoyolab"
-        },
+        securityPopUpUrls = remember {
+            listOf(
+                "https://m.hoyolab.com/account-system-sea/security.html?origin=hoyolab",
+                "about:blank"
+            )
+        }.toImmutableList(),
         webViewNavigator = rememberWebViewNavigator()
     )
 
@@ -175,14 +181,15 @@ fun LoginHoYoLABContent(
         snackbarHost = {
             SnackbarHost(hostState = loginHoYoLABState.snackbarHostState)
         },
-        contentWindowInsets = WindowInsets.safeDrawing.exclude(WindowInsets.navigationBars)
+        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
     ) { innerPadding ->
         when (loginHoYoLABState.removeAllCookiesState) {
             is Lce.Content -> {
                 WebView(
                     modifier = Modifier
+                        .fillMaxSize()
                         .padding(innerPadding)
-                        .fillMaxSize(),
+                        .consumedWindowInsets(innerPadding),
                     state = loginHoYoLABState.webViewState,
                     navigator = loginHoYoLABState.webViewNavigator,
                     onCreated = { webView ->
@@ -359,7 +366,7 @@ fun LoginHoYoLABContent(
                                             url: String?,
                                             favicon: Bitmap?
                                         ) {
-                                            if (url == loginHoYoLABState.securityPopUpUrl) {
+                                            if (loginHoYoLABState.securityPopUpUrls.contains(url)) {
                                                 dialog.dismiss()
                                             } else {
                                                 dialog.show()
@@ -388,7 +395,8 @@ fun LoginHoYoLABContent(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(innerPadding),
+                        .padding(innerPadding)
+                        .consumedWindowInsets(innerPadding),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {

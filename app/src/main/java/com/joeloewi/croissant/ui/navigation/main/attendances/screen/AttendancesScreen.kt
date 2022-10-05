@@ -134,6 +134,7 @@ private fun AttendancesContent(
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
+                    .consumedWindowInsets(innerPadding)
                     .fillMaxSize()
                     .then(Modifier.padding(DoubleDp)),
                 verticalArrangement = Arrangement.Center,
@@ -160,6 +161,7 @@ private fun AttendancesContent(
             LazyColumn(
                 modifier = Modifier
                     .padding(innerPadding)
+                    .consumedWindowInsets(innerPadding)
                     .fillMaxSize()
             ) {
                 items(

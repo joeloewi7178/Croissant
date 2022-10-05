@@ -44,6 +44,7 @@ fun SetTime(
             FilledTonalButton(
                 modifier = Modifier
                     .navigationBarsPadding()
+                    .padding(horizontal = DefaultDp)
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.surface),
                 onClick = createAttendanceState::onNextButtonClick
@@ -63,14 +64,15 @@ fun SetTime(
                 }
             }
         },
-        contentWindowInsets = WindowInsets.ime
+        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .verticalScroll(state = rememberScrollState())
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(DefaultDp),
+                .consumedWindowInsets(innerPadding)
+                .padding(horizontal = DefaultDp),
             verticalArrangement = Arrangement.spacedBy(space = DefaultDp)
         ) {
             Text(

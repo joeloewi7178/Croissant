@@ -22,6 +22,7 @@ import com.joeloewi.croissant.state.rememberSettingsState
 import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
 import com.joeloewi.croissant.viewmodel.SettingsViewModel
 
+@ExperimentalLayoutApi
 @ExperimentalLifecycleComposeApi
 @ExperimentalMaterialApi
 @ExperimentalMaterial3Api
@@ -40,6 +41,7 @@ fun SettingsScreen(
     )
 }
 
+@ExperimentalLayoutApi
 @ExperimentalLifecycleComposeApi
 @ExperimentalMaterialApi
 @ExperimentalMaterial3Api
@@ -60,6 +62,7 @@ fun SettingsContent(
         LazyColumn(
             modifier = Modifier
                 .padding(innerPadding)
+                .consumedWindowInsets(innerPadding)
                 .fillMaxSize()
         ) {
             item(

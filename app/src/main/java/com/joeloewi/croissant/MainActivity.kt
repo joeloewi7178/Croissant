@@ -44,7 +44,6 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -130,9 +129,7 @@ class MainActivity : AppCompatActivity() {
                         RequireAppUpdate(
                             appUpdateResultState = mainState.appUpdateResultState
                         ) {
-                            CroissantApp(
-                                mainViewModel = mainViewModel
-                            )
+                            CroissantApp()
                         }
                     }
                 }
@@ -154,9 +151,7 @@ class MainActivity : AppCompatActivity() {
 @ExperimentalComposeUiApi
 @ExperimentalCoroutinesApi
 @Composable
-fun CroissantApp(
-    mainViewModel: MainViewModel,
-) {
+fun CroissantApp() {
     val croissantAppState = rememberCroissantAppState(
         navController = rememberNavController(),
         croissantNavigations = listOf(
@@ -168,7 +163,7 @@ fun CroissantApp(
             AttendancesDestination.CreateAttendanceScreen.route,
             AttendancesDestination.LoginHoYoLabScreen.route
         ).toImmutableList(),
-        mainViewModel = mainViewModel
+        appViewModel = hiltViewModel()
     )
     val isFirstLaunch = croissantAppState.isFirstLaunch
     val multiplePermissionsState = rememberMultiplePermissionsState(
@@ -242,14 +237,23 @@ fun CroissantApp(
                     )
                 }
             },
-            contentWindowInsets = if (croissantAppState.isCompactWindowWidthSize) {
-                WindowInsets.displayCutout
-            } else {
-                WindowInsets.displayCutout.add(WindowInsets.navigationBars)
+            contentWindowInsets = WindowInsets.safeDrawing.exclude(WindowInsets.statusBars).run {
+                if (croissantAppState.isFullScreenDestination && croissantAppState.isCompactWindowSize) {
+                    if (WindowInsets.isImeVisible) {
+                        this
+                    } else {
+                        exclude(WindowInsets.navigationBars)
+                    }
+                } else {
+                    this
+                }
             }
         ) { innerPadding ->
             Row(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .consumedWindowInsets(innerPadding)
             ) {
                 if (croissantAppState.isNavigationRailVisible) {
                     CroissantNavigationRail(
@@ -257,10 +261,7 @@ fun CroissantApp(
                     )
                 }
                 CroissantNavHost(
-                    modifier = Modifier
-                        .padding(innerPadding)
-                        .consumedWindowInsets(innerPadding)
-                        .animateContentSize(),
+                    modifier = Modifier.animateContentSize(),
                     navController = croissantAppState.navController,
                     snackbarHostState = snackbarHostState,
                     deepLinkUri = { deepLinkUri }
@@ -432,9 +433,12 @@ fun CroissantNavHost(
 
             composable(
                 route = AttendancesDestination.LoginHoYoLabScreen.route,
-            ) {
+            ) { navBackStackEntry ->
+                val loginHoYoLABViewModel: LoginHoYoLABViewModel = hiltViewModel(navBackStackEntry)
+
                 LoginHoYoLABScreen(
-                    navController = navController
+                    navController = navController,
+                    loginHoYoLABViewModel = loginHoYoLABViewModel
                 )
             }
 
@@ -503,7 +507,12 @@ fun CroissantNavHost(
             }
 
             composable(route = SettingsDestination.DeveloperInfoScreen.route) {
-                DeveloperInfoScreen(navController = navController)
+                val developerInfoViewModel: DeveloperInfoViewModel = hiltViewModel()
+
+                DeveloperInfoScreen(
+                    navController = navController,
+                    developerInfoViewModel = developerInfoViewModel
+                )
             }
         }
     }
@@ -523,50 +532,32 @@ private fun CroissantNavigationRail(
             )
         }
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxHeight(),
-            verticalArrangement = Arrangement.spacedBy(
-                space = DoubleDp,
-                alignment = Alignment.CenterVertically
-            )
-        ) {
-            croissantAppState.croissantNavigations.forEach { croissantNavigation ->
-                key(croissantNavigation.route) {
-                    val isSelected = croissantAppState.isSelected(route = croissantNavigation.route)
+        croissantAppState.croissantNavigations.forEach { croissantNavigation ->
+            key(croissantNavigation.route) {
+                val isSelected = croissantAppState.isSelected(route = croissantNavigation.route)
 
-                    NavigationRailItem(
-                        icon = {
-                            if (isSelected) {
-                                Icon(
-                                    imageVector = croissantNavigation.filledIcon,
-                                    contentDescription = croissantNavigation.filledIcon.name
-                                )
-                            } else {
-                                Icon(
-                                    imageVector = croissantNavigation.outlinedIcon,
-                                    contentDescription = croissantNavigation.outlinedIcon.name
-                                )
-                            }
-                        },
-                        selected = isSelected,
-                        label = {
-                            Text(text = stringResource(id = croissantNavigation.resourceId))
-                        },
-                        onClick = {
-                            croissantAppState.onClickNavigationButton(croissantNavigation.route)
-                            croissantAppState.navController.navigate(
-                                croissantNavigation.route
-                            ) {
-                                popUpTo(croissantAppState.navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
+                NavigationRailItem(
+                    icon = {
+                        if (isSelected) {
+                            Icon(
+                                imageVector = croissantNavigation.filledIcon,
+                                contentDescription = croissantNavigation.filledIcon.name
+                            )
+                        } else {
+                            Icon(
+                                imageVector = croissantNavigation.outlinedIcon,
+                                contentDescription = croissantNavigation.outlinedIcon.name
+                            )
                         }
-                    )
-                }
+                    },
+                    selected = isSelected,
+                    label = {
+                        Text(text = stringResource(id = croissantNavigation.resourceId))
+                    },
+                    onClick = {
+                        croissantAppState.onClickNavigationButton(croissantNavigation.route)
+                    }
+                )
             }
         }
     }
@@ -577,7 +568,9 @@ private fun CroissantNavigationRail(
 private fun CroissantBottomNavigationBar(
     croissantAppState: CroissantAppState,
 ) {
-    NavigationBar {
+    NavigationBar(
+        windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
+    ) {
         croissantAppState.croissantNavigations.forEach { croissantNavigation ->
             key(croissantNavigation.route) {
                 val isSelected = croissantAppState.isSelected(route = croissantNavigation.route)

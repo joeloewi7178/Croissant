@@ -26,56 +26,61 @@ object ApiModule {
 
     @Singleton
     @Provides
-    fun provideMoshi(): Moshi = Moshi.Builder().add(
+    fun providePolymorphicJsonAdapterFactory(): PolymorphicJsonAdapterFactory<BaseResponse> =
         PolymorphicJsonAdapterFactory.of(
             BaseResponse::class.java,
-            BaseResponse::class.java.name
+            "type"
+        ).withSubtype(
+            UserFullInfoResponse::class.java,
+            "userFullInfoResponse"
+        ).withSubtype(
+            GameRecordCardResponse::class.java,
+            "gameRecordCardResponse"
+        ).withSubtype(
+            AttendanceResponse::class.java,
+            "attendanceResponse"
+        ).withSubtype(
+            GenshinDailyNoteResponse::class.java,
+            "genshinDailyNoteResponse"
+        ).withSubtype(
+            ChangeDataSwitchResponse::class.java,
+            "changeDataSwitchResponse"
         )
-            .withSubtype(
-                UserFullInfoResponse::class.java,
-                UserFullInfoResponse::class.java.simpleName
-            )
-            .withSubtype(
-                GameRecordCardResponse::class.java,
-                GameRecordCardResponse::class.java.simpleName
-            )
-            .withSubtype(
-                AttendanceResponse::class.java,
-                AttendanceResponse::class.java.simpleName
-            )
-            .withSubtype(
-                GenshinDailyNoteResponse::class.java,
-                GenshinDailyNoteResponse::class.java.simpleName
-            )
-            .withSubtype(
-                ChangeDataSwitchResponse::class.java,
-                ChangeDataSwitchResponse::class.java.simpleName
-            )
-    ).build()
+
+    @Singleton
+    @Provides
+    fun provideMoshi(
+        polymorphicJsonAdapterFactory: PolymorphicJsonAdapterFactory<BaseResponse>
+    ): Moshi = Moshi.Builder()
+        .add(polymorphicJsonAdapterFactory)
+        .build()
 
     @Singleton
     @Provides
     fun provideOkHttpClient(): OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(1, TimeUnit.MINUTES)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .writeTimeout(15, TimeUnit.SECONDS)
+        .readTimeout(1, TimeUnit.MINUTES)
+        .writeTimeout(1, TimeUnit.MINUTES)
+        .fastFallback(true)
         .build()
 
     @Singleton
     @Provides
-    fun provideRetrofitBuilder(okHttpClient: OkHttpClient, moshi: Moshi): Retrofit.Builder =
-        Retrofit.Builder()
-            .client(okHttpClient)
-            .addConverterFactory(ScalarsConverterFactory.create())
-            .addCallAdapterFactory(ApiResponseCallAdapterFactory.create())
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
+    fun provideRetrofitBuilder(
+        okHttpClient: OkHttpClient,
+        moshi: Moshi
+    ): Retrofit.Builder = Retrofit.Builder()
+        .client(okHttpClient)
+        .addConverterFactory(ScalarsConverterFactory.create())
+        .addCallAdapterFactory(ApiResponseCallAdapterFactory.create())
+        .addConverterFactory(MoshiConverterFactory.create(moshi))
+        .validateEagerly(true)
 
     @Singleton
     @Provides
     fun provideHoYoLabService(retrofitBuilder: Retrofit.Builder): HoYoLABService =
         retrofitBuilder
-            .baseUrl("https://bbs-api-os.hoyoverse.com/")
-            .validateEagerly(true)
+            .baseUrl("https://bbs-api-os.hoyolab.com/")
             .build()
             .create(HoYoLABService::class.java)
 
@@ -84,7 +89,6 @@ object ApiModule {
     fun provideGenshinImpactCheckInService(retrofitBuilder: Retrofit.Builder): GenshinImpactCheckInService =
         retrofitBuilder
             .baseUrl("https://hk4e-api-os.mihoyo.com/")
-            .validateEagerly(true)
             .build()
             .create(GenshinImpactCheckInService::class.java)
 
@@ -93,7 +97,6 @@ object ApiModule {
     fun provideHonkaiImpact3rdCheckInService(retrofitBuilder: Retrofit.Builder): HonkaiImpact3rdCheckInService =
         retrofitBuilder
             .baseUrl("https://api-os-takumi.mihoyo.com/")
-            .validateEagerly(true)
             .build()
             .create(HonkaiImpact3rdCheckInService::class.java)
 
@@ -102,7 +105,6 @@ object ApiModule {
     fun provideTearsOfThemisCheckInService(retrofitBuilder: Retrofit.Builder): TearsOfThemisCheckInService =
         retrofitBuilder
             .baseUrl("https://sg-public-api.hoyolab.com/")
-            .validateEagerly(true)
             .build()
             .create(TearsOfThemisCheckInService::class.java)
 }

@@ -14,8 +14,8 @@ android {
 
     defaultConfig {
         applicationId = "com.joeloewi.croissant"
-        versionCode = 25
-        versionName = "1.0.23"
+        versionCode = 26
+        versionName = "1.0.24"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -27,7 +27,7 @@ android {
         create("release") {
             keyAlias = System.getenv("ALIAS")
             keyPassword = System.getenv("KEY_PASSWORD")
-            storeFile = file("../signing/croissant_key_store")
+            storeFile = file("../croissant_key_store.jks")
             storePassword = System.getenv("KEY_STORE_PASSWORD")
         }
     }
@@ -76,6 +76,8 @@ dependencies {
 
     implementation(libs.androidx.lifecycle.runtimeCompose)
     implementation(libs.androidx.lifecycle.viewModelCompose)
+
+    implementation(libs.androidx.savedstate.ktx)
 
     implementation(libs.androidx.hilt.navigation.compose)
 
@@ -141,10 +143,12 @@ dependencies {
     debugImplementation(libs.leakcanary.android)
 
     implementation(libs.kotlinx.coroutines.android)
+
     implementation(libs.kotlinx.collections.immutable)
 
-    implementation(libs.androidx.savedstate.ktx)
     implementation(libs.androidx.profileinstaller)
+
+    implementation(libs.tts)
 }
 
 kapt {

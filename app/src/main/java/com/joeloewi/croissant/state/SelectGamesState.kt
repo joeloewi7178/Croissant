@@ -1,7 +1,10 @@
 package com.joeloewi.croissant.state
 
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import com.joeloewi.domain.common.HoYoLABGame
 import kotlinx.collections.immutable.ImmutableList
@@ -21,7 +24,6 @@ class SelectGamesState(
         get() = createAttendanceState.checkedGames
     val connectedGames
         @Composable get() = createAttendanceState.connectedGames
-    var showDuplicatedAttendanceDialog by mutableStateOf(false to 0L)
     val noGamesSelected
         get() = derivedStateOf { checkedGames.isEmpty() }.value
 
@@ -38,10 +40,6 @@ class SelectGamesState(
 
     fun onCancelCreateAttendance() {
         createAttendanceState.onCancelCreateAttendance()
-    }
-
-    fun onShowDuplicatedAttendanceDialogChange(pair: Pair<Boolean, Long>) {
-        showDuplicatedAttendanceDialog = pair
     }
 }
 

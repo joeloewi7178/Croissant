@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Public
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -19,34 +20,48 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.DeveloperInfoState
+import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.state.rememberDeveloperInfoState
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.navigationIconButton
+import com.joeloewi.croissant.viewmodel.DeveloperInfoViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
-
+@ExperimentalLifecycleComposeApi
+@ExperimentalLayoutApi
 @ExperimentalMaterial3Api
 @Composable
 fun DeveloperInfoScreen(
-    navController: NavController
+    navController: NavController,
+    developerInfoViewModel: DeveloperInfoViewModel
 ) {
-    val developerInfoState = rememberDeveloperInfoState(navController = navController)
+    val developerInfoState = rememberDeveloperInfoState(
+        navController = navController,
+        developerInfoViewModel = developerInfoViewModel
+    )
 
     DeveloperInfoContent(
         developerInfoState = developerInfoState
     )
 }
 
+@ExperimentalLifecycleComposeApi
+@ExperimentalLayoutApi
 @ExperimentalMaterial3Api
 @Composable
 private fun DeveloperInfoContent(
     developerInfoState: DeveloperInfoState
 ) {
     val activity = LocalActivity.current
+    val coroutineScope = rememberCoroutineScope()
+    val textToSpeech = developerInfoState.textToSpeech
 
     Scaffold(
         topBar = {
@@ -65,6 +80,7 @@ private fun DeveloperInfoContent(
         LazyColumn(
             modifier = Modifier
                 .padding(innerPadding)
+                .consumedWindowInsets(innerPadding)
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -78,7 +94,16 @@ private fun DeveloperInfoContent(
                     AsyncImage(
                         modifier = Modifier
                             .clip(CircleShape)
-                            .size(64.dp),
+                            .size(64.dp)
+                            .clickable(
+                                enabled = textToSpeech is Lce.Content
+                            ) {
+                                coroutineScope.launch(Dispatchers.Default) {
+                                    textToSpeech.content?.runCatching {
+                                        say("안아줘요", true)
+                                    }
+                                }
+                            },
                         contentScale = ContentScale.Crop,
                         model = ImageRequest.Builder(LocalContext.current)
                             .data("https://avatars.githubusercontent.com/u/87220306?v=4").build(),
@@ -108,17 +133,20 @@ private fun DeveloperInfoContent(
                 key = "github"
             ) {
                 val developerGithub = remember { "https://github.com/joeloewi7178" }
+                val intent = remember {
+                    Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse(developerGithub)
+                    )
+                }
 
                 ListItem(
-                    modifier = Modifier.clickable {
-                        Intent(
-                            Intent.ACTION_VIEW,
-                            Uri.parse(developerGithub)
-                        ).let {
-                            if (it.resolveActivity(activity.packageManager) != null) {
-                                activity.startActivity(it)
-                            }
+                    modifier = Modifier.clickable(
+                        enabled = remember {
+                            intent.resolveActivity(activity.packageManager) != null
                         }
+                    ) {
+                        activity.startActivity(intent)
                     },
                     leadingContent = {
                         Icon(
@@ -152,17 +180,22 @@ private fun DeveloperInfoContent(
                 key = "email"
             ) {
                 val developerEmail = remember { "joeloewi7178@gmail.com" }
+                val intent = remember {
+                    Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:")).apply {
+                        putExtra(Intent.EXTRA_EMAIL, developerEmail)
+                    }
+                }
 
                 ListItem(
-                    modifier = Modifier.clickable {
-                        Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:")).apply {
-                            putExtra(Intent.EXTRA_EMAIL, developerEmail)
-                        }.let {
-                            if (it.resolveActivity(activity.packageManager) != null) {
-                                activity.startActivity(it)
+                    modifier = Modifier
+                        .padding()
+                        .clickable(
+                            enabled = remember {
+                                intent.resolveActivity(activity.packageManager) != null
                             }
-                        }
-                    },
+                        ) {
+                            activity.startActivity(intent)
+                        },
                     leadingContent = {
                         Icon(
                             imageVector = Icons.Default.Email,

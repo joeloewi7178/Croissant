@@ -3,7 +3,6 @@ package com.joeloewi.croissant.state
 import android.net.http.SslError
 import android.webkit.CookieManager
 import android.webkit.SslErrorHandler
-import android.webkit.ValueCallback
 import android.webkit.WebResourceRequest
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.*
@@ -14,41 +13,28 @@ import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
 import com.google.accompanist.web.rememberWebViewState
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.COOKIE
+import com.joeloewi.croissant.viewmodel.LoginHoYoLABViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 
 @ExperimentalLifecycleComposeApi
 @Stable
 class LoginHoYoLABState(
     private val navController: NavController,
+    private val loginHoYoLABViewModel: LoginHoYoLABViewModel,
     val hoyolabUrl: String,
     private val excludedUrls: ImmutableList<String>,
-    val securityPopUpUrl: String,
+    val securityPopUpUrls: ImmutableList<String>,
     val webViewState: WebViewState,
     val snackbarHostState: SnackbarHostState,
     val webViewNavigator: WebViewNavigator,
-    private val coroutineScope: CoroutineScope,
+    val coroutineScope: CoroutineScope,
 ) {
     val removeAllCookiesState
-        @Composable get() = callbackFlow<Lce<Boolean>> {
-            var valueCallback: ValueCallback<Boolean>? = ValueCallback<Boolean> { hasRemoved ->
-                CookieManager.getInstance().flush()
-                trySend(Lce.Content(hasRemoved))
-            }
-
-            CookieManager.getInstance().runCatching {
-                removeAllCookies(valueCallback)
-            }.onFailure { cause ->
-                close(cause)
-            }
-
-            awaitClose { valueCallback = null }
-        }.collectAsStateWithLifecycle(initialValue = Lce.Loading).value
+        @Composable get() = loginHoYoLABViewModel.removeAllCookies.collectAsStateWithLifecycle().value
     var showSslErrorDialog by mutableStateOf<Pair<SslErrorHandler?, SslError?>?>(null)
         private set
     val pageTitle
@@ -148,18 +134,20 @@ class LoginHoYoLABState(
 @Composable
 fun rememberLoginHoYoLABState(
     navController: NavController,
+    loginHoYoLABViewModel: LoginHoYoLABViewModel,
     hoyolabUrl: String,
     excludedUrls: ImmutableList<String>,
-    securityPopUpUrl: String,
+    securityPopUpUrls: ImmutableList<String>,
     webViewState: WebViewState = rememberWebViewState(url = hoyolabUrl),
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     webViewNavigator: WebViewNavigator,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
 ) = remember(
     navController,
+    loginHoYoLABViewModel,
     hoyolabUrl,
     excludedUrls,
-    securityPopUpUrl,
+    securityPopUpUrls,
     webViewState,
     snackbarHostState,
     webViewNavigator,
@@ -167,9 +155,10 @@ fun rememberLoginHoYoLABState(
 ) {
     LoginHoYoLABState(
         navController = navController,
+        loginHoYoLABViewModel = loginHoYoLABViewModel,
         hoyolabUrl = hoyolabUrl,
         excludedUrls = excludedUrls,
-        securityPopUpUrl = securityPopUpUrl,
+        securityPopUpUrls = securityPopUpUrls,
         webViewState = webViewState,
         snackbarHostState = snackbarHostState,
         webViewNavigator = webViewNavigator,

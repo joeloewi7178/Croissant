@@ -30,6 +30,7 @@ import com.google.accompanist.pager.HorizontalPager
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.theme.DefaultDp
 
+@ExperimentalLayoutApi
 @ExperimentalPagerApi
 @ExperimentalMaterial3Api
 @Composable
@@ -48,6 +49,7 @@ fun GetSession(
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(horizontal = DefaultDp)
                     .navigationBarsPadding()
                     .background(MaterialTheme.colorScheme.surface),
                 onClick = onLoginHoYoLAB
@@ -77,7 +79,8 @@ fun GetSession(
                 .fillMaxSize()
                 .verticalScroll(state = rememberScrollState())
                 .padding(innerPadding)
-                .padding(DefaultDp),
+                .consumedWindowInsets(innerPadding)
+                .padding(horizontal = DefaultDp),
             verticalArrangement = Arrangement.spacedBy(space = DefaultDp)
         ) {
             Text(

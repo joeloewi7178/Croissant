@@ -1,10 +1,7 @@
 package com.joeloewi.croissant.state
 
 import android.app.Activity
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
-import androidx.compose.material3.windowsizeclass.WindowSizeClass
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
-import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
+import androidx.compose.material3.windowsizeclass.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
@@ -15,7 +12,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
 import com.joeloewi.croissant.util.LocalActivity
-import com.joeloewi.croissant.viewmodel.MainViewModel
+import com.joeloewi.croissant.viewmodel.AppViewModel
 import kotlinx.collections.immutable.ImmutableList
 
 @ExperimentalLifecycleComposeApi
@@ -24,14 +21,14 @@ class CroissantAppState(
     val navController: NavHostController,
     val croissantNavigations: ImmutableList<CroissantNavigation>,
     val fullScreenDestinations: ImmutableList<String>,
-    private val mainViewModel: MainViewModel,
+    private val appViewModel: AppViewModel,
     private val windowSizeClass: WindowSizeClass
 ) {
     val isFirstLaunch
-        @Composable get() = mainViewModel.isFirstLaunch.collectAsStateWithLifecycle().value
+        @Composable get() = appViewModel.isFirstLaunch.collectAsStateWithLifecycle().value
 
     val isDeviceRooted
-        @Composable get() = mainViewModel.isDeviceRooted.collectAsStateWithLifecycle().value
+        @Composable get() = appViewModel.isDeviceRooted.collectAsStateWithLifecycle().value
 
     private val navBackStackEntry
         @Composable get() = navController.currentBackStackEntryFlow.collectAsStateWithLifecycle(
@@ -42,22 +39,23 @@ class CroissantAppState(
         @Composable get() = navBackStackEntry?.destination
 
     val isIgnoringBatteryOptimizations
-        get() = mainViewModel.isIgnoringBatteryOptimizations
+        get() = appViewModel.isIgnoringBatteryOptimizations
 
     val isFullScreenDestination
         @Composable get() = fullScreenDestinations.contains(currentDestination?.route)
 
-    val isCompactWindowWidthSize
-        get() = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact
+    val isCompactWindowSize
+        get() = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact || windowSizeClass.heightSizeClass == WindowHeightSizeClass.Compact
 
     val isBottomNavigationBarVisible
-        @Composable get() = !isFullScreenDestination && isCompactWindowWidthSize
+        @Composable
+        get() = !isFullScreenDestination && isCompactWindowSize
 
     val isNavigationRailVisible
-        @Composable get() = !isFullScreenDestination && !isCompactWindowWidthSize
+        @Composable get() = !isFullScreenDestination && !isCompactWindowSize
 
     val canScheduleExactAlarms
-        get() = mainViewModel.canScheduleExactAlarms
+        get() = appViewModel.canScheduleExactAlarms
 
     @Composable
     fun isSelected(route: String?): Boolean = currentDestination?.hierarchy?.any {
@@ -65,7 +63,7 @@ class CroissantAppState(
     } == true
 
     fun setIsFirstLaunch(isFirstLaunch: Boolean) {
-        mainViewModel.setIsFirstLaunch(isFirstLaunch)
+        appViewModel.setIsFirstLaunch(isFirstLaunch)
     }
 
     fun onClickNavigationButton(route: String) {
@@ -86,14 +84,14 @@ fun rememberCroissantAppState(
     navController: NavHostController,
     croissantNavigations: ImmutableList<CroissantNavigation>,
     fullScreenDestinations: ImmutableList<String>,
-    mainViewModel: MainViewModel,
+    appViewModel: AppViewModel,
     activity: Activity = LocalActivity.current,
     windowSizeClass: WindowSizeClass = calculateWindowSizeClass(activity = activity)
 ) = remember(
     navController,
     croissantNavigations,
     fullScreenDestinations,
-    mainViewModel,
+    appViewModel,
     activity,
     windowSizeClass
 ) {
@@ -101,7 +99,7 @@ fun rememberCroissantAppState(
         navController = navController,
         croissantNavigations = croissantNavigations,
         fullScreenDestinations = fullScreenDestinations,
-        mainViewModel = mainViewModel,
+        appViewModel = appViewModel,
         windowSizeClass = windowSizeClass
     )
 }

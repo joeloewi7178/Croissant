@@ -6,18 +6,16 @@ import androidx.lifecycle.viewModelScope
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.domain.common.HoYoLABGame
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
 import javax.inject.Inject
 
 @HiltViewModel
 class RedemptionCodesViewModel @Inject constructor() : ViewModel() {
-    private val userAgent = "Chrome"
+    private val _userAgent = "live.arca.android.playstore/0.8.331-playstore"
     private val _hoYoLABGameRedemptionCodesState =
         MutableStateFlow<Lce<List<Pair<HoYoLABGame, String>>>>(Lce.Loading)
 
@@ -33,7 +31,13 @@ class RedemptionCodesViewModel @Inject constructor() : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             _hoYoLABGameRedemptionCodesState.update {
                 HoYoLABGame.values().runCatching {
-                    map { it to getRedemptionCodesFromHtml(it) }
+                    map {
+                        async(SupervisorJob() + Dispatchers.IO) {
+                            it to getRedemptionCodesFromHtml(it)
+                        }
+                    }
+                }.mapCatching {
+                    it.awaitAll()
                 }.fold(
                     onSuccess = {
                         Lce.Content(it)
@@ -51,7 +55,7 @@ class RedemptionCodesViewModel @Inject constructor() : ViewModel() {
             when (hoYoLABGame) {
                 HoYoLABGame.HonkaiImpact3rd -> {
                     Jsoup.connect(hoYoLABGame.redemptionCodesUrl)
-                        .userAgent(userAgent)
+                        .userAgent(_userAgent)
                         .get()
                         .getElementsByClass("article-content")[0]
                         .apply {
@@ -66,7 +70,7 @@ class RedemptionCodesViewModel @Inject constructor() : ViewModel() {
                 HoYoLABGame.GenshinImpact -> {
                     val articleContent =
                         Jsoup.connect(hoYoLABGame.redemptionCodesUrl)
-                            .userAgent(userAgent)
+                            .userAgent(_userAgent)
                             .get()
                             .getElementsByClass("article-content")[0]
 
