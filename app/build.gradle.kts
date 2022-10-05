@@ -77,6 +77,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtimeCompose)
     implementation(libs.androidx.lifecycle.viewModelCompose)
 
+    implementation(libs.androidx.savedstate.ktx)
+
     implementation(libs.androidx.hilt.navigation.compose)
 
     //hilt
@@ -141,10 +143,12 @@ dependencies {
     debugImplementation(libs.leakcanary.android)
 
     implementation(libs.kotlinx.coroutines.android)
+
     implementation(libs.kotlinx.collections.immutable)
 
-    implementation(libs.androidx.savedstate.ktx)
     implementation(libs.androidx.profileinstaller)
+
+    implementation(libs.tts)
 }
 
 kapt {

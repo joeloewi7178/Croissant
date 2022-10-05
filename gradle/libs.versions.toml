@@ -54,6 +54,7 @@ sandwich = "1.3.0"
 jsoup = "1.15.3"
 junit = "4.13.2"
 ksp = "1.7.10-1.0.6"
+tts = "1.2.1"
 
 [libraries]
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
@@ -132,6 +133,7 @@ jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestExtJunit" }
 androidx-test-espresso = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "androidxTestEspresso" }
+tts = { group = "nl.marc-apps", name = "tts", version.ref = "tts" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }

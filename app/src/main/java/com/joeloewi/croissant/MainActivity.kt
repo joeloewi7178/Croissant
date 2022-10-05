@@ -507,7 +507,12 @@ fun CroissantNavHost(
             }
 
             composable(route = SettingsDestination.DeveloperInfoScreen.route) {
-                DeveloperInfoScreen(navController = navController)
+                val developerInfoViewModel: DeveloperInfoViewModel = hiltViewModel()
+
+                DeveloperInfoScreen(
+                    navController = navController,
+                    developerInfoViewModel = developerInfoViewModel
+                )
             }
         }
     }
