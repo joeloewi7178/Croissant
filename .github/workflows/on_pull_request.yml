@@ -31,6 +31,13 @@ jobs:
 
       - name: Access GOOGLE_SERVICES_JSON
         run: echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > ./app/google-services.json
+        
+      - name: Generate jks file from base64
+        uses: timheuer/base64-to-file@v1.1
+        with:
+          fileName: 'croissant_key_store.jks'
+          fileDir: './'
+          encodedString: ${{ secrets.SIGNING_KEY }}
 
       - name: Build with Gradle
         run: ./gradlew clean build --no-daemon --parallel build
