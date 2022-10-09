@@ -5,7 +5,7 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.androidx.paging.common)
+    implementation(libs.androidx.paging.common.ktx)
 
     implementation(libs.javax.inject)
 }

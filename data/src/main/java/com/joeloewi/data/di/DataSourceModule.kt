@@ -2,14 +2,8 @@ package com.joeloewi.data.di
 
 import com.joeloewi.data.repository.local.*
 import com.joeloewi.data.repository.local.impl.*
-import com.joeloewi.data.repository.remote.GenshinImpactCheckInDataSource
-import com.joeloewi.data.repository.remote.HoYoLABDataSource
-import com.joeloewi.data.repository.remote.HonkaiImpact3rdCheckInDataSource
-import com.joeloewi.data.repository.remote.TearsOfThemisCheckInDataSource
-import com.joeloewi.data.repository.remote.impl.GenshinImpactCheckInDataSourceImpl
-import com.joeloewi.data.repository.remote.impl.HoYoLABDataSourceImpl
-import com.joeloewi.data.repository.remote.impl.HonkaiImpact3rdCheckInDataSourceImpl
-import com.joeloewi.data.repository.remote.impl.TearsOfThemisCheckInDataSourceImpl
+import com.joeloewi.data.repository.remote.*
+import com.joeloewi.data.repository.remote.impl.*
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -67,4 +61,8 @@ interface DataSourceModule {
     @Binds
     @Singleton
     fun bindTearsOfThemisCheckInDataSource(tearsOfThemisCheckInDataSourceImpl: TearsOfThemisCheckInDataSourceImpl): TearsOfThemisCheckInDataSource
+
+    @Binds
+    @Singleton
+    fun bindArcaLiveAppDataSource(arcaLiveAppAppDataSourceImpl: ArcaLiveAppDataSourceImpl): ArcaLiveAppDataSource
 }

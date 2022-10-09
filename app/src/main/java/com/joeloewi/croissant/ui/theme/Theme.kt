@@ -13,15 +13,15 @@ fun CroissantTheme(
     window: Window,
     content: @Composable () -> Unit
 ) {
-    val darkTheme = !isSystemInDarkTheme()
+    val useDarkIcons = !isSystemInDarkTheme()
     val view = LocalView.current
 
     if (!view.isInEditMode) {
         SideEffect {
             WindowCompat.setDecorFitsSystemWindows(window, false)
             WindowCompat.getInsetsController(window, view).apply {
-                isAppearanceLightStatusBars = darkTheme
-                isAppearanceLightNavigationBars = darkTheme
+                isAppearanceLightStatusBars = useDarkIcons
+                isAppearanceLightNavigationBars = useDarkIcons
             }
         }
     }

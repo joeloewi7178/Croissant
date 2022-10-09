@@ -25,6 +25,10 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     testOptions {
         managedDevices {
             devices {
@@ -41,7 +45,7 @@ android {
         // This benchmark buildType is used for benchmarking, and should function like your
         // release build (for example, with minification on). It"s signed with a debug key
         // for easy local/CI testing.
-        create("benchmark") {
+        val benchmark by creating {
             isDebuggable = true
             signingConfig = getByName("debug").signingConfig
             matchingFallbacks += listOf("release")
@@ -53,10 +57,14 @@ android {
 }
 
 dependencies {
-    implementation(libs.androidx.test.ext.junit)
-    implementation(libs.androidx.test.espresso)
+    implementation(libs.androidx.test.core)
+    implementation(libs.androidx.test.espresso.core)
+    implementation(libs.androidx.test.ext)
+    implementation(libs.androidx.test.runner)
+    implementation(libs.androidx.test.rules)
     implementation(libs.androidx.test.uiautomator)
     implementation(libs.androidx.benchmark.macro.junit4)
+    implementation(libs.androidx.profileinstaller)
 }
 
 androidComponents {

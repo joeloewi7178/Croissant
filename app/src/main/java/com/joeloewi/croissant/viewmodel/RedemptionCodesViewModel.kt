@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.domain.common.HoYoLABGame
+import com.joeloewi.domain.usecase.ArcaLiveAppUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,8 +15,9 @@ import org.jsoup.Jsoup
 import javax.inject.Inject
 
 @HiltViewModel
-class RedemptionCodesViewModel @Inject constructor() : ViewModel() {
-    private val _userAgent = "live.arca.android.playstore/0.8.331-playstore"
+class RedemptionCodesViewModel @Inject constructor(
+    private val getArticleArcaLiveAppUseCase: ArcaLiveAppUseCase.GetArticle
+) : ViewModel() {
     private val _hoYoLABGameRedemptionCodesState =
         MutableStateFlow<Lce<List<Pair<HoYoLABGame, String>>>>(Lce.Loading)
 
@@ -33,7 +35,7 @@ class RedemptionCodesViewModel @Inject constructor() : ViewModel() {
                 HoYoLABGame.values().runCatching {
                     map {
                         async(SupervisorJob() + Dispatchers.IO) {
-                            it to getRedemptionCodesFromHtml(it)
+                            it to getRedemptionCodesFromHtml(it).getOrThrow()
                         }
                     }
                 }.mapCatching {
@@ -50,49 +52,40 @@ class RedemptionCodesViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    private suspend fun getRedemptionCodesFromHtml(hoYoLABGame: HoYoLABGame): String =
+    private suspend fun getRedemptionCodesFromHtml(hoYoLABGame: HoYoLABGame): Result<String> =
         withContext(Dispatchers.IO) {
+            //Jsoup's nth-child works differently than expected
             when (hoYoLABGame) {
                 HoYoLABGame.HonkaiImpact3rd -> {
-                    Jsoup.connect(hoYoLABGame.redemptionCodesUrl)
-                        .userAgent(_userAgent)
-                        .get()
-                        .getElementsByClass("article-content")[0]
-                        .apply {
+                    getArticleArcaLiveAppUseCase(
+                        slug = "hk3rd",
+                        articleId = 7334792
+                    ).mapCatching { content ->
+                        Jsoup.parse(content).apply {
                             select("img").remove()
-                            select("p:last-child").remove()
-                            select("p:last-child").remove()
-                            select("p:last-child").remove()
-                            select("p:last-child").remove()
-                            select("p:last-child").remove()
+                            repeat(5) {
+                                select("p:last-child").remove()
+                            }
                         }.html().replace("모유", "체력")
+                    }
                 }
                 HoYoLABGame.GenshinImpact -> {
-                    val articleContent =
-                        Jsoup.connect(hoYoLABGame.redemptionCodesUrl)
-                            .userAgent(_userAgent)
-                            .get()
-                            .getElementsByClass("article-content")[0]
-
-                    var htmlStrings = ""
-                    var siblingIndex = 0
-
-                    //between fifth hr and sixth hr
-                    while (true) {
-                        val element =
-                            articleContent.select("hr")[5].nextElementSiblings()[siblingIndex++]
-
-                        if (element.tagName() == "hr") {
-                            break
-                        } else {
-                            htmlStrings += element.html()
-                        }
+                    getArticleArcaLiveAppUseCase(
+                        slug = "genshin",
+                        articleId = 53699739
+                    ).mapCatching { content ->
+                        Jsoup.parse(content).select("tr:nth-child(15) > td").apply {
+                            select("br").remove()
+                            repeat(2) {
+                                select("p:first-child").remove()
+                            }
+                        }.html()
                     }
-
-                    htmlStrings
                 }
                 else -> {
-                    ""
+                    runCatching {
+                        ""
+                    }
                 }
             }
         }

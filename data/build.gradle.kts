@@ -44,7 +44,7 @@ dependencies {
     implementation(libs.android.material)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
-    androidTestImplementation(libs.androidx.test.espresso)
+    androidTestImplementation(libs.androidx.test.espresso.core)
 
     //room
     implementation(libs.room.runtime)
