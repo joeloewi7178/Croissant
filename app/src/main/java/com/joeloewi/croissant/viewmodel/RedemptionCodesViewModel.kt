@@ -18,6 +18,17 @@ import javax.inject.Inject
 class RedemptionCodesViewModel @Inject constructor(
     private val getArticleArcaLiveAppUseCase: ArcaLiveAppUseCase.GetArticle
 ) : ViewModel() {
+    //below sdk version 29, dark theme isn't adjusted properly
+    private val _darkThemeStyleHtml = "<style>" +
+            "  @media (prefers-color-scheme: dark) {" +
+            "    p," +
+            "    span," +
+            "    strong {" +
+            "      background-color: transparent !important;" +
+            "      color: white !important;" +
+            "    }" +
+            "  }" +
+            "</style>"
     private val _hoYoLABGameRedemptionCodesState =
         MutableStateFlow<Lce<List<Pair<HoYoLABGame, String>>>>(Lce.Loading)
 
@@ -35,7 +46,7 @@ class RedemptionCodesViewModel @Inject constructor(
                 HoYoLABGame.values().runCatching {
                     map {
                         async(SupervisorJob() + Dispatchers.IO) {
-                            it to getRedemptionCodesFromHtml(it).getOrThrow()
+                            it to (_darkThemeStyleHtml + getRedemptionCodesFromHtml(it).getOrThrow())
                         }
                     }
                 }.mapCatching {

@@ -7,7 +7,7 @@ import javax.inject.Inject
 
 class ArcaLiveAppRepositoryImpl @Inject constructor(
     private val arcaLiveAppDataSource: ArcaLiveAppDataSource
-): ArcaLiveAppRepository {
+) : ArcaLiveAppRepository {
     override suspend fun getArticle(slug: String, articleId: Long): Result<String> =
         arcaLiveAppDataSource.runCatching {
             getArticle(slug, articleId).getOrThrow()

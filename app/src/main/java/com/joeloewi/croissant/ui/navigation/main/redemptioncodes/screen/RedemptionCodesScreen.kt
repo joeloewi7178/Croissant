@@ -252,7 +252,6 @@ fun RedemptionCodeListItem(
     val activity = LocalActivity.current
     val webViewState = rememberWebViewStateWithHTMLData(
         data = item.second,
-        baseUrl = "https://arca.live/"
     )
 
     Card(
@@ -337,15 +336,11 @@ fun RedemptionCodeListItem(
                                         true
                                     )
                                 }
-                            } else {
-                                if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
-                                    WebSettingsCompat.setForceDark(
-                                        settings,
-                                        WebSettingsCompat.FORCE_DARK_AUTO
-                                    )
-                                }
                             }
                         }
+
+                        settings.userAgentString = "live.arca.android.playstore/0.8.331-playstore"
+
                         isVerticalScrollBarEnabled = false
                         isHorizontalScrollBarEnabled = false
                         setBackgroundColor(Color.TRANSPARENT)
