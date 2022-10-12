@@ -1,9 +1,6 @@
 package com.joeloewi.data.di
 
-import com.joeloewi.data.api.dao.GenshinImpactCheckInService
-import com.joeloewi.data.api.dao.HoYoLABService
-import com.joeloewi.data.api.dao.HonkaiImpact3rdCheckInService
-import com.joeloewi.data.api.dao.TearsOfThemisCheckInService
+import com.joeloewi.data.api.dao.*
 import com.joeloewi.data.api.model.response.*
 import com.joeloewi.domain.entity.BaseResponse
 import com.skydoves.sandwich.adapters.ApiResponseCallAdapterFactory
@@ -17,6 +14,7 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
+import retrofit2.create
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
@@ -82,7 +80,7 @@ object ApiModule {
         retrofitBuilder
             .baseUrl("https://bbs-api-os.hoyolab.com/")
             .build()
-            .create(HoYoLABService::class.java)
+            .create()
 
     @Singleton
     @Provides
@@ -90,7 +88,7 @@ object ApiModule {
         retrofitBuilder
             .baseUrl("https://hk4e-api-os.mihoyo.com/")
             .build()
-            .create(GenshinImpactCheckInService::class.java)
+            .create()
 
     @Singleton
     @Provides
@@ -98,7 +96,7 @@ object ApiModule {
         retrofitBuilder
             .baseUrl("https://api-os-takumi.mihoyo.com/")
             .build()
-            .create(HonkaiImpact3rdCheckInService::class.java)
+            .create()
 
     @Singleton
     @Provides
@@ -106,5 +104,13 @@ object ApiModule {
         retrofitBuilder
             .baseUrl("https://sg-public-api.hoyolab.com/")
             .build()
-            .create(TearsOfThemisCheckInService::class.java)
+            .create()
+
+    @Singleton
+    @Provides
+    fun provideArcaLiveAppService(retrofitBuilder: Retrofit.Builder): ArcaLiveAppService =
+        retrofitBuilder
+            .baseUrl("https://arca.live/api/app/")
+            .build()
+            .create()
 }

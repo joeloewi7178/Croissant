@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Checklist
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.material3.Icon
@@ -35,8 +36,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.os.bundleOf
@@ -237,17 +241,7 @@ fun CroissantApp() {
                     )
                 }
             },
-            contentWindowInsets = WindowInsets.safeDrawing.exclude(WindowInsets.statusBars).run {
-                if (croissantAppState.isFullScreenDestination && croissantAppState.isCompactWindowSize) {
-                    if (WindowInsets.isImeVisible) {
-                        this
-                    } else {
-                        exclude(WindowInsets.navigationBars)
-                    }
-                } else {
-                    this
-                }
-            }
+            contentWindowInsets = WindowInsets.safeDrawing.exclude(WindowInsets.statusBars)
         ) { innerPadding ->
             Row(
                 modifier = Modifier
@@ -642,7 +636,7 @@ fun CroissantAppBottomSheetContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .navigationBarsPadding()
-                    .padding(DefaultDp)
+                    .padding(horizontal = DefaultDp)
                     .background(MaterialTheme.colorScheme.surface),
                 onClick = {
                     multiplePermissionsState.launchMultiplePermissionRequest()
@@ -708,7 +702,9 @@ fun CroissantAppBottomSheetContent(
                 textAlign = TextAlign.Center
             )
 
-            LazyColumn {
+            LazyColumn(
+                modifier = Modifier.weight(1f)
+            ) {
                 items(
                     items = croissantPermissions,
                     key = { it.permission }
@@ -729,6 +725,34 @@ fun CroissantAppBottomSheetContent(
                                 text = stringResource(id = item.detailedDescription)
                             )
                         }
+                    )
+                }
+            }
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(DefaultDp),
+                colors = CardDefaults.cardColors(),
+            ) {
+                Row(
+                    modifier = Modifier.padding(DefaultDp),
+                ) {
+                    Icon(
+                        modifier = Modifier.padding(DefaultDp),
+                        imageVector = Icons.Default.Star,
+                        contentDescription = Icons.Default.Star.name
+                    )
+                    Text(
+                        modifier = Modifier.padding(DefaultDp),
+                        text = buildAnnotatedString {
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append(stringResource(id = R.string.note))
+                                append(": ")
+                            }
+                            append(stringResource(id = R.string.first_open_guidance_can_be_shown_again))
+                        },
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }

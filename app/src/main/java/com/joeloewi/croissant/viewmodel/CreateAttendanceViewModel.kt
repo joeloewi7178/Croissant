@@ -120,8 +120,8 @@ class CreateAttendanceViewModel @Inject constructor(
     val minute = _minute.asStateFlow()
     val insertAttendanceState = _insertAttendanceState.asStateFlow()
     val pageIndex = savedStateHandle.getStateFlow(_pageIndexKey, 0)
-
-    fun getCurrentPageIndex() = savedStateHandle.get<Int>(_pageIndexKey) ?: 0
+    val currentPageIndex
+        get() = pageIndex.value
 
     fun setPageIndex(pageIndex: Int) {
         savedStateHandle[_pageIndexKey] = pageIndex

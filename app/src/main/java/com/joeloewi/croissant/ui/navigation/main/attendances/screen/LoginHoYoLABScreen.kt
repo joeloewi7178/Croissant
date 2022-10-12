@@ -8,7 +8,6 @@ import android.net.http.SslError
 import android.os.Build
 import android.os.Message
 import android.view.ViewGroup
-import android.view.WindowManager
 import android.webkit.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -28,10 +27,10 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.navigation.NavController
 import androidx.webkit.WebSettingsCompat
-import androidx.webkit.WebViewClientCompat
 import androidx.webkit.WebViewFeature
 import com.google.accompanist.web.*
 import com.joeloewi.croissant.R
@@ -212,13 +211,6 @@ fun LoginHoYoLABContent(
                                             true
                                         )
                                     }
-                                } else {
-                                    if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
-                                        WebSettingsCompat.setForceDark(
-                                            settings,
-                                            WebSettingsCompat.FORCE_DARK_AUTO
-                                        )
-                                    }
                                 }
                             }
 
@@ -319,13 +311,6 @@ fun LoginHoYoLABContent(
                                                     true
                                                 )
                                             }
-                                        } else {
-                                            if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
-                                                WebSettingsCompat.setForceDark(
-                                                    settings,
-                                                    WebSettingsCompat.FORCE_DARK_AUTO
-                                                )
-                                            }
                                         }
                                     }
                                 }
@@ -340,7 +325,7 @@ fun LoginHoYoLABContent(
                                 }
 
                                 dialog.window?.run {
-                                    addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+                                    WindowCompat.setDecorFitsSystemWindows(this, true)
 
                                     attributes = attributes?.apply {
                                         width = ViewGroup.LayoutParams.MATCH_PARENT
@@ -360,7 +345,7 @@ fun LoginHoYoLABContent(
                                             dialog.dismiss()
                                         }
                                     }
-                                    webViewClient = object : WebViewClientCompat() {
+                                    webViewClient = object : WebViewClient() {
                                         override fun onPageStarted(
                                             view: WebView?,
                                             url: String?,

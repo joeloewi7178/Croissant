@@ -59,4 +59,8 @@ interface RepositoryModule {
     @Binds
     @Singleton
     fun bindTearsOfThemisCheckInRepository(themisCheckInRepositoryImpl: TearsOfThemisCheckInRepositoryImpl): TearsOfThemisCheckInRepository
+
+    @Binds
+    @Singleton
+    fun bindArcaLiveAppRepository(arcaLiveAppRepositoryImpl: ArcaLiveAppRepositoryImpl): ArcaLiveAppRepository
 }

@@ -4,9 +4,9 @@ androidDesugarJdkLibs = "1.2.2"
 androidGradlePlugin = "7.3.0"
 androidxActivity = "1.6.0"
 androidxAppCompat = "1.6.0-rc01"
-androidxCompose = "1.3.0-beta03"
-androidxComposeCompiler = "1.3.1"
-androidxComposeMaterial3 = "1.0.0-beta03"
+androidxCompose = "1.3.0-rc01"
+androidxComposeCompiler = "1.3.2"
+androidxComposeMaterial3 = "1.0.0-rc01"
 androidxCore = "1.9.0"
 androidxCoreSplashscreen = "1.0.0"
 androidxDataStore = "1.0.0"
@@ -15,7 +15,6 @@ androidxHiltNavigationCompose = "1.0.0"
 androidxLifecycle = "2.6.0-alpha02"
 androidxNavigation = "2.5.2"
 androidxSavedState = "1.2.0"
-androidxPaging = "3.1.1"
 androidxStartup = "1.1.1"
 androidxTest = "1.4.0"
 androidxTestExt = "1.1.3"
@@ -27,33 +26,35 @@ androidxWebkit = "1.6.0-alpha01"
 androidxPagingCommon = "3.1.1"
 androidxPagingCompose = "1.0.0-alpha16"
 androidxTestExtJunit = "1.1.3"
-androidxTestEspresso = "3.4.0"
 androidMaterial = "1.7.0-rc01"
-coil = "2.2.1"
+coil = "2.2.2"
 hilt = "2.44"
 hiltExt = "1.0.0"
-kotlin = "1.7.10"
+kotlin = "1.7.20"
 kotlinxCoroutines = "1.6.4"
 kotlinxCollectionsImmutable = "0.3.5"
 androidxProfileInstaller = "1.2.0"
-androidxBenchmarkMacroJunit4 = "1.2.0-alpha04"
+androidxTestRunner = "1.4.0"
+androidxTestCore = "1.5.0-beta01"
+androidxBenchmarkMacroJunit4 = "1.2.0-alpha05"
+androidxTestRules = "1.4.0"
 protobuf = "3.21.7"
-protobufPlugin = "0.8.19"
+protobufPlugin = "0.9.1"
 retrofit = "2.9.0"
 room = "2.4.3"
 moshi = "1.14.0"
 androidPlayCoreKtx = "1.8.1"
-materialComposeThemeAdapter3 = "1.0.19"
+materialComposeThemeAdapter3 = "1.0.20"
 firebaseCrashlyticsPlugin = "2.9.2"
 gmsGoogleServicesGradlePlugin = "4.3.14"
 firebaseBom = "30.5.0"
 leakcanaryAndroid = "2.9.1"
 okhttp3LoggingInterceptor = "5.0.0-alpha.10"
 inject = "1"
-sandwich = "1.3.0"
+sandwich = "1.3.2"
 jsoup = "1.15.3"
 junit = "4.13.2"
-ksp = "1.7.10-1.0.6"
+ksp = "1.7.20-1.0.6"
 tts = "1.2.1"
 
 [libraries]
@@ -94,6 +95,11 @@ androidx-savedstate-ktx = { group = "androidx.savedstate", name = "savedstate-kt
 androidx-startup = { group = "androidx.startup", name = "startup-runtime", version.ref = "androidxStartup" }
 androidx-work-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "androidxWork" }
 androidx-profileinstaller = { group = "androidx.profileinstaller", name = "profileinstaller", version.ref = "androidxProfileInstaller" }
+androidx-test-core = { group = "androidx.test", name = "core", version.ref = "androidxTestCore" }
+androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "androidxEspresso" }
+androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidxTestRunner" }
+androidx-test-rules = { group = "androidx.test", name = "rules", version.ref = "androidxTestRules" }
+androidx-test-ext = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "androidxTestExt" }
 androidx-test-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "androidxTestUiAutomater" }
 androidx-benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "androidxBenchmarkMacroJunit4" }
 coil-kt-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
@@ -116,7 +122,7 @@ room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 room-paging = { group = "androidx.room", name = "room-paging", version.ref = "room" }
 androidx-webkit = { group = "androidx.webkit", name = "webkit", version.ref = "androidxWebkit" }
-androidx-paging-common = { group = "androidx.paging", name = "paging-common", version.ref = "androidxPagingCommon" }
+androidx-paging-common-ktx = { group = "androidx.paging", name = "paging-common-ktx", version.ref = "androidxPagingCommon" }
 androidx-paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "androidxPagingCompose" }
 material-compose-theme-adapter3 = { group = "com.google.android.material", name = "compose-theme-adapter-3", version.ref = "materialComposeThemeAdapter3" }
 android-play-core-ktx = { group = "com.google.android.play", name = "core-ktx", version.ref = "androidPlayCoreKtx" }
@@ -132,7 +138,6 @@ sandwich = { group = "com.github.skydoves", name = "sandwich", version.ref = "sa
 jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestExtJunit" }
-androidx-test-espresso = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "androidxTestEspresso" }
 tts = { group = "nl.marc-apps", name = "tts", version.ref = "tts" }
 
 [plugins]

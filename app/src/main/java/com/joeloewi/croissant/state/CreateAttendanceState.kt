@@ -84,7 +84,7 @@ class CreateAttendanceState(
     }
 
     fun onNextButtonClick() {
-        val nextPage = createAttendanceViewModel.getCurrentPageIndex() + 1
+        val nextPage = createAttendanceViewModel.currentPageIndex + 1
 
         if (nextPage < pages.size) {
             setPageIndex(nextPage)
