@@ -321,45 +321,48 @@ fun RedemptionCodeListItem(
                 }
             }
 
-            WebView(
-                modifier = Modifier
-                    .height(height)
-                    .fillMaxWidth(),
-                state = webViewState,
-                onCreated = { webView ->
-                    with(webView) {
-                        runCatching {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                                if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
-                                    WebSettingsCompat.setAlgorithmicDarkeningAllowed(
-                                        settings,
-                                        true
-                                    )
+            Row {
+                WebView(
+                    modifier = Modifier
+                        .height(height)
+                        .fillMaxWidth(),
+                    state = webViewState,
+                    onCreated = { webView ->
+                        with(webView) {
+                            runCatching {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                    if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
+                                        WebSettingsCompat.setAlgorithmicDarkeningAllowed(
+                                            settings,
+                                            true
+                                        )
+                                    }
                                 }
                             }
+
+                            settings.userAgentString =
+                                "live.arca.android.playstore/0.8.331-playstore"
+
+                            isVerticalScrollBarEnabled = false
+                            isHorizontalScrollBarEnabled = false
+                            setBackgroundColor(Color.TRANSPARENT)
                         }
-
-                        settings.userAgentString = "live.arca.android.playstore/0.8.331-playstore"
-
-                        isVerticalScrollBarEnabled = false
-                        isHorizontalScrollBarEnabled = false
-                        setBackgroundColor(Color.TRANSPARENT)
-                    }
-                },
-                client = remember {
-                    object : AccompanistWebViewClient() {
-                        override fun shouldOverrideUrlLoading(
-                            view: WebView?,
-                            request: WebResourceRequest?
-                        ): Boolean {
-                            request?.url?.let {
-                                activity.startActivity(Intent(Intent.ACTION_VIEW, it))
+                    },
+                    client = remember {
+                        object : AccompanistWebViewClient() {
+                            override fun shouldOverrideUrlLoading(
+                                view: WebView?,
+                                request: WebResourceRequest?
+                            ): Boolean {
+                                request?.url?.let {
+                                    activity.startActivity(Intent(Intent.ACTION_VIEW, it))
+                                }
+                                return super.shouldOverrideUrlLoading(view, request)
                             }
-                            return true
                         }
                     }
-                }
-            )
+                )
+            }
         }
     }
 }
