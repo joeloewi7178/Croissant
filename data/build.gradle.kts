@@ -92,3 +92,11 @@ protobuf {
         }
     }
 }
+
+kapt {
+    correctErrorTypes = true
+}
+
+hilt {
+    enableAggregatingTask = true
+}

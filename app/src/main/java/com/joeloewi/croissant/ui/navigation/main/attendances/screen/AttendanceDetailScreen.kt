@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
@@ -100,7 +101,6 @@ private fun AttendanceDetailContent(
         newValue = listOf(
             stringResource(id = R.string.uid) to attendanceDetailState.uid.toString(),
             stringResource(id = R.string.nickname) to attendanceDetailState.nickname,
-            stringResource(id = R.string.games_to_attend) to ""
         )
     )
 
@@ -150,6 +150,7 @@ private fun AttendanceDetailContent(
         ) {
             item("userInformationHeadline") {
                 Text(
+                    modifier = Modifier.padding(vertical = DefaultDp),
                     text = stringResource(id = R.string.session),
                     style = MaterialTheme.typography.headlineSmall
                 )
@@ -161,24 +162,6 @@ private fun AttendanceDetailContent(
                         key = it.first,
                         value = it.second
                     )
-                }
-            }
-
-            item("games") {
-                LazyRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(space = DefaultDp)
-                ) {
-                    items(
-                        items = HoYoLABGame.values().filter { it != HoYoLABGame.Unknown },
-                        key = { it.name }
-                    ) { item ->
-                        ConnectedGameListItem(
-                            modifier = Modifier.animateItemPlacement(),
-                            hoYoLABGame = item,
-                            checkedGames = attendanceDetailState.checkedGames,
-                        )
-                    }
                 }
             }
 
@@ -198,13 +181,44 @@ private fun AttendanceDetailContent(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = Icons.Default.Refresh.name
                         )
-                        Text(text = stringResource(id = R.string.refresh_session))
+                        Text(
+                            text = stringResource(id = R.string.refresh_session),
+                        )
+                    }
+                }
+            }
+
+            item("gamesHeadline") {
+                Text(
+                    modifier = Modifier.padding(vertical = DefaultDp),
+                    text = stringResource(id = R.string.games_to_attend),
+                    style = MaterialTheme.typography.headlineSmall
+                )
+            }
+
+            item("games") {
+                Column {
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(space = DefaultDp)
+                    ) {
+                        items(
+                            items = HoYoLABGame.values().filter { it != HoYoLABGame.Unknown },
+                            key = { it.name }
+                        ) { item ->
+                            ConnectedGameListItem(
+                                modifier = Modifier.animateItemPlacement(),
+                                hoYoLABGame = item,
+                                checkedGames = attendanceDetailState.checkedGames,
+                            )
+                        }
                     }
                 }
             }
 
             item("timeSettingHeadline") {
                 Text(
+                    modifier = Modifier.padding(vertical = DefaultDp),
                     text = stringResource(id = R.string.schedule_time_setting),
                     style = MaterialTheme.typography.headlineSmall
                 )
@@ -222,6 +236,7 @@ private fun AttendanceDetailContent(
 
             item("logSummaryHeadline") {
                 Text(
+                    modifier = Modifier.padding(vertical = DefaultDp),
                     text = stringResource(id = R.string.execution_log_summary),
                     style = MaterialTheme.typography.headlineSmall
                 )

@@ -51,7 +51,7 @@
     <string name="session">접속 정보</string>
     <string name="uid">UID</string>
     <string name="nickname">닉네임</string>
-    <string name="games_to_attend">출석 작업 설정된 게임</string>
+    <string name="games_to_attend">출석할 게임</string>
     <string name="refresh_session">접속 정보 갱신하기</string>
     <string name="schedule_time_setting">시간 설정</string>
     <string name="execution_log_summary">실행 기록 요약</string>
