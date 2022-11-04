@@ -2,10 +2,9 @@
 plugins {
     id("croissant.android.application")
     id("croissant.android.application.compose")
-    kotlin("kapt")
+    id("croissant.android.hilt")
     alias(libs.plugins.gms.google.services)
     id("kotlin-parcelize")
-    id("dagger.hilt.android.plugin")
     alias(libs.plugins.firebase.crashlytics)
 }
 
@@ -81,10 +80,6 @@ dependencies {
 
     implementation(libs.androidx.hilt.navigation.compose)
 
-    //hilt
-    implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
-
     //hilt-extension
     implementation(libs.hilt.ext.work)
     kapt(libs.hilt.ext.compiler)
@@ -106,6 +101,7 @@ dependencies {
     implementation(libs.accompanist.webview)
     implementation(libs.accompanist.pager.indicators)
     implementation(libs.accompanist.swiperefresh)
+    implementation(libs.accompanist.navigation.material)
 
     //work
     implementation(libs.androidx.work.ktx)

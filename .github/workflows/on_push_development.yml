@@ -18,13 +18,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3.1.0
-        
+
       - name: set up JDK 11
         uses: actions/setup-java@v3.6.0
         with:
           distribution: 'zulu' # See 'Supported distributions' for available options
           java-version: '11'
-          
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
@@ -37,7 +37,7 @@ jobs:
       - name: Build Release AAB
         id: buildRelease
         run: ./gradlew bundleRelease
-          
+
       - name: Sign app APK
         id: sign_app
         uses: r0adkll/sign-android-release@v1

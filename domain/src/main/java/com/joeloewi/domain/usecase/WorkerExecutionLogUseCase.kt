@@ -30,11 +30,27 @@ sealed class WorkerExecutionLogUseCase {
             workerExecutionLogRepository.deleteAll(attendanceId, loggableWorker)
     }
 
-    class GetAllPaged @Inject constructor(
+    class GetByDatePaged @Inject constructor(
         private val workerExecutionLogRepository: WorkerExecutionLogRepository
     ) {
-        operator fun invoke(attendanceId: Long, loggableWorker: LoggableWorker) =
-            workerExecutionLogRepository.getAllPaged(attendanceId, loggableWorker)
+        operator fun invoke(attendanceId: Long, loggableWorker: LoggableWorker, localDate: String) =
+            workerExecutionLogRepository.getByDatePaged(attendanceId, loggableWorker, localDate)
+    }
+
+    class GetCountByStateAndDate @Inject constructor(
+        private val workerExecutionLogRepository: WorkerExecutionLogRepository
+    ) {
+        operator fun invoke(
+            attendanceId: Long,
+            loggableWorker: LoggableWorker,
+            state: WorkerExecutionLogState,
+            localDate: String,
+        ) = workerExecutionLogRepository.getCountByStateAndDate(
+            attendanceId,
+            loggableWorker,
+            state,
+            localDate
+        )
     }
 
     class GetCountByState @Inject constructor(

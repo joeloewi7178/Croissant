@@ -14,7 +14,10 @@ fun navigationIconButton(
     onClick: () -> Unit
 ): @Composable () -> Unit {
     val currentOnClick by rememberUpdatedState(newValue = onClick)
-    val disappearableIconButton: @Composable (() -> Unit) by remember(previousBackStackEntry) {
+    val disappearableIconButton: @Composable (() -> Unit) by remember(
+        previousBackStackEntry,
+        currentOnClick
+    ) {
         derivedStateOf {
             if (previousBackStackEntry != null) {
                 {

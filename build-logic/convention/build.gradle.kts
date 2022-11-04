@@ -29,5 +29,9 @@ gradlePlugin {
             id = "croissant.android.library"
             implementationClass = "AndroidLibraryConventionPlugin"
         }
+        register("androidHilt") {
+            id = "croissant.android.hilt"
+            implementationClass = "AndroidHiltConventionPlugin"
+        }
     }
 }

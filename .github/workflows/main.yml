@@ -6,7 +6,7 @@ on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
     branches: [ master ]
-    
+
 env:
   ALIAS: ${{ secrets.ALIAS }}
   KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
@@ -23,26 +23,26 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        
+
       - name: set up JDK 11
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu' # See 'Supported distributions' for available options
           java-version: '11'
-          
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
       - name: Access GOOGLE_SERVICES_JSON
         run: echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > ./app/google-services.json
-        
+
       - name: Generate jks file from base64
         uses: timheuer/base64-to-file@v1.2
         with:
           fileName: 'croissant_key_store.jks'
           fileDir: './'
           encodedString: ${{ secrets.SIGNING_KEY }}
-        
+
       - name: Generate baseline profile
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -50,23 +50,23 @@ jobs:
           avd-name: baselineProfGenerator
           target: aosp_atd
           script: ./gradlew :benchmark:connectedBenchmarkAndroidTest -P android.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile
-      
+
       - name: Move generated baseline profile to target folder
         run: mv -f './benchmark/build/outputs/connected_android_test_additional_output/benchmark/connected/baselineProfGenerator(AVD) - 11/BaselineProfileGenerator_generate-baseline-prof.txt' ./app/src/main/baseline-prof.txt
-      
+
       - name: Check baseline-prof file status
         run: stat ./app/src/main/baseline-prof.txt
-        
+
       - name: View some lines of baseline-prof file
         run: head ./app/src/main/baseline-prof.txt
-      
+
       - name: Build with Gradle
         run: ./gradlew assemble
 
       - name: Build Release AAB
         id: buildRelease
         run: ./gradlew bundleRelease
-          
+
       - name: Upload Android Release to Play Store
         uses: r0adkll/upload-google-play@v1
         with:
