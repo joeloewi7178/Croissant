@@ -8,6 +8,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.joeloewi.croissant.viewmodel.CreateResinStatusWidgetViewModel
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.Dispatchers
 
 @ExperimentalLifecycleComposeApi
 @Stable
@@ -18,7 +19,7 @@ class CreateResinStatusWidgetState(
     val interval
         @Composable get() = createResinStatusWidgetViewModel.interval.collectAsStateWithLifecycle().value
     val pagedAttendancesWithGames
-        @Composable get() = createResinStatusWidgetViewModel.pagedAttendancesWithGames.collectAsLazyPagingItems()
+        @Composable get() = createResinStatusWidgetViewModel.pagedAttendancesWithGames.collectAsLazyPagingItems(Dispatchers.IO)
     val checkedAttendanceIds = createResinStatusWidgetViewModel.checkedAttendanceIds
     val insertResinStatusWidgetState
         @Composable get() = createResinStatusWidgetViewModel.createResinStatusWidgetState.collectAsStateWithLifecycle().value

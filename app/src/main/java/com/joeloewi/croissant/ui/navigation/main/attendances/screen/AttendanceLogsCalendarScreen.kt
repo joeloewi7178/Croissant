@@ -81,6 +81,11 @@ private fun AttendanceLogsCalendarContent(
     val pagerState = rememberPagerState(initialPage = YearMonth.now().monthValue - 1)
     val year = attendanceLogsCalendarState.year
     val (expanded, onExpandedChange) = rememberSaveable { mutableStateOf(false) }
+    val years by remember(Year.now()) {
+        derivedStateOf {
+            (1900..Year.now().value).reversed().map { Year.of(it) }
+        }
+    }
 
     LaunchedEffect(deleteAllState) {
         when (deleteAllState) {
@@ -163,7 +168,7 @@ private fun AttendanceLogsCalendarContent(
                         expanded = expanded,
                         onDismissRequest = { onExpandedChange(false) }
                     ) {
-                        (1900..Year.now().value).map { Year.of(it) }.forEach { year ->
+                        years.forEach { year ->
                             key(year.value) {
                                 DropdownMenuItem(
                                     text = {
@@ -222,7 +227,7 @@ private fun AttendanceLogsCalendarContent(
                             ) { _, day ->
 
                                 MonthPage(
-                                    year = year,
+                                    year = { year },
                                     month = month,
                                     day = day,
                                     showCount = {
@@ -284,13 +289,14 @@ private fun AttendanceLogsCalendarContent(
 @ExperimentalLifecycleComposeApi
 @Composable
 private fun MonthPage(
-    year: Year,
+    year: () -> Year,
     month: Month,
     day: Int,
     showCount: () -> Boolean,
     attendanceLogsCalendarState: AttendanceLogsCalendarState
 ) {
     val windowSizeClass = calculateWindowSizeClass(activity = LocalActivity.current)
+    val updatedYear by rememberUpdatedState(newValue = year)
 
     Column(
         modifier = Modifier
@@ -310,12 +316,13 @@ private fun MonthPage(
             val primaryColor = remember(colorScheme) {
                 colorScheme.primary
             }
-            val isToday by remember(
-                LocalDate.now(),
-                LocalDate.of(year.value, month, day)
-            ) {
+            val date = remember(updatedYear(), month, day) {
+                updatedYear().atMonth(month).atDay(day)
+            }
+
+            val isToday by remember(LocalDate.now(), date) {
                 derivedStateOf {
-                    LocalDate.now() == LocalDate.of(year.value, month, day)
+                    LocalDate.now() == date
                 }
             }
 
@@ -355,7 +362,7 @@ private fun MonthPage(
             ) {
                 if (showCount()) {
                     val logCount by attendanceLogsCalendarState.getCountByDate(
-                        year,
+                        updatedYear(),
                         month,
                         day
                     ).collectAsStateWithLifecycle(
@@ -393,11 +400,9 @@ private fun MonthPage(
                                 }
                             ) {
                                 attendanceLogsCalendarState.onClickDay(
-                                    localDate = LocalDate
-                                        .of(year.value, month, day)
-                                        .format(
-                                            DateTimeFormatter.ISO_LOCAL_DATE
-                                        )
+                                    localDate = date.format(
+                                        DateTimeFormatter.ISO_LOCAL_DATE
+                                    )
                                 )
                             }
                             .background(backgroundColor),

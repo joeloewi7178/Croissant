@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -154,6 +155,12 @@ private fun DeveloperInfoContent(
                             contentDescription = Icons.Default.Public.name
                         )
                     },
+                    trailingContent = {
+                        Icon(
+                            imageVector = Icons.Default.OpenInNew,
+                            contentDescription = Icons.Default.OpenInNew.name
+                        )
+                    },
                     overlineText = {
                         Text(text = "Github")
                     },
@@ -200,6 +207,12 @@ private fun DeveloperInfoContent(
                         Icon(
                             imageVector = Icons.Default.Email,
                             contentDescription = Icons.Default.Email.name
+                        )
+                    },
+                    trailingContent = {
+                        Icon(
+                            imageVector = Icons.Default.OpenInNew,
+                            contentDescription = Icons.Default.OpenInNew.name
                         )
                     },
                     overlineText = {

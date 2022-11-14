@@ -116,22 +116,17 @@ class MainActivity : AppCompatActivity() {
             CroissantTheme(
                 window = window
             ) {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    val mainViewModel: MainViewModel = hiltViewModel()
-                    val mainState = rememberMainState(mainViewModel = mainViewModel)
+                val mainViewModel: MainViewModel = hiltViewModel()
+                val mainState = rememberMainState(mainViewModel = mainViewModel)
 
-                    CompositionLocalProvider(
-                        LocalActivity provides this,
-                        LocalHourFormat provides mainState.hourFormat
+                CompositionLocalProvider(
+                    LocalActivity provides this,
+                    LocalHourFormat provides mainState.hourFormat
+                ) {
+                    RequireAppUpdate(
+                        appUpdateResultState = mainState.appUpdateResultState
                     ) {
-                        RequireAppUpdate(
-                            appUpdateResultState = mainState.appUpdateResultState
-                        ) {
-                            CroissantApp()
-                        }
+                        CroissantApp()
                     }
                 }
             }

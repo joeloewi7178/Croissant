@@ -9,6 +9,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -58,6 +59,7 @@ import com.joeloewi.croissant.ui.theme.HalfDp
 import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.gameNameStringResId
+import com.joeloewi.croissant.util.rememberCssPrefersColorScheme
 import com.joeloewi.croissant.viewmodel.RedemptionCodesViewModel
 import com.joeloewi.domain.common.HoYoLABGame
 import kotlinx.collections.immutable.ImmutableList
@@ -130,7 +132,7 @@ private fun RedemptionCodesContent(
 
 @ExperimentalMaterial3Api
 @Composable
-fun RedemptionCodesLoading() {
+private fun RedemptionCodesLoading() {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -145,7 +147,7 @@ fun RedemptionCodesLoading() {
 }
 
 @Composable
-fun RedemptionCodesError(
+private fun RedemptionCodesError(
     onRefresh: () -> Unit
 ) {
     Column(
@@ -193,7 +195,7 @@ fun RedemptionCodesError(
 @ExperimentalFoundationApi
 @ExperimentalMaterial3Api
 @Composable
-fun RedemptionCodes(
+private fun RedemptionCodes(
     hoYoLABGameRedemptionCodes: ImmutableList<Pair<HoYoLABGame, String>>,
     swipeRefreshState: SwipeRefreshState,
     expandedItems: SnapshotStateList<HoYoLABGame>,
@@ -235,7 +237,7 @@ fun RedemptionCodes(
 
 @ExperimentalMaterial3Api
 @Composable
-fun RedemptionCodeListItem(
+private fun RedemptionCodeListItem(
     modifier: Modifier,
     expandedItems: SnapshotStateList<HoYoLABGame>,
     item: Pair<HoYoLABGame, String>
@@ -250,8 +252,11 @@ fun RedemptionCodeListItem(
         }
     }
     val activity = LocalActivity.current
+    val cssPrefersColorScheme = rememberCssPrefersColorScheme(
+        contentColor = LocalContentColor.current
+    )
     val webViewState = rememberWebViewStateWithHTMLData(
-        data = item.second,
+        data = cssPrefersColorScheme + item.second,
     )
 
     Card(
@@ -369,7 +374,7 @@ fun RedemptionCodeListItem(
 
 @ExperimentalMaterial3Api
 @Composable
-fun RedemptionCodeListItemPlaceholder() {
+private fun RedemptionCodeListItemPlaceholder() {
     Card(
         modifier = Modifier
             .fillMaxWidth()

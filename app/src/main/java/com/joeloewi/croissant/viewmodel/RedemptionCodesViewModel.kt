@@ -18,17 +18,6 @@ import javax.inject.Inject
 class RedemptionCodesViewModel @Inject constructor(
     private val getArticleArcaLiveAppUseCase: ArcaLiveAppUseCase.GetArticle
 ) : ViewModel() {
-    //below sdk version 29, dark theme isn't adjusted properly
-    private val _darkThemeStyleHtml = "<style>" +
-            "  @media (prefers-color-scheme: dark) {" +
-            "    p," +
-            "    span," +
-            "    strong {" +
-            "      background-color: transparent !important;" +
-            "      color: white !important;" +
-            "    }" +
-            "  }" +
-            "</style>"
     private val _hoYoLABGameRedemptionCodesState =
         MutableStateFlow<Lce<List<Pair<HoYoLABGame, String>>>>(Lce.Loading)
 
@@ -46,7 +35,7 @@ class RedemptionCodesViewModel @Inject constructor(
                 HoYoLABGame.values().runCatching {
                     map {
                         async(SupervisorJob() + Dispatchers.IO) {
-                            it to (_darkThemeStyleHtml + getRedemptionCodesFromHtml(it).getOrThrow())
+                            it to (getRedemptionCodesFromHtml(it).getOrThrow())
                         }
                     }
                 }.mapCatching {
@@ -85,12 +74,7 @@ class RedemptionCodesViewModel @Inject constructor(
                         slug = "genshin",
                         articleId = 53699739
                     ).mapCatching { content ->
-                        Jsoup.parse(content).select("tr:nth-child(15) > td").apply {
-                            select("br").remove()
-                            repeat(2) {
-                                select("p:first-child").remove()
-                            }
-                        }.html()
+                        Jsoup.parse(content).select("p:nth-child(56)").html()
                     }
                 }
                 else -> {

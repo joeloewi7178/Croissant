@@ -60,6 +60,7 @@ import com.joeloewi.croissant.viewmodel.AttendancesViewModel
 import com.joeloewi.croissant.worker.AttendCheckInEventWorker
 import com.joeloewi.domain.entity.Attendance
 import com.joeloewi.domain.entity.relational.AttendanceWithGames
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -76,7 +77,7 @@ fun AttendancesScreen(
     attendancesViewModel: AttendancesViewModel = hiltViewModel()
 ) {
     val pagedAttendancesWithGames =
-        attendancesViewModel.pagedAttendanceWithGames.collectAsLazyPagingItems()
+        attendancesViewModel.pagedAttendanceWithGames.collectAsLazyPagingItems(Dispatchers.IO)
 
     AttendancesContent(
         snackbarHostState = snackbarHostState,

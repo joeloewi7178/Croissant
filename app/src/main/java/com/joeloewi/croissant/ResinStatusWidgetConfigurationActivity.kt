@@ -52,15 +52,10 @@ class ResinStatusWidgetConfigurationActivity : AppCompatActivity() {
             CroissantTheme(
                 window = window
             ) {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    CompositionLocalProvider(LocalActivity provides this) {
-                        val mainViewModel: MainViewModel = hiltViewModel()
+                CompositionLocalProvider(LocalActivity provides this) {
+                    val mainViewModel: MainViewModel = hiltViewModel()
 
-                        ResinStatusWidgetConfigurationApp()
-                    }
+                    ResinStatusWidgetConfigurationApp()
                 }
             }
         }
