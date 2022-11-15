@@ -5,7 +5,6 @@ import android.app.Dialog
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.http.SslError
-import android.os.Build
 import android.os.Message
 import android.view.ViewGroup
 import android.webkit.*
@@ -204,13 +203,11 @@ fun LoginHoYoLABContent(
                             }
 
                             runCatching {
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                                    if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
-                                        WebSettingsCompat.setAlgorithmicDarkeningAllowed(
-                                            settings,
-                                            true
-                                        )
-                                    }
+                                if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
+                                    WebSettingsCompat.setAlgorithmicDarkeningAllowed(
+                                        settings,
+                                        true
+                                    )
                                 }
                             }
 
@@ -304,13 +301,11 @@ fun LoginHoYoLABContent(
                                     }
 
                                     runCatching {
-                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                                            if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
-                                                WebSettingsCompat.setAlgorithmicDarkeningAllowed(
-                                                    settings,
-                                                    true
-                                                )
-                                            }
+                                        if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
+                                            WebSettingsCompat.setAlgorithmicDarkeningAllowed(
+                                                settings,
+                                                true
+                                            )
                                         }
                                     }
                                 }

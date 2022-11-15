@@ -2,14 +2,12 @@ package com.joeloewi.croissant.ui.navigation.main.redemptioncodes.screen
 
 import android.content.Intent
 import android.graphics.Color
-import android.os.Build
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -335,13 +333,11 @@ private fun RedemptionCodeListItem(
                     onCreated = { webView ->
                         with(webView) {
                             runCatching {
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                                    if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
-                                        WebSettingsCompat.setAlgorithmicDarkeningAllowed(
-                                            settings,
-                                            true
-                                        )
-                                    }
+                                if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
+                                    WebSettingsCompat.setAlgorithmicDarkeningAllowed(
+                                        settings,
+                                        true
+                                    )
                                 }
                             }
 

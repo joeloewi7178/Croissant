@@ -103,7 +103,6 @@ dependencies {
     implementation(libs.accompanist.webview)
     implementation(libs.accompanist.pager.indicators)
     implementation(libs.accompanist.swiperefresh)
-    implementation(libs.accompanist.navigation.material)
 
     //work
     implementation(libs.androidx.work.ktx)

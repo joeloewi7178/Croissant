@@ -19,7 +19,9 @@ class CreateResinStatusWidgetState(
     val interval
         @Composable get() = createResinStatusWidgetViewModel.interval.collectAsStateWithLifecycle().value
     val pagedAttendancesWithGames
-        @Composable get() = createResinStatusWidgetViewModel.pagedAttendancesWithGames.collectAsLazyPagingItems(Dispatchers.IO)
+        @Composable get() = createResinStatusWidgetViewModel.pagedAttendancesWithGames.collectAsLazyPagingItems(
+            Dispatchers.IO
+        )
     val checkedAttendanceIds = createResinStatusWidgetViewModel.checkedAttendanceIds
     val insertResinStatusWidgetState
         @Composable get() = createResinStatusWidgetViewModel.createResinStatusWidgetState.collectAsStateWithLifecycle().value
