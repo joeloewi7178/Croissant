@@ -40,9 +40,9 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
     lateinit var deleteByAppWidgetIdResinStatusWidgetUseCase: ResinStatusWidgetUseCase.DeleteByAppWidgetId
 
     override fun onUpdate(
-        context: Context?,
-        appWidgetManager: AppWidgetManager?,
-        appWidgetIds: IntArray?
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetIds: IntArray
     ) {
         super.onUpdate(context, appWidgetManager, appWidgetIds)
         //this method also called when user put widget on home screen
@@ -51,7 +51,7 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
             onError = {},
             coroutineContext = Dispatchers.IO
         ) {
-            appWidgetIds?.map { appWidgetId ->
+            appWidgetIds.map { appWidgetId ->
                 async(Dispatchers.IO) {
                     if (powerManager.isPowerSaveMode && !powerManager.isIgnoringBatteryOptimizationsCompat(
                             application
@@ -96,7 +96,7 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
                                 setViewVisibility(R.id.button_change_setting, View.INVISIBLE)
                             }
                         }.also { remoteViews ->
-                            appWidgetManager?.updateAppWidget(
+                            appWidgetManager.updateAppWidget(
                                 appWidgetId,
                                 remoteViews
                             )
@@ -127,17 +127,17 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
                         }
                     }
                 }
-            }?.awaitAll()
+            }.awaitAll()
         }
     }
 
-    override fun onDeleted(context: Context?, appWidgetIds: IntArray?) {
+    override fun onDeleted(context: Context, appWidgetIds: IntArray) {
         super.onDeleted(context, appWidgetIds)
         goAsync(
             onError = {},
             coroutineContext = Dispatchers.IO
         ) {
-            appWidgetIds?.run {
+            appWidgetIds.run {
                 map { appWidgetId ->
                     async(Dispatchers.IO) {
                         getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {

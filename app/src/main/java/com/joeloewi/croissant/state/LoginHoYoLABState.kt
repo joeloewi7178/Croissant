@@ -1,5 +1,6 @@
 package com.joeloewi.croissant.state
 
+import android.net.Uri
 import android.net.http.SslError
 import android.webkit.CookieManager
 import android.webkit.SslErrorHandler
@@ -89,11 +90,11 @@ class LoginHoYoLABState(
 
     fun shouldOverrideUrlLoading(
         request: WebResourceRequest?,
-        runOuterApplication: () -> Unit,
+        runOuterApplication: (Uri?) -> Unit,
         processOnWebView: () -> Boolean
     ): Boolean = if (shouldShowViaOuterApplication(request)) {
         coroutineScope.launch {
-            runOuterApplication()
+            runOuterApplication(request?.url)
         }
         true
     } else {
@@ -110,8 +111,9 @@ class LoginHoYoLABState(
     */
     private fun shouldShowViaOuterApplication(
         request: WebResourceRequest?
-    ): Boolean = (hoyolabUrl + excludedUrls)
-        .all { request?.url?.toString()?.contains(it) == false }
+    ): Boolean = (mutableListOf(hoyolabUrl) + excludedUrls).all {
+        (request?.url?.toString()?.contains(it) == false)
+    }
 
     private fun String?.checkContainsHoYoLABCookies(): Boolean =
         if (isNullOrEmpty()) {

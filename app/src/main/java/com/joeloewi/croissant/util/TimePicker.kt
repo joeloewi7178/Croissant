@@ -5,10 +5,8 @@ import android.widget.TimePicker
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import java.time.ZonedDateTime
 
-@ExperimentalLifecycleComposeApi
 @Composable
 fun TimePicker(
     modifier: Modifier = Modifier,

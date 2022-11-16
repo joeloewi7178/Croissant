@@ -61,6 +61,7 @@ private fun DeveloperInfoContent(
     developerInfoState: DeveloperInfoState
 ) {
     val activity = LocalActivity.current
+    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val textToSpeech = developerInfoState.textToSpeech
 
@@ -106,8 +107,11 @@ private fun DeveloperInfoContent(
                                 }
                             },
                         contentScale = ContentScale.Crop,
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data("https://avatars.githubusercontent.com/u/87220306?v=4").build(),
+                        model = remember(context) {
+                            ImageRequest.Builder(context)
+                                .data(R.drawable.hug_me)
+                                .build()
+                        },
                         contentDescription = null
                     )
                     Text(text = "joeloewi", style = MaterialTheme.typography.headlineMedium)

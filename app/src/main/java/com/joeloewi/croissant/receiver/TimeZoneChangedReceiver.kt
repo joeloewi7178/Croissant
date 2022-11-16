@@ -52,15 +52,15 @@ class TimeZoneChangedReceiver @Inject constructor(
         }
         .build()
 
-    override fun onReceive(context: Context?, intent: Intent?) {
-        when (intent?.action) {
+    override fun onReceive(context: Context, intent: Intent) {
+        when (intent.action) {
             Intent.ACTION_TIMEZONE_CHANGED -> {
-                context?.run {
+                context.run {
                     createTimezoneChangedNotification(
                         context = this,
                         channelId = getString(R.string.time_zone_changed_notification_channel_id)
                     ).let { notification ->
-                        if (packageManager?.checkPermission(
+                        if (context.packageManager.checkPermission(
                                 CroissantPermission.POST_NOTIFICATIONS_PERMISSION_COMPAT,
                                 packageName
                             ) == PackageManager.PERMISSION_GRANTED

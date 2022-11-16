@@ -7,7 +7,7 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class RemoteViewsFactoryService : RemoteViewsService() {
-    override fun onGetViewFactory(p0: Intent?): RemoteViewsFactory =
+    override fun onGetViewFactory(p0: Intent): RemoteViewsFactory =
         ListRemoteViewsFactory(
             context = applicationContext,
             intent = p0

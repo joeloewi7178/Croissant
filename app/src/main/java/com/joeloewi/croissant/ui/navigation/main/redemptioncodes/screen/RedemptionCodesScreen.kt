@@ -349,6 +349,9 @@ private fun RedemptionCodeListItem(
                             setBackgroundColor(Color.TRANSPARENT)
                         }
                     },
+                    onDispose = {
+                        it.destroy()
+                    },
                     client = remember {
                         object : AccompanistWebViewClient() {
                             override fun shouldOverrideUrlLoading(

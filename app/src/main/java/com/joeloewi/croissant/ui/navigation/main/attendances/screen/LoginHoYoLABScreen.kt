@@ -63,6 +63,7 @@ fun LoginHoYoLABScreen(
         }.toImmutableList(),
         securityPopUpUrls = remember {
             listOf(
+                "https://account.hoyolab.com/security.html?origin=hoyolab",
                 "https://m.hoyolab.com/account-system-sea/security.html?origin=hoyolab",
                 "about:blank"
             )
@@ -209,6 +210,13 @@ fun LoginHoYoLABContent(
                                         true
                                     )
                                 }
+
+                                if (WebViewFeature.isFeatureSupported(WebViewFeature.ENTERPRISE_AUTHENTICATION_APP_LINK_POLICY)) {
+                                    WebSettingsCompat.setEnterpriseAuthenticationAppLinkPolicyEnabled(
+                                        settings,
+                                        true
+                                    )
+                                }
                             }
 
                             clearCache(true)
@@ -224,6 +232,9 @@ fun LoginHoYoLABContent(
                             setAcceptCookie(true)
                             setAcceptThirdPartyCookies(webView, true)
                         }
+                    },
+                    onDispose = {
+                        it.destroy()
                     },
                     client = remember {
                         object : AccompanistWebViewClient() {
@@ -259,12 +270,12 @@ fun LoginHoYoLABContent(
                             ): Boolean =
                                 loginHoYoLABState.shouldOverrideUrlLoading(
                                     request = request,
-                                    runOuterApplication = {
-                                        request?.url?.let {
-                                            context.startActivity(
+                                    runOuterApplication = { uri ->
+                                        if (uri != null) {
+                                            activity.startActivity(
                                                 Intent(
                                                     Intent.ACTION_VIEW,
-                                                    it
+                                                    uri
                                                 )
                                             )
                                         }

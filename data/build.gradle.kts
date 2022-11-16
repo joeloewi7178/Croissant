@@ -37,7 +37,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.android.material)
     testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.ext.junit.ktx)
     androidTestImplementation(libs.androidx.test.espresso.core)
 
     //room

@@ -212,9 +212,10 @@ fun CroissantApp() {
 
     ModalBottomSheetLayout(
         sheetState = modalBottomSheetState,
+        sheetShape = MaterialTheme.shapes.large,
         sheetBackgroundColor = MaterialTheme.colorScheme.surface,
         sheetContentColor = contentColorFor(backgroundColor = MaterialTheme.colorScheme.surface),
-        scrimColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.32f),
+        scrimColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.32f),
         sheetContent = {
             CroissantAppBottomSheetContent(
                 multiplePermissionsState = multiplePermissionsState,
