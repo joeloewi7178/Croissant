@@ -2,10 +2,9 @@
 plugins {
     id("croissant.android.application")
     id("croissant.android.application.compose")
-    kotlin("kapt")
+    id("croissant.android.hilt")
     alias(libs.plugins.gms.google.services)
     id("kotlin-parcelize")
-    id("dagger.hilt.android.plugin")
     alias(libs.plugins.firebase.crashlytics)
 }
 
@@ -14,8 +13,8 @@ android {
 
     defaultConfig {
         applicationId = "com.joeloewi.croissant"
-        versionCode = 27
-        versionName = "1.0.25"
+        versionCode = 28
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -70,7 +69,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.appcompat)
     testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.ext.junit.ktx)
     androidTestImplementation(libs.androidx.test.espresso.core)
     androidTestImplementation(libs.androidx.compose.ui.test)
 
@@ -81,21 +80,19 @@ dependencies {
 
     implementation(libs.androidx.hilt.navigation.compose)
 
-    //hilt
-    implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
-
     //hilt-extension
     implementation(libs.hilt.ext.work)
     kapt(libs.hilt.ext.compiler)
 
     //compose
+    implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.runtime.livedata)
     implementation(libs.androidx.compose.material.iconsExtended)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     //accompanist

@@ -1,7 +1,9 @@
 package com.joeloewi.croissant.state
 
 import android.app.Activity
-import androidx.compose.material3.windowsizeclass.*
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
@@ -12,6 +14,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
 import com.joeloewi.croissant.util.LocalActivity
+import com.joeloewi.croissant.util.isCompactWindowSize
 import com.joeloewi.croissant.viewmodel.AppViewModel
 import kotlinx.collections.immutable.ImmutableList
 
@@ -45,7 +48,7 @@ class CroissantAppState(
         @Composable get() = fullScreenDestinations.contains(currentDestination?.route)
 
     val isCompactWindowSize
-        get() = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact || windowSizeClass.heightSizeClass == WindowHeightSizeClass.Compact
+        get() = windowSizeClass.isCompactWindowSize()
 
     val isBottomNavigationBarVisible
         @Composable

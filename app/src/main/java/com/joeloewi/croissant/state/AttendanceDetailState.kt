@@ -79,7 +79,7 @@ class AttendanceDetailState(
 
     fun onClickLogSummary(loggableWorker: LoggableWorker) {
         navController.navigate(
-            AttendancesDestination.AttendanceLogsScreen().generateRoute(
+            AttendancesDestination.AttendanceLogsCalendarScreen().generateRoute(
                 attendanceDetailViewModel.attendanceId,
                 loggableWorker
             )

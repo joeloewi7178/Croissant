@@ -25,7 +25,7 @@ suspend fun requestReview(
             }
         }.onFailure { cause ->
             FirebaseCrashlytics.getInstance().apply {
-                log(Build.PRODUCT)
+                log(Build.MODEL)
                 logMessage?.let { log(it) }
                 recordException(cause)
             }

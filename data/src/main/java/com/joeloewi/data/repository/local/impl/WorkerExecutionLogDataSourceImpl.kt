@@ -9,6 +9,7 @@ import com.joeloewi.data.mapper.WorkerExecutionLogMapper
 import com.joeloewi.data.mapper.WorkerExecutionLogWithStateMapper
 import com.joeloewi.data.repository.local.WorkerExecutionLogDataSource
 import com.joeloewi.domain.common.LoggableWorker
+import com.joeloewi.domain.common.WorkerExecutionLogState
 import com.joeloewi.domain.entity.WorkerExecutionLog
 import com.joeloewi.domain.entity.relational.WorkerExecutionLogWithState
 import kotlinx.coroutines.CoroutineDispatcher
@@ -46,27 +47,40 @@ class WorkerExecutionLogDataSourceImpl @Inject constructor(
         workerExecutionLogDao.deleteAll(attendanceId, loggableWorker)
     }
 
-    override fun getAllPaged(
+    override fun getByDatePaged(
         attendanceId: Long,
-        loggableWorker: LoggableWorker
+        loggableWorker: LoggableWorker,
+        dateString: String
     ): Flow<PagingData<WorkerExecutionLogWithState>> =
         Pager(
             config = PagingConfig(
                 pageSize = 8
             ),
             pagingSourceFactory = {
-                workerExecutionLogDao.getAllPaged(
-                    attendanceId, loggableWorker
+                workerExecutionLogDao.getByDatePaged(
+                    attendanceId, loggableWorker, dateString
                 )
             }
         ).flow
             .map { pagingData -> pagingData.map { workerExecutionLogWithStateMapper.toDomain(it) } }
             .flowOn(coroutineDispatcher)
 
+    override fun getCountByStateAndDate(
+        attendanceId: Long,
+        loggableWorker: LoggableWorker,
+        state: WorkerExecutionLogState,
+        dateString: String,
+    ): Flow<Long> = workerExecutionLogDao.getCountByStateAndDate(
+        attendanceId,
+        loggableWorker,
+        state,
+        dateString
+    )
+
     override fun getCountByState(
         attendanceId: Long,
         loggableWorker: LoggableWorker,
-        state: com.joeloewi.domain.common.WorkerExecutionLogState
+        state: WorkerExecutionLogState
     ): Flow<Long> = workerExecutionLogDao.getCountByState(attendanceId, loggableWorker, state)
         .flowOn(coroutineDispatcher)
 }

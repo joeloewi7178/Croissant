@@ -7,7 +7,7 @@ import android.content.Intent
 class TimeChangedReceiver(
     private val onReceiveActionTimeChanged: () -> Unit
 ) : BroadcastReceiver() {
-    override fun onReceive(p0: Context?, p1: Intent?) {
+    override fun onReceive(p0: Context, p1: Intent) {
         onReceiveActionTimeChanged()
     }
 }

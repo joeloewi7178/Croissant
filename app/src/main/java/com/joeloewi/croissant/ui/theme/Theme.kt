@@ -4,6 +4,7 @@ import android.view.Window
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import com.google.android.material.composethemeadapter3.Mdc3Theme
@@ -30,3 +31,27 @@ fun CroissantTheme(
         content = content
     )
 }
+
+val successContainerColor
+    @Composable
+    get() = if (isSystemInDarkTheme()) {
+        Color(0xFF00522C)
+    } else {
+        Color(0xFF97F7B6)
+    }
+
+val onSuccessContainerColor
+    @Composable
+    get() = if (isSystemInDarkTheme()) {
+        Color(0xFF7CDA9C)
+    } else {
+        Color(0xFF006D3C)
+    }
+
+val warningContainerColor
+    @Composable
+    get() = if (isSystemInDarkTheme()) {
+        Color(0xFF564500)
+    } else {
+        Color(0xFFFFE083)
+    }

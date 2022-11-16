@@ -15,10 +15,18 @@ interface WorkerExecutionLogDataSource {
         loggableWorker: LoggableWorker
     ): Int
 
-    fun getAllPaged(
+    fun getByDatePaged(
         attendanceId: Long,
-        loggableWorker: LoggableWorker
+        loggableWorker: LoggableWorker,
+        dateString: String
     ): Flow<PagingData<WorkerExecutionLogWithState>>
+
+    fun getCountByStateAndDate(
+        attendanceId: Long,
+        loggableWorker: LoggableWorker,
+        state: WorkerExecutionLogState,
+        dateString: String,
+    ): Flow<Long>
 
     fun getCountByState(
         attendanceId: Long,

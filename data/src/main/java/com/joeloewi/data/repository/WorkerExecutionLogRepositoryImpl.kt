@@ -25,13 +25,27 @@ class WorkerExecutionLogRepositoryImpl @Inject constructor(
     override suspend fun deleteAll(attendanceId: Long, loggableWorker: LoggableWorker): Int =
         workerExecutionLogDataSource.deleteAll(attendanceId, loggableWorker)
 
-    override fun getAllPaged(
+    override fun getByDatePaged(
         attendanceId: Long,
-        loggableWorker: LoggableWorker
+        loggableWorker: LoggableWorker,
+        localDate: String
     ): Flow<PagingData<WorkerExecutionLogWithState>> =
-        workerExecutionLogDataSource.getAllPaged(attendanceId, loggableWorker).map { pagingData ->
-            pagingData.map { it }
-        }
+        workerExecutionLogDataSource.getByDatePaged(attendanceId, loggableWorker, localDate)
+            .map { pagingData ->
+                pagingData.map { it }
+            }
+
+    override fun getCountByStateAndDate(
+        attendanceId: Long,
+        loggableWorker: LoggableWorker,
+        state: WorkerExecutionLogState,
+        localDate: String
+    ): Flow<Long> = workerExecutionLogDataSource.getCountByStateAndDate(
+        attendanceId,
+        loggableWorker,
+        state,
+        localDate
+    )
 
     override fun getCountByState(
         attendanceId: Long,

@@ -25,11 +25,21 @@ interface WorkerExecutionLogDao {
     ): Int
 
     @Transaction
-    @Query("SELECT * FROM WorkerExecutionLogEntity WHERE attendanceId = :attendanceId AND loggableWorker = :loggableWorker ORDER BY createdAt DESC")
-    fun getAllPaged(
+    @Query("SELECT * FROM WorkerExecutionLogEntity WHERE attendanceId = :attendanceId AND loggableWorker = :loggableWorker AND DATE(createdAt / 1000, 'unixepoch', 'localtime') = :localDate ORDER BY createdAt DESC")
+    fun getByDatePaged(
         attendanceId: Long,
-        loggableWorker: LoggableWorker
+        loggableWorker: LoggableWorker,
+        localDate: String,
     ): PagingSource<Int, WorkerExecutionLogWithStateEntity>
+
+    @Transaction
+    @Query("SELECT COUNT(*) FROM WorkerExecutionLogEntity WHERE attendanceId = :attendanceId AND loggableWorker = :loggableWorker AND state = :state AND DATE(createdAt / 1000, 'unixepoch', 'localtime') = :localDate")
+    fun getCountByStateAndDate(
+        attendanceId: Long,
+        loggableWorker: LoggableWorker,
+        state: WorkerExecutionLogState,
+        localDate: String,
+    ): Flow<Long>
 
     @Transaction
     @Query("SELECT COUNT(*) FROM WorkerExecutionLogEntity WHERE attendanceId = :attendanceId AND loggableWorker = :loggableWorker AND state = :state")

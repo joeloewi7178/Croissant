@@ -1,10 +1,9 @@
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     id("croissant.android.library")
-    kotlin("kapt")
+    id("croissant.android.hilt")
     alias(libs.plugins.protobuf)
     alias(libs.plugins.ksp)
-    id("dagger.hilt.android.plugin")
 }
 
 android {
@@ -38,7 +37,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.android.material)
     testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.ext.junit.ktx)
     androidTestImplementation(libs.androidx.test.espresso.core)
 
     //room
@@ -64,10 +63,6 @@ dependencies {
     //datastore
     implementation(libs.androidx.dataStore.core)
 
-    //hilt
-    implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
-
     implementation(libs.sandwich)
 
     implementation(libs.kotlinx.coroutines.android)
@@ -91,4 +86,12 @@ protobuf {
             }
         }
     }
+}
+
+kapt {
+    correctErrorTypes = true
+}
+
+hilt {
+    enableAggregatingTask = true
 }

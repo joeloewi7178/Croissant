@@ -23,7 +23,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.contentColorFor
@@ -70,10 +69,7 @@ import com.joeloewi.croissant.state.rememberCroissantAppState
 import com.joeloewi.croissant.state.rememberMainState
 import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
-import com.joeloewi.croissant.ui.navigation.main.attendances.screen.AttendanceDetailScreen
-import com.joeloewi.croissant.ui.navigation.main.attendances.screen.AttendanceLogsScreen
-import com.joeloewi.croissant.ui.navigation.main.attendances.screen.AttendancesScreen
-import com.joeloewi.croissant.ui.navigation.main.attendances.screen.LoginHoYoLABScreen
+import com.joeloewi.croissant.ui.navigation.main.attendances.screen.*
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.CreateAttendanceScreen
 import com.joeloewi.croissant.ui.navigation.main.redemptioncodes.RedemptionCodesDestination
 import com.joeloewi.croissant.ui.navigation.main.redemptioncodes.screen.RedemptionCodesScreen
@@ -119,22 +115,17 @@ class MainActivity : AppCompatActivity() {
             CroissantTheme(
                 window = window
             ) {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    val mainViewModel: MainViewModel = hiltViewModel()
-                    val mainState = rememberMainState(mainViewModel = mainViewModel)
+                val mainViewModel: MainViewModel = hiltViewModel()
+                val mainState = rememberMainState(mainViewModel = mainViewModel)
 
-                    CompositionLocalProvider(
-                        LocalActivity provides this,
-                        LocalHourFormat provides mainState.hourFormat
+                CompositionLocalProvider(
+                    LocalActivity provides this,
+                    LocalHourFormat provides mainState.hourFormat
+                ) {
+                    RequireAppUpdate(
+                        appUpdateResultState = mainState.appUpdateResultState
                     ) {
-                        RequireAppUpdate(
-                            appUpdateResultState = mainState.appUpdateResultState
-                        ) {
-                            CroissantApp()
-                        }
+                        CroissantApp()
                     }
                 }
             }
@@ -221,9 +212,10 @@ fun CroissantApp() {
 
     ModalBottomSheetLayout(
         sheetState = modalBottomSheetState,
+        sheetShape = MaterialTheme.shapes.large,
         sheetBackgroundColor = MaterialTheme.colorScheme.surface,
         sheetContentColor = contentColorFor(backgroundColor = MaterialTheme.colorScheme.surface),
-        scrimColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.32f),
+        scrimColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.32f),
         sheetContent = {
             CroissantAppBottomSheetContent(
                 multiplePermissionsState = multiplePermissionsState,
@@ -377,6 +369,7 @@ fun CroissantApp() {
     }
 }
 
+@ExperimentalMaterial3WindowSizeClassApi
 @ExperimentalLayoutApi
 @ExperimentalLifecycleComposeApi
 @ExperimentalCoroutinesApi
@@ -460,19 +453,36 @@ fun CroissantNavHost(
             }
 
             composable(
-                route = AttendancesDestination.AttendanceLogsScreen().route,
-                arguments = AttendancesDestination.AttendanceLogsScreen().arguments.map { argument ->
+                route = AttendancesDestination.AttendanceLogsCalendarScreen().route,
+                arguments = AttendancesDestination.AttendanceLogsCalendarScreen().arguments.map { argument ->
                     navArgument(argument.first) {
                         type = argument.second
                     }
                 }
             ) { navBackStackEntry ->
-                val attendanceLogsViewModel: AttendanceLogsViewModel =
+                val attendanceLogsCalendarViewModel: AttendanceLogsCalendarViewModel =
                     hiltViewModel(navBackStackEntry)
 
-                AttendanceLogsScreen(
+                AttendanceLogsCalendarScreen(
                     navController = navController,
-                    attendanceLogsViewModel = attendanceLogsViewModel
+                    attendanceLogsCalendarViewModel = attendanceLogsCalendarViewModel
+                )
+            }
+
+            composable(
+                route = AttendancesDestination.AttendanceLogsDayScreen().route,
+                arguments = AttendancesDestination.AttendanceLogsDayScreen().arguments.map { argument ->
+                    navArgument(argument.first) {
+                        type = argument.second
+                    }
+                }
+            ) { navBackStackEntry ->
+                val attendanceLogsDayViewModel: AttendanceLogsDayViewModel =
+                    hiltViewModel(navBackStackEntry)
+
+                AttendanceLogsDayScreen(
+                    navController = navController,
+                    attendanceLogsDayViewModel = attendanceLogsDayViewModel
                 )
             }
         }
