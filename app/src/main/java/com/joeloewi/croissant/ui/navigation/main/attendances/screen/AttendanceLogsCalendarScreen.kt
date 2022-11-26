@@ -30,7 +30,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
-import com.google.accompanist.pager.rememberPagerState
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.AttendanceLogsCalendarState
 import com.joeloewi.croissant.state.Lce
@@ -41,10 +40,11 @@ import com.joeloewi.croissant.util.generateCalendarDays
 import com.joeloewi.croissant.util.isCompactWindowSize
 import com.joeloewi.croissant.util.navigationIconButton
 import com.joeloewi.croissant.viewmodel.AttendanceLogsCalendarViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 import java.time.Month
 import java.time.Year
-import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 
 @ExperimentalMaterial3WindowSizeClassApi
@@ -78,7 +78,7 @@ private fun AttendanceLogsCalendarContent(
 ) {
     val context = LocalContext.current
     val deleteAllState = attendanceLogsCalendarState.deleteAllState
-    val pagerState = rememberPagerState(initialPage = YearMonth.now().monthValue - 1)
+    val pagerState = attendanceLogsCalendarState.pagerState
     val year = attendanceLogsCalendarState.year
     val (expanded, onExpandedChange) = rememberSaveable { mutableStateOf(false) }
     val years by remember(Year.now()) {
@@ -194,50 +194,13 @@ private fun AttendanceLogsCalendarContent(
                     },
                     count = Month.values().size
                 ) { page ->
-                    val month = remember(page) { Month.values()[page] }
-                    val totalDays =
-                        remember(year.atMonth(month)) { year.atMonth(month).generateCalendarDays() }
 
-                    Column(
-                        modifier = Modifier
-                            .padding(DefaultDp)
-                            .fillMaxSize()
-                    ) {
-                        Row {
-                            Text(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = DefaultDp),
-                                text = month.value.toString(),
-                                style = MaterialTheme.typography.displaySmall,
-                                textAlign = TextAlign.Center,
-                            )
-                        }
-
-                        LazyVerticalGrid(
-                            modifier = Modifier.fillMaxSize(),
-                            columns = GridCells.Fixed(7)
-                        ) {
-                            itemsIndexed(
-                                items = totalDays,
-                                key = { index, _ ->
-                                    year.atMonth(month)
-                                        .format(DateTimeFormatter.ofPattern("yyyy-MM")) + "[$index]"
-                                }
-                            ) { _, day ->
-
-                                MonthPage(
-                                    year = { year },
-                                    month = month,
-                                    day = day,
-                                    showCount = {
-                                        pagerState.currentPage + 1 == month.value
-                                    },
-                                    attendanceLogsCalendarState = attendanceLogsCalendarState
-                                )
-                            }
-                        }
-                    }
+                    MonthPage(
+                        page = page,
+                        year = { year },
+                        dayLogCount = attendanceLogsCalendarState::getCountByDate,
+                        onClickDay = attendanceLogsCalendarState::onClickDay
+                    )
                 }
             }
 
@@ -285,18 +248,76 @@ private fun AttendanceLogsCalendarContent(
     }
 }
 
+@ExperimentalPagerApi
 @ExperimentalMaterial3WindowSizeClassApi
 @ExperimentalLifecycleComposeApi
 @Composable
 private fun MonthPage(
+    page: Int,
+    year: () -> Year,
+    dayLogCount: (Year, Month, Int) -> Flow<Pair<Long, Long>>,
+    onClickDay: (localDate: String) -> Unit
+) {
+    val updatedOnDayClick by rememberUpdatedState(newValue = onClickDay)
+    val month = remember(page) { Month.values()[page] }
+    val totalDays =
+        remember(year().atMonth(month)) {
+            year().atMonth(month).generateCalendarDays()
+        }
+
+    Column(
+        modifier = Modifier
+            .padding(DefaultDp)
+            .fillMaxSize()
+    ) {
+        Row {
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = DefaultDp),
+                text = month.value.toString(),
+                style = MaterialTheme.typography.displaySmall,
+                textAlign = TextAlign.Center,
+            )
+        }
+
+        LazyVerticalGrid(
+            modifier = Modifier.fillMaxSize(),
+            columns = GridCells.Fixed(7)
+        ) {
+            itemsIndexed(
+                items = totalDays,
+                key = { index, _ ->
+                    year().atMonth(month)
+                        .format(DateTimeFormatter.ofPattern("yyyy-MM")) + "[$index]"
+                }
+            ) { _, day ->
+
+                DayGridItem(
+                    year = year,
+                    month = month,
+                    day = day,
+                    dayLogCount = dayLogCount,
+                    onClickDay = updatedOnDayClick
+                )
+            }
+        }
+    }
+}
+
+@ExperimentalPagerApi
+@ExperimentalMaterial3WindowSizeClassApi
+@ExperimentalLifecycleComposeApi
+@Composable
+private fun DayGridItem(
     year: () -> Year,
     month: Month,
     day: Int,
-    showCount: () -> Boolean,
-    attendanceLogsCalendarState: AttendanceLogsCalendarState
+    dayLogCount: (Year, Month, Int) -> Flow<Pair<Long, Long>>,
+    onClickDay: (localDate: String) -> Unit
 ) {
     val windowSizeClass = calculateWindowSizeClass(activity = LocalActivity.current)
-    val updatedYear by rememberUpdatedState(newValue = year)
+    val updatedOnClick by rememberUpdatedState(newValue = onClickDay)
 
     Column(
         modifier = Modifier
@@ -311,13 +332,16 @@ private fun MonthPage(
             )
     ) {
         if (day != 0) {
+            val logCount by remember(year(), month, day) {
+                dayLogCount(year(), month, day)
+            }.collectAsStateWithLifecycle(initialValue = 0L to 0L, context = Dispatchers.IO)
             val colorScheme = MaterialTheme.colorScheme
 
             val primaryColor = remember(colorScheme) {
                 colorScheme.primary
             }
-            val date = remember(updatedYear(), month, day) {
-                updatedYear().atMonth(month).atDay(day)
+            val date = remember(year(), month, day) {
+                year().atMonth(month).atDay(day)
             }
 
             val isToday by remember(LocalDate.now(), date) {
@@ -348,113 +372,105 @@ private fun MonthPage(
                 }
             }
 
-            Text(
-                modifier = circleModifier.fillMaxWidth(),
-                text = "$day",
-                style = MaterialTheme.typography.labelMedium,
-                color = dayTextColor,
-                textAlign = TextAlign.Center
-            )
+            Row {
+                Text(
+                    modifier = circleModifier.fillMaxWidth(),
+                    text = "$day",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = dayTextColor,
+                    textAlign = TextAlign.Center
+                )
+            }
 
             Row(
                 modifier = Modifier
                     .weight(1f)
             ) {
-                if (showCount()) {
-                    val logCount by attendanceLogsCalendarState.getCountByDate(
-                        updatedYear(),
-                        month,
-                        day
-                    ).collectAsStateWithLifecycle(
-                        initialValue = 0L to 0L,
-                    )
+                val backgroundColor = with(
+                    logCount
+                ) {
+                    when {
+                        first > 0L && second > 0 -> {
+                            warningContainerColor
+                        }
 
-                    val backgroundColor = with(
-                        logCount
-                    ) {
-                        when {
-                            first > 0 && second > 0 -> {
-                                warningContainerColor
-                            }
+                        first > 0 -> {
+                            successContainerColor
+                        }
 
-                            first > 0 -> {
-                                successContainerColor
-                            }
+                        second > 0 -> {
+                            MaterialTheme.colorScheme.errorContainer
+                        }
 
-                            second > 0 -> {
-                                MaterialTheme.colorScheme.errorContainer
-                            }
+                        else -> {
+                            Color.Unspecified
+                        }
+                    }
+                }
 
-                            else -> {
-                                Color.Unspecified
-                            }
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable(
+                            enabled = with(logCount) {
+                                first > 0 || second > 0
+                            },
+                        ) {
+                            updatedOnClick(
+                                date.format(
+                                    DateTimeFormatter.ISO_LOCAL_DATE
+                                )
+                            )
+                        }
+                        .background(backgroundColor),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    if (logCount.first > 0) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(
+                                HalfDp
+                            )
+                        ) {
+                            Icon(
+                                modifier = Modifier.size(
+                                    DoubleDp
+                                ),
+                                imageVector = Icons.Default.Check,
+                                contentDescription = Icons.Default.Check.name,
+                                tint = onSuccessContainerColor
+                            )
+
+                            Text(
+                                text = "${logCount.first}",
+                                color = onSuccessContainerColor,
+                                style = MaterialTheme.typography.labelSmall
+                            )
                         }
                     }
 
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clickable(
-                                enabled = with(logCount) {
-                                    first > 0 || second > 0
-                                }
-                            ) {
-                                attendanceLogsCalendarState.onClickDay(
-                                    localDate = date.format(
-                                        DateTimeFormatter.ISO_LOCAL_DATE
-                                    )
-                                )
-                            }
-                            .background(backgroundColor),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        if (logCount.first > 0) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(
-                                    HalfDp
-                                )
-                            ) {
-                                Icon(
-                                    modifier = Modifier.size(
-                                        DoubleDp
-                                    ),
-                                    imageVector = Icons.Default.Check,
-                                    contentDescription = Icons.Default.Check.name,
-                                    tint = onSuccessContainerColor
-                                )
+                    if (logCount.second > 0) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(
+                                HalfDp
+                            )
+                        ) {
+                            Icon(
+                                modifier = Modifier.size(
+                                    DoubleDp
+                                ),
+                                imageVector = Icons.Default.Error,
+                                contentDescription = Icons.Default.Error.name,
+                                tint = MaterialTheme.colorScheme.error
+                            )
 
-                                Text(
-                                    text = "${logCount.first}",
-                                    color = onSuccessContainerColor,
-                                    style = MaterialTheme.typography.labelSmall
-                                )
-                            }
-                        }
-
-                        if (logCount.second > 0) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(
-                                    HalfDp
-                                )
-                            ) {
-                                Icon(
-                                    modifier = Modifier.size(
-                                        DoubleDp
-                                    ),
-                                    imageVector = Icons.Default.Error,
-                                    contentDescription = Icons.Default.Error.name,
-                                    tint = MaterialTheme.colorScheme.error
-                                )
-
-                                Text(
-                                    text = "${logCount.second}",
-                                    color = MaterialTheme.colorScheme.error,
-                                    style = MaterialTheme.typography.labelSmall
-                                )
-                            }
+                            Text(
+                                text = "${logCount.second}",
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.labelSmall
+                            )
                         }
                     }
                 }

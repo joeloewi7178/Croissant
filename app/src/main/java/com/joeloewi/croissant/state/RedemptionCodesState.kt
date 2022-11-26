@@ -1,12 +1,13 @@
 package com.joeloewi.croissant.state
 
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.joeloewi.croissant.viewmodel.RedemptionCodesViewModel
 
 @ExperimentalLifecycleComposeApi
@@ -18,8 +19,13 @@ class RedemptionCodesState(
     //state
     val hoYoLABGameRedemptionCodesState
         @Composable get() = redemptionCodesViewModel.hoYoLABGameRedemptionCodesState.collectAsStateWithLifecycle().value
+
+    @ExperimentalMaterialApi
     val swipeRefreshState
-        @Composable get() = rememberSwipeRefreshState(isRefreshing = hoYoLABGameRedemptionCodesState.isLoading)
+        @Composable get() = rememberPullRefreshState(
+            refreshing = hoYoLABGameRedemptionCodesState.isLoading,
+            onRefresh = redemptionCodesViewModel::getRedemptionCodes
+        )
 
     //state list
     val expandedItems

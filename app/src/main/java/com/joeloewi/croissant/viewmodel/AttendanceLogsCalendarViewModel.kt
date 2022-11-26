@@ -74,7 +74,7 @@ class AttendanceLogsCalendarViewModel @Inject constructor(
             WorkerExecutionLogState.FAILURE,
             year.atMonth(month).atDay(day).format(DateTimeFormatter.ISO_LOCAL_DATE)
         )
-    ) { success, failure -> success to failure }.catch { }
+    ) { success, failure -> success to failure }.flowOn(Dispatchers.IO).catch { }
 
     fun setYear(year: Year) {
         _year.value = year

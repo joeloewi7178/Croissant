@@ -12,11 +12,14 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -41,8 +44,6 @@ import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.SwipeRefreshState
 import com.google.accompanist.web.AccompanistWebViewClient
 import com.google.accompanist.web.WebView
 import com.google.accompanist.web.rememberWebViewStateWithHTMLData
@@ -67,6 +68,7 @@ import kotlinx.collections.immutable.toImmutableList
 @ExperimentalLifecycleComposeApi
 @ExperimentalFoundationApi
 @ExperimentalMaterial3Api
+@ExperimentalMaterialApi
 @Composable
 fun RedemptionCodesScreen(
     navController: NavController,
@@ -84,6 +86,7 @@ fun RedemptionCodesScreen(
 @ExperimentalLifecycleComposeApi
 @ExperimentalFoundationApi
 @ExperimentalMaterial3Api
+@ExperimentalMaterialApi
 @Composable
 private fun RedemptionCodesContent(
     redemptionCodesState: RedemptionCodesState,
@@ -101,19 +104,20 @@ private fun RedemptionCodesContent(
         },
         contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
     ) { innerPadding ->
+        val pullRefreshState = redemptionCodesState.swipeRefreshState
+
         Box(
             modifier = Modifier
                 .padding(innerPadding)
                 .consumedWindowInsets(innerPadding)
+                .pullRefresh(pullRefreshState)
         ) {
             with(redemptionCodesState.hoYoLABGameRedemptionCodesState) {
                 when (this) {
                     is Lce.Content -> {
                         RedemptionCodes(
                             hoYoLABGameRedemptionCodes = content.toImmutableList(),
-                            swipeRefreshState = redemptionCodesState.swipeRefreshState,
                             expandedItems = redemptionCodesState.expandedItems,
-                            onRefresh = redemptionCodesState::onRefresh
                         )
                     }
                     is Lce.Error -> {
@@ -124,6 +128,14 @@ private fun RedemptionCodesContent(
                     }
                 }
             }
+
+            PullRefreshIndicator(
+                refreshing = redemptionCodesState.hoYoLABGameRedemptionCodesState.isLoading,
+                state = pullRefreshState,
+                modifier = Modifier.align(Alignment.TopCenter),
+                backgroundColor = MaterialTheme.colorScheme.surface,
+                contentColor = contentColorFor(backgroundColor = MaterialTheme.colorScheme.surface)
+            )
         }
     }
 }
@@ -192,21 +204,13 @@ private fun RedemptionCodesError(
 
 @ExperimentalFoundationApi
 @ExperimentalMaterial3Api
+@ExperimentalMaterialApi
 @Composable
 private fun RedemptionCodes(
     hoYoLABGameRedemptionCodes: ImmutableList<Pair<HoYoLABGame, String>>,
-    swipeRefreshState: SwipeRefreshState,
     expandedItems: SnapshotStateList<HoYoLABGame>,
-    onRefresh: () -> Unit
 ) {
-    SwipeRefresh(
-        modifier = Modifier.fillMaxSize(),
-        state = swipeRefreshState,
-        onRefresh = {
-            expandedItems.clear()
-            onRefresh()
-        }
-    ) {
+    Box(modifier = Modifier) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize(),
