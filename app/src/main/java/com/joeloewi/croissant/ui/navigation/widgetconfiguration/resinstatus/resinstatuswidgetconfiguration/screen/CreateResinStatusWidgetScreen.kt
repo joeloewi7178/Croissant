@@ -20,6 +20,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
@@ -130,8 +131,7 @@ fun CreateResinStatusWidgetContent(
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(DefaultDp)
-                    .background(MaterialTheme.colorScheme.surface),
+                    .padding(DefaultDp),
                 enabled = createResinStatusWidgetState.isAttendanceIdItemSelected,
                 onClick = createResinStatusWidgetState::onClickDone
             ) {
@@ -317,6 +317,7 @@ fun AccountListItemPlaceholder() {
                     .fillMaxWidth()
                     .placeholder(
                         visible = true,
+                        shape = MaterialTheme.shapes.extraSmall,
                         color = MaterialTheme.colorScheme.outline,
                         highlight = PlaceholderHighlight.fade(
                             highlightColor = MaterialTheme.colorScheme.background,
@@ -330,6 +331,7 @@ fun AccountListItemPlaceholder() {
                 modifier = Modifier
                     .placeholder(
                         visible = true,
+                        shape = MaterialTheme.shapes.extraSmall,
                         color = MaterialTheme.colorScheme.outline,
                         highlight = PlaceholderHighlight.fade(
                             highlightColor = MaterialTheme.colorScheme.background,

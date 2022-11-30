@@ -45,8 +45,7 @@ fun SetTime(
                 modifier = Modifier
                     .navigationBarsPadding()
                     .padding(horizontal = DefaultDp)
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface),
+                    .fillMaxWidth(),
                 onClick = createAttendanceState::onNextButtonClick
             ) {
                 Row(

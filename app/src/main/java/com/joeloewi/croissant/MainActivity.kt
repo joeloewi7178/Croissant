@@ -31,6 +31,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
@@ -646,8 +647,7 @@ fun CroissantAppBottomSheetContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .navigationBarsPadding()
-                    .padding(horizontal = DefaultDp)
-                    .background(MaterialTheme.colorScheme.surface),
+                    .padding(horizontal = DefaultDp),
                 onClick = {
                     multiplePermissionsState.launchMultiplePermissionRequest()
                 }
@@ -683,7 +683,9 @@ fun CroissantAppBottomSheetContent(
                 horizontalArrangement = Arrangement.Center
             ) {
                 AsyncImage(
-                    modifier = Modifier.size(48.dp),
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(MaterialTheme.shapes.extraSmall),
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(R.mipmap.ic_launcher)
                         .build(),

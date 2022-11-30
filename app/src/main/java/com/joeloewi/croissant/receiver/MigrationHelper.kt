@@ -31,15 +31,12 @@ class MigrationHelper : BroadcastReceiver() {
     lateinit var getAllOneShotAttendanceUseCase: AttendanceUseCase.GetAllOneShot
 
     override fun onReceive(p0: Context, p1: Intent) {
-        FirebaseCrashlytics.getInstance().apply {
-            log(this@MigrationHelper.javaClass.simpleName)
-        }
-
         when (p1.action) {
             Intent.ACTION_MY_PACKAGE_REPLACED -> {
                 goAsync(
                     onError = { cause ->
                         FirebaseCrashlytics.getInstance().apply {
+                            log(this@MigrationHelper.javaClass.simpleName)
                             recordException(cause)
                         }
                     },

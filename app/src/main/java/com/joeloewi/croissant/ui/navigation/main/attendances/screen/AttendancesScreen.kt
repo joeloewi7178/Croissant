@@ -28,6 +28,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
@@ -391,7 +392,8 @@ private fun DismissContent(
                         AsyncImage(
                             modifier = Modifier
                                 .animateItemPlacement()
-                                .size(IconDp),
+                                .size(IconDp)
+                                .clip(MaterialTheme.shapes.extraSmall),
                             model = ImageRequest.Builder(LocalContext.current)
                                 .data(game.type.gameIconUrl)
                                 .build(),
@@ -464,6 +466,7 @@ fun AttendanceWithGamesItemPlaceholder(
                 modifier = Modifier
                     .placeholder(
                         visible = true,
+                        shape = MaterialTheme.shapes.extraSmall,
                         color = MaterialTheme.colorScheme.outline,
                         highlight = PlaceholderHighlight.fade(
                             highlightColor = MaterialTheme.colorScheme.background,
@@ -483,6 +486,7 @@ fun AttendanceWithGamesItemPlaceholder(
                     modifier = Modifier
                         .placeholder(
                             visible = true,
+                            shape = MaterialTheme.shapes.extraSmall,
                             color = MaterialTheme.colorScheme.outline,
                             highlight = PlaceholderHighlight.fade(
                                 highlightColor = MaterialTheme.colorScheme.background,
@@ -497,6 +501,7 @@ fun AttendanceWithGamesItemPlaceholder(
                         .size(IconDp)
                         .placeholder(
                             visible = true,
+                            shape = MaterialTheme.shapes.extraSmall,
                             color = MaterialTheme.colorScheme.outline,
                             highlight = PlaceholderHighlight.fade(
                                 highlightColor = MaterialTheme.colorScheme.background,
@@ -519,6 +524,7 @@ fun AttendanceWithGamesItemPlaceholder(
                     AsyncImage(
                         modifier = Modifier
                             .animateItemPlacement()
+                            .clip(MaterialTheme.shapes.extraSmall)
                             .size(IconDp),
                         model = ImageRequest.Builder(LocalContext.current)
                             .build(),
@@ -537,6 +543,7 @@ fun AttendanceWithGamesItemPlaceholder(
                     .size(IconDp)
                     .placeholder(
                         visible = true,
+                        shape = MaterialTheme.shapes.extraSmall,
                         color = MaterialTheme.colorScheme.outline,
                         highlight = PlaceholderHighlight.fade(
                             highlightColor = MaterialTheme.colorScheme.background,

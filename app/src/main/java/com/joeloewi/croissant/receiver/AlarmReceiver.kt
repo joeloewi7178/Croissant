@@ -37,15 +37,12 @@ class AlarmReceiver : BroadcastReceiver() {
     lateinit var alarmManager: AlarmManager
 
     override fun onReceive(p0: Context, p1: Intent) {
-        FirebaseCrashlytics.getInstance().apply {
-            log(this@AlarmReceiver.javaClass.simpleName)
-        }
-
         when (p1.action) {
             Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED, AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED -> {
                 goAsync(
                     onError = { cause ->
                         FirebaseCrashlytics.getInstance().apply {
+                            log(this@AlarmReceiver.javaClass.simpleName)
                             recordException(cause)
                         }
                     },
@@ -104,6 +101,7 @@ class AlarmReceiver : BroadcastReceiver() {
                 goAsync(
                     onError = { cause ->
                         FirebaseCrashlytics.getInstance().apply {
+                            log(this@AlarmReceiver.javaClass.simpleName)
                             recordException(cause)
                         }
                     },

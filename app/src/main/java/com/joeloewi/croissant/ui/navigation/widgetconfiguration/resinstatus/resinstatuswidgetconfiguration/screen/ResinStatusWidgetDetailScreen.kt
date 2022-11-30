@@ -77,8 +77,7 @@ fun ResinStatusWidgetDetailContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .navigationBarsPadding()
-                    .padding(DefaultDp)
-                    .background(MaterialTheme.colorScheme.surface),
+                    .padding(DefaultDp),
                 onClick = resinStatusWidgetDetailState::updateResinStatusWidget
             ) {
                 Row(

@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -301,7 +302,8 @@ private fun RedemptionCodeListItem(
                 ) {
                     AsyncImage(
                         modifier = Modifier
-                            .size(IconDp),
+                            .size(IconDp)
+                            .clip(MaterialTheme.shapes.extraSmall),
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(item.first.gameIconUrl)
                             .build(),
@@ -353,9 +355,6 @@ private fun RedemptionCodeListItem(
                             setBackgroundColor(Color.TRANSPARENT)
                         }
                     },
-                    onDispose = {
-                        it.destroy()
-                    },
                     client = remember {
                         object : AccompanistWebViewClient() {
                             override fun shouldOverrideUrlLoading(
@@ -399,6 +398,7 @@ private fun RedemptionCodeListItemPlaceholder() {
                         .size(IconDp)
                         .placeholder(
                             visible = true,
+                            shape = MaterialTheme.shapes.extraSmall,
                             color = MaterialTheme.colorScheme.outline,
                             highlight = PlaceholderHighlight.fade(
                                 highlightColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -416,6 +416,7 @@ private fun RedemptionCodeListItemPlaceholder() {
                         .fillMaxWidth()
                         .placeholder(
                             visible = true,
+                            shape = MaterialTheme.shapes.extraSmall,
                             color = MaterialTheme.colorScheme.outline,
                             highlight = PlaceholderHighlight.fade(
                                 highlightColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -425,44 +426,21 @@ private fun RedemptionCodeListItemPlaceholder() {
                 )
             }
 
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .placeholder(
-                        visible = true,
-                        color = MaterialTheme.colorScheme.outline,
-                        highlight = PlaceholderHighlight.fade(
-                            highlightColor = MaterialTheme.colorScheme.surfaceVariant,
-                        )
-                    ),
-                text = ""
-            )
-
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .placeholder(
-                        visible = true,
-                        color = MaterialTheme.colorScheme.outline,
-                        highlight = PlaceholderHighlight.fade(
-                            highlightColor = MaterialTheme.colorScheme.surfaceVariant,
-                        )
-                    ),
-                text = ""
-            )
-
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .placeholder(
-                        visible = true,
-                        color = MaterialTheme.colorScheme.outline,
-                        highlight = PlaceholderHighlight.fade(
-                            highlightColor = MaterialTheme.colorScheme.surfaceVariant,
-                        )
-                    ),
-                text = ""
-            )
+            repeat(3) {
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .placeholder(
+                            visible = true,
+                            shape = MaterialTheme.shapes.extraSmall,
+                            color = MaterialTheme.colorScheme.outline,
+                            highlight = PlaceholderHighlight.fade(
+                                highlightColor = MaterialTheme.colorScheme.surfaceVariant,
+                            )
+                        ),
+                    text = ""
+                )
+            }
         }
     }
 }

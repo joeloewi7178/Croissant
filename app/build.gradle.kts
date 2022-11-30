@@ -129,7 +129,10 @@ dependencies {
     implementation(libs.jsoup)
 
     //in-app update
-    implementation(libs.android.play.core.ktx)
+    implementation(libs.android.play.app.update.ktx)
+
+    //in-app review
+    implementation(libs.android.play.review.ktx)
 
     //firebase
     implementation(platform(libs.firebase.bom))

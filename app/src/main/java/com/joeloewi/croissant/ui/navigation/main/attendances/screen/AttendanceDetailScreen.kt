@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -323,7 +324,8 @@ fun ConnectedGameListItem(
 
             AsyncImage(
                 modifier = Modifier
-                    .size(IconDp),
+                    .size(IconDp)
+                    .clip(MaterialTheme.shapes.extraSmall),
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(hoYoLABGame.gameIconUrl)
                     .build(),
@@ -357,6 +359,7 @@ fun ConnectedGameListItemPlaceHolder(
                         .width(64.dp)
                         .placeholder(
                             visible = true,
+                            shape = MaterialTheme.shapes.extraSmall,
                             color = MaterialTheme.colorScheme.outline,
                             highlight = PlaceholderHighlight.fade(
                                 highlightColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -370,6 +373,7 @@ fun ConnectedGameListItemPlaceHolder(
                         .size(IconDp)
                         .placeholder(
                             visible = true,
+                            shape = MaterialTheme.shapes.extraSmall,
                             color = MaterialTheme.colorScheme.outline,
                             highlight = PlaceholderHighlight.fade(
                                 highlightColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -387,6 +391,7 @@ fun ConnectedGameListItemPlaceHolder(
                     .size(IconDp)
                     .placeholder(
                         visible = true,
+                        shape = MaterialTheme.shapes.extraSmall,
                         color = MaterialTheme.colorScheme.outline,
                         highlight = PlaceholderHighlight.fade(
                             highlightColor = MaterialTheme.colorScheme.surfaceVariant,

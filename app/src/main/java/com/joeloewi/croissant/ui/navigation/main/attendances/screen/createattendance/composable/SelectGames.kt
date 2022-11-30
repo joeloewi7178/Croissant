@@ -20,6 +20,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -121,8 +122,7 @@ fun SelectGames(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = DefaultDp)
-                        .navigationBarsPadding()
-                        .background(MaterialTheme.colorScheme.surface),
+                        .navigationBarsPadding(),
                     enabled = !selectGamesState.noGamesSelected,
                     onClick = selectGamesState::onNextButtonClick
                 ) {
@@ -278,6 +278,7 @@ fun ConnectedGamesListItemPlaceholder() {
                     .fillMaxWidth()
                     .placeholder(
                         visible = true,
+                        shape = MaterialTheme.shapes.extraSmall,
                         color = MaterialTheme.colorScheme.outline,
                         highlight = PlaceholderHighlight.fade(
                             highlightColor = MaterialTheme.colorScheme.background,
@@ -291,6 +292,7 @@ fun ConnectedGamesListItemPlaceholder() {
                 modifier = Modifier
                     .placeholder(
                         visible = true,
+                        shape = MaterialTheme.shapes.extraSmall,
                         color = MaterialTheme.colorScheme.outline,
                         highlight = PlaceholderHighlight.fade(
                             highlightColor = MaterialTheme.colorScheme.background,
@@ -306,6 +308,7 @@ fun ConnectedGamesListItemPlaceholder() {
                     .fillMaxWidth()
                     .placeholder(
                         visible = true,
+                        shape = MaterialTheme.shapes.extraSmall,
                         color = MaterialTheme.colorScheme.outline,
                         highlight = PlaceholderHighlight.fade(
                             highlightColor = MaterialTheme.colorScheme.background,
@@ -320,6 +323,7 @@ fun ConnectedGamesListItemPlaceholder() {
                     .size(IconDp)
                     .placeholder(
                         visible = true,
+                        shape = MaterialTheme.shapes.extraSmall,
                         color = MaterialTheme.colorScheme.outline,
                         highlight = PlaceholderHighlight.fade(
                             highlightColor = MaterialTheme.colorScheme.background,
@@ -389,7 +393,9 @@ fun ConnectedGamesContentListItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 AsyncImage(
-                    modifier = Modifier.size(IconDp),
+                    modifier = Modifier
+                        .size(IconDp)
+                        .clip(MaterialTheme.shapes.extraSmall),
                     model = ImageRequest.Builder(
                         LocalContext.current
                     )

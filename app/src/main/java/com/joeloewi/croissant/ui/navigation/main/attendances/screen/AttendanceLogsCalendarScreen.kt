@@ -18,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -267,7 +268,7 @@ private fun MonthPage(
 
     Column(
         modifier = Modifier
-            .padding(DefaultDp)
+            .padding(horizontal = DefaultDp)
             .fillMaxSize()
     ) {
         Row {
@@ -385,6 +386,7 @@ private fun DayGridItem(
             Row(
                 modifier = Modifier
                     .weight(1f)
+                    .clip(MaterialTheme.shapes.extraSmall)
             ) {
                 val backgroundColor = with(
                     logCount
