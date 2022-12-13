@@ -2,6 +2,7 @@ package com.joeloewi.croissant.util
 
 import androidx.compose.runtime.*
 import com.google.android.play.core.ktx.AppUpdateResult
+import kotlinx.coroutines.CancellationException
 
 //under LocalActivity
 @Composable
@@ -20,8 +21,10 @@ fun RequireAppUpdate(
                     startImmediateUpdate(activity = activity, requestCode = requestCode)
                 }.onSuccess {
 
-                }.onFailure {
-
+                }.onFailure { cause ->
+                    if (cause is CancellationException) {
+                        throw cause
+                    }
                 }
             }
             is AppUpdateResult.Downloaded -> {
@@ -29,8 +32,10 @@ fun RequireAppUpdate(
                     completeUpdate()
                 }.onSuccess {
 
-                }.onFailure {
-
+                }.onFailure { cause ->
+                    if (cause is CancellationException) {
+                        throw cause
+                    }
                 }
             }
             else -> {

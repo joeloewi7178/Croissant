@@ -26,10 +26,7 @@ import com.joeloewi.domain.usecase.HoYoLABUseCase
 import com.joeloewi.domain.usecase.ResinStatusWidgetUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -112,7 +109,10 @@ class RefreshResinStatusWorker @AssistedInject constructor(
                                 onSuccess = {
                                     it
                                 },
-                                onFailure = {
+                                onFailure = { cause ->
+                                    if (cause is CancellationException) {
+                                        throw cause
+                                    }
                                     ResinStatus()
                                 }
                             )
@@ -217,13 +217,16 @@ class RefreshResinStatusWorker @AssistedInject constructor(
             onSuccess = {
                 Result.success()
             },
-            onFailure = {
+            onFailure = { cause ->
+                if (cause is CancellationException) {
+                    throw cause
+                }
                 //hoyoverse api rarely throws timeout error
                 //even though this worker has constraints on connection
 
                 FirebaseCrashlytics.getInstance().apply {
                     log(this@RefreshResinStatusWorker.javaClass.simpleName)
-                    recordException(it)
+                    recordException(cause)
                 }
 
                 if (powerManager.isPowerSaveMode) {

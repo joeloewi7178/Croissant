@@ -322,6 +322,8 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                                 )
                             )
                         }
+                    } catch (cause: CancellationException) {
+                        throw cause
                     } catch (cause: Throwable) {
                         FirebaseCrashlytics.getInstance().apply {
                             log(this@AttendCheckInEventWorker.javaClass.simpleName)
@@ -388,6 +390,10 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                 Result.success()
             },
             onFailure = { cause ->
+                if (cause is CancellationException) {
+                    throw cause
+                }
+
                 FirebaseCrashlytics.getInstance().apply {
                     log(this@AttendCheckInEventWorker.javaClass.simpleName)
                     recordException(cause)
