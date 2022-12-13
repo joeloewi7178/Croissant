@@ -8,7 +8,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.joeloewi.croissant.viewmodel.ResinStatusWidgetDetailViewModel
 import kotlinx.collections.immutable.toImmutableList
 
-@ExperimentalLifecycleComposeApi
+@OptIn(ExperimentalLifecycleComposeApi::class)
 @Stable
 class ResinStatusWidgetDetailState(
     private val resinStatusWidgetDetailViewModel: ResinStatusWidgetDetailViewModel
@@ -30,7 +30,6 @@ class ResinStatusWidgetDetailState(
     }
 }
 
-@ExperimentalLifecycleComposeApi
 @Composable
 fun rememberResinStatusWidgetDetailState(
     resinStatusWidgetDetailViewModel: ResinStatusWidgetDetailViewModel

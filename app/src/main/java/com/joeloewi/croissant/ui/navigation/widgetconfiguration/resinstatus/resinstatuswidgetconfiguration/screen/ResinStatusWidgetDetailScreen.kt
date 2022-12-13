@@ -14,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.navigation.NavController
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.Lce
@@ -25,9 +24,6 @@ import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.ProgressDialog
 import com.joeloewi.croissant.viewmodel.ResinStatusWidgetDetailViewModel
 
-@ExperimentalLayoutApi
-@ExperimentalLifecycleComposeApi
-@ExperimentalMaterial3Api
 @Composable
 fun ResinStatusWidgetDetailScreen(
     navController: NavController,
@@ -42,9 +38,7 @@ fun ResinStatusWidgetDetailScreen(
     )
 }
 
-@ExperimentalLayoutApi
-@ExperimentalLifecycleComposeApi
-@ExperimentalMaterial3Api
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun ResinStatusWidgetDetailContent(
     resinStatusWidgetDetailState: ResinStatusWidgetDetailState

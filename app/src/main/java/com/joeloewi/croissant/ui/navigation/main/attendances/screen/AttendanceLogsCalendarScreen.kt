@@ -48,11 +48,7 @@ import java.time.Month
 import java.time.Year
 import java.time.format.DateTimeFormatter
 
-@ExperimentalMaterial3WindowSizeClassApi
-@ExperimentalPagerApi
-@ExperimentalLayoutApi
-@ExperimentalLifecycleComposeApi
-@ExperimentalMaterial3Api
+@OptIn(ExperimentalPagerApi::class)
 @Composable
 fun AttendanceLogsCalendarScreen(
     navController: NavController,
@@ -68,11 +64,7 @@ fun AttendanceLogsCalendarScreen(
     )
 }
 
-@ExperimentalMaterial3WindowSizeClassApi
-@ExperimentalPagerApi
-@ExperimentalLayoutApi
-@ExperimentalLifecycleComposeApi
-@ExperimentalMaterial3Api
+@OptIn(ExperimentalPagerApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun AttendanceLogsCalendarContent(
     attendanceLogsCalendarState: AttendanceLogsCalendarState,
@@ -249,9 +241,6 @@ private fun AttendanceLogsCalendarContent(
     }
 }
 
-@ExperimentalPagerApi
-@ExperimentalMaterial3WindowSizeClassApi
-@ExperimentalLifecycleComposeApi
 @Composable
 private fun MonthPage(
     page: Int,
@@ -306,9 +295,7 @@ private fun MonthPage(
     }
 }
 
-@ExperimentalPagerApi
-@ExperimentalMaterial3WindowSizeClassApi
-@ExperimentalLifecycleComposeApi
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalLifecycleComposeApi::class)
 @Composable
 private fun DayGridItem(
     year: () -> Year,

@@ -25,7 +25,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.window.DialogProperties
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
@@ -42,13 +41,12 @@ import com.joeloewi.domain.common.HoYoLABGame
 import com.joeloewi.domain.entity.Game
 import com.joeloewi.domain.entity.GameRecord
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.ObsoleteCoroutinesApi
 
-@ExperimentalLayoutApi
-@ExperimentalLifecycleComposeApi
-@ObsoleteCoroutinesApi
-@ExperimentalFoundationApi
-@ExperimentalMaterial3Api
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalLayoutApi::class,
+    ExperimentalFoundationApi::class
+)
 @Composable
 fun SelectGames(
     modifier: Modifier,
@@ -267,7 +265,7 @@ fun SelectGames(
     }
 }
 
-@ExperimentalMaterial3Api
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConnectedGamesListItemPlaceholder() {
     ListItem(
@@ -339,7 +337,7 @@ fun ConnectedGamesListItemPlaceholder() {
     )
 }
 
-@ExperimentalMaterial3Api
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConnectedGamesContentListItem(
     modifier: Modifier,

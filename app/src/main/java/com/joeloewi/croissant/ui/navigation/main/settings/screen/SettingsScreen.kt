@@ -4,7 +4,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Person
@@ -14,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.navigation.NavController
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.SettingsState
@@ -22,10 +20,6 @@ import com.joeloewi.croissant.state.rememberSettingsState
 import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
 import com.joeloewi.croissant.viewmodel.SettingsViewModel
 
-@ExperimentalLayoutApi
-@ExperimentalLifecycleComposeApi
-@ExperimentalMaterialApi
-@ExperimentalMaterial3Api
 @Composable
 fun SettingsScreen(
     navController: NavController,
@@ -41,10 +35,7 @@ fun SettingsScreen(
     )
 }
 
-@ExperimentalLayoutApi
-@ExperimentalLifecycleComposeApi
-@ExperimentalMaterialApi
-@ExperimentalMaterial3Api
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun SettingsContent(
     settingsState: SettingsState,

@@ -10,7 +10,7 @@ import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.joeloewi.croissant.viewmodel.RedemptionCodesViewModel
 
-@ExperimentalLifecycleComposeApi
+@OptIn(ExperimentalLifecycleComposeApi::class)
 @Stable
 class RedemptionCodesState(
     val snackbarHostState: SnackbarHostState,
@@ -20,7 +20,7 @@ class RedemptionCodesState(
     val hoYoLABGameRedemptionCodesState
         @Composable get() = redemptionCodesViewModel.hoYoLABGameRedemptionCodesState.collectAsStateWithLifecycle().value
 
-    @ExperimentalMaterialApi
+    @OptIn(ExperimentalMaterialApi::class)
     val swipeRefreshState
         @Composable get() = rememberPullRefreshState(
             refreshing = hoYoLABGameRedemptionCodesState.isLoading,
@@ -37,7 +37,6 @@ class RedemptionCodesState(
     }
 }
 
-@ExperimentalLifecycleComposeApi
 @Composable
 fun rememberRedemptionCodesState(
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },

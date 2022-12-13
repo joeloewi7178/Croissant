@@ -30,9 +30,11 @@ import com.google.accompanist.pager.HorizontalPager
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.theme.DefaultDp
 
-@ExperimentalLayoutApi
-@ExperimentalPagerApi
-@ExperimentalMaterial3Api
+@OptIn(
+    ExperimentalPagerApi::class,
+    ExperimentalLayoutApi::class,
+    ExperimentalMaterial3Api::class
+)
 @Composable
 fun GetSession(
     modifier: Modifier,

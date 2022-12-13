@@ -18,7 +18,7 @@ import com.joeloewi.croissant.util.isCompactWindowSize
 import com.joeloewi.croissant.viewmodel.AppViewModel
 import kotlinx.collections.immutable.ImmutableList
 
-@ExperimentalLifecycleComposeApi
+@OptIn(ExperimentalLifecycleComposeApi::class)
 @Stable
 class CroissantAppState(
     val navController: NavHostController,
@@ -80,8 +80,7 @@ class CroissantAppState(
     }
 }
 
-@ExperimentalMaterial3WindowSizeClassApi
-@ExperimentalLifecycleComposeApi
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalLifecycleComposeApi::class)
 @Composable
 fun rememberCroissantAppState(
     navController: NavHostController,

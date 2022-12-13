@@ -14,10 +14,9 @@ import java.time.Month
 import java.time.Year
 import java.time.YearMonth
 
-@ExperimentalPagerApi
-@ExperimentalLifecycleComposeApi
+@OptIn(ExperimentalPagerApi::class, ExperimentalLifecycleComposeApi::class)
 @Stable
-class AttendanceLogsCalendarState(
+class AttendanceLogsCalendarState constructor(
     val snackbarHostState: SnackbarHostState,
     val pagerState: PagerState,
     private val navController: NavController,
@@ -69,8 +68,7 @@ class AttendanceLogsCalendarState(
     }
 }
 
-@ExperimentalPagerApi
-@ExperimentalLifecycleComposeApi
+@OptIn(ExperimentalPagerApi::class)
 @Composable
 fun rememberAttendanceLogsCalendarState(
     snackbarHostState: SnackbarHostState = remember {

@@ -36,7 +36,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.navigation.NavController
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
@@ -65,11 +64,6 @@ import com.joeloewi.domain.common.HoYoLABGame
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 
-@ExperimentalLayoutApi
-@ExperimentalLifecycleComposeApi
-@ExperimentalFoundationApi
-@ExperimentalMaterial3Api
-@ExperimentalMaterialApi
 @Composable
 fun RedemptionCodesScreen(
     navController: NavController,
@@ -83,11 +77,10 @@ fun RedemptionCodesScreen(
     )
 }
 
-@ExperimentalLayoutApi
-@ExperimentalLifecycleComposeApi
-@ExperimentalFoundationApi
-@ExperimentalMaterial3Api
-@ExperimentalMaterialApi
+@OptIn(
+    ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class,
+    ExperimentalMaterialApi::class
+)
 @Composable
 private fun RedemptionCodesContent(
     redemptionCodesState: RedemptionCodesState,
@@ -141,7 +134,6 @@ private fun RedemptionCodesContent(
     }
 }
 
-@ExperimentalMaterial3Api
 @Composable
 private fun RedemptionCodesLoading() {
     LazyColumn(
@@ -203,9 +195,7 @@ private fun RedemptionCodesError(
     }
 }
 
-@ExperimentalFoundationApi
-@ExperimentalMaterial3Api
-@ExperimentalMaterialApi
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun RedemptionCodes(
     hoYoLABGameRedemptionCodes: ImmutableList<Pair<HoYoLABGame, String>>,
@@ -238,7 +228,6 @@ private fun RedemptionCodes(
     }
 }
 
-@ExperimentalMaterial3Api
 @Composable
 private fun RedemptionCodeListItem(
     modifier: Modifier,
@@ -374,7 +363,6 @@ private fun RedemptionCodeListItem(
     }
 }
 
-@ExperimentalMaterial3Api
 @Composable
 private fun RedemptionCodeListItemPlaceholder() {
     Card(

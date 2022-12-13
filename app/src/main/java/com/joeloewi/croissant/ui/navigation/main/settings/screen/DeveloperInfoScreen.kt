@@ -21,7 +21,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -35,9 +34,6 @@ import com.joeloewi.croissant.viewmodel.DeveloperInfoViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@ExperimentalLifecycleComposeApi
-@ExperimentalLayoutApi
-@ExperimentalMaterial3Api
 @Composable
 fun DeveloperInfoScreen(
     navController: NavController,
@@ -53,9 +49,7 @@ fun DeveloperInfoScreen(
     )
 }
 
-@ExperimentalLifecycleComposeApi
-@ExperimentalLayoutApi
-@ExperimentalMaterial3Api
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun DeveloperInfoContent(
     developerInfoState: DeveloperInfoState

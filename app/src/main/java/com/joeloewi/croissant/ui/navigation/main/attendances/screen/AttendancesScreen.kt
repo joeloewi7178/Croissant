@@ -39,7 +39,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.navigation.NavController
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -66,11 +65,6 @@ import kotlinx.coroutines.launch
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
-@ExperimentalLayoutApi
-@ExperimentalLifecycleComposeApi
-@ExperimentalFoundationApi
-@ExperimentalMaterialApi
-@ExperimentalMaterial3Api
 @Composable
 fun AttendancesScreen(
     navController: NavController,
@@ -95,11 +89,11 @@ fun AttendancesScreen(
     )
 }
 
-@ExperimentalLayoutApi
-@ExperimentalLifecycleComposeApi
-@ExperimentalFoundationApi
-@ExperimentalMaterialApi
-@ExperimentalMaterial3Api
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalLayoutApi::class,
+    ExperimentalFoundationApi::class
+)
 @Composable
 private fun AttendancesContent(
     snackbarHostState: SnackbarHostState,
@@ -188,9 +182,7 @@ private fun AttendancesContent(
     }
 }
 
-@ExperimentalLifecycleComposeApi
-@ExperimentalFoundationApi
-@ExperimentalMaterialApi
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun AttendanceWithGamesItem(
     modifier: Modifier,
@@ -260,9 +252,9 @@ fun AttendanceWithGamesItem(
     )
 }
 
-@ExperimentalMaterialApi
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-internal fun SwipeToDismissBackground(
+private fun SwipeToDismissBackground(
     dismissState: DismissState
 ) {
     val direction =
@@ -309,8 +301,7 @@ internal fun SwipeToDismissBackground(
     }
 }
 
-@ExperimentalLifecycleComposeApi
-@ExperimentalFoundationApi
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun DismissContent(
     elevation: Dp,
@@ -447,9 +438,9 @@ private fun DismissContent(
     }
 }
 
-@ExperimentalFoundationApi
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun AttendanceWithGamesItemPlaceholder(
+private fun AttendanceWithGamesItemPlaceholder(
     modifier: Modifier
 ) {
     Row(

@@ -103,6 +103,7 @@ dependencies {
     implementation(libs.accompanist.webview)
     implementation(libs.accompanist.pager.indicators)
     implementation(libs.accompanist.swiperefresh)
+    implementation(libs.accompanist.themeadapter.material3)
 
     //work
     implementation(libs.androidx.work.ktx)
@@ -121,9 +122,6 @@ dependencies {
 
     //paging
     implementation(libs.androidx.paging.compose)
-
-    // https://mvnrepository.com/artifact/com.google.android.material/compose-theme-adapter-3
-    implementation(libs.material.compose.theme.adapter3)
 
     //html parsing
     implementation(libs.jsoup)

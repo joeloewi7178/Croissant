@@ -30,7 +30,6 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
 
-@ExperimentalMaterial3Api
 @Composable
 fun AttendanceLogsDayScreen(
     navController: NavController,
@@ -46,7 +45,7 @@ fun AttendanceLogsDayScreen(
     )
 }
 
-@ExperimentalMaterial3Api
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AttendanceLogsDayContent(
     attendanceLogsDayState: AttendanceLogsDayState
@@ -87,7 +86,6 @@ private fun AttendanceLogsDayContent(
     }
 }
 
-@ExperimentalMaterial3Api
 @Composable
 private fun WorkerExecutionLogWithStateItem(
     item: () -> WorkerExecutionLogWithState
@@ -179,7 +177,6 @@ private fun WorkerExecutionLogWithStateItem(
     }
 }
 
-@ExperimentalMaterial3Api
 @Composable
 private fun WorkerExecutionLogWithStateItemPlaceHolder() {
     Card(

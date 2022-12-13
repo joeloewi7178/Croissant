@@ -5,13 +5,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import com.joeloewi.domain.common.HoYoLABGame
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.coroutines.ObsoleteCoroutinesApi
 
-@ExperimentalLifecycleComposeApi
-@ObsoleteCoroutinesApi
 @Stable
 class SelectGamesState(
     val snackbarHostState: SnackbarHostState,
@@ -43,8 +39,6 @@ class SelectGamesState(
     }
 }
 
-@ExperimentalLifecycleComposeApi
-@ObsoleteCoroutinesApi
 @Composable
 fun rememberSelectGamesState(
     createAttendanceState: CreateAttendanceState,

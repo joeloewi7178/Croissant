@@ -22,7 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.navigation.NavController
 import androidx.paging.compose.items
 import com.google.accompanist.placeholder.PlaceholderHighlight
@@ -41,9 +40,6 @@ import com.joeloewi.croissant.viewmodel.CreateResinStatusWidgetViewModel
 import com.joeloewi.domain.common.HoYoLABGame
 import com.joeloewi.domain.entity.relational.AttendanceWithGames
 
-@ExperimentalLayoutApi
-@ExperimentalLifecycleComposeApi
-@ExperimentalMaterial3Api
 @Composable
 fun CreateResinStatusWidgetScreen(
     navController: NavController,
@@ -70,9 +66,7 @@ fun CreateResinStatusWidgetScreen(
     )
 }
 
-@ExperimentalLayoutApi
-@ExperimentalLifecycleComposeApi
-@ExperimentalMaterial3Api
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun CreateResinStatusWidgetContent(
     createResinStatusWidgetState: CreateResinStatusWidgetState,
@@ -270,7 +264,7 @@ fun CreateResinStatusWidgetContent(
     }
 }
 
-@ExperimentalMaterial3Api
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountListItem(
     item: () -> AttendanceWithGames,
@@ -303,7 +297,7 @@ fun AccountListItem(
     )
 }
 
-@ExperimentalMaterial3Api
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountListItemPlaceholder() {
     ListItem(

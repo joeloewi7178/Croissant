@@ -20,7 +20,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -38,10 +37,6 @@ import com.joeloewi.domain.common.HoYoLABGame
 import com.joeloewi.domain.common.LoggableWorker
 import com.joeloewi.domain.entity.Game
 
-@ExperimentalLayoutApi
-@ExperimentalLifecycleComposeApi
-@ExperimentalFoundationApi
-@ExperimentalMaterial3Api
 @Composable
 fun AttendanceDetailScreen(
     navController: NavController,
@@ -89,10 +84,11 @@ fun AttendanceDetailScreen(
     )
 }
 
-@ExperimentalLayoutApi
-@ExperimentalLifecycleComposeApi
-@ExperimentalFoundationApi
-@ExperimentalMaterial3Api
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalLayoutApi::class,
+    ExperimentalFoundationApi::class
+)
 @Composable
 private fun AttendanceDetailContent(
     attendanceDetailState: AttendanceDetailState,
@@ -273,7 +269,7 @@ private fun AttendanceDetailContent(
     }
 }
 
-@ExperimentalMaterial3Api
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConnectedGameListItem(
     modifier: Modifier,
@@ -335,7 +331,6 @@ fun ConnectedGameListItem(
     }
 }
 
-@ExperimentalMaterial3Api
 @Composable
 fun ConnectedGameListItemPlaceHolder(
     modifier: Modifier,
