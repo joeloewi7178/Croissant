@@ -1,9 +1,12 @@
 package com.joeloewi.croissant.viewmodel
 
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.ui.text.AnnotatedString
+import androidx.core.text.HtmlCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.util.toAnnotatedString
 import com.joeloewi.domain.common.HoYoLABGame
 import com.joeloewi.domain.usecase.ArcaLiveAppUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +22,7 @@ class RedemptionCodesViewModel @Inject constructor(
     private val getArticleArcaLiveAppUseCase: ArcaLiveAppUseCase.GetArticle
 ) : ViewModel() {
     private val _hoYoLABGameRedemptionCodesState =
-        MutableStateFlow<Lce<List<Pair<HoYoLABGame, String>>>>(Lce.Loading)
+        MutableStateFlow<Lce<List<Pair<HoYoLABGame, AnnotatedString>>>>(Lce.Loading)
 
     val hoYoLABGameRedemptionCodesState = _hoYoLABGameRedemptionCodesState.asStateFlow()
     val expandedItems = mutableStateListOf<HoYoLABGame>()
@@ -35,7 +38,10 @@ class RedemptionCodesViewModel @Inject constructor(
                 HoYoLABGame.values().runCatching {
                     map {
                         async(SupervisorJob() + Dispatchers.IO) {
-                            it to (getRedemptionCodesFromHtml(it).getOrThrow())
+                            it to HtmlCompat.fromHtml(
+                                getRedemptionCodesFromHtml(it).getOrThrow(),
+                                HtmlCompat.FROM_HTML_MODE_COMPACT
+                            ).toAnnotatedString()
                         }
                     }
                 }.mapCatching {
@@ -62,7 +68,7 @@ class RedemptionCodesViewModel @Inject constructor(
                         articleId = 7334792
                     ).mapCatching { content ->
                         Jsoup.parse(content).apply {
-                            select("img").remove()
+                            select("*:has(> img)").remove()
                             repeat(5) {
                                 select("p:last-child").remove()
                             }
@@ -74,7 +80,9 @@ class RedemptionCodesViewModel @Inject constructor(
                         slug = "genshin",
                         articleId = 53699739
                     ).mapCatching { content ->
-                        Jsoup.parse(content).select("p:nth-child(56)").html()
+                        Jsoup.parse(content).apply {
+                            select("img").remove()
+                        }.select("p:nth-child(n+56)").html()
                     }
                 }
                 else -> {

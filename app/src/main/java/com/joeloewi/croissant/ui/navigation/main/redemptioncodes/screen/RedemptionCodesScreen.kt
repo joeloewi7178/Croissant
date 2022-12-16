@@ -1,9 +1,5 @@
 package com.joeloewi.croissant.ui.navigation.main.redemptioncodes.screen
 
-import android.content.Intent
-import android.graphics.Color
-import android.webkit.WebResourceRequest
-import android.webkit.WebView
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -11,7 +7,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Error
@@ -21,32 +17,24 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.webkit.WebSettingsCompat
-import androidx.webkit.WebViewFeature
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
-import com.google.accompanist.web.AccompanistWebViewClient
-import com.google.accompanist.web.WebView
-import com.google.accompanist.web.rememberWebViewStateWithHTMLData
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.state.RedemptionCodesState
@@ -56,9 +44,7 @@ import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.ui.theme.HalfDp
 import com.joeloewi.croissant.ui.theme.IconDp
-import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.gameNameStringResId
-import com.joeloewi.croissant.util.rememberCssPrefersColorScheme
 import com.joeloewi.croissant.viewmodel.RedemptionCodesViewModel
 import com.joeloewi.domain.common.HoYoLABGame
 import kotlinx.collections.immutable.ImmutableList
@@ -198,7 +184,7 @@ private fun RedemptionCodesError(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun RedemptionCodes(
-    hoYoLABGameRedemptionCodes: ImmutableList<Pair<HoYoLABGame, String>>,
+    hoYoLABGameRedemptionCodes: ImmutableList<Pair<HoYoLABGame, AnnotatedString>>,
     expandedItems: SnapshotStateList<HoYoLABGame>,
 ) {
     Box(modifier = Modifier) {
@@ -228,11 +214,12 @@ private fun RedemptionCodes(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RedemptionCodeListItem(
     modifier: Modifier,
     expandedItems: SnapshotStateList<HoYoLABGame>,
-    item: Pair<HoYoLABGame, String>
+    item: Pair<HoYoLABGame, AnnotatedString>
 ) {
     val height by remember(expandedItems, item.first) {
         derivedStateOf {
@@ -243,13 +230,6 @@ private fun RedemptionCodeListItem(
             }
         }
     }
-    val activity = LocalActivity.current
-    val cssPrefersColorScheme = rememberCssPrefersColorScheme(
-        contentColor = LocalContentColor.current
-    )
-    val webViewState = rememberWebViewStateWithHTMLData(
-        data = cssPrefersColorScheme + item.second,
-    )
 
     Card(
         modifier = modifier
@@ -262,35 +242,15 @@ private fun RedemptionCodeListItem(
             .fillMaxWidth()
             .padding(horizontal = DefaultDp, vertical = HalfDp),
     ) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(
-                space = DefaultDp
-            )
-        ) {
-            Row(
-                modifier = Modifier
-                    .toggleable(
-                        value = expandedItems.contains(item.first),
-                        role = Role.Switch,
-                        onValueChange = { checked ->
-                            if (checked) {
-                                expandedItems.add(item.first)
-                            } else {
-                                expandedItems.remove(item.first)
-                            }
-                        }
-                    )
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(
-                    modifier = Modifier
-                        .padding(DefaultDp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+        Column {
+            TopAppBar(
+                colors = TopAppBarDefaults.smallTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                ),
+                navigationIcon = {
                     AsyncImage(
                         modifier = Modifier
+                            .padding(12.dp)
                             .size(IconDp)
                             .clip(MaterialTheme.shapes.extraSmall),
                         model = ImageRequest.Builder(LocalContext.current)
@@ -298,66 +258,43 @@ private fun RedemptionCodeListItem(
                             .build(),
                         contentDescription = null
                     )
-
-                    Spacer(modifier = Modifier.padding(horizontal = DefaultDp))
-
+                },
+                title = {
                     Text(text = stringResource(id = item.first.gameNameStringResId()))
-                }
-
-                Box(modifier = Modifier.padding(DoubleDp)) {
-                    if (expandedItems.contains(item.first)) {
-                        Icon(
-                            imageVector = Icons.Default.ExpandLess,
-                            contentDescription = Icons.Default.ExpandLess.name
-                        )
-                    } else {
-                        Icon(
-                            imageVector = Icons.Default.ExpandMore,
-                            contentDescription = Icons.Default.ExpandMore.name
-                        )
-                    }
-                }
-            }
-
-            Row {
-                WebView(
-                    modifier = Modifier
-                        .height(height)
-                        .fillMaxWidth(),
-                    state = webViewState,
-                    onCreated = { webView ->
-                        with(webView) {
-                            runCatching {
-                                if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
-                                    WebSettingsCompat.setAlgorithmicDarkeningAllowed(
-                                        settings,
-                                        true
-                                    )
-                                }
-                            }
-
-                            settings.userAgentString =
-                                "live.arca.android.playstore/0.8.331-playstore"
-
-                            isVerticalScrollBarEnabled = false
-                            isHorizontalScrollBarEnabled = false
-                            setBackgroundColor(Color.TRANSPARENT)
-                        }
-                    },
-                    client = remember {
-                        object : AccompanistWebViewClient() {
-                            override fun shouldOverrideUrlLoading(
-                                view: WebView?,
-                                request: WebResourceRequest?
-                            ): Boolean {
-                                request?.url?.let {
-                                    activity.startActivity(Intent(Intent.ACTION_VIEW, it))
-                                }
-                                return super.shouldOverrideUrlLoading(view, request)
+                },
+                actions = {
+                    IconButton(
+                        onClick = {
+                            if (!expandedItems.contains(item.first)) {
+                                expandedItems.add(item.first)
+                            } else {
+                                expandedItems.remove(item.first)
                             }
                         }
+                    ) {
+                        if (expandedItems.contains(item.first)) {
+                            Icon(
+                                imageVector = Icons.Default.ExpandLess,
+                                contentDescription = Icons.Default.ExpandLess.name
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.ExpandMore,
+                                contentDescription = Icons.Default.ExpandMore.name
+                            )
+                        }
                     }
-                )
+                }
+            )
+
+            Row(
+                modifier = Modifier
+                    .height(height)
+                    .padding(horizontal = DefaultDp),
+            ) {
+                SelectionContainer {
+                    Text(text = item.second)
+                }
             }
         }
     }
