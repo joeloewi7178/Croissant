@@ -70,7 +70,7 @@ class RedemptionCodesViewModel @Inject constructor(
                         Jsoup.parse(content).apply {
                             select("*:has(> img)").remove()
                             repeat(5) {
-                                select("p:last-child").remove()
+                                select("body > p:last-child").remove()
                             }
                         }.html().replace("모유", "체력")
                     }
