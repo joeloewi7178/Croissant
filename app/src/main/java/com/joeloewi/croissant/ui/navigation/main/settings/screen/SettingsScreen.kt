@@ -161,7 +161,7 @@ fun SettingsContent(
                         )
                     },
                     headlineText = {
-                        Text(text = stringResource(id = R.string.open_source_licences))
+                        Text(text = stringResource(id = R.string.open_source_licenses))
                     }
                 )
             }

@@ -128,5 +128,5 @@
     <string name="due_to_site_policy">Contents may not be shown due to web site\'s policy even after retrying</string>
     <string name="logs_deleted">%1$d item(s) deleted</string>
     <string name="first_open_guidance_can_be_shown_again">This screen can be shown again to request new permissions</string>
-    <string name="open_source_licences">Open source licences</string>
+    <string name="open_source_licenses">Open source licenses</string>
 </resources>
