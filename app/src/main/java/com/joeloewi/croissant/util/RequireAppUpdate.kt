@@ -1,9 +1,8 @@
 package com.joeloewi.croissant.util
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import com.google.android.play.core.ktx.AppUpdateResult
+import kotlinx.coroutines.CancellationException
 
 //under LocalActivity
 @Composable
@@ -13,6 +12,7 @@ fun RequireAppUpdate(
 ) {
     val requestCode = remember { 22050 }
     val activity = LocalActivity.current
+    val updatedContent by rememberUpdatedState(newValue = content)
 
     LaunchedEffect(appUpdateResultState) {
         when (appUpdateResultState) {
@@ -21,8 +21,10 @@ fun RequireAppUpdate(
                     startImmediateUpdate(activity = activity, requestCode = requestCode)
                 }.onSuccess {
 
-                }.onFailure {
-
+                }.onFailure { cause ->
+                    if (cause is CancellationException) {
+                        throw cause
+                    }
                 }
             }
             is AppUpdateResult.Downloaded -> {
@@ -30,8 +32,10 @@ fun RequireAppUpdate(
                     completeUpdate()
                 }.onSuccess {
 
-                }.onFailure {
-
+                }.onFailure { cause ->
+                    if (cause is CancellationException) {
+                        throw cause
+                    }
                 }
             }
             else -> {
@@ -40,5 +44,5 @@ fun RequireAppUpdate(
         }
     }
 
-    content()
+    updatedContent()
 }

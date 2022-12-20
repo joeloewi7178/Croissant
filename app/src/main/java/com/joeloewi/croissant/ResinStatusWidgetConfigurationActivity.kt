@@ -5,16 +5,13 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.os.bundleOf
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
@@ -34,9 +31,6 @@ import com.joeloewi.croissant.viewmodel.ResinStatusWidgetDetailViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 //app widget configuration intent does not provide app widget provider's name
-@ExperimentalLayoutApi
-@ExperimentalLifecycleComposeApi
-@ExperimentalMaterial3Api
 @AndroidEntryPoint
 class ResinStatusWidgetConfigurationActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,9 +53,6 @@ class ResinStatusWidgetConfigurationActivity : AppCompatActivity() {
     }
 }
 
-@ExperimentalLayoutApi
-@ExperimentalLifecycleComposeApi
-@ExperimentalMaterial3Api
 @Composable
 fun ResinStatusWidgetConfigurationApp() {
     val navController = rememberNavController()

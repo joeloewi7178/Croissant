@@ -62,9 +62,6 @@
             android:authorities="${applicationId}.androidx-startup"
             android:exported="false"
             tools:node="merge">
-            <meta-data
-                android:name="com.joeloewi.croissant.initializer.CoilInitializer"
-                android:value="androidx.startup" />
             <!-- in android 13, creating notification channel request post_notifications permission -->
             <!-- so disable auto initializing -->
             <meta-data
@@ -155,6 +152,12 @@
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="com.google.android.gms.oss.licenses.OssLicensesMenuActivity"
+            android:theme="@style/Theme.OssLicenses" />
+        <activity
+            android:name="com.google.android.gms.oss.licenses.OssLicensesActivity"
+            android:theme="@style/Theme.OssLicenses" />
     </application>
 
 </manifest>

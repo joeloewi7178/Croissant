@@ -17,7 +17,7 @@ import com.joeloewi.domain.common.LoggableWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-@ExperimentalLifecycleComposeApi
+@OptIn(ExperimentalLifecycleComposeApi::class)
 @Stable
 class AttendanceDetailState(
     val snackbarHostState: SnackbarHostState,
@@ -101,7 +101,6 @@ class AttendanceDetailState(
     }
 }
 
-@ExperimentalLifecycleComposeApi
 @Composable
 fun rememberAttendanceDetailState(
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },

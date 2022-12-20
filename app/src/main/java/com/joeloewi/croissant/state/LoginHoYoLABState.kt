@@ -21,7 +21,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
-@ExperimentalLifecycleComposeApi
+@OptIn(ExperimentalLifecycleComposeApi::class)
 @Stable
 class LoginHoYoLABState(
     private val navController: NavController,
@@ -132,7 +132,6 @@ class LoginHoYoLABState(
     }
 }
 
-@ExperimentalLifecycleComposeApi
 @Composable
 fun rememberLoginHoYoLABState(
     navController: NavController,

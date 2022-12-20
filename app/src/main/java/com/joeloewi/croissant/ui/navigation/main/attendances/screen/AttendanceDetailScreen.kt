@@ -13,13 +13,13 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -37,10 +37,6 @@ import com.joeloewi.domain.common.HoYoLABGame
 import com.joeloewi.domain.common.LoggableWorker
 import com.joeloewi.domain.entity.Game
 
-@ExperimentalLayoutApi
-@ExperimentalLifecycleComposeApi
-@ExperimentalFoundationApi
-@ExperimentalMaterial3Api
 @Composable
 fun AttendanceDetailScreen(
     navController: NavController,
@@ -88,10 +84,11 @@ fun AttendanceDetailScreen(
     )
 }
 
-@ExperimentalLayoutApi
-@ExperimentalLifecycleComposeApi
-@ExperimentalFoundationApi
-@ExperimentalMaterial3Api
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalLayoutApi::class,
+    ExperimentalFoundationApi::class
+)
 @Composable
 private fun AttendanceDetailContent(
     attendanceDetailState: AttendanceDetailState,
@@ -272,7 +269,7 @@ private fun AttendanceDetailContent(
     }
 }
 
-@ExperimentalMaterial3Api
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConnectedGameListItem(
     modifier: Modifier,
@@ -323,7 +320,8 @@ fun ConnectedGameListItem(
 
             AsyncImage(
                 modifier = Modifier
-                    .size(IconDp),
+                    .size(IconDp)
+                    .clip(MaterialTheme.shapes.extraSmall),
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(hoYoLABGame.gameIconUrl)
                     .build(),
@@ -333,7 +331,6 @@ fun ConnectedGameListItem(
     }
 }
 
-@ExperimentalMaterial3Api
 @Composable
 fun ConnectedGameListItemPlaceHolder(
     modifier: Modifier,
@@ -357,6 +354,7 @@ fun ConnectedGameListItemPlaceHolder(
                         .width(64.dp)
                         .placeholder(
                             visible = true,
+                            shape = MaterialTheme.shapes.extraSmall,
                             color = MaterialTheme.colorScheme.outline,
                             highlight = PlaceholderHighlight.fade(
                                 highlightColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -370,6 +368,7 @@ fun ConnectedGameListItemPlaceHolder(
                         .size(IconDp)
                         .placeholder(
                             visible = true,
+                            shape = MaterialTheme.shapes.extraSmall,
                             color = MaterialTheme.colorScheme.outline,
                             highlight = PlaceholderHighlight.fade(
                                 highlightColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -387,6 +386,7 @@ fun ConnectedGameListItemPlaceHolder(
                     .size(IconDp)
                     .placeholder(
                         visible = true,
+                        shape = MaterialTheme.shapes.extraSmall,
                         color = MaterialTheme.colorScheme.outline,
                         highlight = PlaceholderHighlight.fade(
                             highlightColor = MaterialTheme.colorScheme.surfaceVariant,

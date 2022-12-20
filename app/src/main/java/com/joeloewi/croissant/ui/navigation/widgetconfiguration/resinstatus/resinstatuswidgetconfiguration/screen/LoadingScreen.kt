@@ -2,7 +2,6 @@ package com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.res
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -16,8 +15,7 @@ import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration.ResinStatusWidgetConfigurationDestination
 import com.joeloewi.croissant.viewmodel.LoadingViewModel
 
-@ExperimentalLifecycleComposeApi
-@ExperimentalMaterial3Api
+@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun LoadingScreen(
     navController: NavController,
@@ -65,7 +63,6 @@ fun LoadingScreen(
     LoadingContent()
 }
 
-@ExperimentalMaterial3Api
 @Composable
 private fun LoadingContent() {
     Column(

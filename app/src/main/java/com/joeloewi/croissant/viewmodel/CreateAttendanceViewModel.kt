@@ -32,7 +32,6 @@ import java.time.ZonedDateTime
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
-@ObsoleteCoroutinesApi
 @HiltViewModel
 class CreateAttendanceViewModel @Inject constructor(
     private val application: Application,
@@ -108,6 +107,8 @@ class CreateAttendanceViewModel @Inject constructor(
         )
     val cookie = _cookie.asStateFlow()
     val checkedGames = mutableStateListOf<Game>()
+
+    @OptIn(ObsoleteCoroutinesApi::class)
     val tickPerSecond = ticker(delayMillis = 1000).receiveAsFlow()
         .map { ZonedDateTime.now() }
         .flowOn(Dispatchers.IO)

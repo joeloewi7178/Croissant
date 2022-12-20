@@ -4,7 +4,6 @@ import android.app.Activity
 import android.appwidget.AppWidgetManager
 import android.content.Intent
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -23,7 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.navigation.NavController
 import androidx.paging.compose.items
 import com.google.accompanist.placeholder.PlaceholderHighlight
@@ -42,9 +40,6 @@ import com.joeloewi.croissant.viewmodel.CreateResinStatusWidgetViewModel
 import com.joeloewi.domain.common.HoYoLABGame
 import com.joeloewi.domain.entity.relational.AttendanceWithGames
 
-@ExperimentalLayoutApi
-@ExperimentalLifecycleComposeApi
-@ExperimentalMaterial3Api
 @Composable
 fun CreateResinStatusWidgetScreen(
     navController: NavController,
@@ -71,9 +66,7 @@ fun CreateResinStatusWidgetScreen(
     )
 }
 
-@ExperimentalLayoutApi
-@ExperimentalLifecycleComposeApi
-@ExperimentalMaterial3Api
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun CreateResinStatusWidgetContent(
     createResinStatusWidgetState: CreateResinStatusWidgetState,
@@ -130,8 +123,7 @@ fun CreateResinStatusWidgetContent(
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(DefaultDp)
-                    .background(MaterialTheme.colorScheme.surface),
+                    .padding(DefaultDp),
                 enabled = createResinStatusWidgetState.isAttendanceIdItemSelected,
                 onClick = createResinStatusWidgetState::onClickDone
             ) {
@@ -272,7 +264,7 @@ fun CreateResinStatusWidgetContent(
     }
 }
 
-@ExperimentalMaterial3Api
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountListItem(
     item: () -> AttendanceWithGames,
@@ -305,7 +297,7 @@ fun AccountListItem(
     )
 }
 
-@ExperimentalMaterial3Api
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountListItemPlaceholder() {
     ListItem(
@@ -317,6 +309,7 @@ fun AccountListItemPlaceholder() {
                     .fillMaxWidth()
                     .placeholder(
                         visible = true,
+                        shape = MaterialTheme.shapes.extraSmall,
                         color = MaterialTheme.colorScheme.outline,
                         highlight = PlaceholderHighlight.fade(
                             highlightColor = MaterialTheme.colorScheme.background,
@@ -330,6 +323,7 @@ fun AccountListItemPlaceholder() {
                 modifier = Modifier
                     .placeholder(
                         visible = true,
+                        shape = MaterialTheme.shapes.extraSmall,
                         color = MaterialTheme.colorScheme.outline,
                         highlight = PlaceholderHighlight.fade(
                             highlightColor = MaterialTheme.colorScheme.background,

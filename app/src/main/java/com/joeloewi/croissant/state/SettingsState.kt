@@ -9,7 +9,7 @@ import androidx.navigation.NavController
 import com.joeloewi.croissant.ui.navigation.main.settings.SettingsDestination
 import com.joeloewi.croissant.viewmodel.SettingsViewModel
 
-@ExperimentalLifecycleComposeApi
+@OptIn(ExperimentalLifecycleComposeApi::class)
 @Stable
 class SettingsState(
     val navController: NavController,
@@ -27,7 +27,6 @@ class SettingsState(
     }
 }
 
-@ExperimentalLifecycleComposeApi
 @Composable
 fun rememberSettingsState(
     navController: NavController,

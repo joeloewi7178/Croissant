@@ -1,13 +1,15 @@
 package com.joeloewi.croissant.ui.theme
 
 import android.view.Window
+import android.view.WindowManager
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-import com.google.android.material.composethemeadapter3.Mdc3Theme
+import com.google.accompanist.themeadapter.material3.Mdc3Theme
+import com.joeloewi.croissant.BuildConfig
 
 @Composable
 fun CroissantTheme(
@@ -23,6 +25,13 @@ fun CroissantTheme(
             WindowCompat.getInsetsController(window, view).apply {
                 isAppearanceLightStatusBars = useDarkIcons
                 isAppearanceLightNavigationBars = useDarkIcons
+            }
+
+            if (BuildConfig.DEBUG) {
+                window.setFlags(
+                    WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+                    WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
+                )
             }
         }
     }

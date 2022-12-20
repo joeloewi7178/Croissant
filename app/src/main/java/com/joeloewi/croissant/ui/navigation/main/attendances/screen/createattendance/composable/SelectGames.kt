@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -20,12 +19,12 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.window.DialogProperties
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
@@ -42,13 +41,12 @@ import com.joeloewi.domain.common.HoYoLABGame
 import com.joeloewi.domain.entity.Game
 import com.joeloewi.domain.entity.GameRecord
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.ObsoleteCoroutinesApi
 
-@ExperimentalLayoutApi
-@ExperimentalLifecycleComposeApi
-@ObsoleteCoroutinesApi
-@ExperimentalFoundationApi
-@ExperimentalMaterial3Api
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalLayoutApi::class,
+    ExperimentalFoundationApi::class
+)
 @Composable
 fun SelectGames(
     modifier: Modifier,
@@ -121,8 +119,7 @@ fun SelectGames(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = DefaultDp)
-                        .navigationBarsPadding()
-                        .background(MaterialTheme.colorScheme.surface),
+                        .navigationBarsPadding(),
                     enabled = !selectGamesState.noGamesSelected,
                     onClick = selectGamesState::onNextButtonClick
                 ) {
@@ -268,7 +265,7 @@ fun SelectGames(
     }
 }
 
-@ExperimentalMaterial3Api
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConnectedGamesListItemPlaceholder() {
     ListItem(
@@ -278,6 +275,7 @@ fun ConnectedGamesListItemPlaceholder() {
                     .fillMaxWidth()
                     .placeholder(
                         visible = true,
+                        shape = MaterialTheme.shapes.extraSmall,
                         color = MaterialTheme.colorScheme.outline,
                         highlight = PlaceholderHighlight.fade(
                             highlightColor = MaterialTheme.colorScheme.background,
@@ -291,6 +289,7 @@ fun ConnectedGamesListItemPlaceholder() {
                 modifier = Modifier
                     .placeholder(
                         visible = true,
+                        shape = MaterialTheme.shapes.extraSmall,
                         color = MaterialTheme.colorScheme.outline,
                         highlight = PlaceholderHighlight.fade(
                             highlightColor = MaterialTheme.colorScheme.background,
@@ -306,6 +305,7 @@ fun ConnectedGamesListItemPlaceholder() {
                     .fillMaxWidth()
                     .placeholder(
                         visible = true,
+                        shape = MaterialTheme.shapes.extraSmall,
                         color = MaterialTheme.colorScheme.outline,
                         highlight = PlaceholderHighlight.fade(
                             highlightColor = MaterialTheme.colorScheme.background,
@@ -320,6 +320,7 @@ fun ConnectedGamesListItemPlaceholder() {
                     .size(IconDp)
                     .placeholder(
                         visible = true,
+                        shape = MaterialTheme.shapes.extraSmall,
                         color = MaterialTheme.colorScheme.outline,
                         highlight = PlaceholderHighlight.fade(
                             highlightColor = MaterialTheme.colorScheme.background,
@@ -336,7 +337,7 @@ fun ConnectedGamesListItemPlaceholder() {
     )
 }
 
-@ExperimentalMaterial3Api
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConnectedGamesContentListItem(
     modifier: Modifier,
@@ -389,7 +390,9 @@ fun ConnectedGamesContentListItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 AsyncImage(
-                    modifier = Modifier.size(IconDp),
+                    modifier = Modifier
+                        .size(IconDp)
+                        .clip(MaterialTheme.shapes.extraSmall),
                     model = ImageRequest.Builder(
                         LocalContext.current
                     )

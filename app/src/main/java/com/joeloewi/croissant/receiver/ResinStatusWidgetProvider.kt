@@ -19,6 +19,7 @@ import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
 import com.joeloewi.croissant.worker.RefreshResinStatusWorker
 import com.joeloewi.domain.usecase.ResinStatusWidgetUseCase
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -122,8 +123,10 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
                                 ExistingWorkPolicy.APPEND_OR_REPLACE,
                                 oneTimeWorkRequest
                             )
-                        }.onFailure {
-
+                        }.onFailure { cause ->
+                            if (cause is CancellationException) {
+                                throw cause
+                            }
                         }
                     }
                 }

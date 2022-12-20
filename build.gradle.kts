@@ -4,6 +4,10 @@ buildscript {
         google()
         mavenCentral()
     }
+
+    dependencies {
+        classpath(libs.gms.oss.licenses.plugin)
+    }
 }
 
 plugins {
@@ -11,4 +15,6 @@ plugins {
     alias(libs.plugins.kotlin.jvm) apply false
     alias(libs.plugins.hilt) apply false
     alias(libs.plugins.android.test) apply false
+    alias(libs.plugins.gms.google.services) apply false
+    alias(libs.plugins.firebase.crashlytics) apply false
 }

@@ -36,10 +36,7 @@ import com.joeloewi.domain.entity.WorkerExecutionLog
 import com.joeloewi.domain.usecase.*
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import java.util.*
 
 @HiltWorker
@@ -325,6 +322,8 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                                 )
                             )
                         }
+                    } catch (cause: CancellationException) {
+                        throw cause
                     } catch (cause: Throwable) {
                         FirebaseCrashlytics.getInstance().apply {
                             log(this@AttendCheckInEventWorker.javaClass.simpleName)
@@ -391,26 +390,16 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                 Result.success()
             },
             onFailure = { cause ->
+                if (cause is CancellationException) {
+                    throw cause
+                }
+
                 FirebaseCrashlytics.getInstance().apply {
                     log(this@AttendCheckInEventWorker.javaClass.simpleName)
                     recordException(cause)
                 }
 
-                val executionLogId = insertWorkerExecutionLogUseCase(
-                    WorkerExecutionLog(
-                        attendanceId = _attendanceId,
-                        state = WorkerExecutionLogState.FAILURE,
-                        loggableWorker = LoggableWorker.ATTEND_CHECK_IN_EVENT
-                    )
-                )
-
-                insertFailureLogUseCase(
-                    FailureLog(
-                        executionLogId = executionLogId,
-                        failureMessage = cause.message ?: "",
-                        failureStackTrace = cause.stackTraceToString()
-                    )
-                )
+                addFailureLog(_attendanceId, cause)
 
                 Result.failure()
             }

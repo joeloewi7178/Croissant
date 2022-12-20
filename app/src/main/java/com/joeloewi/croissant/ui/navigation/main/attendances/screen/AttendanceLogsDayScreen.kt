@@ -18,6 +18,7 @@ import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.AttendanceLogsDayState
 import com.joeloewi.croissant.state.rememberAttendanceLogsDayState
 import com.joeloewi.croissant.ui.theme.DefaultDp
+import com.joeloewi.croissant.ui.theme.HalfDp
 import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.navigationIconButton
 import com.joeloewi.croissant.viewmodel.AttendanceLogsDayViewModel
@@ -29,7 +30,6 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
 
-@ExperimentalMaterial3Api
 @Composable
 fun AttendanceLogsDayScreen(
     navController: NavController,
@@ -45,7 +45,7 @@ fun AttendanceLogsDayScreen(
     )
 }
 
-@ExperimentalMaterial3Api
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AttendanceLogsDayContent(
     attendanceLogsDayState: AttendanceLogsDayState
@@ -71,7 +71,6 @@ private fun AttendanceLogsDayContent(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(DefaultDp)
         ) {
             items(
                 items = pagedAttendanceLogs,
@@ -87,7 +86,6 @@ private fun AttendanceLogsDayContent(
     }
 }
 
-@ExperimentalMaterial3Api
 @Composable
 private fun WorkerExecutionLogWithStateItem(
     item: () -> WorkerExecutionLogWithState
@@ -127,7 +125,9 @@ private fun WorkerExecutionLogWithStateItem(
     }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = DefaultDp, vertical = HalfDp),
         colors = CardDefaults.cardColors(
             containerColor = colorByState
         )
@@ -177,11 +177,12 @@ private fun WorkerExecutionLogWithStateItem(
     }
 }
 
-@ExperimentalMaterial3Api
 @Composable
 private fun WorkerExecutionLogWithStateItemPlaceHolder() {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = DefaultDp, vertical = HalfDp),
     ) {
         Column(
             modifier = Modifier
@@ -193,6 +194,7 @@ private fun WorkerExecutionLogWithStateItemPlaceHolder() {
                     .fillMaxWidth()
                     .placeholder(
                         visible = true,
+                        shape = MaterialTheme.shapes.extraSmall,
                         color = MaterialTheme.colorScheme.outline,
                         highlight = PlaceholderHighlight.fade(
                             highlightColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -206,6 +208,7 @@ private fun WorkerExecutionLogWithStateItemPlaceHolder() {
                     .fillMaxWidth()
                     .placeholder(
                         visible = true,
+                        shape = MaterialTheme.shapes.extraSmall,
                         color = MaterialTheme.colorScheme.outline,
                         highlight = PlaceholderHighlight.fade(
                             highlightColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -219,6 +222,7 @@ private fun WorkerExecutionLogWithStateItemPlaceHolder() {
                     .fillMaxWidth()
                     .placeholder(
                         visible = true,
+                        shape = MaterialTheme.shapes.extraSmall,
                         color = MaterialTheme.colorScheme.outline,
                         highlight = PlaceholderHighlight.fade(
                             highlightColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -232,6 +236,7 @@ private fun WorkerExecutionLogWithStateItemPlaceHolder() {
                     .fillMaxWidth()
                     .placeholder(
                         visible = true,
+                        shape = MaterialTheme.shapes.extraSmall,
                         color = MaterialTheme.colorScheme.outline,
                         highlight = PlaceholderHighlight.fade(
                             highlightColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -245,6 +250,7 @@ private fun WorkerExecutionLogWithStateItemPlaceHolder() {
                     .size(IconDp)
                     .placeholder(
                         visible = true,
+                        shape = MaterialTheme.shapes.extraSmall,
                         color = MaterialTheme.colorScheme.outline,
                         highlight = PlaceholderHighlight.fade(
                             highlightColor = MaterialTheme.colorScheme.surfaceVariant,

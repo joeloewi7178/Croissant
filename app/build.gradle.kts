@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.gms.google.services)
     id("kotlin-parcelize")
     alias(libs.plugins.firebase.crashlytics)
+    id(libs.plugins.gms.oss.licenses.get().pluginId)
 }
 
 android {
@@ -13,8 +14,8 @@ android {
 
     defaultConfig {
         applicationId = "com.joeloewi.croissant"
-        versionCode = 28
-        versionName = "1.1.0"
+        versionCode = 29
+        versionName = "1.1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -103,6 +104,7 @@ dependencies {
     implementation(libs.accompanist.webview)
     implementation(libs.accompanist.pager.indicators)
     implementation(libs.accompanist.swiperefresh)
+    implementation(libs.accompanist.themeadapter.material3)
 
     //work
     implementation(libs.androidx.work.ktx)
@@ -122,14 +124,14 @@ dependencies {
     //paging
     implementation(libs.androidx.paging.compose)
 
-    // https://mvnrepository.com/artifact/com.google.android.material/compose-theme-adapter-3
-    implementation(libs.material.compose.theme.adapter3)
-
     //html parsing
     implementation(libs.jsoup)
 
     //in-app update
-    implementation(libs.android.play.core.ktx)
+    implementation(libs.android.play.app.update.ktx)
+
+    //in-app review
+    implementation(libs.android.play.review.ktx)
 
     //firebase
     implementation(platform(libs.firebase.bom))
@@ -146,6 +148,9 @@ dependencies {
     implementation(libs.androidx.profileinstaller)
 
     implementation(libs.tts)
+
+    //open source license activity
+    implementation(libs.gms.play.services.oss.licenses)
 }
 
 kapt {

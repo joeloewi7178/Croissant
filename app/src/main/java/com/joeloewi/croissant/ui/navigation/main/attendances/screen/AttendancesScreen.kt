@@ -28,6 +28,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
@@ -38,7 +39,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.navigation.NavController
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -65,11 +65,6 @@ import kotlinx.coroutines.launch
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
-@ExperimentalLayoutApi
-@ExperimentalLifecycleComposeApi
-@ExperimentalFoundationApi
-@ExperimentalMaterialApi
-@ExperimentalMaterial3Api
 @Composable
 fun AttendancesScreen(
     navController: NavController,
@@ -94,11 +89,11 @@ fun AttendancesScreen(
     )
 }
 
-@ExperimentalLayoutApi
-@ExperimentalLifecycleComposeApi
-@ExperimentalFoundationApi
-@ExperimentalMaterialApi
-@ExperimentalMaterial3Api
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalLayoutApi::class,
+    ExperimentalFoundationApi::class
+)
 @Composable
 private fun AttendancesContent(
     snackbarHostState: SnackbarHostState,
@@ -187,9 +182,7 @@ private fun AttendancesContent(
     }
 }
 
-@ExperimentalLifecycleComposeApi
-@ExperimentalFoundationApi
-@ExperimentalMaterialApi
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun AttendanceWithGamesItem(
     modifier: Modifier,
@@ -259,9 +252,9 @@ fun AttendanceWithGamesItem(
     )
 }
 
-@ExperimentalMaterialApi
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-internal fun SwipeToDismissBackground(
+private fun SwipeToDismissBackground(
     dismissState: DismissState
 ) {
     val direction =
@@ -308,8 +301,7 @@ internal fun SwipeToDismissBackground(
     }
 }
 
-@ExperimentalLifecycleComposeApi
-@ExperimentalFoundationApi
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun DismissContent(
     elevation: Dp,
@@ -391,7 +383,8 @@ private fun DismissContent(
                         AsyncImage(
                             modifier = Modifier
                                 .animateItemPlacement()
-                                .size(IconDp),
+                                .size(IconDp)
+                                .clip(MaterialTheme.shapes.extraSmall),
                             model = ImageRequest.Builder(LocalContext.current)
                                 .data(game.type.gameIconUrl)
                                 .build(),
@@ -445,9 +438,9 @@ private fun DismissContent(
     }
 }
 
-@ExperimentalFoundationApi
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun AttendanceWithGamesItemPlaceholder(
+private fun AttendanceWithGamesItemPlaceholder(
     modifier: Modifier
 ) {
     Row(
@@ -464,6 +457,7 @@ fun AttendanceWithGamesItemPlaceholder(
                 modifier = Modifier
                     .placeholder(
                         visible = true,
+                        shape = MaterialTheme.shapes.extraSmall,
                         color = MaterialTheme.colorScheme.outline,
                         highlight = PlaceholderHighlight.fade(
                             highlightColor = MaterialTheme.colorScheme.background,
@@ -483,6 +477,7 @@ fun AttendanceWithGamesItemPlaceholder(
                     modifier = Modifier
                         .placeholder(
                             visible = true,
+                            shape = MaterialTheme.shapes.extraSmall,
                             color = MaterialTheme.colorScheme.outline,
                             highlight = PlaceholderHighlight.fade(
                                 highlightColor = MaterialTheme.colorScheme.background,
@@ -497,6 +492,7 @@ fun AttendanceWithGamesItemPlaceholder(
                         .size(IconDp)
                         .placeholder(
                             visible = true,
+                            shape = MaterialTheme.shapes.extraSmall,
                             color = MaterialTheme.colorScheme.outline,
                             highlight = PlaceholderHighlight.fade(
                                 highlightColor = MaterialTheme.colorScheme.background,
@@ -519,6 +515,7 @@ fun AttendanceWithGamesItemPlaceholder(
                     AsyncImage(
                         modifier = Modifier
                             .animateItemPlacement()
+                            .clip(MaterialTheme.shapes.extraSmall)
                             .size(IconDp),
                         model = ImageRequest.Builder(LocalContext.current)
                             .build(),
@@ -537,6 +534,7 @@ fun AttendanceWithGamesItemPlaceholder(
                     .size(IconDp)
                     .placeholder(
                         visible = true,
+                        shape = MaterialTheme.shapes.extraSmall,
                         color = MaterialTheme.colorScheme.outline,
                         highlight = PlaceholderHighlight.fade(
                             highlightColor = MaterialTheme.colorScheme.background,

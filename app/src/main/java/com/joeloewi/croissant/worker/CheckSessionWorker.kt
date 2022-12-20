@@ -26,6 +26,7 @@ import com.joeloewi.domain.entity.WorkerExecutionLog
 import com.joeloewi.domain.usecase.*
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.*
@@ -106,28 +107,36 @@ class CheckSessionWorker @AssistedInject constructor(
                 Result.success()
             },
             onFailure = { cause ->
+                when (cause) {
+                    is HoYoLABUnsuccessfulResponseException -> {
+                        if (HoYoLABRetCode.findByCode(cause.retCode) == HoYoLABRetCode.LoginFailed) {
+                            createCheckSessionNotification(
+                                context = context,
+                                channelId = context.getString(R.string.check_session_notification_channel_id),
+                            ).let { notification ->
+                                if (context.packageManager.checkPermission(
+                                        CroissantPermission.POST_NOTIFICATIONS_PERMISSION_COMPAT,
+                                        context.packageName
+                                    ) == PackageManager.PERMISSION_GRANTED
+                                ) {
+                                    NotificationManagerCompat.from(context).notify(
+                                        UUID.randomUUID().toString(),
+                                        0,
+                                        notification
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    is CancellationException -> {
+                        throw cause
+                    }
+                }
+
                 FirebaseCrashlytics.getInstance().apply {
                     log(this@CheckSessionWorker.javaClass.simpleName)
                     recordException(cause)
-                }
-
-                if (cause is HoYoLABUnsuccessfulResponseException && HoYoLABRetCode.findByCode(cause.retCode) == HoYoLABRetCode.LoginFailed) {
-                    createCheckSessionNotification(
-                        context = context,
-                        channelId = context.getString(R.string.check_session_notification_channel_id),
-                    ).let { notification ->
-                        if (context.packageManager.checkPermission(
-                                CroissantPermission.POST_NOTIFICATIONS_PERMISSION_COMPAT,
-                                context.packageName
-                            ) == PackageManager.PERMISSION_GRANTED
-                        ) {
-                            NotificationManagerCompat.from(context).notify(
-                                UUID.randomUUID().toString(),
-                                0,
-                                notification
-                            )
-                        }
-                    }
                 }
 
                 val executionLogId = insertWorkerExecutionLogUseCase(

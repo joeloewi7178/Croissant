@@ -8,11 +8,9 @@ import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestinat
 import com.joeloewi.croissant.viewmodel.CreateAttendanceViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.ObsoleteCoroutinesApi
 import java.time.ZonedDateTime
 
-@ExperimentalLifecycleComposeApi
-@ObsoleteCoroutinesApi
+@OptIn(ExperimentalLifecycleComposeApi::class)
 @Stable
 class CreateAttendanceState(
     private val navController: NavController,
@@ -106,8 +104,6 @@ class CreateAttendanceState(
     }
 }
 
-@ExperimentalLifecycleComposeApi
-@ObsoleteCoroutinesApi
 @Composable
 fun rememberCreateAttendanceState(
     navController: NavController,

@@ -75,7 +75,7 @@ class WorkerExecutionLogDataSourceImpl @Inject constructor(
         loggableWorker,
         state,
         dateString
-    )
+    ).flowOn(coroutineDispatcher)
 
     override fun getCountByState(
         attendanceId: Long,

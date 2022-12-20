@@ -10,7 +10,7 @@ import com.joeloewi.croissant.viewmodel.CreateResinStatusWidgetViewModel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 
-@ExperimentalLifecycleComposeApi
+@OptIn(ExperimentalLifecycleComposeApi::class)
 @Stable
 class CreateResinStatusWidgetState(
     private val createResinStatusWidgetViewModel: CreateResinStatusWidgetViewModel
@@ -41,7 +41,6 @@ class CreateResinStatusWidgetState(
     }
 }
 
-@ExperimentalLifecycleComposeApi
 @Composable
 fun rememberCreateResinStatusWidgetState(
     createResinStatusWidgetViewModel: CreateResinStatusWidgetViewModel

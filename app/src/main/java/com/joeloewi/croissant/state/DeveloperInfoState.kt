@@ -8,7 +8,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.joeloewi.croissant.viewmodel.DeveloperInfoViewModel
 
-@ExperimentalLifecycleComposeApi
+@OptIn(ExperimentalLifecycleComposeApi::class)
 @Stable
 class DeveloperInfoState(
     private val navController: NavController,
@@ -25,7 +25,6 @@ class DeveloperInfoState(
     }
 }
 
-@ExperimentalLifecycleComposeApi
 @Composable
 fun rememberDeveloperInfoState(
     navController: NavController,

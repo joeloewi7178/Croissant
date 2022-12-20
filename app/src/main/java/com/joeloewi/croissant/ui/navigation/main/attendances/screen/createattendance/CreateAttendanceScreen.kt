@@ -1,7 +1,6 @@
 package com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
@@ -12,9 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.window.DialogProperties
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.navigation.NavController
-import com.google.accompanist.pager.ExperimentalPagerApi
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.CreateAttendancePage
 import com.joeloewi.croissant.state.CreateAttendanceState
@@ -28,14 +25,7 @@ import com.joeloewi.croissant.util.ProgressDialog
 import com.joeloewi.croissant.util.getResultFromPreviousComposable
 import com.joeloewi.croissant.util.navigationIconButton
 import com.joeloewi.croissant.viewmodel.CreateAttendanceViewModel
-import kotlinx.coroutines.ObsoleteCoroutinesApi
 
-@ExperimentalLayoutApi
-@ExperimentalLifecycleComposeApi
-@ExperimentalFoundationApi
-@ObsoleteCoroutinesApi
-@ExperimentalPagerApi
-@ExperimentalMaterial3Api
 @Composable
 fun CreateAttendanceScreen(
     navController: NavController,
@@ -60,12 +50,7 @@ fun CreateAttendanceScreen(
     )
 }
 
-@ExperimentalLayoutApi
-@ExperimentalLifecycleComposeApi
-@ExperimentalFoundationApi
-@ObsoleteCoroutinesApi
-@ExperimentalPagerApi
-@ExperimentalMaterial3Api
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun CreateAttendanceContent(
     createAttendanceState: CreateAttendanceState

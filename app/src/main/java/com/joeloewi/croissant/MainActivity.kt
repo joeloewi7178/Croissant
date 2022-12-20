@@ -8,8 +8,6 @@ import android.provider.Settings
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -26,11 +24,10 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.contentColorFor
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
@@ -46,7 +43,6 @@ import androidx.core.os.bundleOf
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -57,7 +53,6 @@ import androidx.navigation.navDeepLink
 import androidx.startup.AppInitializer
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
@@ -83,26 +78,11 @@ import com.joeloewi.croissant.util.*
 import com.joeloewi.croissant.viewmodel.*
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.ObsoleteCoroutinesApi
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
-@ExperimentalLayoutApi
-@FlowPreview
-@ExperimentalLifecycleComposeApi
-@ExperimentalMaterial3WindowSizeClassApi
-@ExperimentalPermissionsApi
-@ExperimentalFoundationApi
-@ObsoleteCoroutinesApi
-@ExperimentalMaterialApi
-@ExperimentalPagerApi
-@ExperimentalMaterial3Api
-@ExperimentalComposeUiApi
-@ExperimentalCoroutinesApi
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -133,18 +113,12 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
-@ExperimentalMaterial3WindowSizeClassApi
-@ExperimentalLayoutApi
-@FlowPreview
-@ExperimentalLifecycleComposeApi
-@ExperimentalPermissionsApi
-@ExperimentalFoundationApi
-@ObsoleteCoroutinesApi
-@ExperimentalMaterialApi
-@ExperimentalPagerApi
-@ExperimentalMaterial3Api
-@ExperimentalComposeUiApi
-@ExperimentalCoroutinesApi
+@OptIn(
+    ExperimentalPermissionsApi::class,
+    ExperimentalMaterialApi::class,
+    ExperimentalLayoutApi::class,
+    ExperimentalMaterial3Api::class
+)
 @Composable
 fun CroissantApp() {
     val croissantAppState = rememberCroissantAppState(
@@ -369,17 +343,6 @@ fun CroissantApp() {
     }
 }
 
-@ExperimentalMaterial3WindowSizeClassApi
-@ExperimentalLayoutApi
-@ExperimentalLifecycleComposeApi
-@ExperimentalCoroutinesApi
-@ExperimentalPermissionsApi
-@ExperimentalFoundationApi
-@ObsoleteCoroutinesApi
-@ExperimentalMaterialApi
-@ExperimentalPagerApi
-@ExperimentalMaterial3Api
-@ExperimentalComposeUiApi
 @Composable
 fun CroissantNavHost(
     modifier: Modifier,
@@ -522,7 +485,6 @@ fun CroissantNavHost(
     }
 }
 
-@ExperimentalLifecycleComposeApi
 @Composable
 private fun CroissantNavigationRail(
     croissantAppState: CroissantAppState,
@@ -567,7 +529,6 @@ private fun CroissantNavigationRail(
     }
 }
 
-@ExperimentalLifecycleComposeApi
 @Composable
 private fun CroissantBottomNavigationBar(
     croissantAppState: CroissantAppState,
@@ -606,10 +567,11 @@ private fun CroissantBottomNavigationBar(
     }
 }
 
-@FlowPreview
-@ExperimentalMaterialApi
-@ExperimentalMaterial3Api
-@ExperimentalPermissionsApi
+@OptIn(
+    ExperimentalPermissionsApi::class,
+    ExperimentalMaterialApi::class,
+    ExperimentalMaterial3Api::class
+)
 @Composable
 fun CroissantAppBottomSheetContent(
     multiplePermissionsState: MultiplePermissionsState,
@@ -646,8 +608,7 @@ fun CroissantAppBottomSheetContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .navigationBarsPadding()
-                    .padding(horizontal = DefaultDp)
-                    .background(MaterialTheme.colorScheme.surface),
+                    .padding(horizontal = DefaultDp),
                 onClick = {
                     multiplePermissionsState.launchMultiplePermissionRequest()
                 }
@@ -683,7 +644,9 @@ fun CroissantAppBottomSheetContent(
                 horizontalArrangement = Arrangement.Center
             ) {
                 AsyncImage(
-                    modifier = Modifier.size(48.dp),
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(MaterialTheme.shapes.extraSmall),
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(R.mipmap.ic_launcher)
                         .build(),

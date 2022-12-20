@@ -1,6 +1,5 @@
 package com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.composable
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -19,20 +18,18 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.CreateAttendanceState
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.util.LocalHourFormat
 import com.joeloewi.croissant.util.TimePicker
 import com.joeloewi.croissant.util.dateTimeFormatterPerHourFormat
-import kotlinx.coroutines.ObsoleteCoroutinesApi
 import java.time.ZonedDateTime
 
-@ExperimentalLayoutApi
-@ExperimentalLifecycleComposeApi
-@ObsoleteCoroutinesApi
-@ExperimentalMaterial3Api
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalLayoutApi::class,
+)
 @Composable
 fun SetTime(
     modifier: Modifier,
@@ -45,8 +42,7 @@ fun SetTime(
                 modifier = Modifier
                     .navigationBarsPadding()
                     .padding(horizontal = DefaultDp)
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface),
+                    .fillMaxWidth(),
                 onClick = createAttendanceState::onNextButtonClick
             ) {
                 Row(
@@ -137,8 +133,6 @@ fun SetTime(
     }
 }
 
-@ObsoleteCoroutinesApi
-@ExperimentalLifecycleComposeApi
 @Composable
 private fun TimePickerWithState(
     createAttendanceState: CreateAttendanceState
@@ -154,8 +148,6 @@ private fun TimePickerWithState(
     )
 }
 
-@ObsoleteCoroutinesApi
-@ExperimentalLifecycleComposeApi
 @Composable
 private fun FirstExecutionTime(
     createAttendanceState: CreateAttendanceState
