@@ -1,5 +1,6 @@
 package com.joeloewi.croissant.ui.navigation.main.settings.screen
 
+import android.content.Intent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,14 +11,19 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.semantics.Role
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.SettingsState
 import com.joeloewi.croissant.state.rememberSettingsState
 import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
+import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.viewmodel.SettingsViewModel
 
 @Composable
@@ -40,6 +46,8 @@ fun SettingsScreen(
 fun SettingsContent(
     settingsState: SettingsState,
 ) {
+    val activity = LocalActivity.current
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -129,6 +137,31 @@ fun SettingsContent(
                     },
                     headlineText = {
                         Text(text = stringResource(id = R.string.developer_info))
+                    }
+                )
+            }
+
+            item(
+                key = "openSourceLicences"
+            ) {
+                ListItem(
+                    modifier = Modifier.clickable {
+                        with(activity) {
+                            startActivity(Intent(this, OssLicensesMenuActivity::class.java))
+                        }
+                    },
+                    leadingContent = {
+                        Icon(
+                            painter = rememberVectorPainter(
+                                image = ImageVector.vectorResource(
+                                    id = R.drawable.ic_baseline_open_source_24
+                                )
+                            ),
+                            contentDescription = null
+                        )
+                    },
+                    headlineText = {
+                        Text(text = stringResource(id = R.string.open_source_licences))
                     }
                 )
             }
