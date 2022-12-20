@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
@@ -165,6 +166,7 @@ private fun WorkerExecutionLogWithStateItem(
                 Column {
                     AsyncImage(
                         modifier = Modifier
+                            .clip(MaterialTheme.shapes.extraSmall)
                             .size(IconDp),
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(currentItem.successLog?.gameName?.gameIconUrl)
