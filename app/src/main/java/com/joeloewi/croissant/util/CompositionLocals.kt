@@ -4,7 +4,7 @@ import android.app.Activity
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.staticCompositionLocalOf
 
-val LocalActivity = staticCompositionLocalOf<Activity> {
+val LocalActivity = compositionLocalOf<Activity> {
     error("CompositionLocal LocalActivity not present")
 }
 

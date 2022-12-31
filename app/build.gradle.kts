@@ -74,8 +74,9 @@ dependencies {
     androidTestImplementation(libs.androidx.test.espresso.core)
     androidTestImplementation(libs.androidx.compose.ui.test)
 
-    implementation(libs.androidx.lifecycle.runtimeCompose)
-    implementation(libs.androidx.lifecycle.viewModelCompose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.process)
 
     implementation(libs.androidx.savedstate.ktx)
 
@@ -114,6 +115,7 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
 
     //image load
+    implementation(libs.coil.kt.base)
     implementation(libs.coil.kt.compose)
 
     //webkit

@@ -355,6 +355,7 @@ fun CroissantNavHost(
     NavHost(
         modifier = modifier,
         navController = navController,
+        route = "main",
         startDestination = CroissantNavigation.Attendances.route
     ) {
         navigation(
