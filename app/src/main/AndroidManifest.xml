@@ -66,8 +66,7 @@
             <!-- so disable auto initializing -->
             <meta-data
                 android:name="com.joeloewi.croissant.initializer.NotificationChannelInitializer"
-                android:value="androidx.startup"
-                tools:node="remove" />
+                android:value="androidx.startup" />
             <meta-data
                 android:name="com.joeloewi.croissant.initializer.DynamicColorInitializer"
                 android:value="androidx.startup" />

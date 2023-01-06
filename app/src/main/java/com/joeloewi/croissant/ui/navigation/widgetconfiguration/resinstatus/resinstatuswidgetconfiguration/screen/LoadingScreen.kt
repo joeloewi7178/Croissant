@@ -33,8 +33,10 @@ fun LoadingScreen(
                             ResinStatusWidgetConfigurationDestination.ResinStatusWidgetDetailScreen()
                                 .generateRoute(appWidgetId)
                         ) {
-                            popUpTo(ResinStatusWidgetConfigurationDestination.LoadingScreen.route) {
-                                inclusive = true
+                            navController.currentDestination?.let {
+                                popUpTo(it.id) {
+                                    inclusive = true
+                                }
                             }
                         }
                     } else {
@@ -42,14 +44,16 @@ fun LoadingScreen(
                             ResinStatusWidgetConfigurationDestination.CreateResinStatusWidgetScreen()
                                 .generateRoute(appWidgetId)
                         ) {
-                            popUpTo(ResinStatusWidgetConfigurationDestination.LoadingScreen.route) {
-                                inclusive = true
+                            navController.currentDestination?.let {
+                                popUpTo(it.id) {
+                                    inclusive = true
+                                }
                             }
                         }
                     }
                 }.onFailure { cause ->
                     FirebaseCrashlytics.getInstance().apply {
-                        log(ResinStatusWidgetConfigurationDestination.LoadingScreen.route)
+                        log(ResinStatusWidgetConfigurationDestination.LoadingScreen().route)
                         recordException(cause)
                     }
                 }

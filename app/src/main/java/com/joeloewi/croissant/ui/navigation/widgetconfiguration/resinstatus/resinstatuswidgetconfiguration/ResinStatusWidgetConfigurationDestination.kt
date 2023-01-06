@@ -18,35 +18,46 @@ sealed class ResinStatusWidgetConfigurationDestination {
         }"
     }
 
-    object LoadingScreen : ResinStatusWidgetConfigurationDestination() {
+    object EmptyScreen : ResinStatusWidgetConfigurationDestination() {
         override val arguments: List<Pair<String, NavType<*>>> = listOf()
-        override val plainRoute: String = "loadingScreen"
+        override val plainRoute: String = "emptyScreen"
     }
 
-    class CreateResinStatusWidgetScreen : ResinStatusWidgetConfigurationDestination() {
+    class LoadingScreen(
+        override val arguments: List<Pair<String, NavType<*>>> = listOf(
+            APP_WIDGET_ID to NavType.IntType
+        ),
+        override val plainRoute: String = "loadingScreen"
+    ) : ResinStatusWidgetConfigurationDestination() {
         companion object {
             const val APP_WIDGET_ID = "appWidgetId"
         }
-
-        override val arguments: List<Pair<String, NavType<*>>> = listOf(
-            APP_WIDGET_ID to NavType.IntType
-        )
-
-        override val plainRoute: String = "createResinStatusWidgetScreen"
 
         fun generateRoute(appWidgetId: Int) = "${plainRoute}/${appWidgetId}"
     }
 
-    class ResinStatusWidgetDetailScreen : ResinStatusWidgetConfigurationDestination() {
+    class CreateResinStatusWidgetScreen(
+        override val arguments: List<Pair<String, NavType<*>>> = listOf(
+            APP_WIDGET_ID to NavType.IntType
+        ),
+        override val plainRoute: String = "createResinStatusWidgetScreen"
+    ) : ResinStatusWidgetConfigurationDestination() {
         companion object {
             const val APP_WIDGET_ID = "appWidgetId"
         }
 
+        fun generateRoute(appWidgetId: Int) = "${plainRoute}/${appWidgetId}"
+    }
+
+    class ResinStatusWidgetDetailScreen(
         override val arguments: List<Pair<String, NavType<*>>> = listOf(
             APP_WIDGET_ID to NavType.IntType
-        )
-
+        ),
         override val plainRoute: String = "resinStatusWidgetDetailScreen"
+    ) : ResinStatusWidgetConfigurationDestination() {
+        companion object {
+            const val APP_WIDGET_ID = "appWidgetId"
+        }
 
         fun generateRoute(appWidgetId: Int) = "${plainRoute}/${appWidgetId}"
     }

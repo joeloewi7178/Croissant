@@ -374,7 +374,7 @@ private fun DismissContent(
                 }
 
                 LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(space = DefaultDp)
+                    horizontalArrangement = Arrangement.spacedBy(space = HalfDp)
                 ) {
                     items(
                         items = currentAttendanceWithGames.games,

@@ -19,7 +19,7 @@ interface WorkerExecutionLogDao {
 
     @Transaction
     @Query("DELETE FROM WorkerExecutionLogEntity WHERE attendanceId = :attendanceId AND loggableWorker = :loggableWorker")
-    fun deleteAll(
+    suspend fun deleteAll(
         attendanceId: Long,
         loggableWorker: LoggableWorker
     ): Int

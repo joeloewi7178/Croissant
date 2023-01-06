@@ -3,7 +3,9 @@ package com.joeloewi.croissant
 import android.appwidget.AppWidgetManager
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.*
@@ -12,7 +14,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.os.bundleOf
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavType
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.google.android.material.color.DynamicColors
@@ -26,26 +30,41 @@ import com.joeloewi.croissant.ui.theme.CroissantTheme
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.viewmodel.CreateResinStatusWidgetViewModel
 import com.joeloewi.croissant.viewmodel.LoadingViewModel
-import com.joeloewi.croissant.viewmodel.MainViewModel
 import com.joeloewi.croissant.viewmodel.ResinStatusWidgetDetailViewModel
+import com.joeloewi.croissant.viewmodel.WidgetConfigurationActivityViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
 //app widget configuration intent does not provide app widget provider's name
 @AndroidEntryPoint
 class ResinStatusWidgetConfigurationActivity : AppCompatActivity() {
+    private val _widgetConfigurationActivityViewModel: WidgetConfigurationActivityViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
 
         DynamicColors.applyToActivityIfAvailable(this)
 
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                _widgetConfigurationActivityViewModel.darkThemeEnabled.onEach { darkThemeEnabled ->
+                    if (darkThemeEnabled) {
+                        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+                    } else {
+                        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+                    }
+                }.collect()
+            }
+        }
+
         setContent {
             CroissantTheme(
                 window = window
             ) {
                 CompositionLocalProvider(LocalActivity provides this) {
-                    val mainViewModel: MainViewModel = hiltViewModel()
-
                     ResinStatusWidgetConfigurationApp()
                 }
             }
@@ -84,22 +103,38 @@ fun ResinStatusWidgetConfigurationApp() {
     ) {
         NavHost(
             navController = navController,
+            route = "resinStatusWidgetConfiguration",
             startDestination = ResinStatusWidgetConfigurationNavigation.Configuration.route
         ) {
             navigation(
-                startDestination = ResinStatusWidgetConfigurationDestination.LoadingScreen.route,
+                startDestination = ResinStatusWidgetConfigurationDestination.EmptyScreen.route,
                 route = ResinStatusWidgetConfigurationNavigation.Configuration.route
             ) {
                 composable(
-                    route = ResinStatusWidgetConfigurationDestination.LoadingScreen.route,
-                    arguments = listOf(
-                        navArgument(ResinStatusWidgetConfigurationDestination.LoadingScreen.route) {
-                            type = NavType.IntType
-                            defaultValue = appWidgetId
-                        }
-                    )
+                    route = ResinStatusWidgetConfigurationDestination.EmptyScreen.route
                 ) { navBackStackEntry ->
-                    val loadingViewModel: LoadingViewModel = hiltViewModel(navBackStackEntry)
+                    LaunchedEffect(navBackStackEntry) {
+                        navController.navigate(
+                            ResinStatusWidgetConfigurationDestination.LoadingScreen()
+                                .generateRoute(appWidgetId)
+                        ) {
+                            popUpTo(navBackStackEntry.destination.id) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                }
+
+                composable(
+                    route = ResinStatusWidgetConfigurationDestination.LoadingScreen().route,
+                    arguments = ResinStatusWidgetConfigurationDestination.LoadingScreen().arguments.map { argument ->
+                        navArgument(argument.first) {
+                            type = argument.second
+                            defaultValue = AppWidgetManager.INVALID_APPWIDGET_ID
+                        }
+                    }
+                ) {
+                    val loadingViewModel: LoadingViewModel = hiltViewModel()
 
                     LoadingScreen(
                         navController = navController,
@@ -114,9 +149,9 @@ fun ResinStatusWidgetConfigurationApp() {
                             type = argument.second
                         }
                     },
-                ) { navBackStackEntry ->
+                ) {
                     val createResinStatusWidgetViewModel: CreateResinStatusWidgetViewModel =
-                        hiltViewModel(navBackStackEntry)
+                        hiltViewModel()
 
                     CreateResinStatusWidgetScreen(
                         navController = navController,
@@ -131,9 +166,9 @@ fun ResinStatusWidgetConfigurationApp() {
                             type = argument.second
                         }
                     }
-                ) { navBackStackEntry ->
+                ) {
                     val resinStatusWidgetDetailViewModel: ResinStatusWidgetDetailViewModel =
-                        hiltViewModel(navBackStackEntry)
+                        hiltViewModel()
 
                     ResinStatusWidgetDetailScreen(
                         navController = navController,
