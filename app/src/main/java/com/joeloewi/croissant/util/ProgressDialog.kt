@@ -15,6 +15,9 @@ import com.joeloewi.croissant.R
 
 @Composable
 fun ProgressDialog(
+    title: @Composable () -> Unit = {
+        Text(text = stringResource(id = R.string.saving))
+    },
     onDismissRequest: () -> Unit
 ) {
     AlertDialog(
@@ -26,9 +29,7 @@ fun ProgressDialog(
                 contentDescription = Icons.Default.Pending.name
             )
         },
-        title = {
-            Text(text = stringResource(id = R.string.saving))
-        },
+        title = title,
         text = {
             Text(
                 modifier = Modifier.fillMaxWidth(),

@@ -6,24 +6,22 @@ import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
-import androidx.navigation.NavController
-import androidx.paging.compose.items
+import androidx.navigation.NavHostController
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
@@ -31,23 +29,28 @@ import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.CreateResinStatusWidgetState
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.state.rememberCreateResinStatusWidgetState
+import com.joeloewi.croissant.ui.navigation.main.attendances.screen.COOKIE
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.ProgressDialog
-import com.joeloewi.croissant.util.isEmpty
+import com.joeloewi.croissant.util.getResultFromPreviousComposable
 import com.joeloewi.croissant.viewmodel.CreateResinStatusWidgetViewModel
-import com.joeloewi.domain.common.HoYoLABGame
-import com.joeloewi.domain.entity.relational.AttendanceWithGames
+import com.joeloewi.domain.entity.UserInfo
 
 @Composable
 fun CreateResinStatusWidgetScreen(
-    navController: NavController,
+    navController: NavHostController,
     createResinStatusWidgetViewModel: CreateResinStatusWidgetViewModel
 ) {
+    val context = LocalContext.current
     val activity = LocalActivity.current
     val createResinStatusWidgetState =
-        rememberCreateResinStatusWidgetState(createResinStatusWidgetViewModel)
+        rememberCreateResinStatusWidgetState(
+            navController = navController,
+            createResinStatusWidgetViewModel = createResinStatusWidgetViewModel
+        )
+    val getUserInfoState = createResinStatusWidgetState.getUserInfoState
 
     LaunchedEffect(activity) {
         with(activity) {
@@ -58,6 +61,26 @@ fun CreateResinStatusWidgetScreen(
                 )
             }
             setResult(Activity.RESULT_CANCELED, resultValue)
+        }
+    }
+
+    LaunchedEffect(createResinStatusWidgetState) {
+        getResultFromPreviousComposable<String>(
+            navController = navController,
+            key = COOKIE
+        )?.let {
+            createResinStatusWidgetState.onReceiveCookie(cookie = it)
+        }
+    }
+
+    LaunchedEffect(getUserInfoState) {
+        with(getUserInfoState) {
+            when (this) {
+                is Lce.Error -> {
+                    createResinStatusWidgetState.snackbarHostState.showSnackbar(context.getString(R.string.error_occurred))
+                }
+                else -> {}
+            }
         }
     }
 
@@ -73,7 +96,6 @@ fun CreateResinStatusWidgetContent(
 ) {
     val activity = LocalActivity.current
     val insertResinStatusWidgetState = createResinStatusWidgetState.insertResinStatusWidgetState
-    val pagedAttendancesWithGames = createResinStatusWidgetState.pagedAttendancesWithGames
     val lazyListState = rememberLazyListState()
 
     LaunchedEffect(insertResinStatusWidgetState) {
@@ -119,12 +141,25 @@ fun CreateResinStatusWidgetContent(
                 }
             )
         },
+        snackbarHost = {
+            SnackbarHost(hostState = createResinStatusWidgetState.snackbarHostState)
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = createResinStatusWidgetState::onClickAdd
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = Icons.Default.Add.name
+                )
+            }
+        },
         bottomBar = {
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(DefaultDp),
-                enabled = createResinStatusWidgetState.isAttendanceIdItemSelected,
+                enabled = createResinStatusWidgetState.userInfos.isNotEmpty(),
                 onClick = createResinStatusWidgetState::onClickDone
             ) {
                 Row(
@@ -139,16 +174,13 @@ fun CreateResinStatusWidgetContent(
                         contentDescription = Icons.Default.Done.name
                     )
                     Text(
-                        text = stringResource(
-                            id = R.string.account_selected,
-                            createResinStatusWidgetState.checkedAttendanceIds.size
-                        )
+                        text = stringResource(id = R.string.completed)
                     )
                 }
             }
         }
     ) { innerPadding ->
-        if (pagedAttendancesWithGames.isEmpty()) {
+        if (createResinStatusWidgetState.userInfos.isEmpty()) {
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -241,17 +273,12 @@ fun CreateResinStatusWidgetContent(
                 }
 
                 items(
-                    items = pagedAttendancesWithGames,
-                    key = { it.attendance.id }
+                    items = createResinStatusWidgetState.userInfos,
+                    key = { it.first }
                 ) { item ->
-                    if (item != null) {
-                        AccountListItem(
-                            item = { item },
-                            checkedAccounts = createResinStatusWidgetState.checkedAttendanceIds
-                        )
-                    } else {
-                        AccountListItemPlaceholder()
-                    }
+                    UserInfoListItem(
+                        item = { item },
+                    )
                 }
             }
         }
@@ -261,45 +288,33 @@ fun CreateResinStatusWidgetContent(
                 onDismissRequest = {}
             )
         }
+
+        if (createResinStatusWidgetState.showUserInfoProgressDialog) {
+            ProgressDialog(
+                title = { Text(text = stringResource(id = R.string.retrieving_data)) },
+                onDismissRequest = {}
+            )
+        }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AccountListItem(
-    item: () -> AttendanceWithGames,
-    checkedAccounts: SnapshotStateList<Long>
+fun UserInfoListItem(
+    item: () -> Pair<String, UserInfo>,
 ) {
     val currentItem by rememberUpdatedState(newValue = item())
 
     ListItem(
         modifier = Modifier
-            .fillMaxWidth()
-            .toggleable(
-                value = checkedAccounts.contains(currentItem.attendance.id),
-                enabled = currentItem.games.any { it.type == HoYoLABGame.GenshinImpact },
-                role = Role.Checkbox,
-                onValueChange = { checked ->
-                    if (checked) {
-                        checkedAccounts.add(currentItem.attendance.id)
-                    } else {
-                        checkedAccounts.remove(currentItem.attendance.id)
-                    }
-                }
-            ),
-        headlineText = { Text(text = currentItem.attendance.nickname) },
-        trailingContent = {
-            Checkbox(
-                checked = checkedAccounts.contains(currentItem.attendance.id),
-                onCheckedChange = null
-            )
-        }
+            .fillMaxWidth(),
+        headlineText = { Text(text = currentItem.second.nickname) },
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AccountListItemPlaceholder() {
+fun GameRecordListItemPlaceholder() {
     ListItem(
         modifier = Modifier
             .fillMaxWidth(),

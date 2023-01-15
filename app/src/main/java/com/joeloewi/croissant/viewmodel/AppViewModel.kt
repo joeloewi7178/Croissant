@@ -10,7 +10,10 @@ import com.joeloewi.croissant.util.canScheduleExactAlarmsCompat
 import com.joeloewi.croissant.util.isIgnoringBatteryOptimizationsCompat
 import com.joeloewi.domain.usecase.SettingsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
@@ -22,14 +25,19 @@ class AppViewModel @Inject constructor(
     rootChecker: RootChecker,
 ) : ViewModel() {
     private val _settings = getSettingsUseCase()
-    private val _isDeviceRooted = MutableStateFlow(rootChecker.isDeviceRooted())
 
     val isFirstLaunch = _settings.map { it.isFirstLaunch }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(),
         initialValue = false
     )
-    val isDeviceRooted = _isDeviceRooted.asStateFlow()
+    val isDeviceRooted = flow {
+        emit(rootChecker.isDeviceRooted())
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Lazily,
+        initialValue = false
+    )
 
     val isIgnoringBatteryOptimizations
         get() = powerManager.isIgnoringBatteryOptimizationsCompat(application)

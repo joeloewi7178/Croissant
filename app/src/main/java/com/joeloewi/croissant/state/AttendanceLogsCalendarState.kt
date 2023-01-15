@@ -4,7 +4,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.*
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.PagerState
 import com.google.accompanist.pager.rememberPagerState
@@ -19,7 +19,7 @@ import java.time.YearMonth
 class AttendanceLogsCalendarState constructor(
     val snackbarHostState: SnackbarHostState,
     val pagerState: PagerState,
-    private val navController: NavController,
+    private val navController: NavHostController,
     val attendanceLogsCalendarViewModel: AttendanceLogsCalendarViewModel
 ) {
     //state
@@ -75,7 +75,7 @@ fun rememberAttendanceLogsCalendarState(
         SnackbarHostState()
     },
     pagerState: PagerState = rememberPagerState(initialPage = YearMonth.now().monthValue - 1),
-    navController: NavController,
+    navController: NavHostController,
     attendanceLogsCalendarViewModel: AttendanceLogsCalendarViewModel,
 ) = remember(
     snackbarHostState,

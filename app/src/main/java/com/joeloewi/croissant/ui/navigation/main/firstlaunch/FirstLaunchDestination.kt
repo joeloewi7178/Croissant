@@ -14,11 +14,11 @@
  *    limitations under the License.
  */
 
-package com.joeloewi.croissant.ui.navigation.main.firstopen
+package com.joeloewi.croissant.ui.navigation.main.firstlaunch
 
 import androidx.navigation.NavType
 
-sealed class FirstOpenDestination {
+sealed class FirstLaunchDestination {
     abstract val arguments: List<Pair<String, NavType<*>>>
     protected abstract val plainRoute: String
     val route: String
@@ -33,8 +33,8 @@ sealed class FirstOpenDestination {
             ) { "{$it}" }
         }"
 
-    object FirstOpenScreen : FirstOpenDestination() {
+    object FirstLaunchScreen : FirstLaunchDestination() {
         override val arguments: List<Pair<String, NavType<*>>> = listOf()
-        override val plainRoute = "firstOpenScreen"
+        override val plainRoute = "firstLaunchScreen"
     }
 }

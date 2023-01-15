@@ -47,8 +47,8 @@ import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.*
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.CreateAttendanceScreen
-import com.joeloewi.croissant.ui.navigation.main.firstopen.FirstOpenDestination
-import com.joeloewi.croissant.ui.navigation.main.firstopen.screen.FirstOpenScreen
+import com.joeloewi.croissant.ui.navigation.main.firstlaunch.FirstLaunchDestination
+import com.joeloewi.croissant.ui.navigation.main.firstlaunch.screen.FirstLaunchScreen
 import com.joeloewi.croissant.ui.navigation.main.redemptioncodes.RedemptionCodesDestination
 import com.joeloewi.croissant.ui.navigation.main.redemptioncodes.screen.RedemptionCodesScreen
 import com.joeloewi.croissant.ui.navigation.main.settings.SettingsDestination
@@ -132,11 +132,9 @@ fun CroissantApp() {
 
     LaunchedEffect(isFirstLaunch, isAllPermissionsGranted) {
         if (isFirstLaunch || !isAllPermissionsGranted) {
-            FirstOpenDestination.FirstOpenScreen.route.let {
-                croissantAppState.navController.navigate(it) {
-                    popUpTo("main") {
-                        inclusive = true
-                    }
+            croissantAppState.navController.navigate(FirstLaunchDestination.FirstLaunchScreen.route) {
+                popUpTo(activity::class.java.simpleName) {
+                    inclusive = true
                 }
             }
         }
@@ -160,7 +158,7 @@ fun CroissantApp() {
         bottomSheetNavigator = croissantAppState.bottomSheetNavigator,
         sheetBackgroundColor = MaterialTheme.colorScheme.surface,
         sheetContentColor = contentColorFor(backgroundColor = MaterialTheme.colorScheme.surface),
-        scrimColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.32f)
+        scrimColor = MaterialTheme.colorScheme.scrim
     ) {
         Scaffold(
             bottomBar = {
@@ -316,12 +314,13 @@ fun CroissantNavHost(
     snackbarHostState: SnackbarHostState,
     deepLinkUri: () -> Uri,
 ) {
+    val activity = LocalActivity.current
     val currentDeepLinkUri by rememberUpdatedState(newValue = deepLinkUri())
 
     NavHost(
         modifier = modifier,
         navController = navController,
-        route = "main",
+        route = activity::class.java.simpleName,
         startDestination = CroissantNavigation.Attendances.route
     ) {
         navigation(
@@ -451,12 +450,12 @@ fun CroissantNavHost(
             }
         }
 
-        bottomSheet(route = FirstOpenDestination.FirstOpenScreen.route) {
-            val firstOpenViewModel: FirstOpenViewModel = hiltViewModel()
+        bottomSheet(route = FirstLaunchDestination.FirstLaunchScreen.route) {
+            val firstLaunchViewModel: FirstLaunchViewModel = hiltViewModel()
 
-            FirstOpenScreen(
+            FirstLaunchScreen(
                 navController = navController,
-                firstOpenViewModel = firstOpenViewModel
+                firstLaunchViewModel = firstLaunchViewModel
             )
         }
     }

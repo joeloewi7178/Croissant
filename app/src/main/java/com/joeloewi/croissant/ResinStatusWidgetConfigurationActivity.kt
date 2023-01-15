@@ -21,6 +21,7 @@ import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.google.android.material.color.DynamicColors
 import com.google.firebase.analytics.FirebaseAnalytics
+import com.joeloewi.croissant.ui.navigation.main.attendances.screen.LoginHoYoLABScreen
 import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.ResinStatusWidgetConfigurationNavigation
 import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration.ResinStatusWidgetConfigurationDestination
 import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration.screen.CreateResinStatusWidgetScreen
@@ -28,10 +29,7 @@ import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resi
 import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration.screen.ResinStatusWidgetDetailScreen
 import com.joeloewi.croissant.ui.theme.CroissantTheme
 import com.joeloewi.croissant.util.LocalActivity
-import com.joeloewi.croissant.viewmodel.CreateResinStatusWidgetViewModel
-import com.joeloewi.croissant.viewmodel.LoadingViewModel
-import com.joeloewi.croissant.viewmodel.ResinStatusWidgetDetailViewModel
-import com.joeloewi.croissant.viewmodel.WidgetConfigurationActivityViewModel
+import com.joeloewi.croissant.viewmodel.*
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
@@ -103,7 +101,7 @@ fun ResinStatusWidgetConfigurationApp() {
     ) {
         NavHost(
             navController = navController,
-            route = "resinStatusWidgetConfiguration",
+            route = activity::class.java.simpleName,
             startDestination = ResinStatusWidgetConfigurationNavigation.Configuration.route
         ) {
             navigation(
@@ -156,6 +154,18 @@ fun ResinStatusWidgetConfigurationApp() {
                     CreateResinStatusWidgetScreen(
                         navController = navController,
                         createResinStatusWidgetViewModel = createResinStatusWidgetViewModel
+                    )
+                }
+
+                composable(
+                    route = ResinStatusWidgetConfigurationDestination.LoginHoYoLABScreen.route,
+                ) {
+                    val loginHoYoLABViewModel: LoginHoYoLABViewModel =
+                        hiltViewModel()
+
+                    LoginHoYoLABScreen(
+                        navController = navController,
+                        loginHoYoLABViewModel = loginHoYoLABViewModel
                     )
                 }
 

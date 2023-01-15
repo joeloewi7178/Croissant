@@ -17,19 +17,15 @@
 package com.joeloewi.croissant.initializer
 
 import android.content.Context
-import androidx.hilt.work.HiltWorkerFactory
 import androidx.startup.Initializer
 import androidx.work.Configuration
 import androidx.work.WorkManager
-import com.joeloewi.croissant.di.InitializerEntryPoint
-import dagger.hilt.EntryPoints
+import com.joeloewi.croissant.di.initializerEntryPoint
 
 class WorkManagerInitializer : Initializer<WorkManager> {
 
-    private lateinit var hiltWorkerFactory: HiltWorkerFactory
-
     override fun create(context: Context): WorkManager {
-        resolve(context)
+        val hiltWorkerFactory = context.initializerEntryPoint.hiltWorkerFactory()
 
         WorkManager.initialize(
             context,
@@ -42,10 +38,4 @@ class WorkManagerInitializer : Initializer<WorkManager> {
     }
 
     override fun dependencies(): MutableList<Class<out Initializer<*>>> = mutableListOf()
-
-    private fun resolve(context: Context) {
-        val initializerEntryPoint = EntryPoints.get(context, InitializerEntryPoint::class.java)
-
-        hiltWorkerFactory = initializerEntryPoint.hiltWorkerFactory()
-    }
 }

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.joeloewi.croissant.ui.navigation.main.firstopen.screen
+package com.joeloewi.croissant.ui.navigation.main.firstlaunch.screen
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -38,40 +38,40 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.state.FirstOpenState
-import com.joeloewi.croissant.state.rememberFirstOpenState
+import com.joeloewi.croissant.state.FirstLaunchState
+import com.joeloewi.croissant.state.rememberFirstLaunchState
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.util.CroissantPermission
 import com.joeloewi.croissant.util.createNotificationChannels
-import com.joeloewi.croissant.viewmodel.FirstOpenViewModel
+import com.joeloewi.croissant.viewmodel.FirstLaunchViewModel
 import kotlin.math.abs
 
 @Composable
-fun FirstOpenScreen(
-    navController: NavController,
-    firstOpenViewModel: FirstOpenViewModel
+fun FirstLaunchScreen(
+    navController: NavHostController,
+    firstLaunchViewModel: FirstLaunchViewModel
 ) {
-    val firstOpenState = rememberFirstOpenState(
+    val firstLaunchState = rememberFirstLaunchState(
         navController = navController,
-        firstOpenViewModel = firstOpenViewModel
+        firstLaunchViewModel = firstLaunchViewModel
     )
 
-    FirstOpenContent(
-        firstOpenState = firstOpenState
+    FirstLaunchContent(
+        firstLaunchState = firstLaunchState
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
-private fun FirstOpenContent(
-    firstOpenState: FirstOpenState
+private fun FirstLaunchContent(
+    firstLaunchState: FirstLaunchState
 ) {
     val context = LocalContext.current
     val multiplePermissionsState = rememberMultiplePermissionsState(
@@ -89,9 +89,9 @@ private fun FirstOpenContent(
 
     LaunchedEffect(isAllPermissionsGranted) {
         if (isAllPermissionsGranted) {
-            firstOpenState.onFirstLaunchChange(false)
+            firstLaunchState.onFirstLaunchChange(false)
             context.createNotificationChannels()
-            firstOpenState.navigateToAttendancesScreen()
+            firstLaunchState.navigateToAttendancesScreen()
         }
     }
 

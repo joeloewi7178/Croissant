@@ -25,7 +25,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class FirstOpenViewModel @Inject constructor(
+class FirstLaunchViewModel @Inject constructor(
     private val setIsFirstLaunchSettingsUseCase: SettingsUseCase.SetIsFirstLaunch,
 ) : ViewModel() {
     fun setIsFirstLaunch(isFirstLaunch: Boolean) {

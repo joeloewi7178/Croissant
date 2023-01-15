@@ -5,13 +5,13 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.joeloewi.croissant.viewmodel.DeveloperInfoViewModel
 
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @Stable
 class DeveloperInfoState(
-    private val navController: NavController,
+    private val navController: NavHostController,
     private val developerInfoViewModel: DeveloperInfoViewModel
 ) {
     val previousBackStackEntry
@@ -27,7 +27,7 @@ class DeveloperInfoState(
 
 @Composable
 fun rememberDeveloperInfoState(
-    navController: NavController,
+    navController: NavHostController,
     developerInfoViewModel: DeveloperInfoViewModel
 ) = remember(
     navController,

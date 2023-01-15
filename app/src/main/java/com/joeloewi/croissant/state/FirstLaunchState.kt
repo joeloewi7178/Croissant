@@ -19,17 +19,17 @@ package com.joeloewi.croissant.state
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
-import com.joeloewi.croissant.viewmodel.FirstOpenViewModel
+import com.joeloewi.croissant.viewmodel.FirstLaunchViewModel
 
 @Stable
-class FirstOpenState(
-    private val navController: NavController,
-    private val firstOpenViewModel: FirstOpenViewModel
+class FirstLaunchState(
+    private val navController: NavHostController,
+    private val firstLaunchViewModel: FirstLaunchViewModel
 ) {
     fun onFirstLaunchChange(isFirstLaunch: Boolean) {
-        firstOpenViewModel.setIsFirstLaunch(isFirstLaunch)
+        firstLaunchViewModel.setIsFirstLaunch(isFirstLaunch)
     }
 
     fun navigateToAttendancesScreen() {
@@ -44,15 +44,15 @@ class FirstOpenState(
 }
 
 @Composable
-fun rememberFirstOpenState(
-    navController: NavController,
-    firstOpenViewModel: FirstOpenViewModel
+fun rememberFirstLaunchState(
+    navController: NavHostController,
+    firstLaunchViewModel: FirstLaunchViewModel
 ) = remember(
     navController,
-    firstOpenViewModel
+    firstLaunchViewModel
 ) {
-    FirstOpenState(
+    FirstLaunchState(
         navController = navController,
-        firstOpenViewModel = firstOpenViewModel
+        firstLaunchViewModel = firstLaunchViewModel
     )
 }

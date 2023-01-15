@@ -20,7 +20,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
@@ -39,7 +39,7 @@ import com.joeloewi.domain.entity.Game
 
 @Composable
 fun AttendanceDetailScreen(
-    navController: NavController,
+    navController: NavHostController,
     attendanceDetailViewModel: AttendanceDetailViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current

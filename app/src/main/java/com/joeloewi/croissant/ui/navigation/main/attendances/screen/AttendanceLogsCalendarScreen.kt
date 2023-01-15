@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.joeloewi.croissant.R
@@ -51,7 +51,7 @@ import java.time.format.DateTimeFormatter
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun AttendanceLogsCalendarScreen(
-    navController: NavController,
+    navController: NavHostController,
     attendanceLogsCalendarViewModel: AttendanceLogsCalendarViewModel = hiltViewModel()
 ) {
     val attendanceLogsCalendarState = rememberAttendanceLogsCalendarState(

@@ -125,4 +125,5 @@
     <string name="first_open_guidance_can_be_shown_again">이 화면은 새로운 권한 요청 등의 이유로 다시 나타날 수 있습니다.</string>
     <string name="open_source_licenses">오픈소스 라이선스</string>
     <string name="permissions">권한</string>
+    <string name="retrieving_data">정보 조회 중</string>
 </resources>

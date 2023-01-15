@@ -39,7 +39,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.items
@@ -67,7 +67,7 @@ import java.time.ZonedDateTime
 
 @Composable
 fun AttendancesScreen(
-    navController: NavController,
+    navController: NavHostController,
     snackbarHostState: SnackbarHostState,
     attendancesViewModel: AttendancesViewModel = hiltViewModel()
 ) {
@@ -270,25 +270,27 @@ private fun SwipeToDismissBackground(
     val scale by animateFloatAsState(
         if (dismissState.targetValue == DismissValue.Default) 0.75f else 1f
     )
-    val color by animateColorAsState(
+    val backgroundColor by animateColorAsState(
         when (dismissState.targetValue) {
-            DismissValue.Default -> MaterialTheme.colorScheme.surfaceVariant
-            DismissValue.DismissedToEnd -> MaterialTheme.colorScheme.surface
-            DismissValue.DismissedToStart -> MaterialTheme.colorScheme.error
+            DismissValue.DismissedToStart -> MaterialTheme.colorScheme.errorContainer
+            else -> {
+                MaterialTheme.colorScheme.surfaceColorAtElevation(HalfDp)
+            }
         }
     )
     val iconColor by animateColorAsState(
         when (dismissState.targetValue) {
-            DismissValue.Default -> MaterialTheme.colorScheme.onSurfaceVariant
-            DismissValue.DismissedToEnd -> MaterialTheme.colorScheme.onSurface
-            DismissValue.DismissedToStart -> MaterialTheme.colorScheme.onError
+            DismissValue.DismissedToStart -> MaterialTheme.colorScheme.onErrorContainer
+            else -> {
+                MaterialTheme.colorScheme.onSurface
+            }
         }
     )
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(color)
+            .background(backgroundColor)
             .padding(horizontal = DoubleDp),
         contentAlignment = alignment
     ) {

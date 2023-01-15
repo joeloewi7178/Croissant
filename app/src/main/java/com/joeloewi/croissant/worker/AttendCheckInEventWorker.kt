@@ -17,7 +17,7 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
-import coil.ImageLoader
+import coil.imageLoader
 import coil.request.ImageRequest
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.joeloewi.croissant.R
@@ -148,7 +148,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
         .setAutoCancel(true)
         .setSmallIcon(R.drawable.ic_baseline_bakery_dining_24)
         .apply {
-            ImageLoader(context).runCatching {
+            context.imageLoader.runCatching {
                 execute(
                     ImageRequest.Builder(context = context)
                         .data(hoYoLABGame.gameIconUrl)
@@ -215,7 +215,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
         .setAutoCancel(true)
         .setSmallIcon(R.drawable.ic_baseline_bakery_dining_24)
         .apply {
-            ImageLoader(context).runCatching {
+            context.imageLoader.runCatching {
                 execute(
                     ImageRequest.Builder(context = context)
                         .data(hoYoLABGame.gameIconUrl)

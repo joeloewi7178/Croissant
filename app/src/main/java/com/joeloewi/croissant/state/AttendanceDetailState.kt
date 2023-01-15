@@ -9,7 +9,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.croissant.viewmodel.AttendanceDetailViewModel
@@ -24,7 +24,7 @@ class AttendanceDetailState(
     val context: Context,
     val coroutineScope: CoroutineScope,
     private val attendanceDetailViewModel: AttendanceDetailViewModel,
-    val navController: NavController
+    val navController: NavHostController
 ) {
     //state
     private val attendanceWithGames
@@ -107,7 +107,7 @@ fun rememberAttendanceDetailState(
     context: Context = LocalContext.current,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
     attendanceDetailViewModel: AttendanceDetailViewModel,
-    navController: NavController
+    navController: NavHostController
 ) = remember(
     snackbarHostState,
     coroutineScope,

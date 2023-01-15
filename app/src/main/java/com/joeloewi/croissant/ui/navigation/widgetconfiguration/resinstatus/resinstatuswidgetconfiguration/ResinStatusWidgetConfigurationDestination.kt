@@ -61,4 +61,9 @@ sealed class ResinStatusWidgetConfigurationDestination {
 
         fun generateRoute(appWidgetId: Int) = "${plainRoute}/${appWidgetId}"
     }
+
+    object LoginHoYoLABScreen : ResinStatusWidgetConfigurationDestination() {
+        override val arguments: List<Pair<String, NavType<*>>> = listOf()
+        override val plainRoute: String = "loginHoYoLABScreen"
+    }
 }

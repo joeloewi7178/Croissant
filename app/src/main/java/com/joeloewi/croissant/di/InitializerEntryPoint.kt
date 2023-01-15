@@ -17,11 +17,14 @@
 package com.joeloewi.croissant.di
 
 import android.app.Application
+import android.content.Context
 import androidx.hilt.work.HiltWorkerFactory
 import coil.ImageLoader
 import dagger.hilt.EntryPoint
+import dagger.hilt.EntryPoints
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlin.properties.ReadOnlyProperty
 
 @EntryPoint
 @InstallIn(SingletonComponent::class)
@@ -30,3 +33,10 @@ interface InitializerEntryPoint {
     fun hiltWorkerFactory(): HiltWorkerFactory
     fun application(): Application
 }
+
+inline fun <reified EntryPoint> entryPoints() =
+    ReadOnlyProperty<Context, EntryPoint> { thisRef, _ ->
+        EntryPoints.get(thisRef, EntryPoint::class.java)
+    }
+
+val Context.initializerEntryPoint: InitializerEntryPoint by entryPoints()

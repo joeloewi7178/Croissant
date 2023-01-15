@@ -130,4 +130,5 @@
     <string name="first_open_guidance_can_be_shown_again">This screen can be shown again to request new permissions</string>
     <string name="open_source_licenses">Open source licenses</string>
     <string name="permissions">Permissions</string>
+    <string name="retrieving_data">Retrieving data</string>
 </resources>

@@ -3,6 +3,8 @@ package com.joeloewi.croissant.util
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.nio.charset.Charset
 
@@ -54,23 +56,26 @@ class RootChecker(
         Runtime.getRuntime()
     }
 
-    fun isDeviceRooted(): Boolean = checkRootFiles() || checkSUExist() || checkRootPackages()
+    suspend fun isDeviceRooted(): Boolean =
+        checkRootFiles() || checkSUExist() || checkRootPackages()
 
-    private fun checkRootFiles(): Boolean = rootFiles.runCatching {
-        any { path -> File(path).exists() }
-    }.fold(
-        onSuccess = {
-            it
-        },
-        onFailure = {
-            false
-        }
-    )
+    private suspend fun checkRootFiles(): Boolean = withContext(Dispatchers.IO) {
+        rootFiles.runCatching {
+            any { path -> File(path).exists() }
+        }.fold(
+            onSuccess = {
+                it
+            },
+            onFailure = {
+                false
+            }
+        )
+    }
 
-    private fun checkSUExist(): Boolean {
+    private suspend fun checkSUExist(): Boolean = withContext(Dispatchers.IO) {
         var process: Process? = null
 
-        return runtime.runCatching {
+        runtime.runCatching {
             exec(arrayOf("/system/xbin/which", "su"))
         }.mapCatching {
             process = it
@@ -88,22 +93,24 @@ class RootChecker(
         }
     }
 
-    private fun checkRootPackages(): Boolean = context.runCatching {
-        packageManager
-    }.mapCatching {
-        for (pkg in rootPackages) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                it.getPackageInfo(pkg, PackageManager.PackageInfoFlags.of(0))
-            } else {
-                it.getPackageInfo(pkg, 0)
+    private suspend fun checkRootPackages(): Boolean = withContext(Dispatchers.Default) {
+        context.runCatching {
+            packageManager
+        }.mapCatching {
+            for (pkg in rootPackages) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    it.getPackageInfo(pkg, PackageManager.PackageInfoFlags.of(0))
+                } else {
+                    it.getPackageInfo(pkg, 0)
+                }
             }
-        }
-    }.fold(
-        onSuccess = {
-            true
-        },
-        onFailure = {
-            false
-        }
-    )
+        }.fold(
+            onSuccess = {
+                true
+            },
+            onFailure = {
+                false
+            }
+        )
+    }
 }

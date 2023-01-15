@@ -20,26 +20,18 @@ import android.content.Context
 import androidx.startup.Initializer
 import coil.Coil
 import coil.ImageLoader
-import com.joeloewi.croissant.di.InitializerEntryPoint
-import dagger.hilt.EntryPoints
+import coil.imageLoader
+import com.joeloewi.croissant.di.initializerEntryPoint
 
 class CoilInitializer : Initializer<ImageLoader> {
 
-    private lateinit var imageLoader: ImageLoader
-
     override fun create(context: Context): ImageLoader {
-        resolve(context)
+        val imageLoader = context.initializerEntryPoint.imageLoader()
 
         Coil.setImageLoader(imageLoader)
 
-        return Coil.imageLoader(context)
+        return context.imageLoader
     }
 
     override fun dependencies(): MutableList<Class<out Initializer<*>>> = mutableListOf()
-
-    private fun resolve(context: Context) {
-        val initializerEntryPoint = EntryPoints.get(context, InitializerEntryPoint::class.java)
-
-        imageLoader = initializerEntryPoint.imageLoader()
-    }
 }

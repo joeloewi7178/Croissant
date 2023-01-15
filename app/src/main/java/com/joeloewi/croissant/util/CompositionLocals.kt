@@ -1,9 +1,9 @@
 package com.joeloewi.croissant.util
 
-import android.app.Activity
+import androidx.activity.ComponentActivity
 import androidx.compose.runtime.compositionLocalOf
 
-val LocalActivity = compositionLocalOf<Activity> {
+val LocalActivity = compositionLocalOf<ComponentActivity> {
     error("CompositionLocal LocalActivity not present")
 }
 
