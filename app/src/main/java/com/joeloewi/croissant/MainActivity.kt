@@ -1,5 +1,6 @@
 package com.joeloewi.croissant
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -24,6 +25,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.net.toUri
 import androidx.core.os.bundleOf
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -105,6 +107,7 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
+@SuppressLint("BatteryLife")
 @OptIn(
     ExperimentalPermissionsApi::class,
     ExperimentalMaterialApi::class,
@@ -226,42 +229,16 @@ fun CroissantApp() {
             }
 
             if (lifecycle == Lifecycle.Event.ON_RESUME) {
-                if (currentDestination?.route == AttendancesDestination.AttendancesScreen.route && !croissantAppState.isIgnoringBatteryOptimizations) {
-                    AlertDialog(
-                        onDismissRequest = {},
-                        confirmButton = {
-                            TextButton(
-                                onClick = {
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                        Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).also {
-                                            context.startActivity(it)
-                                        }
-                                    }
-                                }
-                            ) {
-                                Text(text = stringResource(id = R.string.confirm))
-                            }
-                        },
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Default.Warning,
-                                contentDescription = Icons.Default.Warning.name
-                            )
-                        },
-                        title = {
-                            Text(text = stringResource(id = R.string.caution))
-                        },
-                        text = {
-                            Text(
-                                textAlign = TextAlign.Center,
-                                text = stringResource(id = R.string.battery_optimization_enabled)
-                            )
-                        },
-                        properties = DialogProperties(
-                            dismissOnClickOutside = false,
-                            dismissOnBackPress = false
-                        )
-                    )
+                if (currentDestination?.route == AttendancesDestination.AttendancesScreen.route
+                    && !croissantAppState.isIgnoringBatteryOptimizations
+                    && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                ) {
+                    Intent(
+                        Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                        "package:${context.packageName}".toUri()
+                    ).also {
+                        context.startActivity(it)
+                    }
                 }
 
                 if (!isFirstLaunch && !croissantAppState.canScheduleExactAlarms) {
