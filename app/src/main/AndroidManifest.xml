@@ -10,6 +10,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <queries>
         <intent>
@@ -66,10 +67,18 @@
             <!-- so disable auto initializing -->
             <meta-data
                 android:name="com.joeloewi.croissant.initializer.NotificationChannelInitializer"
-                android:value="androidx.startup"
-                tools:node="remove" />
+                android:value="androidx.startup" />
             <meta-data
                 android:name="com.joeloewi.croissant.initializer.DynamicColorInitializer"
+                android:value="androidx.startup" />
+            <meta-data
+                android:name="com.joeloewi.croissant.initializer.WorkManagerInitializer"
+                android:value="androidx.startup" />
+            <meta-data
+                android:name="com.joeloewi.croissant.initializer.CoilInitializer"
+                android:value="androidx.startup" />
+            <meta-data
+                android:name="com.joeloewi.croissant.initializer.ComposeViewInitializer"
                 android:value="androidx.startup" />
             <meta-data
                 android:name="androidx.work.WorkManagerInitializer"

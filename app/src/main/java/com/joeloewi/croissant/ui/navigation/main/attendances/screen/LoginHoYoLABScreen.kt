@@ -26,7 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.view.WindowCompat
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import com.google.accompanist.web.*
@@ -43,7 +43,7 @@ const val COOKIE = "cookie"
 
 @Composable
 fun LoginHoYoLABScreen(
-    navController: NavController,
+    navController: NavHostController,
     loginHoYoLABViewModel: LoginHoYoLABViewModel
 ) {
     val loginHoYoLABState = rememberLoginHoYoLABState(

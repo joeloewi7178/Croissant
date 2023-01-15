@@ -6,15 +6,15 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.cachedIn
 import androidx.work.*
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration.ResinStatusWidgetConfigurationDestination
 import com.joeloewi.croissant.worker.RefreshResinStatusWorker
 import com.joeloewi.domain.entity.Account
 import com.joeloewi.domain.entity.ResinStatusWidget
+import com.joeloewi.domain.entity.UserInfo
 import com.joeloewi.domain.usecase.AccountUseCase
-import com.joeloewi.domain.usecase.AttendanceUseCase
+import com.joeloewi.domain.usecase.HoYoLABUseCase
 import com.joeloewi.domain.usecase.ResinStatusWidgetUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -22,37 +22,57 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
 class CreateResinStatusWidgetViewModel @Inject constructor(
     private val application: Application,
-    getAllPagedAttendanceUseCase: AttendanceUseCase.GetAllPaged,
+    private val getUserFullInfoHoYoLABUseCase: HoYoLABUseCase.GetUserFullInfo,
     private val insertResinStatusWidgetUseCase: ResinStatusWidgetUseCase.Insert,
-    private val getByIdsAttendanceUseCase: AttendanceUseCase.GetByIds,
     private val insertAccountUseCase: AccountUseCase.Insert,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val _appWidgetIdKey =
         ResinStatusWidgetConfigurationDestination.CreateResinStatusWidgetScreen.APP_WIDGET_ID
-    val appWidgetId =
-        savedStateHandle.get<Int>(_appWidgetIdKey) ?: AppWidgetManager.INVALID_APPWIDGET_ID
-    val selectableIntervals = listOf(15L, 30L, 60L)
+    val selectableIntervals = listOf(15L, 30L)
 
     private val _createResinStatusWidgetState = MutableStateFlow<Lce<List<Long>>>(
         Lce.Content(
             listOf()
         )
     )
+    private val _getUserInfoState = MutableStateFlow<Lce<UserInfo?>>(Lce.Content(null))
     private val _interval = MutableStateFlow(selectableIntervals.first())
 
+    val appWidgetId =
+        savedStateHandle.get<Int>(_appWidgetIdKey) ?: AppWidgetManager.INVALID_APPWIDGET_ID
     val createResinStatusWidgetState = _createResinStatusWidgetState.asStateFlow()
+    val getUserInfoState = _getUserInfoState.asStateFlow()
     val interval = _interval.asStateFlow()
+    val userInfos = SnapshotStateList<Pair<String, UserInfo>>()
 
-    //these are connected to genshin impact
-    val checkedAttendanceIds = SnapshotStateList<Long>()
-    val pagedAttendancesWithGames = getAllPagedAttendanceUseCase().cachedIn(viewModelScope)
+    fun onReceiveCookie(cookie: String) {
+        _getUserInfoState.update { Lce.Loading }
+        viewModelScope.launch(Dispatchers.IO) {
+            _getUserInfoState.update {
+                getUserFullInfoHoYoLABUseCase(cookie).mapCatching {
+                    it.data?.userInfo!!
+                }.fold(
+                    onSuccess = {
+                        withContext(Dispatchers.Main) {
+                            userInfos.add(cookie to it)
+                        }
+                        Lce.Content(it)
+                    },
+                    onFailure = {
+                        Lce.Error(it)
+                    }
+                )
+            }
+        }
+    }
 
     fun setInterval(interval: Long) {
         _interval.update { interval }
@@ -72,15 +92,14 @@ class CreateResinStatusWidgetViewModel @Inject constructor(
                         resinStatusWidget = resinStatusWidget
                     )
 
-                    val accounts = getByIdsAttendanceUseCase(
-                        *checkedAttendanceIds.toLongArray()
-                    ).map {
-                        Account(
-                            resinStatusWidgetId = resinStatusWidgetId,
-                            cookie = it.attendance.cookie,
-                            uid = it.attendance.uid
-                        )
-                    }
+                    val accounts = userInfos
+                        .map {
+                            Account(
+                                resinStatusWidgetId = resinStatusWidgetId,
+                                cookie = it.first,
+                                uid = it.second.uid
+                            )
+                        }
 
                     val periodicWorkRequest = PeriodicWorkRequest.Builder(
                         RefreshResinStatusWorker::class.java,

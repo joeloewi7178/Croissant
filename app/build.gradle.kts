@@ -14,8 +14,8 @@ android {
 
     defaultConfig {
         applicationId = "com.joeloewi.croissant"
-        versionCode = 30
-        versionName = "1.1.1"
+        versionCode = 31
+        versionName = "1.1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -74,8 +74,9 @@ dependencies {
     androidTestImplementation(libs.androidx.test.espresso.core)
     androidTestImplementation(libs.androidx.compose.ui.test)
 
-    implementation(libs.androidx.lifecycle.runtimeCompose)
-    implementation(libs.androidx.lifecycle.viewModelCompose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.process)
 
     implementation(libs.androidx.savedstate.ktx)
 
@@ -86,14 +87,12 @@ dependencies {
     kapt(libs.hilt.ext.compiler)
 
     //compose
-    implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.runtime.livedata)
     implementation(libs.androidx.compose.material.iconsExtended)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     //accompanist
@@ -105,6 +104,7 @@ dependencies {
     implementation(libs.accompanist.pager.indicators)
     implementation(libs.accompanist.swiperefresh)
     implementation(libs.accompanist.themeadapter.material3)
+    implementation(libs.accompanist.navigation.material)
 
     //work
     implementation(libs.androidx.work.ktx)
@@ -116,6 +116,7 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
 
     //image load
+    implementation(libs.coil.kt.base)
     implementation(libs.coil.kt.compose)
 
     //webkit

@@ -20,11 +20,11 @@
     <string name="go_to_hoyolab">Go to HoYoLAB</string>
     <string name="get_session">Get Cookie</string>
     <string name="login_hoyolab">Login HoYoLAB</string>
-    <string name="get_session_description_1">Please press button below and login to HoYoLAB in web screen</string>
+    <string name="get_session_description_1">Please press button below and login to HoYoLAB in web screen.</string>
     <string name="get_session_description_2">In this step, HoYoLAB screen will be closed automatically after cookie is identified and will move to next step.</string>
     <string name="get_session_description_3">if there is no reaction after login, please press check button which is located in upper right.</string>
     <string name="caution">Caution</string>
-    <string name="get_session_warning">Login via SNS account is not supported</string>
+    <string name="get_session_warning">Login via SNS account is not supported.</string>
     <string name="contains_not_supported_game">Not supported game detected. Please wait for next update.</string>
     <string name="choose_at_least_one_game">Choose at least one game</string>
     <string name="next_step">Next step</string>
@@ -55,8 +55,8 @@
     <string name="first_execution">First execution</string>
     <string name="select_hoyolab_game_headline">Choose games</string>
     <string name="select_hoyolab_game_title">Choose HoYoLAB game</string>
-    <string name="select_hoyolab_game_description">Choose games you want to attend from list in below</string>
-    <string name="error_occurred">An error occurred. Please try again</string>
+    <string name="select_hoyolab_game_description">Choose games you want to attend from list in below.</string>
+    <string name="error_occurred">An error occurred. Please try again.</string>
     <string name="select_scheduled_time">Choose scheduled time</string>
     <string name="type_time">Type time</string>
     <string name="select_scheduled_time_by_using_dial">Choose time your attendance be executed everyday.</string>
@@ -90,8 +90,8 @@
     <string name="time_zone_changed_notification_title">Time zone change detected</string>
     <string name="time_zone_changed_notification_description">Jobs which you have been set before may not be executed as intended</string>
     <string name="start_croissant">Croissant: Getting started</string>
-    <string name="first_view_screen_description">You can attend HoYoLAB Check in event automatically or check genshin impact resin by simple settings</string>
-    <string name="before_start">Before start using this app, this app needs your permissions</string>
+    <string name="first_view_screen_description">You can attend HoYoLAB Check in event automatically or check genshin impact resin by simple settings.</string>
+    <string name="before_start">Before start using this app, following permissions should be granted.</string>
     <string name="grant_permissions_and_start">Grant permissions and start</string>
     <string name="post_notification_granted">Receive notification has been granted %1$s</string>
     <string name="retry">Retry</string>
@@ -120,9 +120,11 @@
     <string name="schedule_exact_alarm_disabled">App can\'t schedule exact alarm, which is essential for scheduling attendance job. Please allow setting alarms and reminders. Confirm button will locate to system settings.</string>
     <string name="press_save_button_to_commit">New cookie was found. Press save button which is in the upper-right to commit changes.</string>
     <string name="attendance_failed">Attendance failed due to unknown error. Please try manually.</string>
-    <string name="select_at_least_one_game">Please select at least one game</string>
+    <string name="select_at_least_one_game">Please select at least one game.</string>
     <string name="due_to_site_policy">Contents may not be shown due to web site\'s policy even after retrying</string>
     <string name="logs_deleted">%1$d item(s) deleted</string>
     <string name="first_open_guidance_can_be_shown_again">This screen can be shown again to request new permissions</string>
     <string name="open_source_licenses">Open source licenses</string>
+    <string name="permissions">Permissions</string>
+    <string name="retrieving_data">Retrieving data</string>
 </resources>

@@ -11,25 +11,18 @@ import com.joeloewi.data.common.HeaderInformation
 import com.joeloewi.data.common.generateDS
 import com.joeloewi.data.repository.remote.HoYoLABDataSource
 import com.skydoves.sandwich.ApiResponse
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class HoYoLABDataSourceImpl @Inject constructor(
     private val hoYoLABService: HoYoLABService,
-    private val coroutineDispatcher: CoroutineDispatcher
 ) : HoYoLABDataSource {
     override suspend fun getUserFullInfo(cookie: String): ApiResponse<UserFullInfoResponse> =
-        withContext(coroutineDispatcher) {
-            hoYoLABService.getUserFullInfo(cookie)
-        }
+        hoYoLABService.getUserFullInfo(cookie)
 
     override suspend fun getGameRecordCard(
         cookie: String,
         uid: Long
-    ): ApiResponse<GameRecordCardResponse> = withContext(coroutineDispatcher) {
-        hoYoLABService.getGameRecordCard(cookie, uid)
-    }
+    ): ApiResponse<GameRecordCardResponse> = hoYoLABService.getGameRecordCard(cookie, uid)
 
     override suspend fun getGenshinDailyNote(
         ds: String,
@@ -38,7 +31,7 @@ class HoYoLABDataSourceImpl @Inject constructor(
         xRpcClientType: String,
         roleId: Long,
         server: String
-    ): ApiResponse<GenshinDailyNoteResponse> = withContext(coroutineDispatcher) {
+    ): ApiResponse<GenshinDailyNoteResponse> {
         val headerInformation = when (GenshinImpactServer.findByRegion(server)) {
             GenshinImpactServer.CNServer -> {
                 HeaderInformation.CN
@@ -51,7 +44,7 @@ class HoYoLABDataSourceImpl @Inject constructor(
             }
         }
 
-        hoYoLABService.getGenshinDailyNote(
+        return hoYoLABService.getGenshinDailyNote(
             generateDS(headerInformation),
             cookie,
             xRpcAppVersion = headerInformation.xRpcAppVersion,
@@ -66,11 +59,9 @@ class HoYoLABDataSourceImpl @Inject constructor(
         switchId: Int,
         isPublic: Boolean,
         gameId: Int
-    ): ApiResponse<ChangeDataSwitchResponse> = withContext(coroutineDispatcher) {
-        hoYoLABService.changeDataSwitch(
-            cookie, DataSwitchRequest(
-                switchId, isPublic, gameId
-            )
+    ): ApiResponse<ChangeDataSwitchResponse> = hoYoLABService.changeDataSwitch(
+        cookie, DataSwitchRequest(
+            switchId, isPublic, gameId
         )
-    }
+    )
 }

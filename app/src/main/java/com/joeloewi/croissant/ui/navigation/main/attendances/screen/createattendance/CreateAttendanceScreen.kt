@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.window.DialogProperties
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.CreateAttendancePage
 import com.joeloewi.croissant.state.CreateAttendanceState
@@ -28,7 +28,7 @@ import com.joeloewi.croissant.viewmodel.CreateAttendanceViewModel
 
 @Composable
 fun CreateAttendanceScreen(
-    navController: NavController,
+    navController: NavHostController,
     createAttendanceViewModel: CreateAttendanceViewModel
 ) {
     val createAttendanceState = rememberCreateAttendanceState(

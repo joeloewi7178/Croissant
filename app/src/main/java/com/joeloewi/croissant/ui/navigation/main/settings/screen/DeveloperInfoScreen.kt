@@ -21,7 +21,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.joeloewi.croissant.R
@@ -36,7 +36,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun DeveloperInfoScreen(
-    navController: NavController,
+    navController: NavHostController,
     developerInfoViewModel: DeveloperInfoViewModel
 ) {
     val developerInfoState = rememberDeveloperInfoState(

@@ -6,7 +6,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.*
 import androidx.navigation.NavBackStackEntry
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 
 @Composable
 fun navigationIconButton(
@@ -41,7 +41,7 @@ fun navigationIconButton(
 
 
 fun <T> getResultFromPreviousComposable(
-    navController: NavController,
+    navController: NavHostController,
     key: String
 ): T? = navController.currentBackStackEntry?.savedStateHandle?.run {
     get<T>(key).apply {

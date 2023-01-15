@@ -20,12 +20,12 @@ class LoadingViewModel @Inject constructor(
     private val getOneByAppWidgetIdResinStatusWidgetUseCase: ResinStatusWidgetUseCase.GetOneByAppWidgetId,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    private val _appWidgetIdKey = ResinStatusWidgetConfigurationDestination.LoadingScreen.route
+    private val _appWidgetIdKey =
+        ResinStatusWidgetConfigurationDestination.LoadingScreen.APP_WIDGET_ID
     val appWidgetId =
         savedStateHandle.get<Int>(_appWidgetIdKey) ?: AppWidgetManager.INVALID_APPWIDGET_ID
 
-    val isAppWidgetInitialized = flow {
-        emit(Lce.Loading)
+    val isAppWidgetInitialized = flow<Lce<Boolean>> {
         emit(
             getOneByAppWidgetIdResinStatusWidgetUseCase
                 .runCatching {

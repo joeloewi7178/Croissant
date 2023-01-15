@@ -3,14 +3,14 @@ package com.joeloewi.croissant.state
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.joeloewi.croissant.viewmodel.AttendanceLogsDayViewModel
 import kotlinx.coroutines.Dispatchers
 
 @Stable
 class AttendanceLogsDayState(
-    private val navController: NavController,
+    private val navController: NavHostController,
     private val attendanceLogsDayViewModel: AttendanceLogsDayViewModel
 ) {
     val pagedAttendanceLogs
@@ -27,7 +27,7 @@ class AttendanceLogsDayState(
 
 @Composable
 fun rememberAttendanceLogsDayState(
-    navController: NavController,
+    navController: NavHostController,
     attendanceLogsDayViewModel: AttendanceLogsDayViewModel
 ) = remember(
     navController,

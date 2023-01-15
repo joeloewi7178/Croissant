@@ -18,36 +18,52 @@ sealed class ResinStatusWidgetConfigurationDestination {
         }"
     }
 
-    object LoadingScreen : ResinStatusWidgetConfigurationDestination() {
+    object EmptyScreen : ResinStatusWidgetConfigurationDestination() {
         override val arguments: List<Pair<String, NavType<*>>> = listOf()
+        override val plainRoute: String = "emptyScreen"
+    }
+
+    class LoadingScreen(
+        override val arguments: List<Pair<String, NavType<*>>> = listOf(
+            APP_WIDGET_ID to NavType.IntType
+        ),
         override val plainRoute: String = "loadingScreen"
-    }
-
-    class CreateResinStatusWidgetScreen : ResinStatusWidgetConfigurationDestination() {
+    ) : ResinStatusWidgetConfigurationDestination() {
         companion object {
             const val APP_WIDGET_ID = "appWidgetId"
         }
 
+        fun generateRoute(appWidgetId: Int) = "${plainRoute}/${appWidgetId}"
+    }
+
+    class CreateResinStatusWidgetScreen(
         override val arguments: List<Pair<String, NavType<*>>> = listOf(
             APP_WIDGET_ID to NavType.IntType
-        )
-
+        ),
         override val plainRoute: String = "createResinStatusWidgetScreen"
-
-        fun generateRoute(appWidgetId: Int) = "${plainRoute}/${appWidgetId}"
-    }
-
-    class ResinStatusWidgetDetailScreen : ResinStatusWidgetConfigurationDestination() {
+    ) : ResinStatusWidgetConfigurationDestination() {
         companion object {
             const val APP_WIDGET_ID = "appWidgetId"
         }
 
+        fun generateRoute(appWidgetId: Int) = "${plainRoute}/${appWidgetId}"
+    }
+
+    class ResinStatusWidgetDetailScreen(
         override val arguments: List<Pair<String, NavType<*>>> = listOf(
             APP_WIDGET_ID to NavType.IntType
-        )
-
+        ),
         override val plainRoute: String = "resinStatusWidgetDetailScreen"
+    ) : ResinStatusWidgetConfigurationDestination() {
+        companion object {
+            const val APP_WIDGET_ID = "appWidgetId"
+        }
 
         fun generateRoute(appWidgetId: Int) = "${plainRoute}/${appWidgetId}"
+    }
+
+    object LoginHoYoLABScreen : ResinStatusWidgetConfigurationDestination() {
+        override val arguments: List<Pair<String, NavType<*>>> = listOf()
+        override val plainRoute: String = "loginHoYoLABScreen"
     }
 }

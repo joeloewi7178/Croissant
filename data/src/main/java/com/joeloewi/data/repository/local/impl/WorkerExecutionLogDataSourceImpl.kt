@@ -12,40 +12,30 @@ import com.joeloewi.domain.common.LoggableWorker
 import com.joeloewi.domain.common.WorkerExecutionLogState
 import com.joeloewi.domain.entity.WorkerExecutionLog
 import com.joeloewi.domain.entity.relational.WorkerExecutionLogWithState
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class WorkerExecutionLogDataSourceImpl @Inject constructor(
     private val workerExecutionLogDao: WorkerExecutionLogDao,
-    private val coroutineDispatcher: CoroutineDispatcher,
     private val workerExecutionLogMapper: WorkerExecutionLogMapper,
     private val workerExecutionLogWithStateMapper: WorkerExecutionLogWithStateMapper,
 ) : WorkerExecutionLogDataSource {
 
     override suspend fun insert(workerExecutionLog: WorkerExecutionLog): Long =
-        withContext(coroutineDispatcher) {
-            workerExecutionLogDao.insert(workerExecutionLogMapper.toData(workerExecutionLog))
-        }
+        workerExecutionLogDao.insert(workerExecutionLogMapper.toData(workerExecutionLog))
 
     override suspend fun delete(vararg workerExecutionLogs: WorkerExecutionLog): Int =
-        withContext(coroutineDispatcher) {
-            workerExecutionLogDao.delete(*workerExecutionLogs.map {
-                workerExecutionLogMapper.toData(
-                    it
-                )
-            }.toTypedArray())
-        }
+        workerExecutionLogDao.delete(*workerExecutionLogs.map {
+            workerExecutionLogMapper.toData(
+                it
+            )
+        }.toTypedArray())
 
     override suspend fun deleteAll(
         attendanceId: Long,
         loggableWorker: LoggableWorker
-    ): Int = withContext(coroutineDispatcher) {
-        workerExecutionLogDao.deleteAll(attendanceId, loggableWorker)
-    }
+    ): Int = workerExecutionLogDao.deleteAll(attendanceId, loggableWorker)
 
     override fun getByDatePaged(
         attendanceId: Long,
@@ -63,7 +53,6 @@ class WorkerExecutionLogDataSourceImpl @Inject constructor(
             }
         ).flow
             .map { pagingData -> pagingData.map { workerExecutionLogWithStateMapper.toDomain(it) } }
-            .flowOn(coroutineDispatcher)
 
     override fun getCountByStateAndDate(
         attendanceId: Long,
@@ -75,12 +64,11 @@ class WorkerExecutionLogDataSourceImpl @Inject constructor(
         loggableWorker,
         state,
         dateString
-    ).flowOn(coroutineDispatcher)
+    )
 
     override fun getCountByState(
         attendanceId: Long,
         loggableWorker: LoggableWorker,
         state: WorkerExecutionLogState
     ): Flow<Long> = workerExecutionLogDao.getCountByState(attendanceId, loggableWorker, state)
-        .flowOn(coroutineDispatcher)
 }

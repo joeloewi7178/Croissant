@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.paging.compose.items
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -33,7 +33,7 @@ import java.time.format.FormatStyle
 
 @Composable
 fun AttendanceLogsDayScreen(
-    navController: NavController,
+    navController: NavHostController,
     attendanceLogsDayViewModel: AttendanceLogsDayViewModel
 ) {
     val attendanceLogsDayState = rememberAttendanceLogsDayState(

@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.state.ResinStatusWidgetDetailState
@@ -26,7 +26,7 @@ import com.joeloewi.croissant.viewmodel.ResinStatusWidgetDetailViewModel
 
 @Composable
 fun ResinStatusWidgetDetailScreen(
-    navController: NavController,
+    navController: NavHostController,
     resinStatusWidgetDetailViewModel: ResinStatusWidgetDetailViewModel = hiltViewModel()
 ) {
     val resinStatusWidgetDetailState = rememberResinStatusWidgetDetailState(

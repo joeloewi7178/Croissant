@@ -17,7 +17,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.semantics.Role
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.SettingsState
@@ -28,7 +28,7 @@ import com.joeloewi.croissant.viewmodel.SettingsViewModel
 
 @Composable
 fun SettingsScreen(
-    navController: NavController,
+    navController: NavHostController,
     settingsViewModel: SettingsViewModel = hiltViewModel()
 ) {
     val settingsState = rememberSettingsState(

@@ -29,7 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
@@ -52,7 +52,7 @@ import kotlinx.collections.immutable.toImmutableList
 
 @Composable
 fun RedemptionCodesScreen(
-    navController: NavController,
+    navController: NavHostController,
     redemptionCodesViewModel: RedemptionCodesViewModel = hiltViewModel()
 ) {
     val redemptionCodesState =
