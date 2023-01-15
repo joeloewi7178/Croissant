@@ -80,7 +80,7 @@
     <string name="website_user_try_to_access">The Website you try to access</string>
     <string name="has_error_in_certification">has error in certification. Continue?</string>
     <string name="account_to_check_resin">Account to check resin</string>
-    <string name="make_attendance">Please make attendance job first.</string>
+    <string name="resin_status_widget_login_hoyolab">Please click right bottom button and login HoYoLAB.</string>
     <string name="latest_version_of_app_is_downloading">Latest version of app is downloading</string>
     <string name="install_after_download_automatically">Installing will be executed automatically after download.</string>
     <string name="attendance_of_nickname">%1$s \'s attendance job</string>
