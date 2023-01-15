@@ -3,11 +3,9 @@ package com.joeloewi.croissant.state
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.joeloewi.croissant.viewmodel.MainActivityViewModel
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Stable
 class MainState(
     private val mainActivityViewModel: MainActivityViewModel

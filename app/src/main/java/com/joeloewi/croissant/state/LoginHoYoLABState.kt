@@ -7,7 +7,6 @@ import android.webkit.SslErrorHandler
 import android.webkit.WebResourceRequest
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.*
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.google.accompanist.web.WebViewNavigator
@@ -21,7 +20,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Stable
 class LoginHoYoLABState(
     private val navController: NavHostController,

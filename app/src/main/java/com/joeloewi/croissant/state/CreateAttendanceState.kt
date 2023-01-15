@@ -1,7 +1,6 @@
 package com.joeloewi.croissant.state
 
 import androidx.compose.runtime.*
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
@@ -10,7 +9,6 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import java.time.ZonedDateTime
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Stable
 class CreateAttendanceState(
     private val navController: NavHostController,

@@ -2,7 +2,6 @@ package com.joeloewi.croissant.state
 
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.*
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.google.accompanist.pager.ExperimentalPagerApi
@@ -14,7 +13,7 @@ import java.time.Month
 import java.time.Year
 import java.time.YearMonth
 
-@OptIn(ExperimentalPagerApi::class, ExperimentalLifecycleComposeApi::class)
+@OptIn(ExperimentalPagerApi::class)
 @Stable
 class AttendanceLogsCalendarState constructor(
     val snackbarHostState: SnackbarHostState,

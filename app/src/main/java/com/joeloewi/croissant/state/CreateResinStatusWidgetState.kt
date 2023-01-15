@@ -4,14 +4,12 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration.ResinStatusWidgetConfigurationDestination
 import com.joeloewi.croissant.viewmodel.CreateResinStatusWidgetViewModel
 import kotlinx.collections.immutable.toImmutableList
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Stable
 class CreateResinStatusWidgetState(
     private val navController: NavHostController,
