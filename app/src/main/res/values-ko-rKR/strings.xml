@@ -78,7 +78,7 @@
     <string name="minute">%1$d 분</string>
     <string name="account_to_check_resin">레진을 확인할 계정</string>
     <string name="no_attendance">저장된 출석 작업이 없습니다.</string>
-    <string name="make_attendance">앱에서 먼저 출석 작업을 만들어주세요.</string>
+    <string name="resin_status_widget_login_hoyolab">우측 하단의 버튼을 눌러 HoYoLAB에 로그인해주세요.</string>
     <string name="update_completed">수정 완료</string>
     <string name="saving">저장 중</string>
     <string name="wait_for_a_moment">잠시만 기다려주세요.</string>

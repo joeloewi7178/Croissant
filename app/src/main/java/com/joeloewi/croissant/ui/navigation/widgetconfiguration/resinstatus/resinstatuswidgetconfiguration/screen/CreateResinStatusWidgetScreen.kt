@@ -197,12 +197,7 @@ fun CreateResinStatusWidgetContent(
                     tint = MaterialTheme.colorScheme.primaryContainer
                 )
                 Text(
-                    text = stringResource(id = R.string.no_attendance),
-                    style = MaterialTheme.typography.titleMedium,
-                    textAlign = TextAlign.Center
-                )
-                Text(
-                    text = stringResource(id = R.string.make_attendance),
+                    text = stringResource(id = R.string.resin_status_widget_login_hoyolab),
                     style = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center
                 )
