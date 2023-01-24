@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.gms.google.services)
     id("kotlin-parcelize")
     alias(libs.plugins.firebase.crashlytics)
-    id(libs.plugins.gms.oss.licenses.get().pluginId)
+    id("com.google.android.gms.oss-licenses-plugin")
 }
 
 android {

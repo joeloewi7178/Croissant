@@ -161,4 +161,3 @@ protobuf = { id = "com.google.protobuf", version.ref = "protobufPlugin" }
 gms-google-services = { id = "com.google.gms.google-services", version.ref = "gmsGoogleServicesGradlePlugin" }
 firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebaseCrashlyticsPlugin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "kspPlugin" }
-gms-oss-licenses = { id = "com.google.android.gms.oss-licenses-plugin", version.ref = "gmsOssLicensesPlugin" }
