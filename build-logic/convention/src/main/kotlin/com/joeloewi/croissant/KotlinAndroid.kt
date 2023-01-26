@@ -37,7 +37,6 @@ internal fun Project.configureKotlinAndroid(
                 // Enable experimental coroutines APIs, including Flow
                 "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
                 "-opt-in=kotlinx.coroutines.FlowPreview",
-                "-opt-in=kotlin.Experimental",
             )
 
             jvmTarget = JavaVersion.VERSION_11.toString()
@@ -47,15 +46,15 @@ internal fun Project.configureKotlinAndroid(
     val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
     dependencies {
-        add("coreLibraryDesugaring", libs.findLibrary("android.desugarJdkLibs").get())
+        "coreLibraryDesugaring"(libs.findLibrary("android.desugarJdkLibs").get())
 
         val kotlinBom = libs.findLibrary("kotlin-bom").get()
-        add("implementation", platform(kotlinBom))
-        add("androidTestImplementation", platform(kotlinBom))
+        "implementation"(platform(kotlinBom))
+        "androidTestImplementation"(platform(kotlinBom))
 
         val kotlinxCoroutinesBom = libs.findLibrary("kotlinx-coroutines-bom").get()
-        add("implementation", platform(kotlinxCoroutinesBom))
-        add("androidTestImplementation", platform(kotlinxCoroutinesBom))
+        "implementation"(platform(kotlinxCoroutinesBom))
+        "androidTestImplementation"(platform(kotlinxCoroutinesBom))
     }
 }
 

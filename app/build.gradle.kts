@@ -9,6 +9,12 @@ plugins {
     id("com.google.android.gms.oss-licenses-plugin")
 }
 
+kotlin {
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
 android {
     namespace = "com.joeloewi.croissant"
 

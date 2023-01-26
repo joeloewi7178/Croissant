@@ -6,7 +6,7 @@ group = "com.joeloewi.croissant.buildlogic"
 
 kotlin {
     jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of(JavaVersion.VERSION_11.majorVersion))
+        languageVersion.set(JavaLanguageVersion.of(11))
     }
 }
 

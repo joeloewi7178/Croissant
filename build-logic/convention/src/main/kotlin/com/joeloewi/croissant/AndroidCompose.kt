@@ -31,12 +31,12 @@ internal fun Project.configureAndroidCompose(
 
         dependencies {
             val androidxComposeBom = libs.findLibrary("androidx-compose-bom").get()
-            add("implementation", platform(androidxComposeBom))
-            add("androidTestImplementation", platform(androidxComposeBom))
+            "implementation"(platform(androidxComposeBom))
+            "androidTestImplementation"(platform(androidxComposeBom))
 
             val coilKtBom = libs.findLibrary("coil-kt-bom").get()
-            add("implementation", coilKtBom)
-            add("androidTestImplementation", coilKtBom)
+            "implementation"(coilKtBom)
+            "androidTestImplementation"(coilKtBom)
         }
     }
 }
