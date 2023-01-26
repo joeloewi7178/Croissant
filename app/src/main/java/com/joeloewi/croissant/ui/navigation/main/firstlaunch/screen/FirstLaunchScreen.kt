@@ -96,23 +96,6 @@ private fun FirstLaunchContent(
     }
 
     Scaffold(
-        modifier = Modifier.pointerInput(Unit) {
-            awaitPointerEventScope {
-                do {
-                    val event = awaitPointerEvent(pass = PointerEventPass.Initial)
-                    val canceled = event.changes.any { it.isConsumed }
-
-                    if (!canceled) {
-                        event.changes.forEach {
-                            val offset = it.positionChange()
-                            if (abs(offset.y) > 0f) {
-                                it.consume()
-                            }
-                        }
-                    }
-                } while (!canceled)
-            }
-        },
         bottomBar = {
             FilledTonalButton(
                 modifier = Modifier
