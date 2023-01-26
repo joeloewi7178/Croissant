@@ -4,6 +4,12 @@ plugins {
     `java-library`
 }
 
+kotlin {
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
 dependencies {
     implementation(libs.androidx.paging.common.ktx)
 

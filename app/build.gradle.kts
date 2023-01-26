@@ -9,13 +9,19 @@ plugins {
     id("com.google.android.gms.oss-licenses-plugin")
 }
 
+kotlin {
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
 android {
     namespace = "com.joeloewi.croissant"
 
     defaultConfig {
         applicationId = "com.joeloewi.croissant"
-        versionCode = 33
-        versionName = "1.1.3"
+        versionCode = 34
+        versionName = "1.1.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
