@@ -27,9 +27,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.pointer.PointerEventPass
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -51,7 +48,6 @@ import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.util.CroissantPermission
 import com.joeloewi.croissant.util.createNotificationChannels
 import com.joeloewi.croissant.viewmodel.FirstLaunchViewModel
-import kotlin.math.abs
 
 @Composable
 fun FirstLaunchScreen(

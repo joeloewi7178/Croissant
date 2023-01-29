@@ -21,7 +21,6 @@ fun CroissantTheme(
 
     if (!view.isInEditMode) {
         SideEffect {
-            WindowCompat.setDecorFitsSystemWindows(window, false)
             WindowCompat.getInsetsController(window, view).apply {
                 isAppearanceLightStatusBars = useDarkIcons
                 isAppearanceLightNavigationBars = useDarkIcons

@@ -168,7 +168,7 @@ fun LoginHoYoLABContent(
         snackbarHost = {
             SnackbarHost(hostState = loginHoYoLABState.snackbarHostState)
         },
-        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
+        contentWindowInsets = WindowInsets.safeDrawing.exclude(WindowInsets.navigationBars)
     ) { innerPadding ->
         when (loginHoYoLABState.removeAllCookiesState) {
             is Lce.Content -> {
