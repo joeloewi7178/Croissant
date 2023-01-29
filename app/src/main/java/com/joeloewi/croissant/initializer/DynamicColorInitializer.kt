@@ -6,7 +6,7 @@ import com.google.android.material.color.DynamicColors
 import com.joeloewi.croissant.initializer.base.HiltInitializer
 
 class DynamicColorInitializer : HiltInitializer<Unit> {
-    override fun create(
+    override fun createWithEntryPoint(
         context: Context,
         initializerEntryPoint: HiltInitializer.InitializerEntryPoint
     ) {

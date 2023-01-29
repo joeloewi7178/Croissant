@@ -23,7 +23,7 @@ import androidx.work.WorkManager
 import com.joeloewi.croissant.initializer.base.HiltInitializer
 
 class WorkManagerInitializer : HiltInitializer<WorkManager> {
-    override fun create(
+    override fun createWithEntryPoint(
         context: Context,
         initializerEntryPoint: HiltInitializer.InitializerEntryPoint
     ): WorkManager {

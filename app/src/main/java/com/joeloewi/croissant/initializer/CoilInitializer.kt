@@ -24,7 +24,7 @@ import coil.imageLoader
 import com.joeloewi.croissant.initializer.base.HiltInitializer
 
 class CoilInitializer : HiltInitializer<ImageLoader> {
-    override fun create(
+    override fun createWithEntryPoint(
         context: Context,
         initializerEntryPoint: HiltInitializer.InitializerEntryPoint
     ): ImageLoader {

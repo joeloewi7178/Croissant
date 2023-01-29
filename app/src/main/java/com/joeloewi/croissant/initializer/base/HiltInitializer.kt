@@ -29,9 +29,9 @@ import dagger.hilt.components.SingletonComponent
 interface HiltInitializer<T> : Initializer<T> {
 
     override fun create(context: Context): T & Any =
-        create(context, EntryPoints.get(context, InitializerEntryPoint::class.java))
+        createWithEntryPoint(context, EntryPoints.get(context, InitializerEntryPoint::class.java))
 
-    fun create(
+    fun createWithEntryPoint(
         context: Context,
         initializerEntryPoint: InitializerEntryPoint
     ): T & Any
