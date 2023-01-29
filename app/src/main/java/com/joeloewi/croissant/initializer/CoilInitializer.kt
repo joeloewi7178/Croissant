@@ -21,12 +21,14 @@ import androidx.startup.Initializer
 import coil.Coil
 import coil.ImageLoader
 import coil.imageLoader
-import com.joeloewi.croissant.di.initializerEntryPoint
+import com.joeloewi.croissant.initializer.base.HiltInitializer
 
-class CoilInitializer : Initializer<ImageLoader> {
-
-    override fun create(context: Context): ImageLoader {
-        val imageLoader = context.initializerEntryPoint.imageLoader()
+class CoilInitializer : HiltInitializer<ImageLoader> {
+    override fun create(
+        context: Context,
+        initializerEntryPoint: HiltInitializer.InitializerEntryPoint
+    ): ImageLoader {
+        val imageLoader = initializerEntryPoint.imageLoader()
 
         Coil.setImageLoader { imageLoader }
 
