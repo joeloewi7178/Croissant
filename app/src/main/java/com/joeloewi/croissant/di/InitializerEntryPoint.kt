@@ -1,5 +1,5 @@
 /*
- *    Copyright 2022 joeloewi
+ *    Copyright 2023. joeloewi
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,33 +14,29 @@
  *    limitations under the License.
  */
 
-package com.joeloewi.croissant.initializer.base
+package com.joeloewi.croissant.di
 
 import android.app.Application
 import android.content.Context
 import androidx.hilt.work.HiltWorkerFactory
-import androidx.startup.Initializer
 import coil.ImageLoader
 import dagger.hilt.EntryPoint
 import dagger.hilt.EntryPoints
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlin.properties.ReadOnlyProperty
 
-interface HiltInitializer<T> : Initializer<T> {
-
-    override fun create(context: Context): T & Any =
-        createWithEntryPoint(context, EntryPoints.get(context, InitializerEntryPoint::class.java))
-
-    fun createWithEntryPoint(
-        context: Context,
-        initializerEntryPoint: InitializerEntryPoint
-    ): T & Any
-
-    @EntryPoint
-    @InstallIn(SingletonComponent::class)
-    interface InitializerEntryPoint {
-        fun imageLoader(): ImageLoader
-        fun hiltWorkerFactory(): HiltWorkerFactory
-        fun application(): Application
-    }
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+interface InitializerEntryPoint {
+    fun imageLoader(): ImageLoader
+    fun hiltWorkerFactory(): HiltWorkerFactory
+    fun application(): Application
 }
+
+inline fun <reified EntryPoint> entryPoints() =
+    ReadOnlyProperty<Context, EntryPoint> { thisRef, _ ->
+        EntryPoints.get(thisRef, EntryPoint::class.java)
+    }
+
+val Context.initializerEntryPoint: InitializerEntryPoint by entryPoints()

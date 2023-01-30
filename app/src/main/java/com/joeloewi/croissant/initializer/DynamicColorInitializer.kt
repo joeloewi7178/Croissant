@@ -3,14 +3,12 @@ package com.joeloewi.croissant.initializer
 import android.content.Context
 import androidx.startup.Initializer
 import com.google.android.material.color.DynamicColors
-import com.joeloewi.croissant.initializer.base.HiltInitializer
+import com.joeloewi.croissant.di.initializerEntryPoint
 
-class DynamicColorInitializer : HiltInitializer<Unit> {
-    override fun createWithEntryPoint(
-        context: Context,
-        initializerEntryPoint: HiltInitializer.InitializerEntryPoint
-    ) {
-        val application = initializerEntryPoint.application()
+class DynamicColorInitializer : Initializer<Unit> {
+
+    override fun create(context: Context) {
+        val application = context.initializerEntryPoint.application()
 
         DynamicColors.applyToActivitiesIfAvailable(application)
     }
