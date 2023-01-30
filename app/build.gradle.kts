@@ -20,8 +20,8 @@ android {
 
     defaultConfig {
         applicationId = "com.joeloewi.croissant"
-        versionCode = 34
-        versionName = "1.1.4"
+        versionCode = 35
+        versionName = "1.1.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

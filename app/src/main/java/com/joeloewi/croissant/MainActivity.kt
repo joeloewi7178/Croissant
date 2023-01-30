@@ -28,6 +28,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import androidx.core.os.bundleOf
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -72,6 +73,7 @@ class MainActivity : AppCompatActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
 
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         DynamicColors.applyToActivityIfAvailable(this)
 
         lifecycleScope.launch {

@@ -28,7 +28,7 @@ class CoilInitializer : Initializer<ImageLoader> {
     override fun create(context: Context): ImageLoader {
         val imageLoader = context.initializerEntryPoint.imageLoader()
 
-        Coil.setImageLoader(imageLoader)
+        Coil.setImageLoader { imageLoader }
 
         return context.imageLoader
     }

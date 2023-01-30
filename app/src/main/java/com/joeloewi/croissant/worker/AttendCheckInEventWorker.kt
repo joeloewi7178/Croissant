@@ -27,6 +27,7 @@ import com.joeloewi.croissant.util.gameNameStringResId
 import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
 import com.joeloewi.data.common.generateGameIntent
 import com.joeloewi.domain.common.HoYoLABGame
+import com.joeloewi.domain.common.HoYoLABRetCode
 import com.joeloewi.domain.common.LoggableWorker
 import com.joeloewi.domain.common.WorkerExecutionLogState
 import com.joeloewi.domain.common.exception.HoYoLABUnsuccessfulResponseException
@@ -325,12 +326,19 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                     } catch (cause: CancellationException) {
                         throw cause
                     } catch (cause: Throwable) {
-                        FirebaseCrashlytics.getInstance().apply {
-                            log(this@AttendCheckInEventWorker.javaClass.simpleName)
-                            recordException(cause)
-                        }
-
                         if (cause is HoYoLABUnsuccessfulResponseException) {
+                            when (HoYoLABRetCode.findByCode(cause.retCode)) {
+                                HoYoLABRetCode.AlreadyCheckedIn -> {
+                                    //do not log to crashlytics
+                                }
+                                else -> {
+                                    FirebaseCrashlytics.getInstance().apply {
+                                        log(this@AttendCheckInEventWorker.javaClass.simpleName)
+                                        recordException(cause)
+                                    }
+                                }
+                            }
+
                             createUnsuccessfulAttendanceNotification(
                                 context = context,
                                 channelId = context.getString(R.string.attendance_notification_channel_id),
@@ -360,6 +368,10 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                             } else {
 
                             }*/
+                            FirebaseCrashlytics.getInstance().apply {
+                                log(this@AttendCheckInEventWorker.javaClass.simpleName)
+                                recordException(cause)
+                            }
 
                             createUnsuccessfulAttendanceNotification(
                                 context = context,
