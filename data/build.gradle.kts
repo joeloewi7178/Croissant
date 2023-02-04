@@ -15,7 +15,6 @@ kotlin {
 android {
     defaultConfig {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
 
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")
@@ -24,16 +23,7 @@ android {
         }
     }
 
-    buildTypes {
-        val release by getting {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
-    }
-    namespace = "com.joeloewi.data"
+    namespace = "com.joeloewi.croissant.data"
 }
 
 dependencies {

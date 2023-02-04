@@ -5,9 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
-import com.joeloewi.domain.common.LoggableWorker
-import com.joeloewi.domain.common.WorkerExecutionLogState
-import com.joeloewi.domain.usecase.WorkerExecutionLogUseCase
+import com.joeloewi.croissant.domain.common.LoggableWorker
+import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
+import com.joeloewi.croissant.domain.usecase.WorkerExecutionLogUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*

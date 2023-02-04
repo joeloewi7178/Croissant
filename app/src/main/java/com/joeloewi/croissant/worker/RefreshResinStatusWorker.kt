@@ -20,10 +20,10 @@ import com.joeloewi.croissant.service.RemoteViewsFactoryService
 import com.joeloewi.croissant.util.ListRemoteViewsFactory
 import com.joeloewi.croissant.util.ResinStatus
 import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
-import com.joeloewi.domain.common.HoYoLABGame
-import com.joeloewi.domain.entity.DataSwitch
-import com.joeloewi.domain.usecase.HoYoLABUseCase
-import com.joeloewi.domain.usecase.ResinStatusWidgetUseCase
+import com.joeloewi.croissant.domain.common.HoYoLABGame
+import com.joeloewi.croissant.domain.entity.DataSwitch
+import com.joeloewi.croissant.domain.usecase.HoYoLABUseCase
+import com.joeloewi.croissant.domain.usecase.ResinStatusWidgetUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.*

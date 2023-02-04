@@ -8,7 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.joeloewi.croissant.util.RootChecker
 import com.joeloewi.croissant.util.canScheduleExactAlarmsCompat
 import com.joeloewi.croissant.util.isIgnoringBatteryOptimizationsCompat
-import com.joeloewi.domain.usecase.SettingsUseCase
+import com.joeloewi.croissant.domain.usecase.SettingsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flow

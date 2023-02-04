@@ -33,9 +33,9 @@ import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.*
 import com.joeloewi.croissant.viewmodel.AttendanceDetailViewModel
-import com.joeloewi.domain.common.HoYoLABGame
-import com.joeloewi.domain.common.LoggableWorker
-import com.joeloewi.domain.entity.Game
+import com.joeloewi.croissant.domain.common.HoYoLABGame
+import com.joeloewi.croissant.domain.common.LoggableWorker
+import com.joeloewi.croissant.domain.entity.Game
 
 @Composable
 fun AttendanceDetailScreen(

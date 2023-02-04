@@ -36,7 +36,7 @@ import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.ProgressDialog
 import com.joeloewi.croissant.util.getResultFromPreviousComposable
 import com.joeloewi.croissant.viewmodel.CreateResinStatusWidgetViewModel
-import com.joeloewi.domain.entity.UserInfo
+import com.joeloewi.croissant.domain.entity.UserInfo
 
 @Composable
 fun CreateResinStatusWidgetScreen(

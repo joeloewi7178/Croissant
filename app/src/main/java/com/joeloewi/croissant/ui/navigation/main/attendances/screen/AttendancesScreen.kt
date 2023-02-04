@@ -58,8 +58,8 @@ import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.*
 import com.joeloewi.croissant.viewmodel.AttendancesViewModel
 import com.joeloewi.croissant.worker.AttendCheckInEventWorker
-import com.joeloewi.domain.entity.Attendance
-import com.joeloewi.domain.entity.relational.AttendanceWithGames
+import com.joeloewi.croissant.domain.entity.Attendance
+import com.joeloewi.croissant.domain.entity.relational.AttendanceWithGames
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.ZoneId

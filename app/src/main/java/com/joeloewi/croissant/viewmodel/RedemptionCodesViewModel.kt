@@ -5,10 +5,10 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.core.text.HtmlCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.joeloewi.croissant.domain.common.HoYoLABGame
+import com.joeloewi.croissant.domain.usecase.ArcaLiveAppUseCase
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.util.toAnnotatedString
-import com.joeloewi.domain.common.HoYoLABGame
-import com.joeloewi.domain.usecase.ArcaLiveAppUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
