@@ -76,7 +76,7 @@ class ResinStatusWidgetDetailViewModel @Inject constructor(
                     WorkManager.getInstance(application)
                         .enqueueUniquePeriodicWork(
                             resinStatusWidget.refreshGenshinResinStatusWorkerName.toString(),
-                            ExistingPeriodicWorkPolicy.REPLACE,
+                            ExistingPeriodicWorkPolicy.UPDATE,
                             periodicWorkRequest
                         ).await()
 

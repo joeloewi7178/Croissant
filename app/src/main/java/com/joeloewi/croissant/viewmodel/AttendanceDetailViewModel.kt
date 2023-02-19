@@ -219,7 +219,7 @@ class AttendanceDetailViewModel @Inject constructor(
                     WorkManager.getInstance(application)
                         .enqueueUniquePeriodicWork(
                             attendance.checkSessionWorkerName.toString(),
-                            ExistingPeriodicWorkPolicy.REPLACE,
+                            ExistingPeriodicWorkPolicy.UPDATE,
                             periodicCheckSessionWork
                         )
 

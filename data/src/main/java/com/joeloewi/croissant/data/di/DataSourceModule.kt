@@ -60,7 +60,7 @@ interface DataSourceModule {
 
     @Binds
     @Singleton
-    fun bindSettingsDataSource(settingsDateSourceImpl: SettingsDateSourceImpl): SettingsDataSource
+    fun bindSettingsDataSource(settingsDataSourceImpl: SettingsDataSourceImpl): SettingsDataSource
 
     @Binds
     @Singleton
