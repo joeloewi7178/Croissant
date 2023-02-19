@@ -25,16 +25,15 @@ import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestinat
 import com.joeloewi.croissant.util.CroissantPermission
 import com.joeloewi.croissant.util.gameNameStringResId
 import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
-import com.joeloewi.data.common.generateGameIntent
-import com.joeloewi.domain.common.HoYoLABGame
-import com.joeloewi.domain.common.HoYoLABRetCode
-import com.joeloewi.domain.common.LoggableWorker
-import com.joeloewi.domain.common.WorkerExecutionLogState
-import com.joeloewi.domain.common.exception.HoYoLABUnsuccessfulResponseException
-import com.joeloewi.domain.entity.FailureLog
-import com.joeloewi.domain.entity.SuccessLog
-import com.joeloewi.domain.entity.WorkerExecutionLog
-import com.joeloewi.domain.usecase.*
+import com.joeloewi.croissant.data.common.generateGameIntent
+import com.joeloewi.croissant.domain.common.HoYoLABRetCode
+import com.joeloewi.croissant.domain.common.LoggableWorker
+import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
+import com.joeloewi.croissant.domain.common.exception.HoYoLABUnsuccessfulResponseException
+import com.joeloewi.croissant.domain.entity.FailureLog
+import com.joeloewi.croissant.domain.entity.SuccessLog
+import com.joeloewi.croissant.domain.entity.WorkerExecutionLog
+import com.joeloewi.croissant.domain.usecase.*
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.*
@@ -131,7 +130,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
         context: Context,
         channelId: String,
         nickname: String,
-        hoYoLABGame: HoYoLABGame,
+        hoYoLABGame: com.joeloewi.croissant.domain.common.HoYoLABGame,
         region: String,
         message: String,
         retCode: Int
@@ -183,7 +182,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
         context: Context,
         channelId: String,
         nickname: String,
-        hoYoLABGame: HoYoLABGame,
+        hoYoLABGame: com.joeloewi.croissant.domain.common.HoYoLABGame,
         region: String,
         hoYoLABUnsuccessfulResponseException: HoYoLABUnsuccessfulResponseException
     ) = createSuccessfulAttendanceNotification(
@@ -201,7 +200,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
         context: Context,
         channelId: String,
         nickname: String,
-        hoYoLABGame: HoYoLABGame,
+        hoYoLABGame: com.joeloewi.croissant.domain.common.HoYoLABGame,
     ): Notification = NotificationCompat
         .Builder(context, channelId)
         .setContentTitle(
@@ -271,16 +270,16 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                 async(Dispatchers.IO) {
                     try {
                         when (game.type) {
-                            HoYoLABGame.HonkaiImpact3rd -> {
+                            com.joeloewi.croissant.domain.common.HoYoLABGame.HonkaiImpact3rd -> {
                                 attendCheckInHonkaiImpact3rdHoYoLABUseCase(cookie)
                             }
-                            HoYoLABGame.GenshinImpact -> {
+                            com.joeloewi.croissant.domain.common.HoYoLABGame.GenshinImpact -> {
                                 attendCheckInGenshinImpactHoYoLABUseCase(cookie)
                             }
-                            HoYoLABGame.TearsOfThemis -> {
+                            com.joeloewi.croissant.domain.common.HoYoLABGame.TearsOfThemis -> {
                                 attendCheckInTearsOfThemisHoYoLABUseCase(cookie)
                             }
-                            HoYoLABGame.Unknown -> {
+                            com.joeloewi.croissant.domain.common.HoYoLABGame.Unknown -> {
                                 throw Exception()
                             }
                         }.getOrThrow().also { response ->

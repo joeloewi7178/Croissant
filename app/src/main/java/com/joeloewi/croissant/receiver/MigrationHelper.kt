@@ -7,8 +7,8 @@ import android.content.Intent
 import androidx.work.WorkManager
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.joeloewi.croissant.util.goAsync
-import com.joeloewi.domain.usecase.AttendanceUseCase
-import com.joeloewi.domain.usecase.ResinStatusWidgetUseCase
+import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
+import com.joeloewi.croissant.domain.usecase.ResinStatusWidgetUseCase
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async

@@ -17,7 +17,7 @@ import com.joeloewi.croissant.util.goAsync
 import com.joeloewi.croissant.util.isIgnoringBatteryOptimizationsCompat
 import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
 import com.joeloewi.croissant.worker.RefreshResinStatusWorker
-import com.joeloewi.domain.usecase.ResinStatusWidgetUseCase
+import com.joeloewi.croissant.domain.usecase.ResinStatusWidgetUseCase
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers

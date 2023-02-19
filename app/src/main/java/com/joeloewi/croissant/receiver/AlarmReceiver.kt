@@ -13,7 +13,7 @@ import com.joeloewi.croissant.BuildConfig
 import com.joeloewi.croissant.util.goAsync
 import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
 import com.joeloewi.croissant.worker.AttendCheckInEventWorker
-import com.joeloewi.domain.usecase.AttendanceUseCase
+import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async

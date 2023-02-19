@@ -14,12 +14,12 @@ import com.joeloewi.croissant.receiver.AlarmReceiver
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
 import com.joeloewi.croissant.worker.CheckSessionWorker
-import com.joeloewi.domain.common.HoYoLABGame
-import com.joeloewi.domain.entity.Attendance
-import com.joeloewi.domain.entity.Game
-import com.joeloewi.domain.usecase.AttendanceUseCase
-import com.joeloewi.domain.usecase.GameUseCase
-import com.joeloewi.domain.usecase.HoYoLABUseCase
+import com.joeloewi.croissant.domain.common.HoYoLABGame
+import com.joeloewi.croissant.domain.entity.Attendance
+import com.joeloewi.croissant.domain.entity.Game
+import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
+import com.joeloewi.croissant.domain.usecase.GameUseCase
+import com.joeloewi.croissant.domain.usecase.HoYoLABUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ObsoleteCoroutinesApi
@@ -216,7 +216,7 @@ class CreateAttendanceViewModel @Inject constructor(
                     WorkManager.getInstance(application)
                         .enqueueUniquePeriodicWork(
                             attendance.checkSessionWorkerName.toString(),
-                            ExistingPeriodicWorkPolicy.REPLACE,
+                            ExistingPeriodicWorkPolicy.UPDATE,
                             periodicCheckSessionWork
                         )
 

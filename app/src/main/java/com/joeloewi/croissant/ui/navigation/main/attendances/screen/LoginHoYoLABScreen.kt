@@ -36,7 +36,7 @@ import com.joeloewi.croissant.state.LoginHoYoLABState
 import com.joeloewi.croissant.state.rememberLoginHoYoLABState
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.viewmodel.LoginHoYoLABViewModel
-import com.joeloewi.data.BuildConfig
+import com.joeloewi.croissant.BuildConfig
 import kotlinx.collections.immutable.toImmutableList
 
 const val COOKIE = "cookie"

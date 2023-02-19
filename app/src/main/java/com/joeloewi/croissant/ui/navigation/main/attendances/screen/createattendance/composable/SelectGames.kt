@@ -37,9 +37,9 @@ import com.joeloewi.croissant.state.rememberSelectGamesState
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.gameNameStringResId
-import com.joeloewi.domain.common.HoYoLABGame
-import com.joeloewi.domain.entity.Game
-import com.joeloewi.domain.entity.GameRecord
+import com.joeloewi.croissant.domain.common.HoYoLABGame
+import com.joeloewi.croissant.domain.entity.Game
+import com.joeloewi.croissant.domain.entity.GameRecord
 import kotlinx.collections.immutable.toImmutableList
 
 @OptIn(

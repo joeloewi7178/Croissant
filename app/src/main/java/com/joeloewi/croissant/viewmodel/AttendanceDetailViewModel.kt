@@ -15,13 +15,13 @@ import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
 import com.joeloewi.croissant.worker.CheckSessionWorker
-import com.joeloewi.domain.common.LoggableWorker
-import com.joeloewi.domain.common.WorkerExecutionLogState
-import com.joeloewi.domain.entity.Game
-import com.joeloewi.domain.entity.relational.AttendanceWithGames
-import com.joeloewi.domain.usecase.AttendanceUseCase
-import com.joeloewi.domain.usecase.GameUseCase
-import com.joeloewi.domain.usecase.WorkerExecutionLogUseCase
+import com.joeloewi.croissant.domain.common.LoggableWorker
+import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
+import com.joeloewi.croissant.domain.entity.Game
+import com.joeloewi.croissant.domain.entity.relational.AttendanceWithGames
+import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
+import com.joeloewi.croissant.domain.usecase.GameUseCase
+import com.joeloewi.croissant.domain.usecase.WorkerExecutionLogUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -219,7 +219,7 @@ class AttendanceDetailViewModel @Inject constructor(
                     WorkManager.getInstance(application)
                         .enqueueUniquePeriodicWork(
                             attendance.checkSessionWorkerName.toString(),
-                            ExistingPeriodicWorkPolicy.REPLACE,
+                            ExistingPeriodicWorkPolicy.UPDATE,
                             periodicCheckSessionWork
                         )
 

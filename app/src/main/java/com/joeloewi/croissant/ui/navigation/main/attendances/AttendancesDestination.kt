@@ -1,7 +1,7 @@
 package com.joeloewi.croissant.ui.navigation.main.attendances
 
 import androidx.navigation.NavType
-import com.joeloewi.domain.common.LoggableWorker
+import com.joeloewi.croissant.domain.common.LoggableWorker
 
 sealed class AttendancesDestination {
     abstract val arguments: List<Pair<String, NavType<*>>>

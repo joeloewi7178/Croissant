@@ -46,7 +46,7 @@ import com.joeloewi.croissant.ui.theme.HalfDp
 import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.gameNameStringResId
 import com.joeloewi.croissant.viewmodel.RedemptionCodesViewModel
-import com.joeloewi.domain.common.HoYoLABGame
+import com.joeloewi.croissant.domain.common.HoYoLABGame
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 

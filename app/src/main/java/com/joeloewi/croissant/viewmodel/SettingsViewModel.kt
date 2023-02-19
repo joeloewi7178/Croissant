@@ -2,8 +2,8 @@ package com.joeloewi.croissant.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.joeloewi.domain.entity.Settings
-import com.joeloewi.domain.usecase.SettingsUseCase
+import com.joeloewi.croissant.domain.entity.Settings
+import com.joeloewi.croissant.domain.usecase.SettingsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted

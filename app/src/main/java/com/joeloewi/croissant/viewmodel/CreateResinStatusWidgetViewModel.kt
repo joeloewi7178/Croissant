@@ -10,12 +10,12 @@ import androidx.work.*
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration.ResinStatusWidgetConfigurationDestination
 import com.joeloewi.croissant.worker.RefreshResinStatusWorker
-import com.joeloewi.domain.entity.Account
-import com.joeloewi.domain.entity.ResinStatusWidget
-import com.joeloewi.domain.entity.UserInfo
-import com.joeloewi.domain.usecase.AccountUseCase
-import com.joeloewi.domain.usecase.HoYoLABUseCase
-import com.joeloewi.domain.usecase.ResinStatusWidgetUseCase
+import com.joeloewi.croissant.domain.entity.Account
+import com.joeloewi.croissant.domain.entity.ResinStatusWidget
+import com.joeloewi.croissant.domain.entity.UserInfo
+import com.joeloewi.croissant.domain.usecase.AccountUseCase
+import com.joeloewi.croissant.domain.usecase.HoYoLABUseCase
+import com.joeloewi.croissant.domain.usecase.ResinStatusWidgetUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -116,7 +116,7 @@ class CreateResinStatusWidgetViewModel @Inject constructor(
                     WorkManager.getInstance(application)
                         .enqueueUniquePeriodicWork(
                             resinStatusWidget.refreshGenshinResinStatusWorkerName.toString(),
-                            ExistingPeriodicWorkPolicy.REPLACE,
+                            ExistingPeriodicWorkPolicy.UPDATE,
                             periodicWorkRequest
                         ).await()
 

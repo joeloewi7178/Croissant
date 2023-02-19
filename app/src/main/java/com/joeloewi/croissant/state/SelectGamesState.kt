@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
-import com.joeloewi.domain.common.HoYoLABGame
+import com.joeloewi.croissant.domain.common.HoYoLABGame
 import kotlinx.collections.immutable.ImmutableList
 
 @Stable
