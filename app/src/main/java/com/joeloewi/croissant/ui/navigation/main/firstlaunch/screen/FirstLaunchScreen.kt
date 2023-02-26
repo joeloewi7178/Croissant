@@ -16,6 +16,10 @@
 
 package com.joeloewi.croissant.ui.navigation.main.firstlaunch.screen
 
+import android.annotation.SuppressLint
+import android.content.Intent
+import android.os.Build
+import android.provider.Settings
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -35,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -64,6 +69,7 @@ fun FirstLaunchScreen(
     )
 }
 
+@SuppressLint("BatteryLife")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 private fun FirstLaunchContent(
@@ -87,6 +93,14 @@ private fun FirstLaunchContent(
         if (isAllPermissionsGranted) {
             firstLaunchState.onFirstLaunchChange(false)
             context.createNotificationChannels()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                Intent(
+                    Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                    "package:${context.packageName}".toUri()
+                ).also {
+                    context.startActivity(it)
+                }
+            }
             firstLaunchState.navigateToAttendancesScreen()
         }
     }
