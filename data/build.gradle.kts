@@ -15,6 +15,7 @@ kotlin {
 android {
     defaultConfig {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles("consumer-proguard-rules.pro")
 
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")
@@ -55,6 +56,7 @@ dependencies {
     ksp(libs.moshi.kotlin.codegen)
 
     //protobuf
+    implementation(libs.protobuf.javalite)
     implementation(libs.protobuf.kotlin.lite)
 
     //datastore

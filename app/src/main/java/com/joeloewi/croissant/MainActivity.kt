@@ -109,7 +109,6 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
-@SuppressLint("BatteryLife")
 @OptIn(
     ExperimentalPermissionsApi::class,
     ExperimentalMaterialApi::class,
@@ -231,19 +230,7 @@ fun CroissantApp() {
             }
 
             if (lifecycle == Lifecycle.Event.ON_RESUME) {
-                if (currentDestination?.route == AttendancesDestination.AttendancesScreen.route
-                    && !croissantAppState.isIgnoringBatteryOptimizations
-                    && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                ) {
-                    Intent(
-                        Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-                        "package:${context.packageName}".toUri()
-                    ).also {
-                        context.startActivity(it)
-                    }
-                }
-
-                if (!isFirstLaunch && !croissantAppState.canScheduleExactAlarms) {
+                if (!croissantAppState.canScheduleExactAlarms) {
                     AlertDialog(
                         onDismissRequest = {},
                         confirmButton = {
