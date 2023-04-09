@@ -1,7 +1,9 @@
 package com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.composable
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -25,12 +27,11 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.google.accompanist.pager.HorizontalPager
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.theme.DefaultDp
 
 @OptIn(
-    ExperimentalMaterial3Api::class
+    ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class
 )
 @Composable
 fun GetSession(
@@ -90,7 +91,7 @@ fun GetSession(
             )
 
             HorizontalPager(
-                count = 3,
+                pageCount = 3,
                 contentPadding = PaddingValues(horizontal = responsiveHorizontalPadding),
                 key = { it }
             ) { page ->
