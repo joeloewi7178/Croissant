@@ -27,15 +27,15 @@ import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
 import com.joeloewi.croissant.R
+import com.joeloewi.croissant.domain.common.HoYoLABGame
+import com.joeloewi.croissant.domain.common.LoggableWorker
+import com.joeloewi.croissant.domain.entity.Game
 import com.joeloewi.croissant.state.AttendanceDetailState
 import com.joeloewi.croissant.state.rememberAttendanceDetailState
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.*
 import com.joeloewi.croissant.viewmodel.AttendanceDetailViewModel
-import com.joeloewi.croissant.domain.common.HoYoLABGame
-import com.joeloewi.croissant.domain.common.LoggableWorker
-import com.joeloewi.croissant.domain.entity.Game
 
 @Composable
 fun AttendanceDetailScreen(
@@ -137,7 +137,6 @@ private fun AttendanceDetailContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .consumedWindowInsets(innerPadding)
                 .then(Modifier.padding(horizontal = DefaultDp)),
             verticalArrangement = Arrangement.spacedBy(
                 space = DefaultDp,

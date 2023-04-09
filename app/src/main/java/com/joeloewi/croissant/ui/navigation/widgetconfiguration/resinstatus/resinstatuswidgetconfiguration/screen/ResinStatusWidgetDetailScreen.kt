@@ -92,7 +92,6 @@ fun ResinStatusWidgetDetailContent(
         Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .consumedWindowInsets(innerPadding)
                 .fillMaxSize()
                 .verticalScroll(state = rememberScrollState())
                 .then(Modifier.padding(DefaultDp)),

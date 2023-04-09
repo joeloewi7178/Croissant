@@ -31,20 +31,19 @@ import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
 import com.joeloewi.croissant.R
+import com.joeloewi.croissant.domain.common.HoYoLABGame
+import com.joeloewi.croissant.domain.entity.Game
+import com.joeloewi.croissant.domain.entity.GameRecord
 import com.joeloewi.croissant.state.CreateAttendanceState
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.state.rememberSelectGamesState
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.gameNameStringResId
-import com.joeloewi.croissant.domain.common.HoYoLABGame
-import com.joeloewi.croissant.domain.entity.Game
-import com.joeloewi.croissant.domain.entity.GameRecord
 import kotlinx.collections.immutable.toImmutableList
 
 @OptIn(
     ExperimentalMaterial3Api::class,
-    ExperimentalLayoutApi::class,
     ExperimentalFoundationApi::class
 )
 @Composable
@@ -118,8 +117,7 @@ fun SelectGames(
                 FilledTonalButton(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = DefaultDp)
-                        .navigationBarsPadding(),
+                        .padding(horizontal = DefaultDp),
                     enabled = !selectGamesState.noGamesSelected,
                     onClick = selectGamesState::onNextButtonClick
                 ) {
@@ -145,7 +143,6 @@ fun SelectGames(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .consumedWindowInsets(innerPadding)
                 .padding(horizontal = DefaultDp),
             verticalArrangement = Arrangement.spacedBy(DefaultDp)
         ) {
@@ -170,7 +167,6 @@ fun SelectGames(
                         state = lazyListState,
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(innerPadding)
                     ) {
                         items(
                             items = selectGamesState.supportedGames,

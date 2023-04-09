@@ -40,7 +40,6 @@ fun SetTime(
         bottomBar = {
             FilledTonalButton(
                 modifier = Modifier
-                    .navigationBarsPadding()
                     .padding(horizontal = DefaultDp)
                     .fillMaxWidth(),
                 onClick = createAttendanceState::onNextButtonClick
@@ -67,7 +66,6 @@ fun SetTime(
                 .verticalScroll(state = rememberScrollState())
                 .fillMaxSize()
                 .padding(innerPadding)
-                .consumedWindowInsets(innerPadding)
                 .padding(horizontal = DefaultDp),
             verticalArrangement = Arrangement.spacedBy(space = DefaultDp)
         ) {

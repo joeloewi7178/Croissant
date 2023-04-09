@@ -30,13 +30,13 @@ import androidx.navigation.NavHostController
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import com.google.accompanist.web.*
+import com.joeloewi.croissant.BuildConfig
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.state.LoginHoYoLABState
 import com.joeloewi.croissant.state.rememberLoginHoYoLABState
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.viewmodel.LoginHoYoLABViewModel
-import com.joeloewi.croissant.BuildConfig
 import kotlinx.collections.immutable.toImmutableList
 
 const val COOKIE = "cookie"
@@ -175,8 +175,7 @@ fun LoginHoYoLABContent(
                 WebView(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(innerPadding)
-                        .consumedWindowInsets(innerPadding),
+                        .padding(innerPadding),
                     state = loginHoYoLABState.webViewState,
                     navigator = loginHoYoLABState.webViewNavigator,
                     onCreated = { webView ->
@@ -374,8 +373,7 @@ fun LoginHoYoLABContent(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(innerPadding)
-                        .consumedWindowInsets(innerPadding),
+                        .padding(innerPadding),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {

@@ -36,6 +36,7 @@ import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
 import com.joeloewi.croissant.R
+import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.state.RedemptionCodesState
 import com.joeloewi.croissant.state.rememberRedemptionCodesState
@@ -46,7 +47,6 @@ import com.joeloewi.croissant.ui.theme.HalfDp
 import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.gameNameStringResId
 import com.joeloewi.croissant.viewmodel.RedemptionCodesViewModel
-import com.joeloewi.croissant.domain.common.HoYoLABGame
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 
@@ -89,7 +89,6 @@ private fun RedemptionCodesContent(
         Box(
             modifier = Modifier
                 .padding(innerPadding)
-                .consumedWindowInsets(innerPadding)
                 .pullRefresh(pullRefreshState)
         ) {
             with(redemptionCodesState.hoYoLABGameRedemptionCodesState) {
@@ -284,7 +283,8 @@ private fun RedemptionCodeListItem(
                             )
                         }
                     }
-                }
+                },
+                windowInsets = WindowInsets.systemBars.only(WindowInsetsSides.Horizontal)
             )
 
             Row(

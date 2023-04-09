@@ -160,10 +160,6 @@ dependencies {
     implementation(libs.gms.play.services.oss.licenses)
 }
 
-kapt {
-    correctErrorTypes = true
-}
-
 hilt {
     enableAggregatingTask = true
 }

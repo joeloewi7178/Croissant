@@ -9,9 +9,9 @@ import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.ktx.AppUpdateResult
 import com.google.android.play.core.ktx.requestUpdateFlow
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.joeloewi.croissant.domain.usecase.SettingsUseCase
 import com.joeloewi.croissant.util.HourFormat
 import com.joeloewi.croissant.util.is24HourFormat
-import com.joeloewi.croissant.domain.usecase.SettingsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview

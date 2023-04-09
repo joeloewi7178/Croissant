@@ -25,14 +25,11 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.theme.DefaultDp
 
 @OptIn(
-    ExperimentalPagerApi::class,
-    ExperimentalLayoutApi::class,
     ExperimentalMaterial3Api::class
 )
 @Composable
@@ -51,8 +48,7 @@ fun GetSession(
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = DefaultDp)
-                    .navigationBarsPadding(),
+                    .padding(horizontal = DefaultDp),
                 onClick = onLoginHoYoLAB
             ) {
                 Row(
@@ -80,7 +76,6 @@ fun GetSession(
                 .fillMaxSize()
                 .verticalScroll(state = rememberScrollState())
                 .padding(innerPadding)
-                .consumedWindowInsets(innerPadding)
                 .padding(horizontal = DefaultDp),
             verticalArrangement = Arrangement.spacedBy(space = DefaultDp)
         ) {

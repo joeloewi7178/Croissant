@@ -76,7 +76,6 @@ private fun DeveloperInfoContent(
         LazyColumn(
             modifier = Modifier
                 .padding(innerPadding)
-                .consumedWindowInsets(innerPadding)
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {

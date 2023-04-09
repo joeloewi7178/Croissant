@@ -30,7 +30,8 @@ class WorkerExecutionLogWithStateMapper(
             WorkerExecutionLogWithState(
                 workerExecutionLog = workerExecutionLogMapper.toDomain(workerExecutionLogEntity),
                 successLog = successLogEntity?.let {
-                    successLogMapper.toDomain(it) },
+                    successLogMapper.toDomain(it)
+                },
                 failureLog = failureLogEntity?.let { failureLogMapper.toDomain(it) }
             )
         }

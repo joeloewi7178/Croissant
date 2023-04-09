@@ -61,7 +61,6 @@ fun SettingsContent(
         LazyColumn(
             modifier = Modifier
                 .padding(innerPadding)
-                .consumedWindowInsets(innerPadding)
                 .fillMaxSize()
         ) {
             item(
