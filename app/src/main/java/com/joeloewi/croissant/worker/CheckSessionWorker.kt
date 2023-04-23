@@ -20,7 +20,11 @@ import com.joeloewi.croissant.domain.common.exception.HoYoLABUnsuccessfulRespons
 import com.joeloewi.croissant.domain.entity.FailureLog
 import com.joeloewi.croissant.domain.entity.SuccessLog
 import com.joeloewi.croissant.domain.entity.WorkerExecutionLog
-import com.joeloewi.croissant.domain.usecase.*
+import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
+import com.joeloewi.croissant.domain.usecase.FailureLogUseCase
+import com.joeloewi.croissant.domain.usecase.HoYoLABUseCase
+import com.joeloewi.croissant.domain.usecase.SuccessLogUseCase
+import com.joeloewi.croissant.domain.usecase.WorkerExecutionLogUseCase
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.croissant.util.CroissantPermission
 import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
@@ -29,7 +33,7 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.util.*
+import java.util.UUID
 
 @HiltWorker
 class CheckSessionWorker @AssistedInject constructor(

@@ -1,6 +1,6 @@
 package com.joeloewi.croissant.domain.entity
 
-import java.util.*
+import java.util.UUID
 
 data class ResinStatusWidget(
     val id: Long = 0,

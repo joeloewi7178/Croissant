@@ -1,5 +1,7 @@
 package com.joeloewi.croissant.ui.navigation.main.redemptioncodes.screen
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -7,6 +9,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
@@ -22,9 +25,11 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -64,7 +69,7 @@ fun RedemptionCodesScreen(
 }
 
 @OptIn(
-    ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class,
+    ExperimentalMaterial3Api::class,
     ExperimentalMaterialApi::class
 )
 @Composable
@@ -99,9 +104,11 @@ private fun RedemptionCodesContent(
                             expandedItems = redemptionCodesState.expandedItems,
                         )
                     }
+
                     is Lce.Error -> {
                         RedemptionCodesError(onRefresh = redemptionCodesState::onRefresh)
                     }
+
                     Lce.Loading -> {
                         RedemptionCodesLoading()
                     }
@@ -213,7 +220,7 @@ private fun RedemptionCodes(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalTextApi::class)
 @Composable
 private fun RedemptionCodeListItem(
     modifier: Modifier,
@@ -229,6 +236,7 @@ private fun RedemptionCodeListItem(
             }
         }
     }
+    val context = LocalContext.current
 
     Card(
         modifier = modifier
@@ -293,7 +301,25 @@ private fun RedemptionCodeListItem(
                     .padding(horizontal = DefaultDp),
             ) {
                 SelectionContainer {
-                    Text(text = item.second)
+                    val textStyle = LocalTextStyle.current
+                    val textColor = textStyle.color.takeOrElse {
+                        LocalContentColor.current
+                    }
+
+                    ClickableText(
+                        text = item.second,
+                        style = textStyle.copy(color = textColor),
+                        onClick = { offset ->
+                            item.second.getUrlAnnotations(offset, offset).firstOrNull()?.let {
+                                context.startActivity(
+                                    Intent(
+                                        Intent.ACTION_VIEW,
+                                        Uri.parse(it.item.url)
+                                    )
+                                )
+                            }
+                        }
+                    )
                 }
             }
         }

@@ -1,6 +1,7 @@
 package com.joeloewi.croissant.domain.entity
 
-import java.util.*
+import java.util.TimeZone
+import java.util.UUID
 
 data class Attendance(
     val id: Long = 0,

@@ -16,14 +16,17 @@ fun generateGameIntent(
             packageName to fallbackUri
         }
     }
+
     HoYoLABGame.GenshinImpact -> {
         with(GenshinImpactServer.findByRegion(region = region)) {
             packageName to fallbackUri
         }
     }
+
     HoYoLABGame.TearsOfThemis -> {
         "com.miHoYo.tot.glb" to "market://details?id=com.miHoYo.tot.glb".toUri()
     }
+
     HoYoLABGame.Unknown -> {
         "" to Uri.EMPTY
     }

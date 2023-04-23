@@ -1,6 +1,10 @@
 package com.joeloewi.croissant.util
 
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import com.google.android.play.core.ktx.AppUpdateResult
 import kotlinx.coroutines.CancellationException
 
@@ -27,6 +31,7 @@ fun RequireAppUpdate(
                     }
                 }
             }
+
             is AppUpdateResult.Downloaded -> {
                 appUpdateResultState.runCatching {
                     completeUpdate()
@@ -38,6 +43,7 @@ fun RequireAppUpdate(
                     }
                 }
             }
+
             else -> {
 
             }

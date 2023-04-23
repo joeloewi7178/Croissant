@@ -36,22 +36,27 @@ fun Spanned.toAnnotatedString(): AnnotatedString = buildAnnotatedString {
                     }
                 ), start, end
             )
+
             is AlignmentSpan -> addStyle(
                 ParagraphStyle(
                     textAlign = when (span.alignment) {
                         Layout.Alignment.ALIGN_CENTER -> {
                             TextAlign.Center
                         }
+
                         Layout.Alignment.ALIGN_NORMAL -> {
                             TextAlign.Start
                         }
+
                         Layout.Alignment.ALIGN_OPPOSITE -> {
                             TextAlign.End
                         }
+
                         else -> null
                     }
                 ), start, end
             )
+
             is BackgroundColorSpan -> addStyle(
                 SpanStyle(background = Color(span.backgroundColor)),
                 start,
@@ -71,6 +76,7 @@ fun Spanned.toAnnotatedString(): AnnotatedString = buildAnnotatedString {
                 start,
                 end
             )
+
             is StyleSpan -> when (span.style) {
                 Typeface.NORMAL -> addStyle(SpanStyle(), start, end)
                 Typeface.BOLD -> addStyle(SpanStyle(fontWeight = FontWeight.Bold), start, end)
@@ -82,16 +88,19 @@ fun Spanned.toAnnotatedString(): AnnotatedString = buildAnnotatedString {
                     ), start, end
                 )
             }
+
             is SubscriptSpan -> addStyle(
                 SpanStyle(baselineShift = BaselineShift.Subscript),
                 start,
                 end
             )
+
             is SuperscriptSpan -> addStyle(
                 SpanStyle(baselineShift = BaselineShift.Superscript),
                 start,
                 end
             )
+
             is TypefaceSpan -> addStyle(
                 SpanStyle(
                     fontFamily = when (span.family) {
@@ -103,6 +112,7 @@ fun Spanned.toAnnotatedString(): AnnotatedString = buildAnnotatedString {
                     }
                 ), start, end
             )
+
             is URLSpan -> addUrlAnnotation(UrlAnnotation(span.url), start, end)
             is UnderlineSpan -> addStyle(
                 SpanStyle(textDecoration = TextDecoration.Underline),

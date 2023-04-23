@@ -2,7 +2,8 @@ package com.joeloewi.croissant.data.entity.local
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import java.util.*
+import java.util.TimeZone
+import java.util.UUID
 
 @Entity
 data class AttendanceEntity(

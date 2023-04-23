@@ -52,9 +52,11 @@ class HoYoLABDataSourceImpl @Inject constructor(
             GenshinImpactServer.CNServer -> {
                 HeaderInformation.CN
             }
+
             GenshinImpactServer.Unknown -> {
                 HeaderInformation.CN
             }
+
             else -> {
                 HeaderInformation.OS
             }

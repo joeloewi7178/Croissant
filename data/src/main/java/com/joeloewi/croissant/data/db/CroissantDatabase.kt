@@ -18,8 +18,20 @@ package com.joeloewi.croissant.data.db
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import com.joeloewi.croissant.data.db.dao.*
-import com.joeloewi.croissant.data.entity.local.*
+import com.joeloewi.croissant.data.db.dao.AccountDao
+import com.joeloewi.croissant.data.db.dao.AttendanceDao
+import com.joeloewi.croissant.data.db.dao.FailureLogDao
+import com.joeloewi.croissant.data.db.dao.GameDao
+import com.joeloewi.croissant.data.db.dao.ResinStatusWidgetDao
+import com.joeloewi.croissant.data.db.dao.SuccessLogDao
+import com.joeloewi.croissant.data.db.dao.WorkerExecutionLogDao
+import com.joeloewi.croissant.data.entity.local.AccountEntity
+import com.joeloewi.croissant.data.entity.local.AttendanceEntity
+import com.joeloewi.croissant.data.entity.local.FailureLogEntity
+import com.joeloewi.croissant.data.entity.local.GameEntity
+import com.joeloewi.croissant.data.entity.local.ResinStatusWidgetEntity
+import com.joeloewi.croissant.data.entity.local.SuccessLogEntity
+import com.joeloewi.croissant.data.entity.local.WorkerExecutionLogEntity
 
 @Database(
     entities = [

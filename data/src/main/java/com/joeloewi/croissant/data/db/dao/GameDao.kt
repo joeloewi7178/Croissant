@@ -16,7 +16,11 @@
 
 package com.joeloewi.croissant.data.db.dao
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Update
 import com.joeloewi.croissant.data.entity.local.GameEntity
 
 @Dao

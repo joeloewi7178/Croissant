@@ -75,6 +75,7 @@ fun SelectGames(
                     }
                 }
             }
+
             is Lce.Error -> {
                 connectedGames.error.message?.let {
                     selectGamesState.snackbarHostState.apply {
@@ -83,6 +84,7 @@ fun SelectGames(
                     }
                 }
             }
+
             Lce.Loading -> {
 
             }
@@ -184,6 +186,7 @@ fun SelectGames(
                         }
                     }
                 }
+
                 is Lce.Error -> {
                     Column(
                         modifier = Modifier
@@ -198,6 +201,7 @@ fun SelectGames(
                         Text(text = stringResource(id = R.string.error_occurred))
                     }
                 }
+
                 Lce.Loading -> {
                     LazyColumn(
                         state = lazyListState,

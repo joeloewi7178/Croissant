@@ -38,6 +38,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -45,6 +46,9 @@ import androidx.paging.compose.items
 import androidx.work.*
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.MultiplePermissionsState
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
@@ -52,6 +56,7 @@ import com.joeloewi.croissant.R
 import com.joeloewi.croissant.domain.entity.Attendance
 import com.joeloewi.croissant.domain.entity.relational.AttendanceWithGames
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
+import com.joeloewi.croissant.ui.navigation.main.firstlaunch.FirstLaunchDestination
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.ui.theme.HalfDp
@@ -64,6 +69,7 @@ import kotlinx.coroutines.launch
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun AttendancesScreen(
     navController: NavHostController,
@@ -72,10 +78,21 @@ fun AttendancesScreen(
 ) {
     val pagedAttendancesWithGames =
         attendancesViewModel.pagedAttendanceWithGames.collectAsLazyPagingItems(Dispatchers.IO)
+    val isFirstLaunch: Boolean by
+    attendancesViewModel.isFirstLaunch.collectAsStateWithLifecycle(context = Dispatchers.IO)
+    val multiplePermissionsState: MultiplePermissionsState = rememberMultiplePermissionsState(
+        permissions = listOf(
+            CroissantPermission.AccessHoYoLABSession.permission,
+            CroissantPermission.POST_NOTIFICATIONS_PERMISSION_COMPAT
+        )
+    )
+    val activity = LocalActivity.current
 
     AttendancesContent(
         snackbarHostState = snackbarHostState,
         pagedAttendancesWithGames = pagedAttendancesWithGames,
+        isFirstLaunch = isFirstLaunch,
+        isAllPermissionsGranted = multiplePermissionsState.allPermissionsGranted,
         onCreateAttendanceClick = {
             navController.navigate(AttendancesDestination.CreateAttendanceScreen.route)
         },
@@ -85,22 +102,37 @@ fun AttendancesScreen(
                 AttendancesDestination.AttendanceDetailScreen().generateRoute(it.id)
             )
         },
+        onShowFirstLaunchScreen = {
+            navController.navigate(FirstLaunchDestination.FirstLaunchScreen.route) {
+                popUpTo(activity::class.java.simpleName) {
+                    inclusive = true
+                }
+            }
+        }
     )
 }
 
 @OptIn(
     ExperimentalMaterial3Api::class,
-    ExperimentalLayoutApi::class,
     ExperimentalFoundationApi::class
 )
 @Composable
 private fun AttendancesContent(
     snackbarHostState: SnackbarHostState,
     pagedAttendancesWithGames: LazyPagingItems<AttendanceWithGames>,
+    isFirstLaunch: Boolean,
+    isAllPermissionsGranted: Boolean,
     onCreateAttendanceClick: () -> Unit,
     onDeleteAttendance: (Attendance) -> Unit,
     onClickAttendance: (Attendance) -> Unit,
+    onShowFirstLaunchScreen: () -> Unit
 ) {
+
+    LaunchedEffect(isFirstLaunch, isAllPermissionsGranted) {
+        if (isFirstLaunch || !isAllPermissionsGranted) {
+            onShowFirstLaunchScreen()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -300,7 +332,7 @@ private fun SwipeToDismissBackground(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun DismissContent(
     elevation: Dp,
@@ -310,131 +342,109 @@ private fun DismissContent(
 ) {
     val currentAttendanceWithGames by rememberUpdatedState(attendanceWithGames())
 
-    Row(
+    ListItem(
         modifier = Modifier
             .shadow(elevation = elevation)
-            .clickable { onClickAttendance(currentAttendanceWithGames.attendance) }
-            .background(MaterialTheme.colorScheme.background)
-            .fillMaxWidth(),
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(DoubleDp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(space = DefaultDp)
+            .clickable { onClickAttendance(currentAttendanceWithGames.attendance) },
+        supportingText = {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(space = HalfDp)
             ) {
-                Text(
-                    text = stringResource(
-                        id = R.string.attendance_of_nickname,
-                        currentAttendanceWithGames.attendance.nickname
-                    ),
-                    style = MaterialTheme.typography.titleMedium
-                )
+                items(
+                    items = currentAttendanceWithGames.games,
+                    key = { it.id }
+                ) { game ->
+                    AsyncImage(
+                        modifier = Modifier
+                            .animateItemPlacement()
+                            .size(IconDp)
+                            .clip(MaterialTheme.shapes.extraSmall),
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(game.type.gameIconUrl)
+                            .build(),
+                        contentDescription = null
+                    )
+                }
+            }
+        },
+        headlineText = {
+            val hourFormat = LocalHourFormat.current
 
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(
-                        space = DefaultDp,
-                    ),
-                    verticalAlignment = Alignment.CenterVertically
+            val formattedTime by remember(
+                currentAttendanceWithGames.attendance,
+                hourFormat
+            ) {
+                derivedStateOf {
+                    with(currentAttendanceWithGames.attendance) {
+                        ZonedDateTime.now(ZoneId.of(timezoneId))
+                            .withHour(hourOfDay)
+                            .withMinute(minute)
+                    }.format(
+                        dateTimeFormatterPerHourFormat(hourFormat)
+                    )
+                }
+            }
+
+            Text(
+                text = buildAnnotatedString {
+                    append(
+                        AnnotatedString(
+                            formattedTime,
+                            spanStyle = MaterialTheme.typography.headlineSmall.toSpanStyle()
+                        )
+                    )
+                    append(" ")
+                    append("(${currentAttendanceWithGames.attendance.timezoneId})")
+                }
+            )
+        },
+        overlineText = {
+            Text(
+                text = stringResource(
+                    id = R.string.attendance_of_nickname,
+                    currentAttendanceWithGames.attendance.nickname
+                ),
+                style = MaterialTheme.typography.titleMedium
+            )
+        },
+        trailingContent = {
+            val workInfos by WorkManager.getInstance(LocalContext.current)
+                .getWorkInfosForUniqueWorkLiveData(currentAttendanceWithGames.attendance.oneTimeAttendCheckInEventWorkerName.toString())
+                .observeAsState()
+            val isRunning by remember(workInfos) {
+                derivedStateOf {
+                    workInfos?.any { it.state == WorkInfo.State.RUNNING }
+                }
+            }
+
+            IconButton(
+                enabled = isRunning == false,
+                onClick = onClickOneTimeAttend
+            ) {
+                AnimatedVisibility(
+                    visible = isRunning == false,
+                    enter = fadeIn(),
+                    exit = fadeOut()
                 ) {
-                    val hourFormat = LocalHourFormat.current
-
-                    val formattedTime by remember(
-                        currentAttendanceWithGames.attendance,
-                        hourFormat
-                    ) {
-                        derivedStateOf {
-                            with(currentAttendanceWithGames.attendance) {
-                                ZonedDateTime.now(ZoneId.of(timezoneId))
-                                    .withHour(hourOfDay)
-                                    .withMinute(minute)
-                            }.format(
-                                dateTimeFormatterPerHourFormat(hourFormat)
-                            )
-                        }
-                    }
-
-                    Text(
-                        text = buildAnnotatedString {
-                            append(
-                                AnnotatedString(
-                                    formattedTime,
-                                    spanStyle = MaterialTheme.typography.headlineSmall.toSpanStyle()
-                                )
-                            )
-                            append(" ")
-                            append("(${currentAttendanceWithGames.attendance.timezoneId})")
-                        }
+                    Icon(
+                        imageVector = Icons.Default.PlayCircle,
+                        contentDescription = Icons.Default.PlayCircle.name
                     )
                 }
 
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(space = HalfDp)
+                AnimatedVisibility(
+                    visible = isRunning == true,
+                    enter = fadeIn(),
+                    exit = fadeOut()
                 ) {
-                    items(
-                        items = currentAttendanceWithGames.games,
-                        key = { it.id }
-                    ) { game ->
-                        AsyncImage(
-                            modifier = Modifier
-                                .animateItemPlacement()
-                                .size(IconDp)
-                                .clip(MaterialTheme.shapes.extraSmall),
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(game.type.gameIconUrl)
-                                .build(),
-                            contentDescription = null
-                        )
-                    }
-                }
-            }
-
-            Column(
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                val workInfos by WorkManager.getInstance(LocalContext.current)
-                    .getWorkInfosForUniqueWorkLiveData(currentAttendanceWithGames.attendance.oneTimeAttendCheckInEventWorkerName.toString())
-                    .observeAsState()
-                val isRunning by remember(workInfos) {
-                    derivedStateOf {
-                        workInfos?.any { it.state == WorkInfo.State.RUNNING }
-                    }
-                }
-
-                IconButton(
-                    enabled = isRunning == false,
-                    onClick = onClickOneTimeAttend
-                ) {
-                    AnimatedVisibility(
-                        visible = isRunning == false,
-                        enter = fadeIn(),
-                        exit = fadeOut()
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.PlayCircle,
-                            contentDescription = Icons.Default.PlayCircle.name
-                        )
-                    }
-
-                    AnimatedVisibility(
-                        visible = isRunning == true,
-                        enter = fadeIn(),
-                        exit = fadeOut()
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Pending,
-                            contentDescription = Icons.Default.Pending.name
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Default.Pending,
+                        contentDescription = Icons.Default.Pending.name
+                    )
                 }
             }
         }
-    }
+    )
 }
 
 @OptIn(ExperimentalFoundationApi::class)

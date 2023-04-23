@@ -10,10 +10,15 @@ import com.joeloewi.croissant.domain.usecase.ArcaLiveAppUseCase
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.util.toAnnotatedString
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
 import javax.inject.Inject
 
@@ -75,16 +80,20 @@ class RedemptionCodesViewModel @Inject constructor(
                         }.html().replace("모유", "체력")
                     }
                 }
+
                 HoYoLABGame.GenshinImpact -> {
                     getArticleArcaLiveAppUseCase(
                         slug = "genshin",
-                        articleId = 53699739
+                        articleId = 67138915
                     ).mapCatching { content ->
                         Jsoup.parse(content).apply {
-                            select("img").remove()
-                        }.select("p:nth-child(n+56)").html()
+                            repeat(2) {
+                                select("p:last-child").remove()
+                            }
+                        }.select("p:nth-child(n+8)").html().replace("https://oo.pe/", "")
                     }
                 }
+
                 else -> {
                     runCatching {
                         ""
