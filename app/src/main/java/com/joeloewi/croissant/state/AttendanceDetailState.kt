@@ -10,9 +10,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.joeloewi.croissant.R
+import com.joeloewi.croissant.domain.common.LoggableWorker
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.croissant.viewmodel.AttendanceDetailViewModel
-import com.joeloewi.croissant.domain.common.LoggableWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 

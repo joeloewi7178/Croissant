@@ -20,8 +20,8 @@ android {
 
     defaultConfig {
         applicationId = "com.joeloewi.croissant"
-        versionCode = 37
-        versionName = "1.1.7"
+        versionCode = 38
+        versionName = "1.1.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -158,10 +158,6 @@ dependencies {
 
     //open source license activity
     implementation(libs.gms.play.services.oss.licenses)
-}
-
-kapt {
-    correctErrorTypes = true
 }
 
 hilt {

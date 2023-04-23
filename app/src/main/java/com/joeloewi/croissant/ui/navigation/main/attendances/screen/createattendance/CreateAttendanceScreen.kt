@@ -118,24 +118,21 @@ fun CreateAttendanceContent(
             CreateAttendancePage.GetSession -> {
                 GetSession(
                     modifier = Modifier
-                        .padding(innerPadding)
-                        .consumedWindowInsets(innerPadding),
+                        .padding(innerPadding),
                     onLoginHoYoLAB = createAttendanceState::onLoginHoYoLAB
                 )
             }
             CreateAttendancePage.SelectGames -> {
                 SelectGames(
                     modifier = Modifier
-                        .padding(innerPadding)
-                        .consumedWindowInsets(innerPadding),
+                        .padding(innerPadding),
                     createAttendanceState = createAttendanceState
                 )
             }
             CreateAttendancePage.SetTime -> {
                 SetTime(
                     modifier = Modifier
-                        .padding(innerPadding)
-                        .consumedWindowInsets(innerPadding),
+                        .padding(innerPadding),
                     createAttendanceState = createAttendanceState,
                 )
             }

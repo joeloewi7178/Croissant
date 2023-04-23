@@ -22,7 +22,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -50,6 +49,8 @@ import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
 import com.joeloewi.croissant.R
+import com.joeloewi.croissant.domain.entity.Attendance
+import com.joeloewi.croissant.domain.entity.relational.AttendanceWithGames
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
@@ -58,8 +59,6 @@ import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.*
 import com.joeloewi.croissant.viewmodel.AttendancesViewModel
 import com.joeloewi.croissant.worker.AttendCheckInEventWorker
-import com.joeloewi.croissant.domain.entity.Attendance
-import com.joeloewi.croissant.domain.entity.relational.AttendanceWithGames
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.ZoneId
@@ -130,7 +129,6 @@ private fun AttendancesContent(
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
-                    .consumedWindowInsets(innerPadding)
                     .fillMaxSize()
                     .then(Modifier.padding(DoubleDp)),
                 verticalArrangement = Arrangement.Center,
@@ -157,7 +155,6 @@ private fun AttendancesContent(
             LazyColumn(
                 modifier = Modifier
                     .padding(innerPadding)
-                    .consumedWindowInsets(innerPadding)
                     .fillMaxSize()
             ) {
                 items(

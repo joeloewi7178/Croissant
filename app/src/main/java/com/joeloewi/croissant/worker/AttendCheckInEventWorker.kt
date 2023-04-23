@@ -21,10 +21,6 @@ import coil.imageLoader
 import coil.request.ImageRequest
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
-import com.joeloewi.croissant.util.CroissantPermission
-import com.joeloewi.croissant.util.gameNameStringResId
-import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
 import com.joeloewi.croissant.data.common.generateGameIntent
 import com.joeloewi.croissant.domain.common.HoYoLABRetCode
 import com.joeloewi.croissant.domain.common.LoggableWorker
@@ -34,6 +30,10 @@ import com.joeloewi.croissant.domain.entity.FailureLog
 import com.joeloewi.croissant.domain.entity.SuccessLog
 import com.joeloewi.croissant.domain.entity.WorkerExecutionLog
 import com.joeloewi.croissant.domain.usecase.*
+import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
+import com.joeloewi.croissant.util.CroissantPermission
+import com.joeloewi.croissant.util.gameNameStringResId
+import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.*

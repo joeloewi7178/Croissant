@@ -16,6 +16,8 @@ import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
 import com.joeloewi.croissant.R
+import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
+import com.joeloewi.croissant.domain.entity.relational.WorkerExecutionLogWithState
 import com.joeloewi.croissant.state.AttendanceLogsDayState
 import com.joeloewi.croissant.state.rememberAttendanceLogsDayState
 import com.joeloewi.croissant.ui.theme.DefaultDp
@@ -23,8 +25,6 @@ import com.joeloewi.croissant.ui.theme.HalfDp
 import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.navigationIconButton
 import com.joeloewi.croissant.viewmodel.AttendanceLogsDayViewModel
-import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
-import com.joeloewi.croissant.domain.entity.relational.WorkerExecutionLogWithState
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter

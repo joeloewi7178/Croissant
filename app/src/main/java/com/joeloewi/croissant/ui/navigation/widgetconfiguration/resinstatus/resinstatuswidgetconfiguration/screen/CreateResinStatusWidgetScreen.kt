@@ -26,6 +26,7 @@ import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
 import com.joeloewi.croissant.R
+import com.joeloewi.croissant.domain.entity.UserInfo
 import com.joeloewi.croissant.state.CreateResinStatusWidgetState
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.state.rememberCreateResinStatusWidgetState
@@ -36,7 +37,6 @@ import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.ProgressDialog
 import com.joeloewi.croissant.util.getResultFromPreviousComposable
 import com.joeloewi.croissant.viewmodel.CreateResinStatusWidgetViewModel
-import com.joeloewi.croissant.domain.entity.UserInfo
 
 @Composable
 fun CreateResinStatusWidgetScreen(
@@ -184,7 +184,6 @@ fun CreateResinStatusWidgetContent(
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
-                    .consumedWindowInsets(innerPadding)
                     .fillMaxSize()
                     .then(Modifier.padding(DoubleDp)),
                 verticalArrangement = Arrangement.Center,
@@ -207,7 +206,6 @@ fun CreateResinStatusWidgetContent(
                 state = lazyListState,
                 modifier = Modifier
                     .padding(innerPadding)
-                    .consumedWindowInsets(innerPadding)
                     .fillMaxSize()
                     .then(Modifier.padding(DefaultDp)),
                 verticalArrangement = Arrangement.spacedBy(

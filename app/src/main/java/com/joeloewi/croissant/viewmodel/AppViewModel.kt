@@ -5,10 +5,10 @@ import android.app.Application
 import android.os.PowerManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.joeloewi.croissant.domain.usecase.SettingsUseCase
 import com.joeloewi.croissant.util.RootChecker
 import com.joeloewi.croissant.util.canScheduleExactAlarmsCompat
 import com.joeloewi.croissant.util.isIgnoringBatteryOptimizationsCompat
-import com.joeloewi.croissant.domain.usecase.SettingsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flow

@@ -82,6 +82,9 @@
                 android:name="com.joeloewi.croissant.initializer.ComposeViewInitializer"
                 android:value="androidx.startup" />
             <meta-data
+                android:name="com.joeloewi.croissant.initializer.FirebaseAnalyticsInitializer"
+                android:value="androidx.startup" />
+            <meta-data
                 android:name="androidx.work.WorkManagerInitializer"
                 android:value="androidx.startup"
                 tools:node="remove" />
