@@ -10,10 +10,14 @@ import androidx.paging.cachedIn
 import androidx.work.WorkManager
 import com.joeloewi.croissant.domain.entity.Attendance
 import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
+import com.joeloewi.croissant.domain.usecase.SettingsUseCase
 import com.joeloewi.croissant.receiver.AlarmReceiver
 import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -23,8 +27,14 @@ class AttendancesViewModel @Inject constructor(
     private val alarmManager: AlarmManager,
     getAllPagedAttendanceWithGamesUseCase: AttendanceUseCase.GetAllPaged,
     private val deleteAttendanceUseCase: AttendanceUseCase.Delete,
+    getSettings: SettingsUseCase.GetSettings
 ) : ViewModel() {
     val pagedAttendanceWithGames = getAllPagedAttendanceWithGamesUseCase().cachedIn(viewModelScope)
+    val isFirstLaunch = getSettings().map { it.isFirstLaunch }.map { it }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(),
+        initialValue = false
+    )
 
     fun deleteAttendance(attendance: Attendance) {
         viewModelScope.launch(Dispatchers.IO) {

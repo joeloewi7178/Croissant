@@ -1,3 +1,5 @@
+import com.android.build.api.dsl.Packaging
+
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     id("croissant.android.application")
@@ -58,7 +60,7 @@ android {
             proguardFiles("baseline-profiles-rules.pro")
         }
     }
-    packagingOptions {
+    packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }

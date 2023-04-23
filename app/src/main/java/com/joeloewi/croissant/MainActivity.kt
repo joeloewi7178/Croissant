@@ -110,7 +110,6 @@ class MainActivity : AppCompatActivity() {
 @OptIn(
     ExperimentalPermissionsApi::class,
     ExperimentalMaterialApi::class,
-    ExperimentalLayoutApi::class,
     ExperimentalMaterial3Api::class,
     ExperimentalMaterialNavigationApi::class
 )
@@ -127,20 +126,8 @@ fun CroissantApp() {
     val snackbarHostState = remember { SnackbarHostState() }
     val lifecycle by LocalLifecycleOwner.current.lifecycle.observeAsState()
     val croissantAppState = rememberCroissantAppState()
-    val isFirstLaunch = croissantAppState.isFirstLaunch
     val isDeviceRooted = croissantAppState.isDeviceRooted
     val currentDestination = croissantAppState.currentDestination
-    val isAllPermissionsGranted = croissantAppState.multiplePermissionsState.allPermissionsGranted
-
-    LaunchedEffect(isFirstLaunch, isAllPermissionsGranted) {
-        if (isFirstLaunch || !isAllPermissionsGranted) {
-            croissantAppState.navController.navigate(FirstLaunchDestination.FirstLaunchScreen.route) {
-                popUpTo(activity::class.java.simpleName) {
-                    inclusive = true
-                }
-            }
-        }
-    }
 
     LaunchedEffect(currentDestination) {
         FirebaseAnalytics.getInstance(context).logEvent(
