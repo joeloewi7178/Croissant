@@ -1,5 +1,3 @@
-import com.android.build.api.dsl.Packaging
-
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     id("croissant.android.application")

@@ -155,9 +155,11 @@ fun LoginHoYoLABContent(
                                 progress = progress
                             )
                         }
+
                         LoadingState.Finished -> {
 
                         }
+
                         LoadingState.Initializing -> {
 
                         }
@@ -366,9 +368,11 @@ fun LoginHoYoLABContent(
                     }
                 )
             }
+
             is Lce.Error -> {
 
             }
+
             Lce.Loading -> {
                 Column(
                     modifier = Modifier

@@ -92,6 +92,7 @@ private fun AttendanceLogsCalendarContent(
                     )
                 }
             }
+
             else -> {
 
             }

@@ -332,7 +332,7 @@ private fun SwipeToDismissBackground(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun DismissContent(
     elevation: Dp,
@@ -342,131 +342,109 @@ private fun DismissContent(
 ) {
     val currentAttendanceWithGames by rememberUpdatedState(attendanceWithGames())
 
-    Row(
+    ListItem(
         modifier = Modifier
             .shadow(elevation = elevation)
-            .clickable { onClickAttendance(currentAttendanceWithGames.attendance) }
-            .background(MaterialTheme.colorScheme.background)
-            .fillMaxWidth(),
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(DoubleDp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(space = DefaultDp)
+            .clickable { onClickAttendance(currentAttendanceWithGames.attendance) },
+        supportingText = {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(space = HalfDp)
             ) {
-                Text(
-                    text = stringResource(
-                        id = R.string.attendance_of_nickname,
-                        currentAttendanceWithGames.attendance.nickname
-                    ),
-                    style = MaterialTheme.typography.titleMedium
-                )
+                items(
+                    items = currentAttendanceWithGames.games,
+                    key = { it.id }
+                ) { game ->
+                    AsyncImage(
+                        modifier = Modifier
+                            .animateItemPlacement()
+                            .size(IconDp)
+                            .clip(MaterialTheme.shapes.extraSmall),
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(game.type.gameIconUrl)
+                            .build(),
+                        contentDescription = null
+                    )
+                }
+            }
+        },
+        headlineText = {
+            val hourFormat = LocalHourFormat.current
 
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(
-                        space = DefaultDp,
-                    ),
-                    verticalAlignment = Alignment.CenterVertically
+            val formattedTime by remember(
+                currentAttendanceWithGames.attendance,
+                hourFormat
+            ) {
+                derivedStateOf {
+                    with(currentAttendanceWithGames.attendance) {
+                        ZonedDateTime.now(ZoneId.of(timezoneId))
+                            .withHour(hourOfDay)
+                            .withMinute(minute)
+                    }.format(
+                        dateTimeFormatterPerHourFormat(hourFormat)
+                    )
+                }
+            }
+
+            Text(
+                text = buildAnnotatedString {
+                    append(
+                        AnnotatedString(
+                            formattedTime,
+                            spanStyle = MaterialTheme.typography.headlineSmall.toSpanStyle()
+                        )
+                    )
+                    append(" ")
+                    append("(${currentAttendanceWithGames.attendance.timezoneId})")
+                }
+            )
+        },
+        overlineText = {
+            Text(
+                text = stringResource(
+                    id = R.string.attendance_of_nickname,
+                    currentAttendanceWithGames.attendance.nickname
+                ),
+                style = MaterialTheme.typography.titleMedium
+            )
+        },
+        trailingContent = {
+            val workInfos by WorkManager.getInstance(LocalContext.current)
+                .getWorkInfosForUniqueWorkLiveData(currentAttendanceWithGames.attendance.oneTimeAttendCheckInEventWorkerName.toString())
+                .observeAsState()
+            val isRunning by remember(workInfos) {
+                derivedStateOf {
+                    workInfos?.any { it.state == WorkInfo.State.RUNNING }
+                }
+            }
+
+            IconButton(
+                enabled = isRunning == false,
+                onClick = onClickOneTimeAttend
+            ) {
+                AnimatedVisibility(
+                    visible = isRunning == false,
+                    enter = fadeIn(),
+                    exit = fadeOut()
                 ) {
-                    val hourFormat = LocalHourFormat.current
-
-                    val formattedTime by remember(
-                        currentAttendanceWithGames.attendance,
-                        hourFormat
-                    ) {
-                        derivedStateOf {
-                            with(currentAttendanceWithGames.attendance) {
-                                ZonedDateTime.now(ZoneId.of(timezoneId))
-                                    .withHour(hourOfDay)
-                                    .withMinute(minute)
-                            }.format(
-                                dateTimeFormatterPerHourFormat(hourFormat)
-                            )
-                        }
-                    }
-
-                    Text(
-                        text = buildAnnotatedString {
-                            append(
-                                AnnotatedString(
-                                    formattedTime,
-                                    spanStyle = MaterialTheme.typography.headlineSmall.toSpanStyle()
-                                )
-                            )
-                            append(" ")
-                            append("(${currentAttendanceWithGames.attendance.timezoneId})")
-                        }
+                    Icon(
+                        imageVector = Icons.Default.PlayCircle,
+                        contentDescription = Icons.Default.PlayCircle.name
                     )
                 }
 
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(space = HalfDp)
+                AnimatedVisibility(
+                    visible = isRunning == true,
+                    enter = fadeIn(),
+                    exit = fadeOut()
                 ) {
-                    items(
-                        items = currentAttendanceWithGames.games,
-                        key = { it.id }
-                    ) { game ->
-                        AsyncImage(
-                            modifier = Modifier
-                                .animateItemPlacement()
-                                .size(IconDp)
-                                .clip(MaterialTheme.shapes.extraSmall),
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(game.type.gameIconUrl)
-                                .build(),
-                            contentDescription = null
-                        )
-                    }
-                }
-            }
-
-            Column(
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                val workInfos by WorkManager.getInstance(LocalContext.current)
-                    .getWorkInfosForUniqueWorkLiveData(currentAttendanceWithGames.attendance.oneTimeAttendCheckInEventWorkerName.toString())
-                    .observeAsState()
-                val isRunning by remember(workInfos) {
-                    derivedStateOf {
-                        workInfos?.any { it.state == WorkInfo.State.RUNNING }
-                    }
-                }
-
-                IconButton(
-                    enabled = isRunning == false,
-                    onClick = onClickOneTimeAttend
-                ) {
-                    AnimatedVisibility(
-                        visible = isRunning == false,
-                        enter = fadeIn(),
-                        exit = fadeOut()
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.PlayCircle,
-                            contentDescription = Icons.Default.PlayCircle.name
-                        )
-                    }
-
-                    AnimatedVisibility(
-                        visible = isRunning == true,
-                        enter = fadeIn(),
-                        exit = fadeOut()
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Pending,
-                            contentDescription = Icons.Default.Pending.name
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Default.Pending,
+                        contentDescription = Icons.Default.Pending.name
+                    )
                 }
             }
         }
-    }
+    )
 }
 
 @OptIn(ExperimentalFoundationApi::class)

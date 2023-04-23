@@ -9,12 +9,15 @@ fun HoYoLABGame.gameNameStringResId(): Int = when (this) {
     HoYoLABGame.HonkaiImpact3rd -> {
         R.string.honkai_impact_3rd_game_name
     }
+
     HoYoLABGame.GenshinImpact -> {
         R.string.genshin_impact_game_name
     }
+
     HoYoLABGame.TearsOfThemis -> {
         R.string.tears_of_themis_game_name
     }
+
     HoYoLABGame.Unknown -> {
         R.string.unknown_game_name
     }

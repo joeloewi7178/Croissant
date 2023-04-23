@@ -13,7 +13,7 @@ import com.joeloewi.croissant.R
 import com.joeloewi.croissant.util.CroissantPermission
 import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
 import dagger.hilt.android.AndroidEntryPoint
-import java.util.*
+import java.util.UUID
 import javax.inject.Inject
 
 @AndroidEntryPoint

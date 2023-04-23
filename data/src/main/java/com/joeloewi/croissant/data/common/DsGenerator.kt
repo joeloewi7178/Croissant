@@ -39,6 +39,7 @@ fun generateDS(
 
             "${timePair.second},${randomStringPair.second},${md5(joinedPairsString).toHex()}"
         }
+
         HeaderInformation.CN -> {
             val bodyPairKey = "b"
             val queryPairKey = "q"

@@ -79,6 +79,7 @@ fun CreateResinStatusWidgetScreen(
                 is Lce.Error -> {
                     createResinStatusWidgetState.snackbarHostState.showSnackbar(context.getString(R.string.error_occurred))
                 }
+
                 else -> {}
             }
         }
@@ -114,6 +115,7 @@ fun CreateResinStatusWidgetContent(
                     }
                 }
             }
+
             else -> {
 
             }

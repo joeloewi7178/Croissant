@@ -6,7 +6,13 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.work.*
+import androidx.work.Constraints
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequest
+import androidx.work.WorkManager
+import androidx.work.await
+import androidx.work.workDataOf
 import com.joeloewi.croissant.domain.entity.Account
 import com.joeloewi.croissant.domain.entity.ResinStatusWidget
 import com.joeloewi.croissant.domain.entity.UserInfo

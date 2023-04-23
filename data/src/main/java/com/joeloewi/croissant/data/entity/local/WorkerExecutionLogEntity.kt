@@ -22,7 +22,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.joeloewi.croissant.domain.common.LoggableWorker
 import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
-import java.util.*
+import java.util.TimeZone
 
 @Entity(
     indices = [Index("attendanceId")],

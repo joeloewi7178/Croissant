@@ -98,6 +98,7 @@ private fun WorkerExecutionLogWithStateItem(
             WorkerExecutionLogState.SUCCESS -> {
                 MaterialTheme.colorScheme.surfaceVariant
             }
+
             WorkerExecutionLogState.FAILURE -> {
                 MaterialTheme.colorScheme.errorContainer
             }
@@ -108,6 +109,7 @@ private fun WorkerExecutionLogWithStateItem(
             WorkerExecutionLogState.SUCCESS -> {
                 stringResource(id = R.string.success)
             }
+
             WorkerExecutionLogState.FAILURE -> {
                 stringResource(id = R.string.failure)
             }

@@ -11,7 +11,12 @@ import android.os.PowerManager
 import android.provider.Settings
 import android.view.View
 import android.widget.RemoteViews
-import androidx.work.*
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequest
+import androidx.work.WorkManager
+import androidx.work.workDataOf
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.domain.usecase.ResinStatusWidgetUseCase
 import com.joeloewi.croissant.util.goAsync

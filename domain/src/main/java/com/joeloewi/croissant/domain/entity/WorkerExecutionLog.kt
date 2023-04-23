@@ -18,7 +18,7 @@ package com.joeloewi.croissant.domain.entity
 
 import com.joeloewi.croissant.domain.common.LoggableWorker
 import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
-import java.util.*
+import java.util.TimeZone
 
 data class WorkerExecutionLog(
     val id: Long = 0,
