@@ -74,7 +74,7 @@ interface RepositoryModule {
 
     @Binds
     @Singleton
-    fun bindTearsOfThemisCheckInRepository(themisCheckInRepositoryImpl: TearsOfThemisCheckInRepositoryImpl): TearsOfThemisCheckInRepository
+    fun bindCommonCheckInRepository(commonCheckInRepositoryImpl: CommonCheckInRepositoryImpl): CommonCheckInRepository
 
     @Binds
     @Singleton

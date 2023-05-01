@@ -21,12 +21,13 @@ import com.skydoves.sandwich.ApiResponse
 import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Query
-import java.util.*
+import java.util.Locale
 
-interface TearsOfThemisCheckInService {
+interface CommonCheckInService {
+
     @POST("event/luna/os/sign")
-    suspend fun attendTearsOfThemis(
-        @Query("act_id") actId: String = "e202202281857121",
+    suspend fun attend(
+        @Query("act_id") actId: String = "e202303301540311",
         @Query("lang") language: String = Locale.getDefault().toLanguageTag().lowercase(),
         @Header("Cookie") cookie: String
     ): ApiResponse<AttendanceResponse>

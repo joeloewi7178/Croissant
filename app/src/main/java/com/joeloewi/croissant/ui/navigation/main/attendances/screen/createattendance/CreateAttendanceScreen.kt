@@ -1,7 +1,6 @@
 package com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.only
@@ -61,7 +60,7 @@ fun CreateAttendanceScreen(
     )
 }
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateAttendanceContent(
     createAttendanceState: CreateAttendanceState

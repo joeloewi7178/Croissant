@@ -113,7 +113,7 @@ fun rememberCroissantAppState(
     modalBottomSheetState: ModalBottomSheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden,
         skipHalfExpanded = true,
-        confirmStateChange = { false }
+        confirmValueChange = { false }
     ),
     bottomSheetNavigator: BottomSheetNavigator = remember(modalBottomSheetState) {
         BottomSheetNavigator(modalBottomSheetState)

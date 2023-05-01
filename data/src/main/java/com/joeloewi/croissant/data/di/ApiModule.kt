@@ -115,7 +115,7 @@ object ApiModule {
 
     @Singleton
     @Provides
-    fun provideTearsOfThemisCheckInService(retrofitBuilder: Retrofit.Builder): TearsOfThemisCheckInService =
+    fun provideCommonCheckInService(retrofitBuilder: Retrofit.Builder): CommonCheckInService =
         retrofitBuilder
             .baseUrl("https://sg-public-api.hoyolab.com/")
             .build()

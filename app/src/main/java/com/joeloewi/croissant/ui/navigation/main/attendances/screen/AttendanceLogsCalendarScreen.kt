@@ -1,11 +1,13 @@
 package com.joeloewi.croissant.ui.navigation.main.attendances.screen
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DeleteSweep
@@ -28,8 +30,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import com.google.accompanist.pager.ExperimentalPagerApi
-import com.google.accompanist.pager.HorizontalPager
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.AttendanceLogsCalendarState
 import com.joeloewi.croissant.state.Lce
@@ -47,7 +47,7 @@ import java.time.Month
 import java.time.Year
 import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalPagerApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AttendanceLogsCalendarScreen(
     navController: NavHostController,
@@ -63,7 +63,7 @@ fun AttendanceLogsCalendarScreen(
     )
 }
 
-@OptIn(ExperimentalPagerApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 private fun AttendanceLogsCalendarContent(
     attendanceLogsCalendarState: AttendanceLogsCalendarState,
@@ -185,7 +185,7 @@ private fun AttendanceLogsCalendarContent(
                     key = {
                         year.atMonth(it + 1).format(DateTimeFormatter.ofPattern("yyyy-MM"))
                     },
-                    count = Month.values().size
+                    pageCount = Month.values().size
                 ) { page ->
 
                     MonthPage(

@@ -24,7 +24,15 @@ fun generateGameIntent(
     }
 
     HoYoLABGame.TearsOfThemis -> {
-        "com.miHoYo.tot.glb" to "market://details?id=com.miHoYo.tot.glb".toUri()
+        with("com.miHoYo.tot.glb") {
+            this to "market://details?id=${this}".toUri()
+        }
+    }
+
+    HoYoLABGame.HonkaiStarRail -> {
+        with("com.HoYoverse.hkrpgoversea") {
+            this to "market://details?id=${this}".toUri()
+        }
     }
 
     HoYoLABGame.Unknown -> {

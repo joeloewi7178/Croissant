@@ -76,7 +76,7 @@ interface DataSourceModule {
 
     @Binds
     @Singleton
-    fun bindTearsOfThemisCheckInDataSource(tearsOfThemisCheckInDataSourceImpl: TearsOfThemisCheckInDataSourceImpl): TearsOfThemisCheckInDataSource
+    fun bindCommonCheckInDataSource(commonCheckInDataSourceImpl: CommonCheckInDataSourceImpl): CommonCheckInDataSource
 
     @Binds
     @Singleton

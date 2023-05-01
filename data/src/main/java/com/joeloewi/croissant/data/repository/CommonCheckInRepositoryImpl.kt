@@ -16,21 +16,21 @@
 
 package com.joeloewi.croissant.data.repository
 
-import com.joeloewi.croissant.data.repository.remote.TearsOfThemisCheckInDataSource
+import com.joeloewi.croissant.data.repository.remote.CommonCheckInDataSource
 import com.joeloewi.croissant.domain.common.HoYoLABRetCode
 import com.joeloewi.croissant.domain.common.exception.HoYoLABUnsuccessfulResponseException
 import com.joeloewi.croissant.domain.entity.BaseResponse
-import com.joeloewi.croissant.domain.repository.TearsOfThemisCheckInRepository
+import com.joeloewi.croissant.domain.repository.CommonCheckInRepository
 import com.skydoves.sandwich.getOrThrow
 import javax.inject.Inject
 
-class TearsOfThemisCheckInRepositoryImpl @Inject constructor(
-    private val themisCheckInDataSource: TearsOfThemisCheckInDataSource
-) : TearsOfThemisCheckInRepository {
+class CommonCheckInRepositoryImpl @Inject constructor(
+    private val commonCheckInDataSource: CommonCheckInDataSource
+): CommonCheckInRepository {
 
-    override suspend fun attendCheckInTearsOfThemis(cookie: String): Result<BaseResponse> =
-        themisCheckInDataSource.runCatching {
-            attendCheckInTearsOfThemis(cookie = cookie).getOrThrow().also { response ->
+    override suspend fun attend(actId: String, cookie: String): Result<BaseResponse> =
+        commonCheckInDataSource.runCatching {
+            attend(actId, cookie).getOrThrow().also { response ->
                 if (HoYoLABRetCode.findByCode(response.retCode) != HoYoLABRetCode.OK) {
                     throw HoYoLABUnsuccessfulResponseException(
                         responseMessage = response.message,

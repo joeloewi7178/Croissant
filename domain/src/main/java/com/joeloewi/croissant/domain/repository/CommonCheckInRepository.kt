@@ -18,6 +18,7 @@ package com.joeloewi.croissant.domain.repository
 
 import com.joeloewi.croissant.domain.entity.BaseResponse
 
-interface TearsOfThemisCheckInRepository {
-    suspend fun attendCheckInTearsOfThemis(cookie: String): Result<BaseResponse>
+interface CommonCheckInRepository {
+
+    suspend fun attend(actId: String, cookie: String): Result<BaseResponse>
 }

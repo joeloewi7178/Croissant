@@ -14,17 +14,12 @@
  *    limitations under the License.
  */
 
-package com.joeloewi.croissant.data.repository.remote.impl
+package com.joeloewi.croissant.data.repository.remote
 
-import com.joeloewi.croissant.data.api.dao.TearsOfThemisCheckInService
 import com.joeloewi.croissant.data.api.model.response.AttendanceResponse
-import com.joeloewi.croissant.data.repository.remote.TearsOfThemisCheckInDataSource
 import com.skydoves.sandwich.ApiResponse
-import javax.inject.Inject
 
-class TearsOfThemisCheckInDataSourceImpl @Inject constructor(
-    private val tearsOfThemisCheckInService: TearsOfThemisCheckInService,
-) : TearsOfThemisCheckInDataSource {
-    override suspend fun attendCheckInTearsOfThemis(cookie: String): ApiResponse<AttendanceResponse> =
-        tearsOfThemisCheckInService.attendTearsOfThemis(cookie = cookie)
+interface CommonCheckInDataSource {
+
+    suspend fun attend(actId: String, cookie: String): ApiResponse<AttendanceResponse>
 }

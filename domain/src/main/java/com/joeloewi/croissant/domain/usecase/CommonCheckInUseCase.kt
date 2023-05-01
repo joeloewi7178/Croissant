@@ -16,16 +16,28 @@
 
 package com.joeloewi.croissant.domain.usecase
 
-import com.joeloewi.croissant.domain.repository.TearsOfThemisCheckInRepository
+import com.joeloewi.croissant.domain.repository.CommonCheckInRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-sealed class TearsOfThemisCheckInUseCase {
+sealed class CommonCheckInUseCase {
+
     class AttendCheckInTearsOfThemis @Inject constructor(
-        private val tearsOfThemisCheckInRepository: TearsOfThemisCheckInRepository
-    ) : TearsOfThemisCheckInUseCase() {
-        suspend operator fun invoke(cookie: String) =
-            tearsOfThemisCheckInRepository.attendCheckInTearsOfThemis(cookie = cookie)
+        private val commonCheckInRepository: CommonCheckInRepository
+    ) {
+        suspend operator fun invoke(
+            actId: String = "e202202281857121",
+            cookie: String
+        ) = commonCheckInRepository.attend(actId, cookie)
+    }
+
+    class AttendCheckInHonkaiStarRail @Inject constructor(
+        private val commonCheckInRepository: CommonCheckInRepository
+    ) {
+        suspend operator fun invoke(
+            actId: String = "e202303301540311",
+            cookie: String
+        ) = commonCheckInRepository.attend(actId, cookie)
     }
 }

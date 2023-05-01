@@ -94,6 +94,19 @@ class RedemptionCodesViewModel @Inject constructor(
                     }
                 }
 
+                HoYoLABGame.HonkaiStarRail -> {
+                    getArticleArcaLiveAppUseCase(
+                        slug = "hkstarrail",
+                        articleId = 69911111
+                    ).mapCatching { content ->
+                        Jsoup.parse(content).apply {
+                            repeat(9) {
+                                select("p:last-child").remove()
+                            }
+                        }.select("p:nth-child(n+48)").html().replace("https://oo.pe/", "")
+                    }
+                }
+
                 else -> {
                     runCatching {
                         ""

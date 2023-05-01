@@ -1,21 +1,20 @@
 package com.joeloewi.croissant.state
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import com.google.accompanist.pager.ExperimentalPagerApi
-import com.google.accompanist.pager.PagerState
-import com.google.accompanist.pager.rememberPagerState
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.croissant.viewmodel.AttendanceLogsCalendarViewModel
 import java.time.Month
 import java.time.Year
 import java.time.YearMonth
 
-@OptIn(ExperimentalPagerApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Stable
-class AttendanceLogsCalendarState constructor(
+class AttendanceLogsCalendarState(
     val snackbarHostState: SnackbarHostState,
     val pagerState: PagerState,
     private val navController: NavHostController,
@@ -67,13 +66,15 @@ class AttendanceLogsCalendarState constructor(
     }
 }
 
-@OptIn(ExperimentalPagerApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun rememberAttendanceLogsCalendarState(
     snackbarHostState: SnackbarHostState = remember {
         SnackbarHostState()
     },
-    pagerState: PagerState = rememberPagerState(initialPage = YearMonth.now().monthValue - 1),
+    pagerState: PagerState = androidx.compose.foundation.pager.rememberPagerState(
+        initialPage = YearMonth.now().monthValue - 1
+    ),
     navController: NavHostController,
     attendanceLogsCalendarViewModel: AttendanceLogsCalendarViewModel,
 ) = remember(
