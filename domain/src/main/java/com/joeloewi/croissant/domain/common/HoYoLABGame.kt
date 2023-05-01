@@ -33,6 +33,10 @@ enum class HoYoLABGame(
         gameId = 4,
         gameIconUrl = "https://webstatic-sea.hoyolab.com/communityweb/business/nxx_hoyoverse.png",
     ),
+    HonkaiStarRail(
+        gameId = 6,
+        gameIconUrl = "https://webstatic-sea.hoyolab.com/communityweb/business/starrail_hoyoverse.png"
+    ),
     Unknown(
         gameId = -1,
         gameIconUrl = "",

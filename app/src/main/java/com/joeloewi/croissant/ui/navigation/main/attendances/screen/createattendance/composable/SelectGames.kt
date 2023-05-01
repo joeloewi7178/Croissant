@@ -56,7 +56,8 @@ fun SelectGames(
         supportedGames = listOf(
             HoYoLABGame.HonkaiImpact3rd,
             HoYoLABGame.GenshinImpact,
-            HoYoLABGame.TearsOfThemis
+            HoYoLABGame.TearsOfThemis,
+            HoYoLABGame.HonkaiStarRail
         ).toImmutableList()
     )
     val connectedGames = selectGamesState.connectedGames
@@ -358,7 +359,7 @@ fun ConnectedGamesContentListItem(
 
     val enabled by remember(hoYoLABGame, gameRecord) {
         derivedStateOf {
-            hoYoLABGame == HoYoLABGame.TearsOfThemis ||
+            hoYoLABGame == HoYoLABGame.TearsOfThemis || hoYoLABGame == HoYoLABGame.HonkaiStarRail ||
                     currentGameRecord.gameId != GameRecord.INVALID_GAME_ID
         }
     }

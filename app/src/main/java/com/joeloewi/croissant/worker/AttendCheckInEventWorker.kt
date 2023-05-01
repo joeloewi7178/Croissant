@@ -22,6 +22,7 @@ import coil.request.ImageRequest
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.data.common.generateGameIntent
+import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.domain.common.HoYoLABRetCode
 import com.joeloewi.croissant.domain.common.LoggableWorker
 import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
@@ -30,11 +31,11 @@ import com.joeloewi.croissant.domain.entity.FailureLog
 import com.joeloewi.croissant.domain.entity.SuccessLog
 import com.joeloewi.croissant.domain.entity.WorkerExecutionLog
 import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
+import com.joeloewi.croissant.domain.usecase.CommonCheckInUseCase
 import com.joeloewi.croissant.domain.usecase.FailureLogUseCase
 import com.joeloewi.croissant.domain.usecase.GenshinImpactCheckInUseCase
 import com.joeloewi.croissant.domain.usecase.HonkaiImpact3rdCheckInUseCase
 import com.joeloewi.croissant.domain.usecase.SuccessLogUseCase
-import com.joeloewi.croissant.domain.usecase.TearsOfThemisCheckInUseCase
 import com.joeloewi.croissant.domain.usecase.WorkerExecutionLogUseCase
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.croissant.util.CroissantPermission
@@ -44,8 +45,6 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 import java.util.UUID
 
@@ -54,9 +53,10 @@ class AttendCheckInEventWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted private val params: WorkerParameters,
     private val getOneAttendanceUseCase: AttendanceUseCase.GetOne,
-    private val attendCheckInGenshinImpactHoYoLABUseCase: GenshinImpactCheckInUseCase.AttendCheckInGenshinImpact,
-    private val attendCheckInHonkaiImpact3rdHoYoLABUseCase: HonkaiImpact3rdCheckInUseCase.AttendCheckInHonkaiImpact3rd,
-    private val attendCheckInTearsOfThemisHoYoLABUseCase: TearsOfThemisCheckInUseCase.AttendCheckInTearsOfThemis,
+    private val attendCheckInGenshinImpactUseCase: GenshinImpactCheckInUseCase.AttendCheckInGenshinImpact,
+    private val attendCheckInHonkaiImpact3rdUseCase: HonkaiImpact3rdCheckInUseCase.AttendCheckInHonkaiImpact3rd,
+    private val attendCheckInTearsOfThemisUseCase: CommonCheckInUseCase.AttendCheckInTearsOfThemis,
+    private val attendCheckInHonkaiStarRail: CommonCheckInUseCase.AttendCheckInHonkaiStarRail,
     private val insertWorkerExecutionLogUseCase: WorkerExecutionLogUseCase.Insert,
     private val insertSuccessLogUseCase: SuccessLogUseCase.Insert,
     private val insertFailureLogUseCase: FailureLogUseCase.Insert
@@ -140,7 +140,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
         context: Context,
         channelId: String,
         nickname: String,
-        hoYoLABGame: com.joeloewi.croissant.domain.common.HoYoLABGame,
+        hoYoLABGame: HoYoLABGame,
         region: String,
         message: String,
         retCode: Int
@@ -192,7 +192,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
         context: Context,
         channelId: String,
         nickname: String,
-        hoYoLABGame: com.joeloewi.croissant.domain.common.HoYoLABGame,
+        hoYoLABGame: HoYoLABGame,
         region: String,
         hoYoLABUnsuccessfulResponseException: HoYoLABUnsuccessfulResponseException
     ) = createSuccessfulAttendanceNotification(
@@ -210,7 +210,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
         context: Context,
         channelId: String,
         nickname: String,
-        hoYoLABGame: com.joeloewi.croissant.domain.common.HoYoLABGame,
+        hoYoLABGame: HoYoLABGame,
     ): Notification = NotificationCompat
         .Builder(context, channelId)
         .setContentTitle(
@@ -275,141 +275,142 @@ class AttendCheckInEventWorker @AssistedInject constructor(
             val cookie = attendanceWithGames.attendance.cookie
 
             //attend check in events
-            attendanceWithGames.games.map { game ->
-                //do parallel jobs
-                async(Dispatchers.IO) {
-                    try {
-                        when (game.type) {
-                            com.joeloewi.croissant.domain.common.HoYoLABGame.HonkaiImpact3rd -> {
-                                attendCheckInHonkaiImpact3rdHoYoLABUseCase(cookie)
-                            }
-
-                            com.joeloewi.croissant.domain.common.HoYoLABGame.GenshinImpact -> {
-                                attendCheckInGenshinImpactHoYoLABUseCase(cookie)
-                            }
-
-                            com.joeloewi.croissant.domain.common.HoYoLABGame.TearsOfThemis -> {
-                                attendCheckInTearsOfThemisHoYoLABUseCase(cookie)
-                            }
-
-                            com.joeloewi.croissant.domain.common.HoYoLABGame.Unknown -> {
-                                throw Exception()
-                            }
-                        }.getOrThrow().also { response ->
-                            createSuccessfulAttendanceNotification(
-                                context = context,
-                                channelId = context.getString(R.string.attendance_notification_channel_id),
-                                nickname = attendanceWithGames.attendance.nickname,
-                                hoYoLABGame = game.type,
-                                region = game.region,
-                                message = response.message,
-                                retCode = response.retCode
-                            ).let { notification ->
-                                if (context.packageManager.checkPermission(
-                                        CroissantPermission.POST_NOTIFICATIONS_PERMISSION_COMPAT,
-                                        context.packageName
-                                    ) == PackageManager.PERMISSION_GRANTED
-                                ) {
-                                    NotificationManagerCompat.from(context).notify(
-                                        UUID.randomUUID().toString(),
-                                        game.type.gameId,
-                                        notification
-                                    )
-                                }
-                            }
-
-                            val executionLogId = insertWorkerExecutionLogUseCase(
-                                WorkerExecutionLog(
-                                    attendanceId = attendanceId,
-                                    state = WorkerExecutionLogState.SUCCESS,
-                                    loggableWorker = LoggableWorker.ATTEND_CHECK_IN_EVENT
-                                )
-                            )
-
-                            insertSuccessLogUseCase(
-                                SuccessLog(
-                                    executionLogId = executionLogId,
-                                    gameName = game.type,
-                                    retCode = response.retCode,
-                                    message = response.message
-                                )
-                            )
+            attendanceWithGames.games.forEach { game ->
+                try {
+                    when (game.type) {
+                        HoYoLABGame.HonkaiImpact3rd -> {
+                            attendCheckInHonkaiImpact3rdUseCase(cookie)
                         }
-                    } catch (cause: CancellationException) {
-                        throw cause
-                    } catch (cause: Throwable) {
-                        if (cause is HoYoLABUnsuccessfulResponseException) {
-                            when (HoYoLABRetCode.findByCode(cause.retCode)) {
-                                HoYoLABRetCode.AlreadyCheckedIn -> {
-                                    //do not log to crashlytics
-                                }
 
-                                else -> {
-                                    FirebaseCrashlytics.getInstance().apply {
-                                        log(this@AttendCheckInEventWorker.javaClass.simpleName)
-                                        recordException(cause)
-                                    }
-                                }
-                            }
+                        HoYoLABGame.GenshinImpact -> {
+                            attendCheckInGenshinImpactUseCase(cookie)
+                        }
 
-                            createUnsuccessfulAttendanceNotification(
-                                context = context,
-                                channelId = context.getString(R.string.attendance_notification_channel_id),
-                                nickname = attendanceWithGames.attendance.nickname,
-                                hoYoLABGame = game.type,
-                                region = game.region,
-                                hoYoLABUnsuccessfulResponseException = cause
-                            ).let { notification ->
-                                if (context.packageManager.checkPermission(
-                                        CroissantPermission.POST_NOTIFICATIONS_PERMISSION_COMPAT,
-                                        context.packageName
-                                    ) == PackageManager.PERMISSION_GRANTED
-                                ) {
-                                    NotificationManagerCompat.from(context).notify(
-                                        UUID.randomUUID().toString(),
-                                        game.type.gameId,
-                                        notification
-                                    )
-                                }
-                            }
-                        } else {
-                            //if result is unsuccessful with unknown error
-                            //retry for three times
+                        HoYoLABGame.TearsOfThemis -> {
+                            attendCheckInTearsOfThemisUseCase(cookie = cookie)
+                        }
 
-                            /*if (runAttemptCount > 3) {
-                                addFailureLog(attendanceId, cause)
-                            } else {
+                        HoYoLABGame.HonkaiStarRail -> {
+                            attendCheckInHonkaiStarRail(cookie = cookie)
+                        }
 
-                            }*/
-                            FirebaseCrashlytics.getInstance().apply {
-                                log(this@AttendCheckInEventWorker.javaClass.simpleName)
-                                recordException(cause)
-                            }
-
-                            createUnsuccessfulAttendanceNotification(
-                                context = context,
-                                channelId = context.getString(R.string.attendance_notification_channel_id),
-                                nickname = attendanceWithGames.attendance.nickname,
-                                hoYoLABGame = game.type,
-                            ).let { notification ->
-                                if (context.packageManager.checkPermission(
-                                        CroissantPermission.POST_NOTIFICATIONS_PERMISSION_COMPAT,
-                                        context.packageName
-                                    ) == PackageManager.PERMISSION_GRANTED
-                                ) {
-                                    NotificationManagerCompat.from(context).notify(
-                                        UUID.randomUUID().toString(),
-                                        game.type.gameId,
-                                        notification
-                                    )
-                                }
+                        HoYoLABGame.Unknown -> {
+                            throw Exception()
+                        }
+                    }.getOrThrow().also { response ->
+                        createSuccessfulAttendanceNotification(
+                            context = context,
+                            channelId = context.getString(R.string.attendance_notification_channel_id),
+                            nickname = attendanceWithGames.attendance.nickname,
+                            hoYoLABGame = game.type,
+                            region = game.region,
+                            message = response.message,
+                            retCode = response.retCode
+                        ).let { notification ->
+                            if (context.packageManager.checkPermission(
+                                    CroissantPermission.POST_NOTIFICATIONS_PERMISSION_COMPAT,
+                                    context.packageName
+                                ) == PackageManager.PERMISSION_GRANTED
+                            ) {
+                                NotificationManagerCompat.from(context).notify(
+                                    UUID.randomUUID().toString(),
+                                    game.type.gameId,
+                                    notification
+                                )
                             }
                         }
 
-                        addFailureLog(attendanceId, cause)
+                        val executionLogId = insertWorkerExecutionLogUseCase(
+                            WorkerExecutionLog(
+                                attendanceId = attendanceId,
+                                state = WorkerExecutionLogState.SUCCESS,
+                                loggableWorker = LoggableWorker.ATTEND_CHECK_IN_EVENT
+                            )
+                        )
+
+                        insertSuccessLogUseCase(
+                            SuccessLog(
+                                executionLogId = executionLogId,
+                                gameName = game.type,
+                                retCode = response.retCode,
+                                message = response.message
+                            )
+                        )
                     }
+                } catch (cause: CancellationException) {
+                    throw cause
+                } catch (cause: Throwable) {
+                    if (cause is HoYoLABUnsuccessfulResponseException) {
+                        when (HoYoLABRetCode.findByCode(cause.retCode)) {
+                            HoYoLABRetCode.AlreadyCheckedIn -> {
+                                //do not log to crashlytics
+                            }
+
+                            else -> {
+                                FirebaseCrashlytics.getInstance().apply {
+                                    log(this@AttendCheckInEventWorker.javaClass.simpleName)
+                                    recordException(cause)
+                                }
+                            }
+                        }
+
+                        createUnsuccessfulAttendanceNotification(
+                            context = context,
+                            channelId = context.getString(R.string.attendance_notification_channel_id),
+                            nickname = attendanceWithGames.attendance.nickname,
+                            hoYoLABGame = game.type,
+                            region = game.region,
+                            hoYoLABUnsuccessfulResponseException = cause
+                        ).let { notification ->
+                            if (context.packageManager.checkPermission(
+                                    CroissantPermission.POST_NOTIFICATIONS_PERMISSION_COMPAT,
+                                    context.packageName
+                                ) == PackageManager.PERMISSION_GRANTED
+                            ) {
+                                NotificationManagerCompat.from(context).notify(
+                                    UUID.randomUUID().toString(),
+                                    game.type.gameId,
+                                    notification
+                                )
+                            }
+                        }
+                    } else {
+                        //if result is unsuccessful with unknown error
+                        //retry for three times
+
+                        /*if (runAttemptCount > 3) {
+                            addFailureLog(attendanceId, cause)
+                        } else {
+
+                        }*/
+                        FirebaseCrashlytics.getInstance().apply {
+                            log(this@AttendCheckInEventWorker.javaClass.simpleName)
+                            recordException(cause)
+                        }
+
+                        createUnsuccessfulAttendanceNotification(
+                            context = context,
+                            channelId = context.getString(R.string.attendance_notification_channel_id),
+                            nickname = attendanceWithGames.attendance.nickname,
+                            hoYoLABGame = game.type,
+                        ).let { notification ->
+                            if (context.packageManager.checkPermission(
+                                    CroissantPermission.POST_NOTIFICATIONS_PERMISSION_COMPAT,
+                                    context.packageName
+                                ) == PackageManager.PERMISSION_GRANTED
+                            ) {
+                                NotificationManagerCompat.from(context).notify(
+                                    UUID.randomUUID().toString(),
+                                    game.type.gameId,
+                                    notification
+                                )
+                            }
+                        }
+                    }
+
+                    addFailureLog(attendanceId, cause)
                 }
-            }.awaitAll()
+            }
         }.fold(
             onSuccess = {
                 Result.success()
