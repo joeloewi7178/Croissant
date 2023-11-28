@@ -54,7 +54,7 @@ sandwich = "2.0.4"
 jsoup = "1.16.2"
 junit = "4.13.2"
 kspPlugin = "1.8.21-1.0.11"
-tts = "2.2.0"
+tts = "2.3.0"
 gmsOssLicensesPlugin = "0.10.6"
 gmsPlayServicesOssLicenses = "17.0.1"
 
