@@ -12,19 +12,6 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
-    <uses-permission
-        android:name="android.permission.READ_PHONE_STATE"
-        tools:node="remove" />
-    <uses-permission
-        android:name="android.permission.READ_EXTERNAL_STORAGE"
-        tools:node="remove"
-        android:maxSdkVersion="32" />
-    <uses-permission
-        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32"
-        tools:ignore="ScopedStorage"
-        tools:node="remove" />
-
     <queries>
         <intent>
             <action android:name="android.intent.action.SENDTO" />
@@ -63,7 +50,7 @@
         android:theme="@style/Theme.AppSplash">
         <profileable
             android:shell="true"
-            tools:targetApi="q" />
+            tools:targetApi="29,q" />
 
         <meta-data
             android:name="android.supports_size_changes"
@@ -77,6 +64,7 @@
             android:authorities="${applicationId}.androidx-startup"
             android:exported="false"
             tools:node="merge">
+
             <!-- in android 13, creating notification channel request post_notifications permission -->
             <!-- so disable auto initializing -->
             <meta-data
