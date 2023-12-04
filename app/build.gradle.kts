@@ -1,12 +1,13 @@
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
-    id("croissant.android.application")
-    id("croissant.android.application.compose")
-    id("croissant.android.hilt")
+    alias(libs.plugins.croissant.android.application)
+    alias(libs.plugins.croissant.android.application.compose)
+    alias(libs.plugins.croissant.android.hilt)
     alias(libs.plugins.gms.google.services)
     id("kotlin-parcelize")
     alias(libs.plugins.firebase.crashlytics)
     id("com.google.android.gms.oss-licenses-plugin")
+    alias(libs.plugins.androidx.baselineprofile)
 }
 
 kotlin {
@@ -50,24 +51,21 @@ android {
             )
             signingConfig = signingConfigs.getByName("release")
         }
-        val benchmark by creating {
-            initWith(release)
-            signingConfig = signingConfigs.getByName("release")
-            matchingFallbacks += listOf("release")
-            isDebuggable = false
-            proguardFiles("baseline-profiles-rules.pro")
-        }
     }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    buildFeatures {
+        buildConfig = true
+    }
 }
 
 dependencies {
     implementation(project(":data"))
     implementation(project(":domain"))
+    baselineProfile(project(":baselineprofile"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.android.material)
@@ -90,7 +88,6 @@ dependencies {
 
     //hilt-extension
     implementation(libs.hilt.ext.work)
-    kapt(libs.hilt.ext.compiler)
 
     //compose
     implementation(libs.androidx.compose.foundation)
