@@ -15,8 +15,8 @@ dependencyResolutionManagement {
     }
 }
 
+rootProject.name = "Croissant"
 include(":app")
 include(":domain")
 include(":data")
-include(":benchmark")
-rootProject.name = "Croissant"
+include(":baselineprofile")
