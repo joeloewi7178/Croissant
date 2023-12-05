@@ -50,7 +50,7 @@
         android:theme="@style/Theme.AppSplash">
         <profileable
             android:shell="true"
-            tools:targetApi="29,q" />
+            tools:targetApi="q" />
 
         <meta-data
             android:name="android.supports_size_changes"
@@ -78,12 +78,6 @@
                 android:value="androidx.startup" />
             <meta-data
                 android:name="com.joeloewi.croissant.initializer.CoilInitializer"
-                android:value="androidx.startup" />
-            <meta-data
-                android:name="com.joeloewi.croissant.initializer.ComposeViewInitializer"
-                android:value="androidx.startup" />
-            <meta-data
-                android:name="com.joeloewi.croissant.initializer.FirebaseAnalyticsInitializer"
                 android:value="androidx.startup" />
             <meta-data
                 android:name="androidx.work.WorkManagerInitializer"

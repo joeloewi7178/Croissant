@@ -20,17 +20,24 @@ import android.content.Context
 import androidx.startup.Initializer
 import androidx.work.Configuration
 import androidx.work.WorkManager
-import com.joeloewi.croissant.di.initializerEntryPoint
+import com.joeloewi.croissant.di.InitializerEntryPoint
+import com.joeloewi.croissant.di.entryPoints
 
 class WorkManagerInitializer : Initializer<WorkManager> {
 
     override fun create(context: Context): WorkManager {
-        val hiltWorkerFactory = context.initializerEntryPoint.hiltWorkerFactory()
+        val initializerEntryPoint: InitializerEntryPoint by context.entryPoints()
+        val hiltWorkerFactory = initializerEntryPoint.hiltWorkerFactory()
+        val executor = initializerEntryPoint.executor()
+        val runnableScheduler = initializerEntryPoint.runnableScheduler()
 
         WorkManager.initialize(
             context,
             Configuration.Builder()
                 .setWorkerFactory(hiltWorkerFactory)
+                .setExecutor(executor)
+                .setTaskExecutor(executor)
+                .setRunnableScheduler(runnableScheduler)
                 .build()
         )
 
