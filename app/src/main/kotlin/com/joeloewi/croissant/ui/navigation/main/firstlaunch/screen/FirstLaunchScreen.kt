@@ -130,8 +130,7 @@ private fun FirstLaunchContent(
                     Text(text = stringResource(id = R.string.grant_permissions_and_start))
                 }
             }
-        },
-        contentWindowInsets = WindowInsets.safeDrawing
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier

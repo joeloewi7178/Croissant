@@ -55,9 +55,10 @@ fun LoginHoYoLABScreen(
         }.toImmutableList(),
         securityPopUpUrls = remember {
             listOf(
-                "https://account.hoyolab.com/security.html?origin=hoyolab",
-                "https://m.hoyolab.com/account-system-sea/security.html?origin=hoyolab",
-                "about:blank"
+                "https://account.hoyolab.com/security.html",
+                "https://m.hoyolab.com/account-system-sea/security.html",
+                "about:blank",
+                "https://account.hoyolab.com/single-page/cross-login.html"
             )
         }.toImmutableList(),
         webViewNavigator = rememberWebViewNavigator()
@@ -68,7 +69,7 @@ fun LoginHoYoLABScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun LoginHoYoLABContent(
@@ -346,7 +347,12 @@ fun LoginHoYoLABContent(
                                             url: String?,
                                             favicon: Bitmap?
                                         ) {
-                                            if (loginHoYoLABState.securityPopUpUrls.contains(url)) {
+                                            if (loginHoYoLABState.securityPopUpUrls.any {
+                                                    url?.contains(
+                                                        it
+                                                    ) == true
+                                                }
+                                            ) {
                                                 dialog.dismiss()
                                             } else {
                                                 dialog.show()

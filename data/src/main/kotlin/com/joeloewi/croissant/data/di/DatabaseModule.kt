@@ -16,26 +16,38 @@
 
 package com.joeloewi.croissant.data.di
 
-import android.app.Application
+import android.content.Context
 import androidx.room.Room
 import com.joeloewi.croissant.data.db.CroissantDatabase
 import com.joeloewi.croissant.data.db.dao.*
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import java.util.concurrent.Executor
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object DataBaseModule {
+object DatabaseModule {
 
+    @Singleton
     @Provides
-    fun provideCroissantDataBase(application: Application): CroissantDatabase =
+    fun provideCroissantDatabase(
+        @IoDispatcherExecutor ioDispatcherExecutor: Executor,
+        @SingleDefaultDispatcherExecutor singleDefaultDispatcherExecutor: Executor,
+        @ApplicationContext context: Context
+    ): CroissantDatabase =
         Room.databaseBuilder(
-            application,
+            context,
             CroissantDatabase::class.java,
             "croissant"
-        ).build()
+        )
+            .setQueryExecutor(ioDispatcherExecutor)
+            .setTransactionExecutor(singleDefaultDispatcherExecutor)
+            .enableMultiInstanceInvalidation()
+            .build()
 
     @Provides
     fun provideAccountDao(croissantDatabase: CroissantDatabase): AccountDao =

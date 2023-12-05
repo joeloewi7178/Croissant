@@ -2,10 +2,10 @@ package com.joeloewi.croissant.ui.navigation.main.attendances.screen.createatten
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.exclude
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
@@ -122,7 +122,7 @@ fun CreateAttendanceContent(
                 )
             )
         },
-        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
+        contentWindowInsets = WindowInsets.systemBars.exclude(WindowInsets.navigationBars)
     ) { innerPadding ->
         when (createAttendanceState.pages[pageIndex]) {
             CreateAttendancePage.GetSession -> {

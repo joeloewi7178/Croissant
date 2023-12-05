@@ -1,11 +1,13 @@
 package com.joeloewi.croissant
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -13,21 +15,18 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRail
@@ -36,7 +35,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -53,7 +51,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.os.bundleOf
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -65,11 +62,11 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
-import com.google.accompanist.navigation.material.ModalBottomSheetLayout
-import com.google.accompanist.navigation.material.bottomSheet
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.android.material.color.DynamicColors
+import com.google.firebase.Firebase
 import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.analytics
 import com.joeloewi.croissant.state.CroissantAppState
 import com.joeloewi.croissant.state.rememberCroissantAppState
 import com.joeloewi.croissant.state.rememberMainState
@@ -112,11 +109,12 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity() {
     private val _mainActivityViewModel: MainActivityViewModel by viewModels()
 
+    @SuppressLint("HardwareIds")
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
 
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        enableEdgeToEdge()
         DynamicColors.applyToActivityIfAvailable(this)
 
         lifecycleScope.launch {
@@ -130,6 +128,13 @@ class MainActivity : AppCompatActivity() {
                 }.collect()
             }
         }
+
+        Firebase.analytics.setUserId(
+            Settings.Secure.getString(
+                contentResolver,
+                Settings.Secure.ANDROID_ID
+            )
+        )
 
         setContent {
             CroissantTheme(
@@ -155,7 +160,6 @@ class MainActivity : AppCompatActivity() {
 @OptIn(
     ExperimentalPermissionsApi::class,
     ExperimentalMaterialApi::class,
-    ExperimentalMaterial3Api::class,
     ExperimentalMaterialNavigationApi::class
 )
 @Composable
@@ -184,53 +188,84 @@ fun CroissantApp() {
         )
     }
 
-    ModalBottomSheetLayout(
-        sheetShape = MaterialTheme.shapes.large.copy(
-            bottomEnd = CornerSize(0),
-            bottomStart = CornerSize(0)
-        ),
-        bottomSheetNavigator = croissantAppState.bottomSheetNavigator,
-        sheetBackgroundColor = MaterialTheme.colorScheme.surface,
-        sheetContentColor = contentColorFor(backgroundColor = MaterialTheme.colorScheme.surface),
-        scrimColor = MaterialTheme.colorScheme.scrim
-    ) {
-        Scaffold(
-            bottomBar = {
-                if (croissantAppState.isBottomNavigationBarVisible) {
-                    CroissantBottomNavigationBar(
-                        croissantAppState = croissantAppState,
-                    )
-                }
-            },
-            contentWindowInsets = WindowInsets.systemBars.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
-        ) { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            ) {
-                Row {
-                    if (croissantAppState.isNavigationRailVisible) {
-                        CroissantNavigationRail(
-                            croissantAppState = croissantAppState
-                        )
-                    }
-                    CroissantNavHost(
-                        modifier = Modifier.animateContentSize(),
-                        navController = croissantAppState.navController,
-                        snackbarHostState = snackbarHostState,
-                        deepLinkUri = { deepLinkUri }
-                    )
-                }
+    Scaffold(
+        bottomBar = {
+            if (croissantAppState.isBottomNavigationBarVisible) {
+                CroissantBottomNavigationBar(
+                    croissantAppState = croissantAppState,
+                )
             }
+        },
+        contentWindowInsets = WindowInsets.systemBars.exclude(WindowInsets.statusBars)
+            .exclude(WindowInsets.navigationBars)
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            Row {
+                if (croissantAppState.isNavigationRailVisible) {
+                    CroissantNavigationRail(
+                        croissantAppState = croissantAppState
+                    )
+                }
+                CroissantNavHost(
+                    modifier = Modifier
+                        .animateContentSize(),
+                    navController = croissantAppState.navController,
+                    snackbarHostState = snackbarHostState,
+                    deepLinkUri = { deepLinkUri }
+                )
+            }
+        }
 
-            if (isDeviceRooted) {
+        if (isDeviceRooted) {
+            AlertDialog(
+                onDismissRequest = {},
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            activity.finish()
+                        }
+                    ) {
+                        Text(text = stringResource(id = R.string.confirm))
+                    }
+                },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Warning,
+                        contentDescription = Icons.Default.Warning.name
+                    )
+                },
+                title = {
+                    Text(text = stringResource(id = R.string.caution))
+                },
+                text = {
+                    Text(
+                        text = stringResource(id = R.string.device_rooting_detected),
+                        textAlign = TextAlign.Center
+                    )
+                },
+                properties = DialogProperties(
+                    dismissOnClickOutside = false,
+                    dismissOnBackPress = false
+                )
+            )
+        }
+
+        if (lifecycle == Lifecycle.Event.ON_RESUME) {
+            if (!croissantAppState.canScheduleExactAlarms) {
                 AlertDialog(
                     onDismissRequest = {},
                     confirmButton = {
                         TextButton(
                             onClick = {
-                                activity.finish()
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                    Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).also {
+                                        context.startActivity(it)
+                                    }
+                                }
                             }
                         ) {
                             Text(text = stringResource(id = R.string.confirm))
@@ -247,8 +282,8 @@ fun CroissantApp() {
                     },
                     text = {
                         Text(
-                            text = stringResource(id = R.string.device_rooting_detected),
-                            textAlign = TextAlign.Center
+                            textAlign = TextAlign.Center,
+                            text = stringResource(id = R.string.schedule_exact_alarm_disabled)
                         )
                     },
                     properties = DialogProperties(
@@ -257,51 +292,10 @@ fun CroissantApp() {
                     )
                 )
             }
-
-            if (lifecycle == Lifecycle.Event.ON_RESUME) {
-                if (!croissantAppState.canScheduleExactAlarms) {
-                    AlertDialog(
-                        onDismissRequest = {},
-                        confirmButton = {
-                            TextButton(
-                                onClick = {
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                                        Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).also {
-                                            context.startActivity(it)
-                                        }
-                                    }
-                                }
-                            ) {
-                                Text(text = stringResource(id = R.string.confirm))
-                            }
-                        },
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Default.Warning,
-                                contentDescription = Icons.Default.Warning.name
-                            )
-                        },
-                        title = {
-                            Text(text = stringResource(id = R.string.caution))
-                        },
-                        text = {
-                            Text(
-                                textAlign = TextAlign.Center,
-                                text = stringResource(id = R.string.schedule_exact_alarm_disabled)
-                            )
-                        },
-                        properties = DialogProperties(
-                            dismissOnClickOutside = false,
-                            dismissOnBackPress = false
-                        )
-                    )
-                }
-            }
         }
     }
 }
 
-@OptIn(ExperimentalMaterialNavigationApi::class)
 @Composable
 fun CroissantNavHost(
     modifier: Modifier,
@@ -445,7 +439,7 @@ fun CroissantNavHost(
             }
         }
 
-        bottomSheet(route = FirstLaunchDestination.FirstLaunchScreen.route) {
+        composable(route = FirstLaunchDestination.FirstLaunchScreen.route) {
             val firstLaunchViewModel: FirstLaunchViewModel = hiltViewModel()
 
             FirstLaunchScreen(
@@ -504,9 +498,7 @@ private fun CroissantNavigationRail(
 private fun CroissantBottomNavigationBar(
     croissantAppState: CroissantAppState,
 ) {
-    NavigationBar(
-        windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
-    ) {
+    NavigationBar {
         croissantAppState.croissantNavigations.forEach { croissantNavigation ->
             key(croissantNavigation.route) {
                 val isSelected = croissantAppState.isSelected(route = croissantNavigation.route)

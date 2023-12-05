@@ -57,13 +57,7 @@ interface DataSourceModule {
     fun bindHoYoLABDataSource(hoYoLABDataSourceImpl: HoYoLABDataSourceImpl): HoYoLABDataSource
 
     @Binds
-    fun bindGenshinImpactCheckInDataSource(genshinImpactCheckInDataSourceImpl: GenshinImpactCheckInDataSourceImpl): GenshinImpactCheckInDataSource
-
-    @Binds
-    fun bindHonkaiImpact3rdCheckInDataSource(honkaiImpact3rdCheckInDataSourceImpl: HonkaiImpact3rdCheckInDataSourceImpl): HonkaiImpact3rdCheckInDataSource
-
-    @Binds
-    fun bindCommonCheckInDataSource(commonCheckInDataSourceImpl: CommonCheckInDataSourceImpl): CommonCheckInDataSource
+    fun bindCommonCheckInDataSource(commonCheckInDataSourceImpl: CheckInDataSourceImpl): CheckInDataSource
 
     @Binds
     fun bindArcaLiveAppDataSource(arcaLiveAppAppDataSourceImpl: ArcaLiveAppDataSourceImpl): ArcaLiveAppDataSource

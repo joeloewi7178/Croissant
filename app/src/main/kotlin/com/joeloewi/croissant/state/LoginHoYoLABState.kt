@@ -123,7 +123,7 @@ class LoginHoYoLABState(
         if (isNullOrEmpty()) {
             false
         } else {
-            listOf("ltoken", "cookie_token").map { contains(it) }.all { it }
+            listOf("ltoken_v2", "ltmid_v2").map { contains(it) }.all { it }
         }
 
     private fun setToSavedStateAndNavigateUp(
