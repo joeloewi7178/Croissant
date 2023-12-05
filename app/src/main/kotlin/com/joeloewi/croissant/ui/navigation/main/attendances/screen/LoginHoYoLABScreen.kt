@@ -409,7 +409,12 @@ fun LoginHoYoLABContent(
                                             url: String?,
                                             favicon: Bitmap?
                                         ) {
-                                            if (securityPopUpUrls.any { url?.contains(it) == true }) {
+                                            if (securityPopUpUrls.any {
+                                                    url?.contains(
+                                                        it
+                                                    ) == true
+                                                }
+                                            ) {
                                                 dialog.dismiss()
                                             } else {
                                                 dialog.show()
