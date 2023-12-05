@@ -37,7 +37,7 @@ import kotlinx.collections.immutable.toImmutableList
     ExperimentalMaterialNavigationApi::class
 )
 @Stable
-class CroissantAppState constructor(
+class CroissantAppState(
     val multiplePermissionsState: MultiplePermissionsState,
     val modalBottomSheetState: ModalBottomSheetState,
     val bottomSheetNavigator: BottomSheetNavigator,
@@ -70,9 +70,12 @@ class CroissantAppState constructor(
     val isCompactWindowSize
         get() = windowSizeClass.isCompactWindowSize()
 
+    val isChildRoute
+        @Composable get() = navBackStackEntry?.destination?.route == navBackStackEntry?.destination?.parent?.startDestinationRoute
+
     val isBottomNavigationBarVisible
         @Composable
-        get() = !isFullScreenDestination && isCompactWindowSize
+        get() = !isFullScreenDestination && isCompactWindowSize && isChildRoute
 
     val isNavigationRailVisible
         @Composable get() = !isFullScreenDestination && !isCompactWindowSize

@@ -19,7 +19,9 @@ import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import coil.imageLoader
 import coil.request.ImageRequest
+import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.firebase.crashlytics.crashlytics
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.data.common.generateGameIntent
 import com.joeloewi.croissant.domain.common.HoYoLABGame
@@ -31,10 +33,8 @@ import com.joeloewi.croissant.domain.entity.FailureLog
 import com.joeloewi.croissant.domain.entity.SuccessLog
 import com.joeloewi.croissant.domain.entity.WorkerExecutionLog
 import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
-import com.joeloewi.croissant.domain.usecase.CommonCheckInUseCase
+import com.joeloewi.croissant.domain.usecase.CheckInUseCase
 import com.joeloewi.croissant.domain.usecase.FailureLogUseCase
-import com.joeloewi.croissant.domain.usecase.GenshinImpactCheckInUseCase
-import com.joeloewi.croissant.domain.usecase.HonkaiImpact3rdCheckInUseCase
 import com.joeloewi.croissant.domain.usecase.SuccessLogUseCase
 import com.joeloewi.croissant.domain.usecase.WorkerExecutionLogUseCase
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
@@ -53,10 +53,10 @@ class AttendCheckInEventWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted private val params: WorkerParameters,
     private val getOneAttendanceUseCase: AttendanceUseCase.GetOne,
-    private val attendCheckInGenshinImpactUseCase: GenshinImpactCheckInUseCase.AttendCheckInGenshinImpact,
-    private val attendCheckInHonkaiImpact3rdUseCase: HonkaiImpact3rdCheckInUseCase.AttendCheckInHonkaiImpact3rd,
-    private val attendCheckInTearsOfThemisUseCase: CommonCheckInUseCase.AttendCheckInTearsOfThemis,
-    private val attendCheckInHonkaiStarRail: CommonCheckInUseCase.AttendCheckInHonkaiStarRail,
+    private val attendCheckInGenshinImpactUseCase: CheckInUseCase.AttendCheckInGenshinImpact,
+    private val attendCheckInHonkaiImpact3rdUseCase: CheckInUseCase.AttendCheckInHonkaiImpact3rd,
+    private val attendCheckInTearsOfThemisUseCase: CheckInUseCase.AttendCheckInTearsOfThemis,
+    private val attendCheckInHonkaiStarRail: CheckInUseCase.AttendCheckInHonkaiStarRail,
     private val insertWorkerExecutionLogUseCase: WorkerExecutionLogUseCase.Insert,
     private val insertSuccessLogUseCase: SuccessLogUseCase.Insert,
     private val insertFailureLogUseCase: FailureLogUseCase.Insert
@@ -105,7 +105,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                 ForegroundInfo(
                     notificationId,
                     this,
-                    ServiceInfo.FOREGROUND_SERVICE_TYPE_NONE
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
                 )
             } else {
                 ForegroundInfo(
@@ -267,6 +267,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
     }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
+        setForeground(createForegroundInfo(_attendanceId.toInt()))
         _attendanceId.runCatching {
             takeIf { it != Long.MIN_VALUE }!!
         }.mapCatching { attendanceId ->
@@ -279,11 +280,11 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                 try {
                     when (game.type) {
                         HoYoLABGame.HonkaiImpact3rd -> {
-                            attendCheckInHonkaiImpact3rdUseCase(cookie)
+                            attendCheckInHonkaiImpact3rdUseCase(cookie = cookie)
                         }
 
                         HoYoLABGame.GenshinImpact -> {
-                            attendCheckInGenshinImpactUseCase(cookie)
+                            attendCheckInGenshinImpactUseCase(cookie = cookie)
                         }
 
                         HoYoLABGame.TearsOfThemis -> {
@@ -347,7 +348,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                             }
 
                             else -> {
-                                FirebaseCrashlytics.getInstance().apply {
+                                Firebase.crashlytics.apply {
                                     log(this@AttendCheckInEventWorker.javaClass.simpleName)
                                     recordException(cause)
                                 }

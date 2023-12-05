@@ -16,26 +16,42 @@
 
 package com.joeloewi.croissant.domain.usecase
 
-import com.joeloewi.croissant.domain.repository.CommonCheckInRepository
+import com.joeloewi.croissant.domain.repository.CheckInRepository
 import javax.inject.Inject
 
-sealed class CommonCheckInUseCase {
+sealed class CheckInUseCase {
 
     class AttendCheckInTearsOfThemis @Inject constructor(
-        private val commonCheckInRepository: CommonCheckInRepository
+        private val checkInRepository: CheckInRepository
     ) {
         suspend operator fun invoke(
             actId: String = "e202202281857121",
             cookie: String
-        ) = commonCheckInRepository.attend(actId, cookie)
+        ) = checkInRepository.attend(actId, cookie)
     }
 
     class AttendCheckInHonkaiStarRail @Inject constructor(
-        private val commonCheckInRepository: CommonCheckInRepository
+        private val checkInRepository: CheckInRepository
     ) {
         suspend operator fun invoke(
             actId: String = "e202303301540311",
             cookie: String
-        ) = commonCheckInRepository.attend(actId, cookie)
+        ) = checkInRepository.attend(actId, cookie)
+    }
+
+    class AttendCheckInHonkaiImpact3rd @Inject constructor(
+        private val checkInRepository: CheckInRepository
+    ) {
+        suspend operator fun invoke(
+            cookie: String
+        ) = checkInRepository.attendCheckInHonkaiImpact3rd(cookie)
+    }
+
+    class AttendCheckInGenshinImpact @Inject constructor(
+        private val checkInRepository: CheckInRepository
+    ) {
+        suspend operator fun invoke(
+            cookie: String
+        ) = checkInRepository.attendCheckInGenshinImpact(cookie)
     }
 }

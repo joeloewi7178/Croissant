@@ -3,16 +3,12 @@ package com.joeloewi.croissant
 import android.appwidget.AppWidgetManager
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -64,7 +60,7 @@ class ResinStatusWidgetConfigurationActivity : AppCompatActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
 
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        enableEdgeToEdge()
         DynamicColors.applyToActivityIfAvailable(this)
 
         lifecycleScope.launch {
@@ -91,7 +87,6 @@ class ResinStatusWidgetConfigurationActivity : AppCompatActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResinStatusWidgetConfigurationApp() {
     val navController = rememberNavController()
@@ -118,9 +113,7 @@ fun ResinStatusWidgetConfigurationApp() {
         )
     }
 
-    Scaffold(
-        contentWindowInsets = WindowInsets.systemBars.exclude(WindowInsets.statusBars)
-    ) { innerPadding ->
+    Scaffold { innerPadding ->
         NavHost(
             modifier = Modifier
                 .fillMaxSize()

@@ -23,6 +23,7 @@ android {
         applicationId = "com.joeloewi.croissant"
         versionCode = 41
         versionName = "1.2.0"
+        targetSdk = 34
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -139,8 +140,8 @@ dependencies {
 
     //firebase
     implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.analytics.ktx)
-    implementation(libs.firebase.crashlytics.ktx)
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.crashlytics)
 
     //leakCanary
     debugImplementation(libs.leakcanary.android)
