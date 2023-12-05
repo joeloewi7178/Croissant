@@ -16,16 +16,25 @@
 
 package com.joeloewi.croissant.data.repository.remote.impl
 
-import com.joeloewi.croissant.data.api.dao.CommonCheckInService
+import com.joeloewi.croissant.data.api.dao.CheckInService
 import com.joeloewi.croissant.data.api.model.response.AttendanceResponse
-import com.joeloewi.croissant.data.repository.remote.CommonCheckInDataSource
+import com.joeloewi.croissant.data.repository.remote.CheckInDataSource
 import com.skydoves.sandwich.ApiResponse
 import javax.inject.Inject
 
-class CommonCheckInDataSourceImpl @Inject constructor(
-    private val commonCheckInService: CommonCheckInService
-) : CommonCheckInDataSource {
+class CheckInDataSourceImpl @Inject constructor(
+    private val checkInService: CheckInService
+) : CheckInDataSource {
 
     override suspend fun attend(actId: String, cookie: String): ApiResponse<AttendanceResponse> =
-        commonCheckInService.attend(actId = actId, cookie = cookie)
+        checkInService.attendCommon(actId = actId, cookie = cookie)
+
+    override suspend fun attendCheckInGenshinImpact(
+        cookie: String
+    ): ApiResponse<AttendanceResponse> = checkInService.attendCheckInGenshinImpact(cookie = cookie)
+
+    override suspend fun attendCheckInHonkaiImpact3rd(
+        cookie: String
+    ): ApiResponse<AttendanceResponse> =
+        checkInService.attendCheckInHonkaiImpact3rd(cookie = cookie)
 }

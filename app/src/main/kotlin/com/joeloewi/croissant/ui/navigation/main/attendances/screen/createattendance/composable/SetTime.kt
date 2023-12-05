@@ -2,22 +2,21 @@ package com.joeloewi.croissant.ui.navigation.main.attendances.screen.createatten
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -42,10 +41,6 @@ import com.joeloewi.croissant.util.TimePicker
 import com.joeloewi.croissant.util.dateTimeFormatterPerHourFormat
 import java.time.ZonedDateTime
 
-@OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalLayoutApi::class,
-)
 @Composable
 fun SetTime(
     modifier: Modifier,
@@ -57,7 +52,8 @@ fun SetTime(
             FilledTonalButton(
                 modifier = Modifier
                     .padding(horizontal = DefaultDp)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .navigationBarsPadding(),
                 onClick = createAttendanceState::onNextButtonClick
             ) {
                 Row(
@@ -75,7 +71,7 @@ fun SetTime(
                 }
             }
         },
-        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
+        contentWindowInsets = WindowInsets.systemBars.exclude(WindowInsets.statusBars)
     ) { innerPadding ->
         Column(
             modifier = Modifier

@@ -14,10 +14,16 @@
  *    limitations under the License.
  */
 
-package com.joeloewi.croissant.domain.repository
+package com.joeloewi.croissant.data.repository.remote
 
-import com.joeloewi.croissant.domain.entity.BaseResponse
+import com.joeloewi.croissant.data.api.model.response.AttendanceResponse
+import com.skydoves.sandwich.ApiResponse
 
-interface HonkaiImpact3rdCheckInRepository {
-    suspend fun attendCheckInHonkaiImpact3rd(cookie: String): Result<BaseResponse>
+interface CheckInDataSource {
+
+    suspend fun attend(actId: String, cookie: String): ApiResponse<AttendanceResponse>
+
+    suspend fun attendCheckInGenshinImpact(cookie: String): ApiResponse<AttendanceResponse>
+
+    suspend fun attendCheckInHonkaiImpact3rd(cookie: String): ApiResponse<AttendanceResponse>
 }

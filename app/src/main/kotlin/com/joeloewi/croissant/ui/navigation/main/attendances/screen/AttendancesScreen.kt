@@ -14,13 +14,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -198,7 +198,7 @@ private fun AttendancesContent(
                 )
             }
         },
-        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
+        contentWindowInsets = WindowInsets.systemBars.exclude(WindowInsets.navigationBars)
     ) { innerPadding ->
         if (pagedAttendancesWithGames.isEmpty()) {
             Column(
@@ -373,7 +373,7 @@ private fun SwipeToDismissBackground(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun DismissContent(
     elevation: Dp,
@@ -389,7 +389,8 @@ private fun DismissContent(
             .clickable { onClickAttendance(currentAttendanceWithGames.attendance) },
         supportingContent = {
             LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(space = HalfDp)
+                horizontalArrangement = Arrangement.spacedBy(space = HalfDp),
+                userScrollEnabled = false
             ) {
                 items(
                     items = currentAttendanceWithGames.games,
@@ -399,7 +400,7 @@ private fun DismissContent(
                         modifier = Modifier
                             .animateItemPlacement()
                             .size(IconDp)
-                            .clip(MaterialTheme.shapes.extraSmall),
+                            .shadow(4.dp, shape = MaterialTheme.shapes.extraSmall),
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(game.type.gameIconUrl)
                             .build(),

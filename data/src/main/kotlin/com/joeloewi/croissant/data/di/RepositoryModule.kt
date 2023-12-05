@@ -55,13 +55,7 @@ interface RepositoryModule {
     fun bindHoYoLABRepository(hoYoLABRepositoryImpl: HoYoLABRepositoryImpl): HoYoLABRepository
 
     @Binds
-    fun bindGenshinImpactCheckInRepository(genshinImpactCheckInRepositoryImpl: GenshinImpactCheckInRepositoryImpl): GenshinImpactCheckInRepository
-
-    @Binds
-    fun bindHonkaiImpact3rdCheckInRepository(honkaiImpact3rdCheckInRepositoryImpl: HonkaiImpact3rdCheckInRepositoryImpl): HonkaiImpact3rdCheckInRepository
-
-    @Binds
-    fun bindCommonCheckInRepository(commonCheckInRepositoryImpl: CommonCheckInRepositoryImpl): CommonCheckInRepository
+    fun bindCommonCheckInRepository(checkInRepositoryImpl: CheckInRepositoryImpl): CheckInRepository
 
     @Binds
     fun bindArcaLiveAppRepository(arcaLiveAppRepositoryImpl: ArcaLiveAppRepositoryImpl): ArcaLiveAppRepository

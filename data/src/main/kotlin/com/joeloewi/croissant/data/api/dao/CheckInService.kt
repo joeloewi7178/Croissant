@@ -21,9 +21,24 @@ import com.skydoves.sandwich.ApiResponse
 import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Query
-import java.util.*
+import java.util.Locale
 
-interface HonkaiImpact3rdCheckInService {
+interface CheckInService {
+
+    @POST("event/luna/os/sign")
+    suspend fun attendCommon(
+        @Query("act_id") actId: String,
+        @Query("lang") language: String = Locale.getDefault().toLanguageTag().lowercase(),
+        @Header("Cookie") cookie: String
+    ): ApiResponse<AttendanceResponse>
+
+    @POST("event/sol/sign")
+    suspend fun attendCheckInGenshinImpact(
+        @Query("act_id") actId: String = "e202102251931481",
+        @Query("lang") language: String = Locale.getDefault().toLanguageTag().lowercase(),
+        @Header("Cookie") cookie: String
+    ): ApiResponse<AttendanceResponse>
+
     @POST("event/mani/sign")
     suspend fun attendCheckInHonkaiImpact3rd(
         @Query("act_id") actId: String = "e202110291205111",

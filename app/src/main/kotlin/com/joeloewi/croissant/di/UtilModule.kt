@@ -5,9 +5,12 @@ import android.app.Application
 import android.content.Context
 import android.os.PowerManager
 import androidx.core.content.getSystemService
+import androidx.work.RunnableScheduler
 import coil.ImageLoader
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.util.RootChecker
+import com.joeloewi.croissant.util.impl.RunnableSchedulerImpl
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -41,4 +44,14 @@ object UtilModule {
         .okHttpClient(okHttpClient)
         .placeholder(R.drawable.image_placeholder)
         .build()
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class UtilModuleForBind {
+    @Singleton
+    @Binds
+    abstract fun bindRunnableScheduler(
+        runnableSchedulerImpl: RunnableSchedulerImpl
+    ): RunnableScheduler
 }

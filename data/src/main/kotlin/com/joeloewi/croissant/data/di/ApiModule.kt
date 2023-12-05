@@ -33,41 +33,13 @@ import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
 import retrofit2.create
+import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object ApiModule {
-
-    @Provides
-    fun providePolymorphicJsonAdapterFactory(): PolymorphicJsonAdapterFactory<BaseResponse> =
-        PolymorphicJsonAdapterFactory.of(
-            BaseResponse::class.java,
-            "type"
-        ).withSubtype(
-            UserFullInfoResponse::class.java,
-            "userFullInfoResponse"
-        ).withSubtype(
-            GameRecordCardResponse::class.java,
-            "gameRecordCardResponse"
-        ).withSubtype(
-            AttendanceResponse::class.java,
-            "attendanceResponse"
-        ).withSubtype(
-            GenshinDailyNoteResponse::class.java,
-            "genshinDailyNoteResponse"
-        ).withSubtype(
-            ChangeDataSwitchResponse::class.java,
-            "changeDataSwitchResponse"
-        )
-
-    @Provides
-    fun provideMoshi(
-        polymorphicJsonAdapterFactory: PolymorphicJsonAdapterFactory<BaseResponse>
-    ): Moshi = Moshi.Builder()
-        .add(polymorphicJsonAdapterFactory)
-        .build()
 
     @Singleton
     @Provides
@@ -77,24 +49,53 @@ object ApiModule {
         .writeTimeout(1, TimeUnit.MINUTES)
         .run {
             if (BuildConfig.DEBUG) {
-                this.addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BASIC))
+                addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
             } else {
                 this
             }
         }
         .build()
 
+    @Singleton
     @Provides
     fun provideRetrofitBuilder(
-        okHttpClient: OkHttpClient,
-        moshi: Moshi
+        @IoDispatcherExecutor executor: Executor,
+        okHttpClient: OkHttpClient
     ): Retrofit.Builder = Retrofit.Builder()
         .client(okHttpClient)
         .addConverterFactory(ScalarsConverterFactory.create())
         .addCallAdapterFactory(ApiResponseCallAdapterFactory.create())
-        .addConverterFactory(MoshiConverterFactory.create(moshi))
+        .callbackExecutor(executor)
+        .addConverterFactory(
+            MoshiConverterFactory.create(
+                Moshi.Builder()
+                    .add(
+                        PolymorphicJsonAdapterFactory.of(
+                            BaseResponse::class.java,
+                            "type"
+                        ).withSubtype(
+                            UserFullInfoResponse::class.java,
+                            "userFullInfoResponse"
+                        ).withSubtype(
+                            GameRecordCardResponse::class.java,
+                            "gameRecordCardResponse"
+                        ).withSubtype(
+                            AttendanceResponse::class.java,
+                            "attendanceResponse"
+                        ).withSubtype(
+                            GenshinDailyNoteResponse::class.java,
+                            "genshinDailyNoteResponse"
+                        ).withSubtype(
+                            ChangeDataSwitchResponse::class.java,
+                            "changeDataSwitchResponse"
+                        )
+                    )
+                    .build()
+            )
+        )
         .validateEagerly(true)
 
+    @Singleton
     @Provides
     fun provideHoYoLabService(retrofitBuilder: Retrofit.Builder): HoYoLABService =
         retrofitBuilder
@@ -102,27 +103,15 @@ object ApiModule {
             .build()
             .create()
 
+    @Singleton
     @Provides
-    fun provideGenshinImpactCheckInService(retrofitBuilder: Retrofit.Builder): GenshinImpactCheckInService =
-        retrofitBuilder
-            .baseUrl("https://hk4e-api-os.mihoyo.com/")
-            .build()
-            .create()
-
-    @Provides
-    fun provideHonkaiImpact3rdCheckInService(retrofitBuilder: Retrofit.Builder): HonkaiImpact3rdCheckInService =
-        retrofitBuilder
-            .baseUrl("https://api-os-takumi.mihoyo.com/")
-            .build()
-            .create()
-
-    @Provides
-    fun provideCommonCheckInService(retrofitBuilder: Retrofit.Builder): CommonCheckInService =
+    fun provideCommonCheckInService(retrofitBuilder: Retrofit.Builder): CheckInService =
         retrofitBuilder
             .baseUrl("https://sg-public-api.hoyolab.com/")
             .build()
             .create()
 
+    @Singleton
     @Provides
     fun provideArcaLiveAppService(retrofitBuilder: Retrofit.Builder): ArcaLiveAppService =
         retrofitBuilder

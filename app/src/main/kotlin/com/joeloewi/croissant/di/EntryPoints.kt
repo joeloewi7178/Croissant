@@ -19,12 +19,15 @@ package com.joeloewi.croissant.di
 import android.app.Application
 import android.content.Context
 import androidx.hilt.work.HiltWorkerFactory
+import androidx.work.RunnableScheduler
 import coil.ImageLoader
+import com.joeloewi.croissant.data.di.DefaultDispatcherExecutor
 import dagger.hilt.EntryPoint
-import dagger.hilt.EntryPoints
 import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
-import kotlin.properties.ReadOnlyProperty
+import java.util.concurrent.Executor
+import kotlin.reflect.KClass
 
 @EntryPoint
 @InstallIn(SingletonComponent::class)
@@ -32,11 +35,26 @@ interface InitializerEntryPoint {
     fun imageLoader(): ImageLoader
     fun hiltWorkerFactory(): HiltWorkerFactory
     fun application(): Application
+
+    @DefaultDispatcherExecutor
+    fun executor(): Executor
+    fun runnableScheduler(): RunnableScheduler
 }
 
-inline fun <reified EntryPoint> entryPoints() =
-    ReadOnlyProperty<Context, EntryPoint> { thisRef, _ ->
-        EntryPoints.get(thisRef, EntryPoint::class.java)
-    }
+inline fun <reified EntryPoint : Any> Context.entryPoints(): Lazy<EntryPoint> = EntryPointLazy(
+    entryPointInterface = EntryPoint::class,
+    context = this
+)
 
-val Context.initializerEntryPoint: InitializerEntryPoint by entryPoints()
+class EntryPointLazy<EntryPoint : Any>(
+    private val entryPointInterface: KClass<EntryPoint>,
+    private val context: Context
+) : Lazy<EntryPoint> {
+    private var cached: EntryPoint? = null
+    override val value: EntryPoint
+        get() = EntryPointAccessors.fromApplication(context, entryPointInterface.java).also {
+            cached = it
+        }
+
+    override fun isInitialized(): Boolean = cached != null
+}
