@@ -6,7 +6,6 @@ import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,27 +28,30 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
-import androidx.navigation.NavHostController
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.domain.entity.UserInfo
-import com.joeloewi.croissant.state.CreateResinStatusWidgetState
 import com.joeloewi.croissant.state.Lce
-import com.joeloewi.croissant.state.rememberCreateResinStatusWidgetState
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.COOKIE
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
@@ -57,76 +59,62 @@ import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.ProgressDialog
 import com.joeloewi.croissant.util.getResultFromPreviousComposable
 import com.joeloewi.croissant.viewmodel.CreateResinStatusWidgetViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.withContext
 
 @Composable
 fun CreateResinStatusWidgetScreen(
-    navController: NavHostController,
-    createResinStatusWidgetViewModel: CreateResinStatusWidgetViewModel
+    createResinStatusWidgetViewModel: CreateResinStatusWidgetViewModel = hiltViewModel()
 ) {
-    val context = LocalContext.current
-    val activity = LocalActivity.current
-    val createResinStatusWidgetState =
-        rememberCreateResinStatusWidgetState(
-            navController = navController,
-            createResinStatusWidgetViewModel = createResinStatusWidgetViewModel
-        )
-    val getUserInfoState = createResinStatusWidgetState.getUserInfoState
-
-    LaunchedEffect(activity) {
-        with(activity) {
-            val resultValue = Intent().apply {
-                putExtra(
-                    AppWidgetManager.EXTRA_APPWIDGET_ID,
-                    createResinStatusWidgetState.appWidgetId
-                )
-            }
-            setResult(Activity.RESULT_CANCELED, resultValue)
-        }
-    }
-
-    LaunchedEffect(createResinStatusWidgetState) {
-        getResultFromPreviousComposable<String>(
-            navController = navController,
-            key = COOKIE
-        )?.let {
-            createResinStatusWidgetState.onReceiveCookie(cookie = it)
-        }
-    }
-
-    LaunchedEffect(getUserInfoState) {
-        with(getUserInfoState) {
-            when (this) {
-                is Lce.Error -> {
-                    createResinStatusWidgetState.snackbarHostState.showSnackbar(context.getString(R.string.error_occurred))
-                }
-
-                else -> {}
-            }
-        }
-    }
+    val getInfoUserState by createResinStatusWidgetViewModel.getUserInfoState.collectAsStateWithLifecycle(
+        context = Dispatchers.Default
+    )
+    val insertResinStatusWidgetState by createResinStatusWidgetViewModel.createResinStatusWidgetState.collectAsStateWithLifecycle(
+        context = Dispatchers.Default
+    )
+    val appWidgetId by createResinStatusWidgetViewModel.appWidgetId.collectAsStateWithLifecycle(
+        context = Dispatchers.Default
+    )
+    val userInfos = remember { createResinStatusWidgetViewModel.userInfos }
 
     CreateResinStatusWidgetContent(
-        createResinStatusWidgetState = createResinStatusWidgetState,
+        getInfoUserState = { getInfoUserState },
+        insertResinStatusWidgetState = { insertResinStatusWidgetState },
+        appWidgetId = { appWidgetId },
+        userInfos = userInfos,
+        onClickAdd = {
+
+        },
+        onClickDone = createResinStatusWidgetViewModel::configureAppWidget,
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateResinStatusWidgetContent(
-    createResinStatusWidgetState: CreateResinStatusWidgetState,
+    getInfoUserState: () -> Lce<UserInfo?>,
+    insertResinStatusWidgetState: () -> Lce<List<Long>>,
+    appWidgetId: () -> Int,
+    userInfos: SnapshotStateList<Pair<String, UserInfo>>,
+    onClickAdd: () -> Unit,
+    onClickDone: () -> Unit
 ) {
+    val context = LocalContext.current
     val activity = LocalActivity.current
-    val insertResinStatusWidgetState = createResinStatusWidgetState.insertResinStatusWidgetState
     val lazyListState = rememberLazyListState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(insertResinStatusWidgetState) {
-        when (insertResinStatusWidgetState) {
-            is Lce.Content -> {
-                if (insertResinStatusWidgetState.content.isNotEmpty()) {
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.Default) {
+            snapshotFlow(insertResinStatusWidgetState).catch { }
+                .filterIsInstance<Lce.Content<List<Long>>>().collect() {
+                if (it.content.isNotEmpty()) {
                     val resultValue = Intent().apply {
                         putExtra(
                             AppWidgetManager.EXTRA_APPWIDGET_ID,
-                            createResinStatusWidgetState.appWidgetId
+                            appWidgetId()
                         )
                     }
                     with(activity) {
@@ -135,19 +123,45 @@ fun CreateResinStatusWidgetContent(
                     }
                 }
             }
-
-            else -> {
-
-            }
         }
     }
+
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.Default) {
+            snapshotFlow(getInfoUserState).catch { }.filterIsInstance<Lce.Content<UserInfo?>>()
+                .collect {
+                    snackbarHostState.showSnackbar(context.getString(R.string.error_occurred))
+                }
+        }
+    }
+
+    LaunchedEffect(activity) {
+        with(activity) {
+            val resultValue = Intent().apply {
+                putExtra(
+                    AppWidgetManager.EXTRA_APPWIDGET_ID,
+                    appWidgetId()
+                )
+            }
+            setResult(Activity.RESULT_CANCELED, resultValue)
+        }
+    }
+
+    /*LaunchedEffect(createResinStatusWidgetState) {
+        getResultFromPreviousComposable<String>(
+            navController = navController,
+            key = COOKIE
+        )?.let {
+            createResinStatusWidgetState.onReceiveCookie(cookie = it)
+        }
+    }*/
 
     BackHandler {
         with(activity) {
             val resultValue = Intent().apply {
                 putExtra(
                     AppWidgetManager.EXTRA_APPWIDGET_ID,
-                    createResinStatusWidgetState.appWidgetId
+                    appWidgetId()
                 )
             }
             setResult(Activity.RESULT_CANCELED, resultValue)
@@ -164,11 +178,11 @@ fun CreateResinStatusWidgetContent(
             )
         },
         snackbarHost = {
-            SnackbarHost(hostState = createResinStatusWidgetState.snackbarHostState)
+            SnackbarHost(hostState = snackbarHostState)
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = createResinStatusWidgetState::onClickAdd
+                onClick = onClickAdd
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -181,8 +195,8 @@ fun CreateResinStatusWidgetContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(DefaultDp),
-                enabled = createResinStatusWidgetState.userInfos.isNotEmpty(),
-                onClick = createResinStatusWidgetState::onClickDone
+                enabled = userInfos.isNotEmpty(),
+                onClick = onClickDone
             ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(
@@ -202,7 +216,7 @@ fun CreateResinStatusWidgetContent(
             }
         }
     ) { innerPadding ->
-        if (createResinStatusWidgetState.userInfos.isEmpty()) {
+        if (userInfos.isEmpty()) {
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -250,8 +264,8 @@ fun CreateResinStatusWidgetContent(
                             alignment = Alignment.CenterHorizontally
                         )
                     ) {
-                        createResinStatusWidgetState.selectableIntervals.forEach {
-                            val isSelected = createResinStatusWidgetState.interval == it
+                        selectableIntervals.forEach {
+                            val isSelected = interval == it
 
                             Row(
                                 modifier = Modifier.toggleable(
@@ -259,7 +273,7 @@ fun CreateResinStatusWidgetContent(
                                     role = Role.RadioButton,
                                     onValueChange = { checked ->
                                         if (checked) {
-                                            createResinStatusWidgetState.onIntervalChange(it)
+                                            onIntervalChange(it)
                                         }
                                     }
                                 ),
@@ -288,7 +302,7 @@ fun CreateResinStatusWidgetContent(
                 }
 
                 items(
-                    items = createResinStatusWidgetState.userInfos,
+                    items = userInfos,
                     key = { it.first }
                 ) { item ->
                     UserInfoListItem(
@@ -298,13 +312,13 @@ fun CreateResinStatusWidgetContent(
             }
         }
 
-        if (createResinStatusWidgetState.showProgressDialog) {
+        if (showProgressDialog) {
             ProgressDialog(
                 onDismissRequest = {}
             )
         }
 
-        if (createResinStatusWidgetState.showUserInfoProgressDialog) {
+        if (showUserInfoProgressDialog) {
             ProgressDialog(
                 title = { Text(text = stringResource(id = R.string.retrieving_data)) },
                 onDismissRequest = {}

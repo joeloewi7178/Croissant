@@ -37,7 +37,7 @@ import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.CreateAttendanceState
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.util.LocalHourFormat
-import com.joeloewi.croissant.util.TimePicker
+import com.joeloewi.croissant.util.TimeAndTimePicker
 import com.joeloewi.croissant.util.dateTimeFormatterPerHourFormat
 import java.time.ZonedDateTime
 
@@ -147,7 +147,7 @@ fun SetTime(
 private fun TimePickerWithState(
     createAttendanceState: CreateAttendanceState
 ) {
-    TimePicker(
+    TimeAndTimePicker(
         modifier = Modifier.fillMaxWidth(),
         hourOfDay = createAttendanceState.hourOfDay,
         minute = createAttendanceState.minute,

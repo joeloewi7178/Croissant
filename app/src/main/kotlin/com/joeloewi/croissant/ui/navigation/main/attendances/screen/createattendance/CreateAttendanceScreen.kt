@@ -23,10 +23,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavHostController
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.state.CreateAttendancePage
-import com.joeloewi.croissant.state.CreateAttendanceState
 import com.joeloewi.croissant.state.Lce
-import com.joeloewi.croissant.state.rememberCreateAttendanceState
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.COOKIE
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.composable.GetSession
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.composable.SelectGames

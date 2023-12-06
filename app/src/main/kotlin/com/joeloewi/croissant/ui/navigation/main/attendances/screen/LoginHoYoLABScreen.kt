@@ -16,7 +16,11 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -26,27 +30,35 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.view.WindowCompat
-import androidx.navigation.NavHostController
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import com.google.accompanist.web.*
 import com.joeloewi.croissant.BuildConfig
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.Lce
-import com.joeloewi.croissant.state.LoginHoYoLABState
-import com.joeloewi.croissant.state.rememberLoginHoYoLABState
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.viewmodel.LoginHoYoLABViewModel
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 
 const val COOKIE = "cookie"
 
 @Composable
 fun LoginHoYoLABScreen(
-    navController: NavHostController,
-    loginHoYoLABViewModel: LoginHoYoLABViewModel
+    loginHoYoLABViewModel: LoginHoYoLABViewModel = hiltViewModel(),
+    onNavigateUp: () -> Unit,
+    onNavigateUpWithResult: (cookie: String) -> Unit
 ) {
-    val loginHoYoLABState = rememberLoginHoYoLABState(
+    val removeAllCookiesState by loginHoYoLABViewModel.removeAllCookies.collectAsStateWithLifecycle(
+        context = Dispatchers.Default
+    )
+    /*val loginHoYoLABState = rememberLoginHoYoLABState(
         navController = navController,
         loginHoYoLABViewModel = loginHoYoLABViewModel,
         hoyolabUrl = remember { "https://m.hoyolab.com" },
@@ -62,10 +74,12 @@ fun LoginHoYoLABScreen(
             )
         }.toImmutableList(),
         webViewNavigator = rememberWebViewNavigator()
-    )
+    )*/
 
     LoginHoYoLABContent(
-        loginHoYoLABState = loginHoYoLABState
+        removeAllCookiesState = removeAllCookiesState,
+        onNavigateUp = onNavigateUp,
+        onNavigateUpWithResult = onNavigateUpWithResult
     )
 }
 
@@ -73,18 +87,39 @@ fun LoginHoYoLABScreen(
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun LoginHoYoLABContent(
-    loginHoYoLABState: LoginHoYoLABState
+    removeAllCookiesState: Lce<Boolean>,
+    onNavigateUp: () -> Unit,
+    onNavigateUpWithResult: (cookie: String) -> Unit
 ) {
     val incorrectSession = stringResource(id = R.string.incorrect_session)
     val context = LocalContext.current
     val activity = LocalActivity.current
+    val hoyolabUrl = remember { "https://m.hoyolab.com" }
+    val webViewState = rememberWebViewState(url = hoyolabUrl)
+    val webViewNavigator = rememberWebViewNavigator()
+    val coroutineScope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val cookieKeys = remember { listOf("ltoken_v2", "ltmid_v2").toImmutableList() }
+    val securityPopUpUrls = remember {
+        listOf(
+            "https://account.hoyolab.com/security.html",
+            "https://m.hoyolab.com/account-system-sea/security.html",
+            "about:blank",
+            "https://account.hoyolab.com/single-page/cross-login.html"
+        )
+    }.toImmutableList()
+    val excludedUrls = remember {
+        listOf("www.webstatic-sea.mihoyo.com", "www.webstatic-sea.hoyolab.com")
+    }.toImmutableList()
+    var showSslErrorDialog by remember { mutableStateOf<Pair<SslErrorHandler?, SslError?>?>(null) }
+    val checkCookieMutex = remember { Mutex() }
 
     Scaffold(
         topBar = {
             Column {
                 TopAppBar(
                     navigationIcon = {
-                        IconButton(onClick = loginHoYoLABState::onClickClose) {
+                        IconButton(onClick = onNavigateUp) {
                             Icon(
                                 imageVector = Icons.Default.Close,
                                 contentDescription = Icons.Default.Close.name
@@ -93,11 +128,11 @@ fun LoginHoYoLABContent(
                     },
                     actions = {
                         ReloadOrStopLoading(
-                            isLoading = loginHoYoLABState.webViewState.isLoading,
+                            isLoading = webViewState.isLoading,
                             reload = {
                                 IconButton(
                                     onClick = {
-                                        loginHoYoLABState.webViewNavigator.reload()
+                                        webViewNavigator.reload()
                                     }
                                 ) {
                                     Icon(
@@ -109,7 +144,7 @@ fun LoginHoYoLABContent(
                             stopLoading = {
                                 IconButton(
                                     onClick = {
-                                        loginHoYoLABState.webViewNavigator.stopLoading()
+                                        webViewNavigator.stopLoading()
                                     }
                                 ) {
                                     Icon(
@@ -122,7 +157,21 @@ fun LoginHoYoLABContent(
 
                         IconButton(
                             onClick = {
-                                loginHoYoLABState.tryToCatchCookie(failureMessage = incorrectSession)
+                                coroutineScope.launch(Dispatchers.Default) {
+                                    val currentCookie = withContext(Dispatchers.IO) {
+                                        CookieManager.getInstance().getCookie(hoyolabUrl)
+                                    }
+
+                                    if (cookieKeys.map { currentCookie.contains(it) }.all { it }) {
+                                        withContext(Dispatchers.Main) {
+                                            onNavigateUpWithResult(currentCookie)
+                                        }
+                                    } else {
+                                        snackbarHostState.showSnackbar(
+                                            message = incorrectSession
+                                        )
+                                    }
+                                }
                             }
                         ) {
                             Icon(
@@ -134,13 +183,13 @@ fun LoginHoYoLABContent(
                     title = {
                         Column {
                             Text(
-                                text = loginHoYoLABState.pageTitle,
+                                text = webViewState.pageTitle ?: "Title",
                                 style = MaterialTheme.typography.titleMedium,
                                 overflow = TextOverflow.Ellipsis,
                                 maxLines = 1
                             )
                             Text(
-                                text = loginHoYoLABState.currentUrl,
+                                text = webViewState.lastLoadedUrl ?: "",
                                 style = MaterialTheme.typography.bodyMedium,
                                 overflow = TextOverflow.Ellipsis,
                                 maxLines = 1
@@ -148,7 +197,7 @@ fun LoginHoYoLABContent(
                         }
                     }
                 )
-                with(loginHoYoLABState.webViewState.loadingState) {
+                with(webViewState.loadingState) {
                     when (this) {
                         is LoadingState.Loading -> {
                             LinearProgressIndicator(
@@ -169,18 +218,18 @@ fun LoginHoYoLABContent(
             }
         },
         snackbarHost = {
-            SnackbarHost(hostState = loginHoYoLABState.snackbarHostState)
+            SnackbarHost(hostState = snackbarHostState)
         },
         contentWindowInsets = WindowInsets.safeDrawing.exclude(WindowInsets.navigationBars)
     ) { innerPadding ->
-        when (loginHoYoLABState.removeAllCookiesState) {
+        when (removeAllCookiesState) {
             is Lce.Content -> {
                 WebView(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding),
-                    state = loginHoYoLABState.webViewState,
-                    navigator = loginHoYoLABState.webViewNavigator,
+                    state = webViewState,
+                    navigator = webViewNavigator,
                     onCreated = { webView ->
                         with(webView) {
                             settings.apply {
@@ -234,7 +283,7 @@ fun LoginHoYoLABContent(
                                 error: SslError?
                             ) {
                                 super.onReceivedSslError(view, handler, error)
-                                loginHoYoLABState.onShowSslErrorDialogChange(handler to error)
+                                showSslErrorDialog = handler to error
                             }
 
                             override fun shouldInterceptRequest(
@@ -249,7 +298,20 @@ fun LoginHoYoLABContent(
 
                                 //so, after switching context to main thread, store that job in variable
                                 //if the variable is null to ensure execute only once
-                                loginHoYoLABState.checkAndCatchCookieOnlyOnce()
+
+                                coroutineScope.launch(Dispatchers.Default) {
+                                    checkCookieMutex.withLock {
+                                        val currentCookie =
+                                            CookieManager.getInstance().getCookie(hoyolabUrl)
+
+                                        if (cookieKeys.map { currentCookie.contains(it) }
+                                                .all { it }) {
+                                            withContext(Dispatchers.Main) {
+                                                onNavigateUpWithResult(currentCookie)
+                                            }
+                                        }
+                                    }
+                                }
 
                                 return super.shouldInterceptRequest(view, request)
                             }
@@ -257,23 +319,23 @@ fun LoginHoYoLABContent(
                             override fun shouldOverrideUrlLoading(
                                 view: WebView?,
                                 request: WebResourceRequest?
-                            ): Boolean =
-                                loginHoYoLABState.shouldOverrideUrlLoading(
-                                    request = request,
-                                    runOuterApplication = { uri ->
-                                        if (uri != null) {
-                                            activity.startActivity(
-                                                Intent(
-                                                    Intent.ACTION_VIEW,
-                                                    uri
-                                                )
+                            ): Boolean = if ((mutableListOf(hoyolabUrl) + excludedUrls).all {
+                                    (request?.url?.toString()?.contains(it) == false)
+                                }) {
+                                coroutineScope.launch {
+                                    request?.url?.let {
+                                        activity.startActivity(
+                                            Intent(
+                                                Intent.ACTION_VIEW,
+                                                it
                                             )
-                                        }
-                                    },
-                                    processOnWebView = {
-                                        super.shouldOverrideUrlLoading(view, request)
+                                        )
                                     }
-                                )
+                                }
+                                true
+                            } else {
+                                super.shouldOverrideUrlLoading(view, request)
+                            }
                         }
                     },
                     chromeClient = remember {
@@ -347,12 +409,7 @@ fun LoginHoYoLABContent(
                                             url: String?,
                                             favicon: Bitmap?
                                         ) {
-                                            if (loginHoYoLABState.securityPopUpUrls.any {
-                                                    url?.contains(
-                                                        it
-                                                    ) == true
-                                                }
-                                            ) {
+                                            if (securityPopUpUrls.any { url?.contains(it) == true }) {
                                                 dialog.dismiss()
                                             } else {
                                                 dialog.show()
@@ -393,10 +450,10 @@ fun LoginHoYoLABContent(
         }
     }
 
-    if (loginHoYoLABState.showSslErrorDialog != null) {
+    if (showSslErrorDialog != null) {
         AlertDialog(
             onDismissRequest = {
-                loginHoYoLABState.onShowSslErrorDialogChange(null)
+                showSslErrorDialog = null
             },
             properties = DialogProperties(
                 dismissOnClickOutside = false,
@@ -404,14 +461,14 @@ fun LoginHoYoLABContent(
             ),
             confirmButton = {
                 TextButton(
-                    onClick = loginHoYoLABState::onConfirmSslErrorDialog
+                    onClick = { showSslErrorDialog?.first?.proceed() }
                 ) {
                     Text(text = stringResource(id = R.string.confirm))
                 }
             },
             dismissButton = {
                 TextButton(
-                    onClick = loginHoYoLABState::onCancelSslErrorDialog
+                    onClick = { showSslErrorDialog?.first?.cancel() }
                 ) {
                     Text(text = stringResource(id = R.string.dismiss))
                 }
@@ -429,7 +486,7 @@ fun LoginHoYoLABContent(
                 Text(
                     text = buildAnnotatedString {
                         append(stringResource(id = R.string.website_user_try_to_access))
-                        loginHoYoLABState.showSslErrorDialog?.second?.url?.let {
+                        showSslErrorDialog?.second?.url?.let {
                             append("(${it})")
                         }
                         append(stringResource(id = R.string.has_error_in_certification))

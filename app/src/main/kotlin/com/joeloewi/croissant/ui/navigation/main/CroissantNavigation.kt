@@ -17,7 +17,7 @@ sealed class CroissantNavigation(
     val outlinedIcon: ImageVector,
     @StringRes val resourceId: Int
 ) {
-    object Attendances :
+    data object Attendances :
         CroissantNavigation(
             route = "attendances",
             filledIcon = Icons.Filled.TaskAlt,
@@ -25,7 +25,7 @@ sealed class CroissantNavigation(
             resourceId = R.string.navigation_label_attendance
         )
 
-    object RedemptionCodes :
+    data object RedemptionCodes :
         CroissantNavigation(
             route = "redemptionCodes",
             filledIcon = Icons.Filled.Redeem,
@@ -33,9 +33,17 @@ sealed class CroissantNavigation(
             resourceId = R.string.navigation_label_redemption_codes
         )
 
-    object Settings :
+    data object Settings :
         CroissantNavigation(
             route = "settings",
+            filledIcon = Icons.Filled.Settings,
+            outlinedIcon = Icons.Outlined.Settings,
+            resourceId = R.string.navigation_label_settings
+        )
+
+    data object Global :
+        CroissantNavigation(
+            route = "global",
             filledIcon = Icons.Filled.Settings,
             outlinedIcon = Icons.Outlined.Settings,
             resourceId = R.string.navigation_label_settings

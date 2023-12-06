@@ -10,8 +10,9 @@ import com.google.android.play.core.ktx.AppUpdateResult
 import com.google.android.play.core.ktx.requestUpdateFlow
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.joeloewi.croissant.domain.usecase.SettingsUseCase
+import com.joeloewi.croissant.domain.usecase.SystemUseCase
 import com.joeloewi.croissant.util.HourFormat
-import com.joeloewi.croissant.util.is24HourFormat
+import com.joeloewi.croissant.util.RootChecker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
@@ -28,12 +29,16 @@ import javax.inject.Inject
 @FlowPreview
 @HiltViewModel
 class MainActivityViewModel @Inject constructor(
-    private val application: Application,
+    application: Application,
     getSettingsUseCase: SettingsUseCase.GetSettings,
+    is24HourFormat: SystemUseCase.Is24HourFormat,
+    rootChecker: RootChecker,
 ) : ViewModel() {
     private val _settings = getSettingsUseCase()
 
-    val hourFormat = application.is24HourFormat.flowOn(Dispatchers.Default).stateIn(
+    val hourFormat = is24HourFormat().flowOn(Dispatchers.Default).map {
+        HourFormat.fromSystemHourFormat(it)
+    }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Lazily,
         initialValue = HourFormat.fromSystemHourFormat(DateFormat.is24HourFormat(application))
@@ -60,6 +65,13 @@ class MainActivityViewModel @Inject constructor(
     val darkThemeEnabled = _settings.map { it.darkThemeEnabled }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(),
+        initialValue = false
+    )
+    val isDeviceRooted = flow {
+        emit(rootChecker.isDeviceRooted())
+    }.flowOn(Dispatchers.Default).stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Lazily,
         initialValue = false
     )
 }

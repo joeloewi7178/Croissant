@@ -40,7 +40,7 @@ class RedemptionCodesViewModel @Inject constructor(
         _hoYoLABGameRedemptionCodesState.update { Lce.Loading }
         viewModelScope.launch(Dispatchers.IO) {
             _hoYoLABGameRedemptionCodesState.update {
-                HoYoLABGame.values().runCatching {
+                HoYoLABGame.entries.runCatching {
                     map {
                         async(SupervisorJob() + Dispatchers.IO) {
                             it to HtmlCompat.fromHtml(
