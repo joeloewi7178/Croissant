@@ -69,7 +69,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -84,9 +83,6 @@ import androidx.work.WorkManager
 import androidx.work.workDataOf
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.MultiplePermissionsState
-import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
@@ -94,12 +90,10 @@ import com.joeloewi.croissant.R
 import com.joeloewi.croissant.domain.entity.Attendance
 import com.joeloewi.croissant.domain.entity.relational.AttendanceWithGames
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
-import com.joeloewi.croissant.ui.navigation.main.firstlaunch.FirstLaunchDestination
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.ui.theme.HalfDp
 import com.joeloewi.croissant.ui.theme.IconDp
-import com.joeloewi.croissant.util.CroissantPermission
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.LocalHourFormat
 import com.joeloewi.croissant.util.dateTimeFormatterPerHourFormat
@@ -112,7 +106,6 @@ import kotlinx.coroutines.launch
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
-@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun AttendancesScreen(
     navController: NavHostController,
@@ -120,22 +113,11 @@ fun AttendancesScreen(
     attendancesViewModel: AttendancesViewModel = hiltViewModel()
 ) {
     val pagedAttendancesWithGames =
-        attendancesViewModel.pagedAttendanceWithGames.collectAsLazyPagingItems(Dispatchers.IO)
-    val isFirstLaunch: Boolean by
-    attendancesViewModel.isFirstLaunch.collectAsStateWithLifecycle(context = Dispatchers.IO)
-    val multiplePermissionsState: MultiplePermissionsState = rememberMultiplePermissionsState(
-        permissions = listOf(
-            CroissantPermission.AccessHoYoLABSession.permission,
-            CroissantPermission.POST_NOTIFICATIONS_PERMISSION_COMPAT
-        )
-    )
-    val activity = LocalActivity.current
+        attendancesViewModel.pagedAttendanceWithGames.collectAsLazyPagingItems(context = Dispatchers.IO)
 
     AttendancesContent(
         snackbarHostState = snackbarHostState,
         pagedAttendancesWithGames = pagedAttendancesWithGames,
-        isFirstLaunch = isFirstLaunch,
-        isAllPermissionsGranted = multiplePermissionsState.allPermissionsGranted,
         onCreateAttendanceClick = {
             navController.navigate(AttendancesDestination.CreateAttendanceScreen.route)
         },
@@ -144,13 +126,6 @@ fun AttendancesScreen(
             navController.navigate(
                 AttendancesDestination.AttendanceDetailScreen().generateRoute(it.id)
             )
-        },
-        onShowFirstLaunchScreen = {
-            navController.navigate(FirstLaunchDestination.FirstLaunchScreen.route) {
-                popUpTo(activity::class.java.simpleName) {
-                    inclusive = true
-                }
-            }
         }
     )
 }
@@ -163,19 +138,10 @@ fun AttendancesScreen(
 private fun AttendancesContent(
     snackbarHostState: SnackbarHostState,
     pagedAttendancesWithGames: LazyPagingItems<AttendanceWithGames>,
-    isFirstLaunch: Boolean,
-    isAllPermissionsGranted: Boolean,
     onCreateAttendanceClick: () -> Unit,
     onDeleteAttendance: (Attendance) -> Unit,
     onClickAttendance: (Attendance) -> Unit,
-    onShowFirstLaunchScreen: () -> Unit
 ) {
-
-    LaunchedEffect(isFirstLaunch, isAllPermissionsGranted) {
-        if (isFirstLaunch || !isAllPermissionsGranted) {
-            onShowFirstLaunchScreen()
-        }
-    }
 
     Scaffold(
         topBar = {
@@ -310,7 +276,6 @@ fun AttendanceWithGamesItem(
 
                     coroutineScope.launch {
                         requestReview(
-                            context = context,
                             activity = activity,
                             logMessage = "ImmediateAttendance"
                         )

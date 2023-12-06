@@ -20,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.os.bundleOf
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -43,8 +42,6 @@ import com.joeloewi.croissant.ui.theme.CroissantTheme
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.viewmodel.CreateResinStatusWidgetViewModel
 import com.joeloewi.croissant.viewmodel.LoadingViewModel
-import com.joeloewi.croissant.viewmodel.LoginHoYoLABViewModel
-import com.joeloewi.croissant.viewmodel.ResinStatusWidgetDetailViewModel
 import com.joeloewi.croissant.viewmodel.WidgetConfigurationActivityViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
@@ -77,7 +74,7 @@ class ResinStatusWidgetConfigurationActivity : AppCompatActivity() {
 
         setContent {
             CroissantTheme(
-                window = window
+                window = { window }
             ) {
                 CompositionLocalProvider(LocalActivity provides this) {
                     ResinStatusWidgetConfigurationApp()
@@ -178,12 +175,13 @@ fun ResinStatusWidgetConfigurationApp() {
                 composable(
                     route = ResinStatusWidgetConfigurationDestination.LoginHoYoLABScreen.route,
                 ) {
-                    val loginHoYoLABViewModel: LoginHoYoLABViewModel =
-                        hiltViewModel()
-
                     LoginHoYoLABScreen(
-                        navController = navController,
-                        loginHoYoLABViewModel = loginHoYoLABViewModel
+                        onNavigateUp = {
+                            navController.navigateUp()
+                        },
+                        onNavigateUpWithResult = {
+
+                        }
                     )
                 }
 
@@ -195,13 +193,7 @@ fun ResinStatusWidgetConfigurationApp() {
                         }
                     }
                 ) {
-                    val resinStatusWidgetDetailViewModel: ResinStatusWidgetDetailViewModel =
-                        hiltViewModel()
-
-                    ResinStatusWidgetDetailScreen(
-                        navController = navController,
-                        resinStatusWidgetDetailViewModel = resinStatusWidgetDetailViewModel
-                    )
+                    ResinStatusWidgetDetailScreen()
                 }
             }
         }

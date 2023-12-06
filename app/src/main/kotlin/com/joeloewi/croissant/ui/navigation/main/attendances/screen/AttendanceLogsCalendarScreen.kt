@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DeleteSweep
@@ -30,6 +31,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -48,11 +50,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavHostController
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.state.AttendanceLogsCalendarState
 import com.joeloewi.croissant.state.Lce
-import com.joeloewi.croissant.state.rememberAttendanceLogsCalendarState
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.ui.theme.HalfDp
@@ -66,49 +66,62 @@ import com.joeloewi.croissant.util.navigationIconButton
 import com.joeloewi.croissant.viewmodel.AttendanceLogsCalendarViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.Month
 import java.time.Year
 import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AttendanceLogsCalendarScreen(
-    navController: NavHostController,
-    attendanceLogsCalendarViewModel: AttendanceLogsCalendarViewModel = hiltViewModel()
+    attendanceLogsCalendarViewModel: AttendanceLogsCalendarViewModel = hiltViewModel(),
+    onNavigateUp: () -> Unit
 ) {
-    val attendanceLogsCalendarState = rememberAttendanceLogsCalendarState(
-        navController = navController,
-        attendanceLogsCalendarViewModel = attendanceLogsCalendarViewModel
+    val deleteAllState by attendanceLogsCalendarViewModel.deleteAllState.collectAsStateWithLifecycle(
+        context = Dispatchers.Default
     )
+    val year by attendanceLogsCalendarViewModel.year.collectAsStateWithLifecycle(context = Dispatchers.Default)
 
     AttendanceLogsCalendarContent(
-        attendanceLogsCalendarState = attendanceLogsCalendarState,
+        deleteAllState = { deleteAllState },
+        year = { year },
+        onYearChange = attendanceLogsCalendarViewModel::setYear,
+        onDeleteAll = attendanceLogsCalendarViewModel::deleteAll,
+        onNavigateUp = onNavigateUp
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 private fun AttendanceLogsCalendarContent(
-    attendanceLogsCalendarState: AttendanceLogsCalendarState,
+    deleteAllState: () -> Lce<Int>,
+    year: () -> Year,
+    onYearChange: (Year) -> Unit,
+    onDeleteAll: () -> Unit,
+    onNavigateUp: () -> Unit
 ) {
     val context = LocalContext.current
-    val deleteAllState = attendanceLogsCalendarState.deleteAllState
-    val pagerState = attendanceLogsCalendarState.pagerState
-    val year = attendanceLogsCalendarState.year
+    val pagerState = rememberPagerState { Month.entries.size }
+    val snackbarHostState = remember { SnackbarHostState() }
     val (expanded, onExpandedChange) = rememberSaveable { mutableStateOf(false) }
     val years by remember(Year.now()) {
         derivedStateOf {
             (1900..Year.now().value).reversed().map { Year.of(it) }
         }
     }
+    val viewModelStoreOwner = LocalViewModelStoreOwner.current
+    var showDeleteConfirmationDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(deleteAllState) {
-        when (deleteAllState) {
-            is Lce.Content -> {
-                val rowCount = deleteAllState.content
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.Default) {
+            snapshotFlow(deleteAllState).catch { }.filterIsInstance<Lce.Content<Int>>().collect {
+                val rowCount = it.content
+
                 if (rowCount != -1) {
-                    attendanceLogsCalendarState.snackbarHostState.showSnackbar(
+                    snackbarHostState.showSnackbar(
                         context.getString(
                             R.string.logs_deleted,
                             rowCount
@@ -116,30 +129,25 @@ private fun AttendanceLogsCalendarContent(
                     )
                 }
             }
-
-            else -> {
-
-            }
         }
     }
 
     Scaffold(
         snackbarHost = {
-            SnackbarHost(hostState = attendanceLogsCalendarState.snackbarHostState)
+            SnackbarHost(hostState = snackbarHostState)
         },
         topBar = {
             TopAppBar(
                 title = {
                     Text(text = stringResource(id = R.string.execution_log))
                 },
-                navigationIcon = navigationIconButton(
-                    previousBackStackEntry = attendanceLogsCalendarState.previousBackStackEntry,
-                    onClick = attendanceLogsCalendarState::onNavigateUp
+                navigationIcon = viewModelStoreOwner.navigationIconButton(
+                    onClick = onNavigateUp
                 ),
                 actions = {
                     IconButton(
                         onClick = {
-                            attendanceLogsCalendarState.showDeleteConfirmationDialog(true)
+                            showDeleteConfirmationDialog = true
                         }
                     ) {
                         Icon(
@@ -172,7 +180,7 @@ private fun AttendanceLogsCalendarContent(
                     ) {
                         Text(
                             modifier = Modifier.menuAnchor(),
-                            text = year.value.toString(),
+                            text = year().value.toString(),
                             style = MaterialTheme.typography.displayMedium,
                         )
 
@@ -191,7 +199,7 @@ private fun AttendanceLogsCalendarContent(
                                         Text(text = "${year.value}")
                                     },
                                     onClick = {
-                                        attendanceLogsCalendarState.setYear(year)
+                                        onYearChange(year)
                                         onExpandedChange(false)
                                     }
                                 )
@@ -206,28 +214,28 @@ private fun AttendanceLogsCalendarContent(
                     modifier = Modifier.fillMaxSize(),
                     state = pagerState,
                     key = {
-                        year.atMonth(it + 1).format(DateTimeFormatter.ofPattern("yyyy-MM"))
+                        year().atMonth(it + 1).format(DateTimeFormatter.ofPattern("yyyy-MM"))
                     }
                 ) { page ->
 
                     MonthPage(
                         page = page,
-                        year = { year },
-                        dayLogCount = attendanceLogsCalendarState::getCountByDate,
-                        onClickDay = attendanceLogsCalendarState::onClickDay
+                        year = year,
+                        dayLogCount = { _, _, _ -> emptyFlow() },
+                        onClickDay = { }
                     )
                 }
             }
 
-            if (attendanceLogsCalendarState.isShowingDeleteConfirmationDialog) {
+            if (showDeleteConfirmationDialog) {
                 AlertDialog(
                     onDismissRequest = {
-                        attendanceLogsCalendarState.showDeleteConfirmationDialog(false)
+                        showDeleteConfirmationDialog = false
                     },
                     confirmButton = {
                         TextButton(
                             onClick = {
-                                attendanceLogsCalendarState.onDeleteAll()
+                                onDeleteAll()
                             }
                         ) {
                             Text(text = stringResource(id = R.string.confirm))
@@ -236,7 +244,7 @@ private fun AttendanceLogsCalendarContent(
                     dismissButton = {
                         TextButton(
                             onClick = {
-                                attendanceLogsCalendarState.showDeleteConfirmationDialog(false)
+                                showDeleteConfirmationDialog = false
                             }
                         ) {
                             Text(text = stringResource(id = R.string.dismiss))
@@ -271,7 +279,7 @@ private fun MonthPage(
     onClickDay: (localDate: String) -> Unit
 ) {
     val updatedOnDayClick by rememberUpdatedState(newValue = onClickDay)
-    val month = remember(page) { Month.values()[page] }
+    val month = remember(page) { Month.entries[page] }
     val totalDays =
         remember(year().atMonth(month)) {
             year().atMonth(month).generateCalendarDays()

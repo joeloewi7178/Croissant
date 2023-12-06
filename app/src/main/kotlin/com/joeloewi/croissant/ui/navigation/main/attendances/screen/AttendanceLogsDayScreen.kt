@@ -24,7 +24,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.navigation.NavHostController
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -34,13 +37,13 @@ import com.google.accompanist.placeholder.placeholder
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
 import com.joeloewi.croissant.domain.entity.relational.WorkerExecutionLogWithState
-import com.joeloewi.croissant.state.AttendanceLogsDayState
-import com.joeloewi.croissant.state.rememberAttendanceLogsDayState
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.HalfDp
 import com.joeloewi.croissant.ui.theme.IconDp
+import com.joeloewi.croissant.util.collectAsLazyPagingItemsWithLifecycle
 import com.joeloewi.croissant.util.navigationIconButton
 import com.joeloewi.croissant.viewmodel.AttendanceLogsDayViewModel
+import kotlinx.coroutines.Dispatchers
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -49,25 +52,25 @@ import java.time.format.FormatStyle
 
 @Composable
 fun AttendanceLogsDayScreen(
-    navController: NavHostController,
-    attendanceLogsDayViewModel: AttendanceLogsDayViewModel
+    attendanceLogsDayViewModel: AttendanceLogsDayViewModel = hiltViewModel(),
+    onNavigateUp: () -> Unit
 ) {
-    val attendanceLogsDayState = rememberAttendanceLogsDayState(
-        navController = navController,
-        attendanceLogsDayViewModel = attendanceLogsDayViewModel
-    )
+    val pagedAttendanceLogs =
+        attendanceLogsDayViewModel.pagedAttendanceLogs.collectAsLazyPagingItemsWithLifecycle(context = Dispatchers.Default)
 
     AttendanceLogsDayContent(
-        attendanceLogsDayState = attendanceLogsDayState
+        pagedAttendanceLogs = pagedAttendanceLogs,
+        onNavigateUp = onNavigateUp
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AttendanceLogsDayContent(
-    attendanceLogsDayState: AttendanceLogsDayState
+    pagedAttendanceLogs: LazyPagingItems<WorkerExecutionLogWithState>,
+    onNavigateUp: () -> Unit
 ) {
-    val pagedAttendanceLogs = attendanceLogsDayState.pagedAttendanceLogs
+    val viewModelStoreOwner = LocalViewModelStoreOwner.current
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -76,9 +79,8 @@ private fun AttendanceLogsDayContent(
                 title = {
                     Text(text = stringResource(id = R.string.execution_log))
                 },
-                navigationIcon = navigationIconButton(
-                    previousBackStackEntry = attendanceLogsDayState.previousBackStackEntry,
-                    onClick = attendanceLogsDayState::onNavigateUp
+                navigationIcon = viewModelStoreOwner.navigationIconButton(
+                    onClick = onNavigateUp
                 ),
             )
         }
@@ -91,6 +93,7 @@ private fun AttendanceLogsDayContent(
             items(
                 count = pagedAttendanceLogs.itemCount,
                 key = pagedAttendanceLogs.itemKey { it.workerExecutionLog.id },
+                contentType = pagedAttendanceLogs.itemContentType { it.workerExecutionLog.state }
             ) { index ->
                 val item = pagedAttendanceLogs[index]
 

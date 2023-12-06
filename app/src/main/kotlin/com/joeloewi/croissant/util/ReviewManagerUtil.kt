@@ -1,7 +1,6 @@
 package com.joeloewi.croissant.util
 
 import android.app.Activity
-import android.content.Context
 import android.os.Build
 import com.google.android.play.core.ktx.launchReview
 import com.google.android.play.core.ktx.requestReview
@@ -10,7 +9,6 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.CancellationException
 
 suspend fun requestReview(
-    context: Context,
     activity: Activity,
     logMessage: String?
 ) {
@@ -19,7 +17,7 @@ suspend fun requestReview(
     //Review Error(-1): The Play Store app is either not installed or not the official version
     if (!listOf("LG-H790", "LG-H791").contains(Build.MODEL.uppercase())) {
         runCatching {
-            ReviewManagerFactory.create(context)
+            ReviewManagerFactory.create(activity.applicationContext)
         }.mapCatching { reviewManager ->
             with(reviewManager) {
                 launchReview(activity, requestReview())
