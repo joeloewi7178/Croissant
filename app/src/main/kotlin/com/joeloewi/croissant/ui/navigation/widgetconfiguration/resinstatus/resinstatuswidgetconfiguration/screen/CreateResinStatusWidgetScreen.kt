@@ -120,19 +120,19 @@ fun CreateResinStatusWidgetContent(
         withContext(Dispatchers.Default) {
             snapshotFlow(insertResinStatusWidgetState).catch { }
                 .filterIsInstance<Lce.Content<List<Long>>>().collect() {
-                    if (it.content.isNotEmpty()) {
-                        val resultValue = Intent().apply {
-                            putExtra(
-                                AppWidgetManager.EXTRA_APPWIDGET_ID,
-                                appWidgetId()
-                            )
-                        }
-                        with(activity) {
-                            setResult(Activity.RESULT_OK, resultValue)
-                            finish()
-                        }
+                if (it.content.isNotEmpty()) {
+                    val resultValue = Intent().apply {
+                        putExtra(
+                            AppWidgetManager.EXTRA_APPWIDGET_ID,
+                            appWidgetId()
+                        )
+                    }
+                    with(activity) {
+                        setResult(Activity.RESULT_OK, resultValue)
+                        finish()
                     }
                 }
+            }
         }
     }
 
