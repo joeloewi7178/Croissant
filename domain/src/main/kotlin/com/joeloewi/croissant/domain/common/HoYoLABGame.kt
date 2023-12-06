@@ -44,6 +44,6 @@ enum class HoYoLABGame(
 
     companion object {
         fun findByGameId(gameId: Int): HoYoLABGame =
-            values().find { it.gameId == gameId } ?: Unknown
+            entries.find { it.gameId == gameId } ?: Unknown
     }
 }

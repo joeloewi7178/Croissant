@@ -34,7 +34,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.state.CreateAttendanceState
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.util.LocalHourFormat
 import com.joeloewi.croissant.util.TimeAndTimePicker
@@ -43,8 +42,13 @@ import java.time.ZonedDateTime
 
 @Composable
 fun SetTime(
-    modifier: Modifier,
-    createAttendanceState: CreateAttendanceState,
+    modifier: Modifier = Modifier,
+    hourOfDay: () -> Int,
+    minute: () -> Int,
+    onHourOfDayChange: (Int) -> Unit,
+    onMinuteChange: (Int) -> Unit,
+    tickPerSecond: () -> ZonedDateTime,
+    onNextButtonClick: () -> Unit
 ) {
     Scaffold(
         modifier = modifier,
@@ -54,7 +58,7 @@ fun SetTime(
                     .padding(horizontal = DefaultDp)
                     .fillMaxWidth()
                     .navigationBarsPadding(),
-                onClick = createAttendanceState::onNextButtonClick
+                onClick = onNextButtonClick
             ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(
@@ -96,7 +100,12 @@ fun SetTime(
                 style = MaterialTheme.typography.bodyMedium
             )
 
-            TimePickerWithState(createAttendanceState = createAttendanceState)
+            TimePickerWithState(
+                hourOfDay = hourOfDay,
+                minute = minute,
+                onHourOfDayChange = onHourOfDayChange,
+                onMinuteChange = onMinuteChange
+            )
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -112,7 +121,11 @@ fun SetTime(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                FirstExecutionTime(createAttendanceState = createAttendanceState)
+                FirstExecutionTime(
+                    hourOfDay = hourOfDay,
+                    minute = minute,
+                    tickPerSecond = tickPerSecond
+                )
             }
 
             Card(
@@ -145,29 +158,29 @@ fun SetTime(
 
 @Composable
 private fun TimePickerWithState(
-    createAttendanceState: CreateAttendanceState
+    hourOfDay: () -> Int,
+    minute: () -> Int,
+    onHourOfDayChange: (Int) -> Unit,
+    onMinuteChange: (Int) -> Unit
 ) {
     TimeAndTimePicker(
         modifier = Modifier.fillMaxWidth(),
-        hourOfDay = createAttendanceState.hourOfDay,
-        minute = createAttendanceState.minute,
-        onHourOfDayChange = remember(createAttendanceState) {
-            createAttendanceState::onHourOfDayChange
-        },
-        onMinuteChange = remember(createAttendanceState) { createAttendanceState::onMinuteChange }
+        hourOfDay = hourOfDay,
+        minute = minute,
+        onHourOfDayChange = onHourOfDayChange,
+        onMinuteChange = onMinuteChange
     )
 }
 
 @Composable
 private fun FirstExecutionTime(
-    createAttendanceState: CreateAttendanceState
+    hourOfDay: () -> Int,
+    minute: () -> Int,
+    tickPerSecond: () -> ZonedDateTime
 ) {
-    val hourOfDay = createAttendanceState.hourOfDay
-    val minute = createAttendanceState.minute
-    val currentTickPerSecond = createAttendanceState.tickPerSecond
-    val canExecuteToday by remember(currentTickPerSecond, hourOfDay, minute) {
+    val canExecuteToday by remember(tickPerSecond, hourOfDay, minute) {
         derivedStateOf {
-            (currentTickPerSecond.hour < hourOfDay) || (currentTickPerSecond.hour == hourOfDay && currentTickPerSecond.minute < minute)
+            (tickPerSecond().hour < hourOfDay()) || (tickPerSecond().hour == hourOfDay() && tickPerSecond().minute < minute())
         }
     }
     val today = stringResource(id = R.string.today)
@@ -191,8 +204,8 @@ private fun FirstExecutionTime(
     ) {
         derivedStateOf {
             ZonedDateTime.now()
-                .withHour(hourOfDay)
-                .withMinute(minute)
+                .withHour(hourOfDay())
+                .withMinute(minute())
                 .format(
                     dateTimeFormatterPerHourFormat(hourFormat)
                 )
