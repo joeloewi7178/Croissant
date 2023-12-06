@@ -2,7 +2,6 @@ package com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.res
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,52 +22,68 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.Lce
-import com.joeloewi.croissant.state.ResinStatusWidgetDetailState
-import com.joeloewi.croissant.state.rememberResinStatusWidgetDetailState
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.ProgressDialog
 import com.joeloewi.croissant.viewmodel.ResinStatusWidgetDetailViewModel
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.withContext
 
 @Composable
 fun ResinStatusWidgetDetailScreen(
-    navController: NavHostController,
     resinStatusWidgetDetailViewModel: ResinStatusWidgetDetailViewModel = hiltViewModel()
 ) {
-    val resinStatusWidgetDetailState = rememberResinStatusWidgetDetailState(
-        resinStatusWidgetDetailViewModel = resinStatusWidgetDetailViewModel
+    val updateResinStatusWidgetState by resinStatusWidgetDetailViewModel.updateResinStatusWidgetState.collectAsStateWithLifecycle(
+        context = Dispatchers.Default
     )
+    val interval by resinStatusWidgetDetailViewModel.interval.collectAsStateWithLifecycle(context = Dispatchers.Default)
+    val selectableIntervals =
+        remember { resinStatusWidgetDetailViewModel.selectableIntervals.toImmutableList() }
 
     ResinStatusWidgetDetailContent(
-        resinStatusWidgetDetailState = resinStatusWidgetDetailState
+        updateResinStatusWidgetState = { updateResinStatusWidgetState },
+        selectableIntervals = selectableIntervals,
+        interval = interval,
+        onUpdateResinStatusWidget = resinStatusWidgetDetailViewModel::updateResinStatusWidget,
+        onIntervalChange = resinStatusWidgetDetailViewModel::setInterval
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResinStatusWidgetDetailContent(
-    resinStatusWidgetDetailState: ResinStatusWidgetDetailState
+    updateResinStatusWidgetState: () -> Lce<Int>,
+    selectableIntervals: ImmutableList<Long>,
+    interval: Long,
+    onUpdateResinStatusWidget: () -> Unit,
+    onIntervalChange: (Long) -> Unit
 ) {
     val activity = LocalActivity.current
-    val updateResinStatusWidgetState = resinStatusWidgetDetailState.updateResinStatusWidgetState
 
-    LaunchedEffect(updateResinStatusWidgetState) {
-        when (updateResinStatusWidgetState) {
-            is Lce.Content -> {
-                if (updateResinStatusWidgetState.content != 0) {
-                    activity.finish()
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.Default) {
+            snapshotFlow { updateResinStatusWidgetState() }.catch { }
+                .filterIsInstance<Lce.Content<Int>>().collect {
+                    if (it.content != 0) {
+                        activity.finish()
+                    }
                 }
-            }
-
-            else -> {}
         }
     }
 
@@ -86,7 +101,7 @@ fun ResinStatusWidgetDetailContent(
                     .fillMaxWidth()
                     .navigationBarsPadding()
                     .padding(DefaultDp),
-                onClick = resinStatusWidgetDetailState::updateResinStatusWidget
+                onClick = onUpdateResinStatusWidget
             ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(
@@ -125,8 +140,10 @@ fun ResinStatusWidgetDetailContent(
                     alignment = Alignment.CenterHorizontally
                 )
             ) {
-                resinStatusWidgetDetailState.selectableIntervals.forEach {
-                    val isSelected = resinStatusWidgetDetailState.interval == it
+                selectableIntervals.forEach {
+                    val isSelected by remember(it) {
+                        derivedStateOf { interval == it }
+                    }
 
                     Row(
                         modifier = Modifier.toggleable(
@@ -134,7 +151,7 @@ fun ResinStatusWidgetDetailContent(
                             role = Role.RadioButton,
                             onValueChange = { checked ->
                                 if (checked) {
-                                    resinStatusWidgetDetailState.onIntervalChange(it)
+                                    onIntervalChange(it)
                                 }
                             }
                         ),
@@ -155,7 +172,7 @@ fun ResinStatusWidgetDetailContent(
             }
         }
 
-        if (resinStatusWidgetDetailState.showProgressDialog) {
+        if (updateResinStatusWidgetState().isLoading) {
             ProgressDialog(
                 onDismissRequest = {}
             )

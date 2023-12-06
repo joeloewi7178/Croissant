@@ -20,6 +20,8 @@ import com.joeloewi.croissant.data.repository.local.*
 import com.joeloewi.croissant.data.repository.local.impl.*
 import com.joeloewi.croissant.data.repository.remote.*
 import com.joeloewi.croissant.data.repository.remote.impl.*
+import com.joeloewi.croissant.data.repository.system.SystemDataSource
+import com.joeloewi.croissant.data.repository.system.impl.SystemDataSourceImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -61,4 +63,7 @@ interface DataSourceModule {
 
     @Binds
     fun bindArcaLiveAppDataSource(arcaLiveAppAppDataSourceImpl: ArcaLiveAppDataSourceImpl): ArcaLiveAppDataSource
+
+    @Binds
+    fun bindSystemDataSource(systemDataSourceImpl: SystemDataSourceImpl): SystemDataSource
 }

@@ -1,9 +1,7 @@
 package com.joeloewi.croissant
 
 import android.annotation.SuppressLint
-import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.compose.setContent
@@ -22,7 +20,6 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
@@ -35,9 +32,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
@@ -53,33 +53,35 @@ import androidx.core.os.bundleOf
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
+import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
-import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.android.material.color.DynamicColors
 import com.google.firebase.Firebase
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.analytics
-import com.joeloewi.croissant.state.CroissantAppState
-import com.joeloewi.croissant.state.rememberCroissantAppState
-import com.joeloewi.croissant.state.rememberMainState
 import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.AttendanceDetailScreen
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.AttendanceLogsCalendarScreen
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.AttendanceLogsDayScreen
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.AttendancesScreen
+import com.joeloewi.croissant.ui.navigation.main.attendances.screen.COOKIE
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.LoginHoYoLABScreen
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.CreateAttendanceScreen
-import com.joeloewi.croissant.ui.navigation.main.firstlaunch.FirstLaunchDestination
-import com.joeloewi.croissant.ui.navigation.main.firstlaunch.screen.FirstLaunchScreen
+import com.joeloewi.croissant.ui.navigation.main.global.GlobalDestination
+import com.joeloewi.croissant.ui.navigation.main.global.screen.EmptyScreen
+import com.joeloewi.croissant.ui.navigation.main.global.screen.FirstLaunchScreen
 import com.joeloewi.croissant.ui.navigation.main.redemptioncodes.RedemptionCodesDestination
 import com.joeloewi.croissant.ui.navigation.main.redemptioncodes.screen.RedemptionCodesScreen
 import com.joeloewi.croissant.ui.navigation.main.settings.SettingsDestination
@@ -89,21 +91,25 @@ import com.joeloewi.croissant.ui.theme.CroissantTheme
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.LocalHourFormat
 import com.joeloewi.croissant.util.RequireAppUpdate
+import com.joeloewi.croissant.util.isCompactWindowSize
 import com.joeloewi.croissant.util.observeAsState
 import com.joeloewi.croissant.viewmodel.AttendanceDetailViewModel
 import com.joeloewi.croissant.viewmodel.AttendanceLogsCalendarViewModel
-import com.joeloewi.croissant.viewmodel.AttendanceLogsDayViewModel
 import com.joeloewi.croissant.viewmodel.AttendancesViewModel
 import com.joeloewi.croissant.viewmodel.CreateAttendanceViewModel
 import com.joeloewi.croissant.viewmodel.DeveloperInfoViewModel
 import com.joeloewi.croissant.viewmodel.FirstLaunchViewModel
-import com.joeloewi.croissant.viewmodel.LoginHoYoLABViewModel
 import com.joeloewi.croissant.viewmodel.MainActivityViewModel
-import com.joeloewi.croissant.viewmodel.RedemptionCodesViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -138,18 +144,28 @@ class MainActivity : AppCompatActivity() {
 
         setContent {
             CroissantTheme(
-                window = window
+                window = { window }
             ) {
-                val mainState = rememberMainState(mainActivityViewModel = _mainActivityViewModel)
+                val hourFormat by _mainActivityViewModel.hourFormat.collectAsStateWithLifecycle(
+                    context = Dispatchers.Default
+                )
+                val appUpdateResultState by _mainActivityViewModel.appUpdateResultState.collectAsStateWithLifecycle(
+                    context = Dispatchers.Default
+                )
+                val isDeviceRooted by _mainActivityViewModel.isDeviceRooted.collectAsStateWithLifecycle(
+                    context = Dispatchers.Default
+                )
 
                 CompositionLocalProvider(
                     LocalActivity provides this,
-                    LocalHourFormat provides mainState.hourFormat
+                    LocalHourFormat provides hourFormat
                 ) {
                     RequireAppUpdate(
-                        appUpdateResultState = mainState.appUpdateResultState
+                        appUpdateResultState = appUpdateResultState,
                     ) {
-                        CroissantApp()
+                        CroissantApp(
+                            isDeviceRooted = isDeviceRooted
+                        )
                     }
                 }
             }
@@ -157,13 +173,11 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
-@OptIn(
-    ExperimentalPermissionsApi::class,
-    ExperimentalMaterialApi::class,
-    ExperimentalMaterialNavigationApi::class
-)
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
-fun CroissantApp() {
+fun CroissantApp(
+    isDeviceRooted: Boolean
+) {
     val context = LocalContext.current
     val activity = LocalActivity.current
     val deepLinkUri = remember(context) {
@@ -174,25 +188,67 @@ fun CroissantApp() {
     }
     val snackbarHostState = remember { SnackbarHostState() }
     val lifecycle by LocalLifecycleOwner.current.lifecycle.observeAsState()
-    val croissantAppState = rememberCroissantAppState()
-    val isDeviceRooted = croissantAppState.isDeviceRooted
-    val currentDestination = croissantAppState.currentDestination
+    val navController = rememberNavController()
+    val fullScreenDestinations = remember {
+        listOf(
+            AttendancesDestination.CreateAttendanceScreen.route,
+            AttendancesDestination.LoginHoYoLabScreen.route
+        ).toImmutableList()
+    }
+    val currentBackStackEntry by navController.currentBackStackEntryFlow.collectAsStateWithLifecycle(
+        initialValue = null,
+        context = Dispatchers.Default
+    )
+    val windowSizeClass = calculateWindowSizeClass(activity = activity)
+    val isBottomNavigationBarVisible by remember {
+        derivedStateOf {
+            fullScreenDestinations.contains(currentBackStackEntry?.destination?.route)
+                    && windowSizeClass.isCompactWindowSize()
+                    && currentBackStackEntry?.destination?.route == currentBackStackEntry?.destination?.parent?.startDestinationRoute
+        }
+    }
+    val isNavigationRailVisible by remember {
+        derivedStateOf {
+            fullScreenDestinations.contains(currentBackStackEntry?.destination?.route) && windowSizeClass.isCompactWindowSize()
+        }
+    }
+    val croissantNavigations = remember {
+        listOf(
+            CroissantNavigation.Attendances,
+            CroissantNavigation.RedemptionCodes,
+            CroissantNavigation.Settings
+        ).toImmutableList()
+    }
 
-    LaunchedEffect(currentDestination) {
-        FirebaseAnalytics.getInstance(context).logEvent(
-            FirebaseAnalytics.Event.SCREEN_VIEW,
-            bundleOf(
-                FirebaseAnalytics.Param.SCREEN_NAME to currentDestination?.route,
-                FirebaseAnalytics.Param.SCREEN_CLASS to activity::class.java.simpleName
-            )
-        )
+    LaunchedEffect(navController) {
+        withContext(Dispatchers.Default + CoroutineExceptionHandler { _, _ -> }) {
+            navController.currentBackStackEntryFlow.catch { }.collect {
+                Firebase.analytics.logEvent(
+                    FirebaseAnalytics.Event.SCREEN_VIEW,
+                    bundleOf(
+                        FirebaseAnalytics.Param.SCREEN_NAME to it.destination.route,
+                        FirebaseAnalytics.Param.SCREEN_CLASS to activity::class.java.simpleName
+                    )
+                )
+            }
+        }
     }
 
     Scaffold(
         bottomBar = {
-            if (croissantAppState.isBottomNavigationBarVisible) {
+            if (isBottomNavigationBarVisible) {
                 CroissantBottomNavigationBar(
-                    croissantAppState = croissantAppState,
+                    croissantNavigations = croissantNavigations,
+                    currentBackStackEntry = { currentBackStackEntry },
+                    onClickNavigationButton = { route ->
+                        navController.navigate(route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
                 )
             }
         },
@@ -205,15 +261,25 @@ fun CroissantApp() {
                 .padding(innerPadding)
         ) {
             Row {
-                if (croissantAppState.isNavigationRailVisible) {
+                if (isNavigationRailVisible) {
                     CroissantNavigationRail(
-                        croissantAppState = croissantAppState
+                        croissantNavigations = croissantNavigations,
+                        currentBackStackEntry = { currentBackStackEntry },
+                        onClickNavigationButton = { route ->
+                            navController.navigate(route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
                     )
                 }
                 CroissantNavHost(
                     modifier = Modifier
                         .animateContentSize(),
-                    navController = croissantAppState.navController,
+                    navController = navController,
                     snackbarHostState = snackbarHostState,
                     deepLinkUri = { deepLinkUri }
                 )
@@ -254,7 +320,7 @@ fun CroissantApp() {
             )
         }
 
-        if (lifecycle == Lifecycle.Event.ON_RESUME) {
+        /*if (lifecycle == Lifecycle.Event.ON_RESUME) {
             if (!croissantAppState.canScheduleExactAlarms) {
                 AlertDialog(
                     onDismissRequest = {},
@@ -292,7 +358,7 @@ fun CroissantApp() {
                     )
                 )
             }
-        }
+        }*/
     }
 }
 
@@ -310,7 +376,7 @@ fun CroissantNavHost(
         modifier = modifier,
         navController = navController,
         route = activity::class.java.simpleName,
-        startDestination = CroissantNavigation.Attendances.route
+        startDestination = CroissantNavigation.Global.route
     ) {
         navigation(
             startDestination = AttendancesDestination.AttendancesScreen.route,
@@ -339,12 +405,16 @@ fun CroissantNavHost(
             composable(
                 route = AttendancesDestination.LoginHoYoLabScreen.route,
             ) {
-                val loginHoYoLABViewModel: LoginHoYoLABViewModel =
-                    hiltViewModel()
-
                 LoginHoYoLABScreen(
-                    navController = navController,
-                    loginHoYoLABViewModel = loginHoYoLABViewModel
+                    onNavigateUp = {
+                        navController.navigateUp()
+                    },
+                    onNavigateUpWithResult = {
+                        navController.apply {
+                            previousBackStackEntry?.savedStateHandle?.set(COOKIE, it)
+                            navigateUp()
+                        }
+                    }
                 )
             }
 
@@ -364,10 +434,25 @@ fun CroissantNavHost(
             ) {
                 val attendanceDetailViewModel: AttendanceDetailViewModel =
                     hiltViewModel()
+                val newCookie by remember {
+                    it.savedStateHandle.getStateFlow(COOKIE, "")
+                }.collectAsStateWithLifecycle(context = Dispatchers.Default)
 
                 AttendanceDetailScreen(
-                    navController = navController,
-                    attendanceDetailViewModel = attendanceDetailViewModel
+                    attendanceDetailViewModel = attendanceDetailViewModel,
+                    newCookie = { newCookie },
+                    onNavigateUp = { navController.navigateUp() },
+                    onClickRefreshSession = {
+                        navController.navigate(AttendancesDestination.LoginHoYoLabScreen.route)
+                    },
+                    onClickLogSummary = { loggableWorker ->
+                        navController.navigate(
+                            AttendancesDestination.AttendanceLogsCalendarScreen().generateRoute(
+                                attendanceDetailViewModel.attendanceId,
+                                loggableWorker
+                            )
+                        )
+                    }
                 )
             }
 
@@ -383,8 +468,8 @@ fun CroissantNavHost(
                     hiltViewModel()
 
                 AttendanceLogsCalendarScreen(
-                    navController = navController,
-                    attendanceLogsCalendarViewModel = attendanceLogsCalendarViewModel
+                    attendanceLogsCalendarViewModel = attendanceLogsCalendarViewModel,
+                    onNavigateUp = { navController.navigateUp() }
                 )
             }
 
@@ -396,12 +481,10 @@ fun CroissantNavHost(
                     }
                 }
             ) {
-                val attendanceLogsDayViewModel: AttendanceLogsDayViewModel =
-                    hiltViewModel()
-
                 AttendanceLogsDayScreen(
-                    navController = navController,
-                    attendanceLogsDayViewModel = attendanceLogsDayViewModel
+                    onNavigateUp = {
+                        navController.navigateUp()
+                    }
                 )
             }
         }
@@ -411,13 +494,7 @@ fun CroissantNavHost(
             route = CroissantNavigation.RedemptionCodes.route
         ) {
             composable(route = RedemptionCodesDestination.RedemptionCodesScreen.route) {
-                val redemptionCodesViewModel: RedemptionCodesViewModel =
-                    hiltViewModel()
-
-                RedemptionCodesScreen(
-                    navController = navController,
-                    redemptionCodesViewModel = redemptionCodesViewModel
-                )
+                RedemptionCodesScreen()
             }
         }
 
@@ -439,23 +516,51 @@ fun CroissantNavHost(
             }
         }
 
-        composable(route = FirstLaunchDestination.FirstLaunchScreen.route) {
-            val firstLaunchViewModel: FirstLaunchViewModel = hiltViewModel()
+        navigation(
+            startDestination = GlobalDestination.EmptyScreen.route,
+            route = CroissantNavigation.Global.route
+        ) {
 
-            FirstLaunchScreen(
-                navController = navController,
-                firstLaunchViewModel = firstLaunchViewModel
-            )
+            composable(route = GlobalDestination.EmptyScreen.route) {
+                EmptyScreen(
+                    onShowFirstLaunchScreen = {
+                        navController.navigate(GlobalDestination.FirstLaunchScreen.route) {
+                            popUpTo(activity::class.java.simpleName) {
+                                inclusive = true
+                            }
+                        }
+                    },
+                    onShowDefaultScreen = {
+                        navController.navigate(GlobalDestination.FirstLaunchScreen.route) {
+                            popUpTo(activity::class.java.simpleName) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                )
+            }
+
+            composable(route = GlobalDestination.FirstLaunchScreen.route) {
+                val firstLaunchViewModel: FirstLaunchViewModel = hiltViewModel()
+
+                FirstLaunchScreen(
+                    navController = navController,
+                    firstLaunchViewModel = firstLaunchViewModel
+                )
+            }
         }
     }
 }
 
 @Composable
 private fun CroissantNavigationRail(
-    croissantAppState: CroissantAppState,
+    modifier: Modifier = Modifier,
+    croissantNavigations: ImmutableList<CroissantNavigation>,
+    currentBackStackEntry: () -> NavBackStackEntry?,
+    onClickNavigationButton: (String) -> Unit
 ) {
     NavigationRail(
-        modifier = Modifier.fillMaxHeight(),
+        modifier = modifier.fillMaxHeight(),
         header = {
             Icon(
                 painter = painterResource(id = R.drawable.ic_launcher_foreground),
@@ -463,9 +568,11 @@ private fun CroissantNavigationRail(
             )
         }
     ) {
-        croissantAppState.croissantNavigations.forEach { croissantNavigation ->
+        croissantNavigations.forEach { croissantNavigation ->
             key(croissantNavigation.route) {
-                val isSelected = croissantAppState.isSelected(route = croissantNavigation.route)
+                val isSelected by remember(croissantNavigation.route) {
+                    derivedStateOf { currentBackStackEntry()?.destination?.hierarchy?.any { it.route == croissantNavigation.route } == true }
+                }
 
                 NavigationRailItem(
                     icon = {
@@ -485,9 +592,7 @@ private fun CroissantNavigationRail(
                     label = {
                         Text(text = stringResource(id = croissantNavigation.resourceId))
                     },
-                    onClick = {
-                        croissantAppState.onClickNavigationButton(croissantNavigation.route)
-                    }
+                    onClick = { onClickNavigationButton(croissantNavigation.route) }
                 )
             }
         }
@@ -496,12 +601,19 @@ private fun CroissantNavigationRail(
 
 @Composable
 private fun CroissantBottomNavigationBar(
-    croissantAppState: CroissantAppState,
+    modifier: Modifier = Modifier,
+    croissantNavigations: ImmutableList<CroissantNavigation>,
+    currentBackStackEntry: () -> NavBackStackEntry?,
+    onClickNavigationButton: (String) -> Unit
 ) {
-    NavigationBar {
-        croissantAppState.croissantNavigations.forEach { croissantNavigation ->
+    NavigationBar(
+        modifier = modifier
+    ) {
+        croissantNavigations.forEach { croissantNavigation ->
             key(croissantNavigation.route) {
-                val isSelected = croissantAppState.isSelected(route = croissantNavigation.route)
+                val isSelected by remember(croissantNavigation.route) {
+                    derivedStateOf { currentBackStackEntry()?.destination?.hierarchy?.any { it.route == croissantNavigation.route } == true }
+                }
 
                 NavigationBarItem(
                     icon = {
@@ -522,7 +634,7 @@ private fun CroissantBottomNavigationBar(
                         Text(text = stringResource(id = croissantNavigation.resourceId))
                     },
                     onClick = {
-                        croissantAppState.onClickNavigationButton(croissantNavigation.route)
+                        onClickNavigationButton(croissantNavigation.route)
                     }
                 )
             }
