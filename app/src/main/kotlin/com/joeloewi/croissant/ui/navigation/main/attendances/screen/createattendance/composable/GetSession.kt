@@ -51,7 +51,7 @@ import com.joeloewi.croissant.ui.theme.DefaultDp
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun GetSession(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     onLoginHoYoLAB: () -> Unit,
 ) {
     val configuration = LocalConfiguration.current

@@ -5,7 +5,6 @@ import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.exclude
@@ -28,6 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -37,50 +37,49 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.state.DeveloperInfoState
 import com.joeloewi.croissant.state.Lce
-import com.joeloewi.croissant.state.rememberDeveloperInfoState
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.navigationIconButton
 import com.joeloewi.croissant.viewmodel.DeveloperInfoViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import nl.marc_apps.tts.TextToSpeechInstance
 
 @Composable
 fun DeveloperInfoScreen(
-    navController: NavHostController,
-    developerInfoViewModel: DeveloperInfoViewModel
+    developerInfoViewModel: DeveloperInfoViewModel = hiltViewModel(),
+    onNavigateUp: () -> Unit
 ) {
-    val developerInfoState = rememberDeveloperInfoState(
-        navController = navController,
-        developerInfoViewModel = developerInfoViewModel
-    )
+    val textToSpeech by developerInfoViewModel.textToSpeech.collectAsStateWithLifecycle(context = Dispatchers.Default)
 
     DeveloperInfoContent(
-        developerInfoState = developerInfoState
+        textToSpeech = textToSpeech,
+        onNavigateUp = onNavigateUp
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DeveloperInfoContent(
-    developerInfoState: DeveloperInfoState
+    textToSpeech: Lce<TextToSpeechInstance>,
+    onNavigateUp: () -> Unit
 ) {
     val activity = LocalActivity.current
     val context = LocalContext.current
+    val viewModelStoreOwner = LocalViewModelStoreOwner.current
     val coroutineScope = rememberCoroutineScope()
-    val textToSpeech = developerInfoState.textToSpeech
 
     Scaffold(
         topBar = {
             TopAppBar(
-                navigationIcon = navigationIconButton(
-                    previousBackStackEntry = developerInfoState.previousBackStackEntry,
-                    onClick = developerInfoState::onNavigateUp
+                navigationIcon = viewModelStoreOwner.navigationIconButton(
+                    onClick = onNavigateUp
                 ),
                 title = {
                     Text(text = stringResource(id = R.string.developer_info))

@@ -96,9 +96,6 @@ import com.joeloewi.croissant.util.observeAsState
 import com.joeloewi.croissant.viewmodel.AttendanceDetailViewModel
 import com.joeloewi.croissant.viewmodel.AttendanceLogsCalendarViewModel
 import com.joeloewi.croissant.viewmodel.AttendancesViewModel
-import com.joeloewi.croissant.viewmodel.CreateAttendanceViewModel
-import com.joeloewi.croissant.viewmodel.DeveloperInfoViewModel
-import com.joeloewi.croissant.viewmodel.FirstLaunchViewModel
 import com.joeloewi.croissant.viewmodel.MainActivityViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.collections.immutable.ImmutableList
@@ -187,7 +184,6 @@ fun CroissantApp(
             .build()
     }
     val snackbarHostState = remember { SnackbarHostState() }
-    val lifecycle by LocalLifecycleOwner.current.lifecycle.observeAsState()
     val navController = rememberNavController()
     val fullScreenDestinations = remember {
         listOf(
@@ -393,12 +389,18 @@ fun CroissantNavHost(
             }
 
             composable(route = AttendancesDestination.CreateAttendanceScreen.route) {
-                val createAttendanceViewModel: CreateAttendanceViewModel =
-                    hiltViewModel()
+                val newCookie by remember {
+                    it.savedStateHandle.getStateFlow(COOKIE, "")
+                }.collectAsStateWithLifecycle(context = Dispatchers.Default)
 
                 CreateAttendanceScreen(
-                    navController = navController,
-                    createAttendanceViewModel = createAttendanceViewModel
+                    newCookie = { newCookie },
+                    onLoginHoYoLAB = {
+
+                    },
+                    onNavigateUp = {
+                        navController.navigateUp()
+                    }
                 )
             }
 
@@ -503,15 +505,17 @@ fun CroissantNavHost(
             route = CroissantNavigation.Settings.route
         ) {
             composable(route = SettingsDestination.SettingsScreen.route) {
-                SettingsScreen(navController = navController)
+                SettingsScreen(
+                    onDeveloperInfoClick = {
+                        navController.navigate(SettingsDestination.DeveloperInfoScreen.route)
+                    }
+                )
             }
 
             composable(route = SettingsDestination.DeveloperInfoScreen.route) {
-                val developerInfoViewModel: DeveloperInfoViewModel = hiltViewModel()
 
                 DeveloperInfoScreen(
-                    navController = navController,
-                    developerInfoViewModel = developerInfoViewModel
+                    onNavigateUp = { navController.navigateUp() }
                 )
             }
         }
@@ -541,11 +545,11 @@ fun CroissantNavHost(
             }
 
             composable(route = GlobalDestination.FirstLaunchScreen.route) {
-                val firstLaunchViewModel: FirstLaunchViewModel = hiltViewModel()
 
                 FirstLaunchScreen(
-                    navController = navController,
-                    firstLaunchViewModel = firstLaunchViewModel
+                    onNavigateToAttendances = {
+                        navController.navigate(AttendancesDestination.AttendancesScreen.route)
+                    }
                 )
             }
         }
