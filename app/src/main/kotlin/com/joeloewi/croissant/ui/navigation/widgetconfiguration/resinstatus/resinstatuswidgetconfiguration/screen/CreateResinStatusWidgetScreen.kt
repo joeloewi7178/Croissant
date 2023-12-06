@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -52,13 +53,13 @@ import com.google.accompanist.placeholder.placeholder
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.domain.entity.UserInfo
 import com.joeloewi.croissant.state.Lce
-import com.joeloewi.croissant.ui.navigation.main.attendances.screen.COOKIE
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.ProgressDialog
-import com.joeloewi.croissant.util.getResultFromPreviousComposable
 import com.joeloewi.croissant.viewmodel.CreateResinStatusWidgetViewModel
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filterIsInstance
@@ -78,12 +79,18 @@ fun CreateResinStatusWidgetScreen(
         context = Dispatchers.Default
     )
     val userInfos = remember { createResinStatusWidgetViewModel.userInfos }
+    val selectableIntervals =
+        remember { createResinStatusWidgetViewModel.selectableIntervals.toImmutableList() }
+    val interval by createResinStatusWidgetViewModel.interval.collectAsStateWithLifecycle(context = Dispatchers.Default)
 
     CreateResinStatusWidgetContent(
         getInfoUserState = { getInfoUserState },
         insertResinStatusWidgetState = { insertResinStatusWidgetState },
         appWidgetId = { appWidgetId },
         userInfos = userInfos,
+        selectableIntervals = selectableIntervals,
+        interval = { interval },
+        onIntervalChange = createResinStatusWidgetViewModel::setInterval,
         onClickAdd = {
 
         },
@@ -98,6 +105,9 @@ fun CreateResinStatusWidgetContent(
     insertResinStatusWidgetState: () -> Lce<List<Long>>,
     appWidgetId: () -> Int,
     userInfos: SnapshotStateList<Pair<String, UserInfo>>,
+    selectableIntervals: ImmutableList<Long>,
+    interval: () -> Long,
+    onIntervalChange: (Long) -> Unit,
     onClickAdd: () -> Unit,
     onClickDone: () -> Unit
 ) {
@@ -110,19 +120,19 @@ fun CreateResinStatusWidgetContent(
         withContext(Dispatchers.Default) {
             snapshotFlow(insertResinStatusWidgetState).catch { }
                 .filterIsInstance<Lce.Content<List<Long>>>().collect() {
-                if (it.content.isNotEmpty()) {
-                    val resultValue = Intent().apply {
-                        putExtra(
-                            AppWidgetManager.EXTRA_APPWIDGET_ID,
-                            appWidgetId()
-                        )
-                    }
-                    with(activity) {
-                        setResult(Activity.RESULT_OK, resultValue)
-                        finish()
+                    if (it.content.isNotEmpty()) {
+                        val resultValue = Intent().apply {
+                            putExtra(
+                                AppWidgetManager.EXTRA_APPWIDGET_ID,
+                                appWidgetId()
+                            )
+                        }
+                        with(activity) {
+                            setResult(Activity.RESULT_OK, resultValue)
+                            finish()
+                        }
                     }
                 }
-            }
         }
     }
 
@@ -265,7 +275,9 @@ fun CreateResinStatusWidgetContent(
                         )
                     ) {
                         selectableIntervals.forEach {
-                            val isSelected = interval == it
+                            val isSelected by remember(it) {
+                                derivedStateOf { interval() == it }
+                            }
 
                             Row(
                                 modifier = Modifier.toggleable(
@@ -312,13 +324,13 @@ fun CreateResinStatusWidgetContent(
             }
         }
 
-        if (showProgressDialog) {
+        if (insertResinStatusWidgetState().isLoading) {
             ProgressDialog(
                 onDismissRequest = {}
             )
         }
 
-        if (showUserInfoProgressDialog) {
+        if (getInfoUserState().isLoading) {
             ProgressDialog(
                 title = { Text(text = stringResource(id = R.string.retrieving_data)) },
                 onDismissRequest = {}

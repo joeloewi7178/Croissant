@@ -26,6 +26,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -52,7 +53,8 @@ class CreateResinStatusWidgetViewModel @Inject constructor(
     private val _getUserInfoState = MutableStateFlow<Lce<UserInfo?>>(Lce.Content(null))
     private val _interval = MutableStateFlow(selectableIntervals.first())
 
-    val appWidgetId = savedStateHandle.getStateFlow(_appWidgetIdKey, AppWidgetManager.INVALID_APPWIDGET_ID)
+    val appWidgetId =
+        savedStateHandle.getStateFlow(_appWidgetIdKey, AppWidgetManager.INVALID_APPWIDGET_ID)
     val createResinStatusWidgetState = _createResinStatusWidgetState.asStateFlow()
     val getUserInfoState = _getUserInfoState.asStateFlow()
     val interval = _interval.asStateFlow()
@@ -87,9 +89,9 @@ class CreateResinStatusWidgetViewModel @Inject constructor(
         _createResinStatusWidgetState.update { Lce.Loading }
         viewModelScope.launch(Dispatchers.IO) {
             _createResinStatusWidgetState.update {
-                this.runCatching {
+                runCatching {
                     val resinStatusWidget = ResinStatusWidget(
-                        appWidgetId = appWidgetId,
+                        appWidgetId = appWidgetId.first(),
                         interval = _interval.value,
                     )
 
