@@ -32,6 +32,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -77,7 +79,7 @@ class AttendanceDetailViewModel @Inject constructor(
             attendanceId = attendanceId,
             loggableWorker = LoggableWorker.CHECK_SESSION,
             state = WorkerExecutionLogState.SUCCESS
-        ).stateIn(
+        ).catch { }.flowOn(Dispatchers.Default).stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(),
             initialValue = 0L
@@ -87,7 +89,7 @@ class AttendanceDetailViewModel @Inject constructor(
             attendanceId = attendanceId,
             loggableWorker = LoggableWorker.CHECK_SESSION,
             state = WorkerExecutionLogState.FAILURE
-        ).stateIn(
+        ).catch { }.flowOn(Dispatchers.Default).stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(),
             initialValue = 0L
@@ -97,7 +99,7 @@ class AttendanceDetailViewModel @Inject constructor(
             attendanceId = attendanceId,
             loggableWorker = LoggableWorker.ATTEND_CHECK_IN_EVENT,
             state = WorkerExecutionLogState.SUCCESS
-        ).stateIn(
+        ).catch { }.flowOn(Dispatchers.Default).stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(),
             initialValue = 0L
@@ -107,7 +109,7 @@ class AttendanceDetailViewModel @Inject constructor(
             attendanceId = attendanceId,
             loggableWorker = LoggableWorker.ATTEND_CHECK_IN_EVENT,
             state = WorkerExecutionLogState.FAILURE
-        ).stateIn(
+        ).catch { }.flowOn(Dispatchers.Default).stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(),
             initialValue = 0L

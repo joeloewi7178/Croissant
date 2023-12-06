@@ -52,8 +52,7 @@ class CreateResinStatusWidgetViewModel @Inject constructor(
     private val _getUserInfoState = MutableStateFlow<Lce<UserInfo?>>(Lce.Content(null))
     private val _interval = MutableStateFlow(selectableIntervals.first())
 
-    val appWidgetId =
-        savedStateHandle.get<Int>(_appWidgetIdKey) ?: AppWidgetManager.INVALID_APPWIDGET_ID
+    val appWidgetId = savedStateHandle.getStateFlow(_appWidgetIdKey, AppWidgetManager.INVALID_APPWIDGET_ID)
     val createResinStatusWidgetState = _createResinStatusWidgetState.asStateFlow()
     val getUserInfoState = _getUserInfoState.asStateFlow()
     val interval = _interval.asStateFlow()

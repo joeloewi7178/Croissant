@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -42,6 +43,7 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -63,7 +65,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.placeholder.PlaceholderHighlight
@@ -72,8 +74,6 @@ import com.google.accompanist.placeholder.placeholder
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.state.Lce
-import com.joeloewi.croissant.state.RedemptionCodesState
-import com.joeloewi.croissant.state.rememberRedemptionCodesState
 import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
@@ -83,17 +83,21 @@ import com.joeloewi.croissant.util.gameNameStringResId
 import com.joeloewi.croissant.viewmodel.RedemptionCodesViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.Dispatchers
 
 @Composable
 fun RedemptionCodesScreen(
-    navController: NavHostController,
     redemptionCodesViewModel: RedemptionCodesViewModel = hiltViewModel()
 ) {
-    val redemptionCodesState =
-        rememberRedemptionCodesState(redemptionCodesViewModel = redemptionCodesViewModel)
+    val hoYoLABGameRedemptionCodesState by redemptionCodesViewModel.hoYoLABGameRedemptionCodesState.collectAsStateWithLifecycle(
+        context = Dispatchers.Default
+    )
+    val expandedItems = remember { SnapshotStateList<HoYoLABGame>() }
 
     RedemptionCodesContent(
-        redemptionCodesState = redemptionCodesState,
+        hoYoLABGameRedemptionCodesState = hoYoLABGameRedemptionCodesState,
+        expandedItems = { expandedItems },
+        onRefresh = { redemptionCodesViewModel.getRedemptionCodes() }
     )
 }
 
@@ -103,11 +107,19 @@ fun RedemptionCodesScreen(
 )
 @Composable
 private fun RedemptionCodesContent(
-    redemptionCodesState: RedemptionCodesState,
+    hoYoLABGameRedemptionCodesState: Lce<List<Pair<HoYoLABGame, AnnotatedString>>>,
+    expandedItems: () -> SnapshotStateList<HoYoLABGame>,
+    onRefresh: () -> Unit
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = hoYoLABGameRedemptionCodesState.isLoading,
+        onRefresh = onRefresh
+    )
+
     Scaffold(
         snackbarHost = {
-            SnackbarHost(hostState = redemptionCodesState.snackbarHostState)
+            SnackbarHost(hostState = snackbarHostState)
         },
         topBar = {
             TopAppBar(
@@ -118,24 +130,22 @@ private fun RedemptionCodesContent(
         },
         contentWindowInsets = WindowInsets.systemBars.exclude(WindowInsets.navigationBars)
     ) { innerPadding ->
-        val pullRefreshState = redemptionCodesState.swipeRefreshState
-
         Box(
             modifier = Modifier
                 .padding(innerPadding)
                 .pullRefresh(pullRefreshState)
         ) {
-            with(redemptionCodesState.hoYoLABGameRedemptionCodesState) {
+            with(hoYoLABGameRedemptionCodesState) {
                 when (this) {
                     is Lce.Content -> {
                         RedemptionCodes(
                             hoYoLABGameRedemptionCodes = content.toImmutableList(),
-                            expandedItems = redemptionCodesState.expandedItems,
+                            expandedItems = expandedItems,
                         )
                     }
 
                     is Lce.Error -> {
-                        RedemptionCodesError(onRefresh = redemptionCodesState::onRefresh)
+                        RedemptionCodesError(onRefresh = onRefresh)
                     }
 
                     Lce.Loading -> {
@@ -145,7 +155,7 @@ private fun RedemptionCodesContent(
             }
 
             PullRefreshIndicator(
-                refreshing = redemptionCodesState.hoYoLABGameRedemptionCodesState.isLoading,
+                refreshing = hoYoLABGameRedemptionCodesState.isLoading,
                 state = pullRefreshState,
                 modifier = Modifier.align(Alignment.TopCenter),
                 backgroundColor = MaterialTheme.colorScheme.surface,
@@ -220,7 +230,7 @@ private fun RedemptionCodesError(
 @Composable
 private fun RedemptionCodes(
     hoYoLABGameRedemptionCodes: ImmutableList<Pair<HoYoLABGame, AnnotatedString>>,
-    expandedItems: SnapshotStateList<HoYoLABGame>,
+    expandedItems: () -> SnapshotStateList<HoYoLABGame>,
 ) {
     Box(modifier = Modifier) {
         LazyColumn(
@@ -253,12 +263,12 @@ private fun RedemptionCodes(
 @Composable
 private fun RedemptionCodeListItem(
     modifier: Modifier,
-    expandedItems: SnapshotStateList<HoYoLABGame>,
+    expandedItems: () -> SnapshotStateList<HoYoLABGame>,
     item: Pair<HoYoLABGame, AnnotatedString>
 ) {
     val height by remember(expandedItems, item.first) {
         derivedStateOf {
-            if (expandedItems.contains(item.first)) {
+            if (expandedItems().contains(item.first)) {
                 Dp.Unspecified
             } else {
                 216.dp
@@ -301,14 +311,14 @@ private fun RedemptionCodeListItem(
                 actions = {
                     IconButton(
                         onClick = {
-                            if (!expandedItems.contains(item.first)) {
-                                expandedItems.add(item.first)
+                            if (!expandedItems().contains(item.first)) {
+                                expandedItems().add(item.first)
                             } else {
-                                expandedItems.remove(item.first)
+                                expandedItems().remove(item.first)
                             }
                         }
                     ) {
-                        if (expandedItems.contains(item.first)) {
+                        if (expandedItems().contains(item.first)) {
                             Icon(
                                 imageVector = Icons.Default.ExpandLess,
                                 contentDescription = Icons.Default.ExpandLess.name
