@@ -22,6 +22,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
@@ -29,34 +30,34 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.semantics.Role
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.state.SettingsState
-import com.joeloewi.croissant.state.rememberSettingsState
 import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.viewmodel.SettingsViewModel
+import kotlinx.coroutines.Dispatchers
 
 @Composable
 fun SettingsScreen(
-    navController: NavHostController,
-    settingsViewModel: SettingsViewModel = hiltViewModel()
+    settingsViewModel: SettingsViewModel = hiltViewModel(),
+    onDeveloperInfoClick: () -> Unit
 ) {
-    val settingsState = rememberSettingsState(
-        navController = navController,
-        settingsViewModel = settingsViewModel
-    )
+    val darkThemeEnabled by settingsViewModel.darkThemeEnabled.collectAsStateWithLifecycle(context = Dispatchers.Default)
 
     SettingsContent(
-        settingsState = settingsState
+        darkThemeEnabled = { darkThemeEnabled },
+        onDarkThemeEnabled = settingsViewModel::setDarkThemeEnabled,
+        onDeveloperInfoClick = onDeveloperInfoClick
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsContent(
-    settingsState: SettingsState,
+    darkThemeEnabled: () -> Boolean,
+    onDarkThemeEnabled: (Boolean) -> Unit,
+    onDeveloperInfoClick: () -> Unit
 ) {
     val activity = LocalActivity.current
 
@@ -93,9 +94,9 @@ fun SettingsContent(
             ) {
                 ListItem(
                     modifier = Modifier.toggleable(
-                        value = settingsState.settings.darkThemeEnabled,
+                        value = darkThemeEnabled(),
                         role = Role.Switch,
-                        onValueChange = settingsState::setDarkThemeEnabled
+                        onValueChange = onDarkThemeEnabled
                     ),
                     leadingContent = {
                         Icon(
@@ -113,7 +114,7 @@ fun SettingsContent(
                     },
                     trailingContent = {
                         Switch(
-                            checked = settingsState.settings.darkThemeEnabled,
+                            checked = darkThemeEnabled(),
                             onCheckedChange = null
                         )
                     }
@@ -138,7 +139,7 @@ fun SettingsContent(
             ) {
                 ListItem(
                     modifier = Modifier.clickable {
-                        settingsState.onDeveloperInfoClick()
+                        onDeveloperInfoClick()
                     },
                     leadingContent = {
                         Icon(

@@ -40,7 +40,6 @@ import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resi
 import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration.screen.ResinStatusWidgetDetailScreen
 import com.joeloewi.croissant.ui.theme.CroissantTheme
 import com.joeloewi.croissant.util.LocalActivity
-import com.joeloewi.croissant.viewmodel.CreateResinStatusWidgetViewModel
 import com.joeloewi.croissant.viewmodel.LoadingViewModel
 import com.joeloewi.croissant.viewmodel.WidgetConfigurationActivityViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -163,13 +162,7 @@ fun ResinStatusWidgetConfigurationApp() {
                         }
                     },
                 ) {
-                    val createResinStatusWidgetViewModel: CreateResinStatusWidgetViewModel =
-                        hiltViewModel()
-
-                    CreateResinStatusWidgetScreen(
-                        navController = navController,
-                        createResinStatusWidgetViewModel = createResinStatusWidgetViewModel
-                    )
+                    CreateResinStatusWidgetScreen()
                 }
 
                 composable(

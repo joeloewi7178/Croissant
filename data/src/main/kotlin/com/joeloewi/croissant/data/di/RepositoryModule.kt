@@ -59,4 +59,7 @@ interface RepositoryModule {
 
     @Binds
     fun bindArcaLiveAppRepository(arcaLiveAppRepositoryImpl: ArcaLiveAppRepositoryImpl): ArcaLiveAppRepository
+
+    @Binds
+    fun bindSystemRepository(systemRepositoryImpl: SystemRepositoryImpl): SystemRepository
 }

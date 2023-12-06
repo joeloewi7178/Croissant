@@ -36,60 +36,50 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.state.FirstLaunchState
-import com.joeloewi.croissant.state.rememberFirstLaunchState
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.util.CroissantPermission
-import com.joeloewi.croissant.util.createNotificationChannels
 import com.joeloewi.croissant.viewmodel.FirstLaunchViewModel
+import kotlinx.coroutines.flow.catch
 
 @Composable
 fun FirstLaunchScreen(
-    navController: NavHostController,
-    firstLaunchViewModel: FirstLaunchViewModel
+    firstLaunchViewModel: FirstLaunchViewModel = hiltViewModel(),
+    onNavigateToAttendances: () -> Unit
 ) {
-    val firstLaunchState = rememberFirstLaunchState(
-        navController = navController,
-        firstLaunchViewModel = firstLaunchViewModel
-    )
-
     FirstLaunchContent(
-        firstLaunchState = firstLaunchState
+        onFirstLaunchChange = firstLaunchViewModel::setIsFirstLaunch,
+        onNavigateToAttendances = onNavigateToAttendances
     )
 }
 
 @SuppressLint("BatteryLife")
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 private fun FirstLaunchContent(
-    firstLaunchState: FirstLaunchState
+    onFirstLaunchChange: (Boolean) -> Unit,
+    onNavigateToAttendances: () -> Unit
 ) {
-    val context = LocalContext.current
     val multiplePermissionsState = rememberMultiplePermissionsState(
         permissions = listOf(
             CroissantPermission.AccessHoYoLABSession.permission,
             CroissantPermission.POST_NOTIFICATIONS_PERMISSION_COMPAT
         )
     )
-    val isAllPermissionsGranted by remember(multiplePermissionsState) {
-        derivedStateOf {
-            multiplePermissionsState.allPermissionsGranted
-        }
-    }
     val croissantPermissions = remember { CroissantPermission.values() }
 
-    LaunchedEffect(isAllPermissionsGranted) {
-        if (isAllPermissionsGranted) {
-            firstLaunchState.onFirstLaunchChange(false)
-            context.createNotificationChannels()
-            firstLaunchState.navigateToAttendancesScreen()
+    LaunchedEffect(Unit) {
+        snapshotFlow { multiplePermissionsState.allPermissionsGranted }.catch { }.collect {
+            if (it) {
+                onFirstLaunchChange(false)
+                onNavigateToAttendances()
+            }
         }
     }
 
