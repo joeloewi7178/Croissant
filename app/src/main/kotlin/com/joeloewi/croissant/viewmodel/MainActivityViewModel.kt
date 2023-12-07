@@ -8,7 +8,8 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.ktx.AppUpdateResult
 import com.google.android.play.core.ktx.requestUpdateFlow
-import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.firebase.Firebase
+import com.google.firebase.crashlytics.crashlytics
 import com.joeloewi.croissant.domain.usecase.SettingsUseCase
 import com.joeloewi.croissant.domain.usecase.SystemUseCase
 import com.joeloewi.croissant.util.HourFormat
@@ -53,7 +54,7 @@ class MainActivityViewModel @Inject constructor(
         }.flatMapConcat {
             it.requestUpdateFlow()
         }.flowOn(Dispatchers.Default).catch { cause ->
-            FirebaseCrashlytics.getInstance().apply {
+            Firebase.crashlytics.apply {
                 log("AppUpdateManager")
                 recordException(cause)
             }

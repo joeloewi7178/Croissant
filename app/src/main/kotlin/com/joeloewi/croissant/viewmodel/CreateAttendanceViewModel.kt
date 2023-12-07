@@ -6,7 +6,6 @@ import android.app.PendingIntent
 import android.content.Intent
 import androidx.compose.runtime.mutableStateListOf
 import androidx.core.app.AlarmManagerCompat
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.Constraints
@@ -57,10 +56,8 @@ class CreateAttendanceViewModel @Inject constructor(
     private val insertAttendanceUseCase: AttendanceUseCase.Insert,
     private val updateAttendanceUseCase: AttendanceUseCase.Update,
     private val insertGameUseCase: GameUseCase.Insert,
-    private val getOneByUidAttendanceUseCase: AttendanceUseCase.GetOneByUid,
-    private val savedStateHandle: SavedStateHandle,
+    private val getOneByUidAttendanceUseCase: AttendanceUseCase.GetOneByUid
 ) : ViewModel() {
-    private val _pageIndexKey = "pageIndex"
     private val _cookie = MutableStateFlow("")
     private val _hourOfDay = MutableStateFlow(ZonedDateTime.now().hour)
     private val _minute = MutableStateFlow(ZonedDateTime.now().minute)
@@ -136,24 +133,17 @@ class CreateAttendanceViewModel @Inject constructor(
     val hourOfDay = _hourOfDay.asStateFlow()
     val minute = _minute.asStateFlow()
     val insertAttendanceState = _insertAttendanceState.asStateFlow()
-    val pageIndex = savedStateHandle.getStateFlow(_pageIndexKey, 0)
-    val currentPageIndex
-        get() = pageIndex.value
-
-    fun setPageIndex(pageIndex: Int) {
-        savedStateHandle[_pageIndexKey] = pageIndex
-    }
 
     fun setCookie(cookie: String) {
-        _cookie.update { cookie }
+        _cookie.value = cookie
     }
 
     fun setHourOfDay(hourOfDay: Int) {
-        _hourOfDay.update { hourOfDay }
+        _hourOfDay.value = hourOfDay
     }
 
     fun setMinute(minute: Int) {
-        _minute.update { minute }
+        _minute.value = minute
     }
 
     fun createAttendance() {

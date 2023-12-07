@@ -31,7 +31,9 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.google.android.material.color.DynamicColors
+import com.google.firebase.Firebase
 import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.analytics
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.LoginHoYoLABScreen
 import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.ResinStatusWidgetConfigurationNavigation
 import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration.ResinStatusWidgetConfigurationDestination
@@ -88,7 +90,6 @@ fun ResinStatusWidgetConfigurationApp() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination by remember(navBackStackEntry) { derivedStateOf { navBackStackEntry?.destination } }
-    val context = LocalContext.current
     val activity = LocalActivity.current
     val appWidgetId by remember {
         lazy {
@@ -100,7 +101,7 @@ fun ResinStatusWidgetConfigurationApp() {
     }
 
     LaunchedEffect(currentDestination) {
-        FirebaseAnalytics.getInstance(context).logEvent(
+        Firebase.analytics.logEvent(
             FirebaseAnalytics.Event.SCREEN_VIEW,
             bundleOf(
                 FirebaseAnalytics.Param.SCREEN_NAME to currentDestination?.route,

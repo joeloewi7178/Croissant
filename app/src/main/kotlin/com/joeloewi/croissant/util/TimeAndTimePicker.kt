@@ -23,6 +23,7 @@ import androidx.compose.material3.TimeInput
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,7 +34,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import java.time.LocalTime
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -54,9 +54,12 @@ fun TimeAndTimePicker(
     )
     val configuration = LocalConfiguration.current
     var showingPicker by remember { mutableStateOf(true) }
-    val localTime = remember(hourOfDay, minute) {
-        LocalTime.now().withHour(hourOfDay()).withMinute(minute())
-            .format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT))
+    val localTime by remember {
+        derivedStateOf {
+            ZonedDateTime.now().withHour(hourOfDay()).withMinute(minute())
+                .toLocalTime()
+                .format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT))
+        }
     }
 
     TextButton(
@@ -70,10 +73,10 @@ fun TimeAndTimePicker(
         TimePickerDialog(
             onCancel = { showTimePicker = false },
             onConfirm = {
-                val now = ZonedDateTime.now()
+                onHourOfDayChange(state.hour)
+                onMinuteChange(state.minute)
 
-                onHourOfDayChange(now.hour)
-                onMinuteChange(now.minute)
+                showTimePicker = false
             },
             toggle = {
                 if (configuration.screenHeightDp > 400) {
