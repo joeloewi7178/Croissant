@@ -56,20 +56,12 @@ fun CreateAttendanceScreen(
     onLoginHoYoLAB: () -> Unit,
     onNavigateUp: () -> Unit
 ) {
-    val insertAttendanceState by createAttendanceViewModel.insertAttendanceState.collectAsStateWithLifecycle(
-        context = Dispatchers.Default
-    )
-    val connectedGames by createAttendanceViewModel.connectedGames.collectAsStateWithLifecycle(
-        context = Dispatchers.Default
-    )
-    val duplicateAttendance by createAttendanceViewModel.duplicatedAttendance.collectAsStateWithLifecycle(
-        context = Dispatchers.Default
-    )
-    val hourOfDay by createAttendanceViewModel.hourOfDay.collectAsStateWithLifecycle(
-        context = Dispatchers.Default
-    )
-    val minute by createAttendanceViewModel.minute.collectAsStateWithLifecycle(context = Dispatchers.Default)
-    val tickPerSecond by createAttendanceViewModel.tickPerSecond.collectAsStateWithLifecycle(context = Dispatchers.Default)
+    val insertAttendanceState by createAttendanceViewModel.insertAttendanceState.collectAsStateWithLifecycle()
+    val connectedGames by createAttendanceViewModel.connectedGames.collectAsStateWithLifecycle()
+    val duplicateAttendance by createAttendanceViewModel.duplicatedAttendance.collectAsStateWithLifecycle()
+    val hourOfDay by createAttendanceViewModel.hourOfDay.collectAsStateWithLifecycle()
+    val minute by createAttendanceViewModel.minute.collectAsStateWithLifecycle()
+    val tickPerSecond by createAttendanceViewModel.tickPerSecond.collectAsStateWithLifecycle()
 
     CreateAttendanceContent(
         newCookie = newCookie,
@@ -80,8 +72,10 @@ fun CreateAttendanceScreen(
         minute = { minute },
         tickPerSecond = { tickPerSecond },
         onLoginHoYoLAB = onLoginHoYoLAB,
+        onCookieChange = createAttendanceViewModel::setCookie,
         onHourOfDayChange = createAttendanceViewModel::setHourOfDay,
         onMinuteChange = createAttendanceViewModel::setMinute,
+        onCreateAttendance = createAttendanceViewModel::createAttendance,
         onNavigateUp = onNavigateUp
     )
 }
@@ -97,8 +91,10 @@ fun CreateAttendanceContent(
     minute: () -> Int,
     tickPerSecond: () -> ZonedDateTime,
     onLoginHoYoLAB: () -> Unit,
+    onCookieChange: (String) -> Unit,
     onHourOfDayChange: (Int) -> Unit,
     onMinuteChange: (Int) -> Unit,
+    onCreateAttendance: () -> Unit,
     onNavigateUp: () -> Unit
 ) {
     val pagerState = rememberPagerState { 3 }
@@ -107,8 +103,9 @@ fun CreateAttendanceContent(
     var showCancelConfirmationDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.Default) {
-            snapshotFlow(newCookie).catch { }.collect {
+        snapshotFlow(newCookie).catch { }.collect {
+            if (it.isNotEmpty()) {
+                onCookieChange(it)
                 pagerState.scrollToPage(1)
             }
         }
@@ -120,7 +117,7 @@ fun CreateAttendanceContent(
                 when (it) {
                     is Lce.Content -> {
                         withContext(Dispatchers.Main) {
-                            if (it.content.isEmpty()) {
+                            if (it.content.isNotEmpty()) {
                                 onNavigateUp()
                             }
                         }
@@ -200,9 +197,7 @@ fun CreateAttendanceContent(
                         onHourOfDayChange = onHourOfDayChange,
                         onMinuteChange = onMinuteChange,
                         tickPerSecond = tickPerSecond,
-                        onNextButtonClick = {
-
-                        }
+                        onNextButtonClick = onCreateAttendance
                     )
                 }
             }

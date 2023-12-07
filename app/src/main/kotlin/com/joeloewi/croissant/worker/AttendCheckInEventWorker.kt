@@ -20,7 +20,6 @@ import androidx.work.WorkerParameters
 import coil.imageLoader
 import coil.request.ImageRequest
 import com.google.firebase.Firebase
-import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.crashlytics.crashlytics
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.data.common.generateGameIntent
@@ -384,7 +383,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                         } else {
 
                         }*/
-                        FirebaseCrashlytics.getInstance().apply {
+                        Firebase.crashlytics.apply {
                             log(this@AttendCheckInEventWorker.javaClass.simpleName)
                             recordException(cause)
                         }
@@ -421,7 +420,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                     throw cause
                 }
 
-                FirebaseCrashlytics.getInstance().apply {
+                Firebase.crashlytics.apply {
                     log(this@AttendCheckInEventWorker.javaClass.simpleName)
                     recordException(cause)
                 }

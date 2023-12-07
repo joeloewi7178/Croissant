@@ -8,15 +8,20 @@ import com.joeloewi.croissant.state.Lce
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginHoYoLABViewModel @Inject constructor() : ViewModel() {
+    private val _currentCookie = MutableStateFlow("")
+
     val removeAllCookies = callbackFlow<Lce<Boolean>> {
         var valueCallback: ValueCallback<Boolean>? = ValueCallback<Boolean> { hasRemoved ->
             CookieManager.getInstance().flush()
@@ -24,7 +29,9 @@ class LoginHoYoLABViewModel @Inject constructor() : ViewModel() {
         }
 
         CookieManager.getInstance().runCatching {
-            removeAllCookies(valueCallback)
+            withContext(Dispatchers.Main) {
+                removeAllCookies(valueCallback)
+            }
         }.onFailure { cause ->
             close(cause)
         }
@@ -35,4 +42,10 @@ class LoginHoYoLABViewModel @Inject constructor() : ViewModel() {
         started = SharingStarted.Lazily,
         initialValue = Lce.Loading
     )
+
+    val currentCookie = _currentCookie.asStateFlow()
+
+    fun setCurrentCookie(currentCookie: String) {
+        _currentCookie.value = currentCookie
+    }
 }

@@ -5,7 +5,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import androidx.work.WorkManager
-import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.firebase.Firebase
+import com.google.firebase.crashlytics.crashlytics
 import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
 import com.joeloewi.croissant.domain.usecase.ResinStatusWidgetUseCase
 import com.joeloewi.croissant.util.goAsync
@@ -35,7 +36,7 @@ class MigrationHelper : BroadcastReceiver() {
             Intent.ACTION_MY_PACKAGE_REPLACED -> {
                 goAsync(
                     onError = { cause ->
-                        FirebaseCrashlytics.getInstance().apply {
+                        Firebase.crashlytics.apply {
                             log(this@MigrationHelper.javaClass.simpleName)
                             recordException(cause)
                         }
