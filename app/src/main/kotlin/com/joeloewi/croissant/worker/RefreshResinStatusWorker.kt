@@ -13,7 +13,8 @@ import androidx.core.os.bundleOf
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.firebase.Firebase
+import com.google.firebase.crashlytics.crashlytics
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.domain.entity.DataSwitch
@@ -228,7 +229,7 @@ class RefreshResinStatusWorker @AssistedInject constructor(
                 //hoyoverse api rarely throws timeout error
                 //even though this worker has constraints on connection
 
-                FirebaseCrashlytics.getInstance().apply {
+                Firebase.crashlytics.apply {
                     log(this@RefreshResinStatusWorker.javaClass.simpleName)
                     recordException(cause)
                 }

@@ -5,7 +5,8 @@ import android.os.Build
 import com.google.android.play.core.ktx.launchReview
 import com.google.android.play.core.ktx.requestReview
 import com.google.android.play.core.review.ReviewManagerFactory
-import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.firebase.Firebase
+import com.google.firebase.crashlytics.crashlytics
 import kotlinx.coroutines.CancellationException
 
 suspend fun requestReview(
@@ -27,7 +28,7 @@ suspend fun requestReview(
                 throw cause
             }
 
-            FirebaseCrashlytics.getInstance().apply {
+            Firebase.crashlytics.apply {
                 log(Build.MODEL)
                 logMessage?.let { log(it) }
                 recordException(cause)

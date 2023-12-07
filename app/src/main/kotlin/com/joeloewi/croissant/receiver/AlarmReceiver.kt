@@ -14,7 +14,8 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import androidx.work.workDataOf
-import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.firebase.Firebase
+import com.google.firebase.crashlytics.crashlytics
 import com.joeloewi.croissant.BuildConfig
 import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
 import com.joeloewi.croissant.util.goAsync
@@ -47,7 +48,7 @@ class AlarmReceiver : BroadcastReceiver() {
             Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED, AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED -> {
                 goAsync(
                     onError = { cause ->
-                        FirebaseCrashlytics.getInstance().apply {
+                        Firebase.crashlytics.apply {
                             log(this@AlarmReceiver.javaClass.simpleName)
                             recordException(cause)
                         }
@@ -106,7 +107,7 @@ class AlarmReceiver : BroadcastReceiver() {
 
                 goAsync(
                     onError = { cause ->
-                        FirebaseCrashlytics.getInstance().apply {
+                        Firebase.crashlytics.apply {
                             log(this@AlarmReceiver.javaClass.simpleName)
                             recordException(cause)
                         }

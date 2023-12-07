@@ -14,7 +14,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.firebase.Firebase
+import com.google.firebase.crashlytics.crashlytics
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration.ResinStatusWidgetConfigurationDestination
 import com.joeloewi.croissant.viewmodel.LoadingViewModel
@@ -55,7 +56,7 @@ fun LoadingScreen(
                         }
                     }
                 }.onFailure { cause ->
-                    FirebaseCrashlytics.getInstance().apply {
+                    Firebase.crashlytics.apply {
                         log(ResinStatusWidgetConfigurationDestination.LoadingScreen().route)
                         recordException(cause)
                     }

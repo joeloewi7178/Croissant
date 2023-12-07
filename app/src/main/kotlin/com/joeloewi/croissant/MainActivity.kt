@@ -13,12 +13,11 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.exclude
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
@@ -44,7 +43,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -92,7 +90,6 @@ import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.LocalHourFormat
 import com.joeloewi.croissant.util.RequireAppUpdate
 import com.joeloewi.croissant.util.isCompactWindowSize
-import com.joeloewi.croissant.util.observeAsState
 import com.joeloewi.croissant.viewmodel.AttendanceDetailViewModel
 import com.joeloewi.croissant.viewmodel.AttendanceLogsCalendarViewModel
 import com.joeloewi.croissant.viewmodel.AttendancesViewModel
@@ -117,8 +114,8 @@ class MainActivity : AppCompatActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
 
-        enableEdgeToEdge()
         DynamicColors.applyToActivityIfAvailable(this)
+        enableEdgeToEdge()
 
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -170,6 +167,7 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
+@SuppressLint("RestrictedApi")
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun CroissantApp(
@@ -195,17 +193,25 @@ fun CroissantApp(
         initialValue = null,
         context = Dispatchers.Default
     )
+    val currentBackStack by navController.currentBackStack.collectAsStateWithLifecycle()
     val windowSizeClass = calculateWindowSizeClass(activity = activity)
     val isBottomNavigationBarVisible by remember {
         derivedStateOf {
-            fullScreenDestinations.contains(currentBackStackEntry?.destination?.route)
-                    && windowSizeClass.isCompactWindowSize()
+            !fullScreenDestinations.any { route ->
+                (currentBackStackEntry?.destination?.route?.contains(
+                    route
+                ) != false)
+            } && windowSizeClass.isCompactWindowSize()
                     && currentBackStackEntry?.destination?.route == currentBackStackEntry?.destination?.parent?.startDestinationRoute
         }
     }
     val isNavigationRailVisible by remember {
         derivedStateOf {
-            fullScreenDestinations.contains(currentBackStackEntry?.destination?.route) && windowSizeClass.isCompactWindowSize()
+            !fullScreenDestinations.any { route ->
+                (currentBackStackEntry?.destination?.route?.contains(
+                    route
+                ) != false)
+            } && !windowSizeClass.isCompactWindowSize()
         }
     }
     val croissantNavigations = remember {
@@ -231,6 +237,7 @@ fun CroissantApp(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets.systemBars.only(WindowInsetsSides.Horizontal),
         bottomBar = {
             if (isBottomNavigationBarVisible) {
                 CroissantBottomNavigationBar(
@@ -238,7 +245,26 @@ fun CroissantApp(
                     currentBackStackEntry = { currentBackStackEntry },
                     onClickNavigationButton = { route ->
                         navController.navigate(route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
+                            val startDestination =
+                                navController.graph.findStartDestination()
+
+                            val popUpToDestination =
+                                if (currentBackStack.any {
+                                        it.destination == startDestination
+                                    }) {
+
+                                    startDestination.route
+                                        ?: activity::class.java.simpleName
+                                } else if (currentBackStack.any {
+                                        it.destination.route == AttendancesDestination.AttendancesScreen.route
+                                    }) {
+
+                                    AttendancesDestination.AttendancesScreen.route
+                                } else {
+                                    activity::class.java.simpleName
+                                }
+
+                            popUpTo(popUpToDestination) {
                                 saveState = true
                             }
                             launchSingleTop = true
@@ -247,9 +273,7 @@ fun CroissantApp(
                     }
                 )
             }
-        },
-        contentWindowInsets = WindowInsets.systemBars.exclude(WindowInsets.statusBars)
-            .exclude(WindowInsets.navigationBars)
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -396,7 +420,7 @@ fun CroissantNavHost(
                 CreateAttendanceScreen(
                     newCookie = { newCookie },
                     onLoginHoYoLAB = {
-
+                        navController.navigate(AttendancesDestination.LoginHoYoLabScreen.route)
                     },
                     onNavigateUp = {
                         navController.navigateUp()

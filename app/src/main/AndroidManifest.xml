@@ -127,6 +127,10 @@
         <service
             android:name=".service.RemoteViewsFactoryService"
             android:permission="android.permission.BIND_REMOTEVIEWS" />
+        <service
+            android:name="androidx.work.impl.foreground.SystemForegroundService"
+            android:foregroundServiceType="dataSync"
+            tools:node="merge" />
 
         <activity
             android:name=".MainActivity"

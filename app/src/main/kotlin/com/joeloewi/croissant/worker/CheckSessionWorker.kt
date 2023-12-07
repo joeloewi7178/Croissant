@@ -11,7 +11,8 @@ import androidx.core.app.TaskStackBuilder
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.firebase.Firebase
+import com.google.firebase.crashlytics.crashlytics
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.domain.common.HoYoLABRetCode
 import com.joeloewi.croissant.domain.common.LoggableWorker
@@ -138,7 +139,7 @@ class CheckSessionWorker @AssistedInject constructor(
                     }
                 }
 
-                FirebaseCrashlytics.getInstance().apply {
+                Firebase.crashlytics.apply {
                     log(this@CheckSessionWorker.javaClass.simpleName)
                     recordException(cause)
                 }

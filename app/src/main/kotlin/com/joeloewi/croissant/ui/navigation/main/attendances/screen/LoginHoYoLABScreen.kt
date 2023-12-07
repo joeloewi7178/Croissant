@@ -16,11 +16,13 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -42,9 +44,10 @@ import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.viewmodel.LoginHoYoLABViewModel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 const val COOKIE = "cookie"
@@ -55,31 +58,15 @@ fun LoginHoYoLABScreen(
     onNavigateUp: () -> Unit,
     onNavigateUpWithResult: (cookie: String) -> Unit
 ) {
-    val removeAllCookiesState by loginHoYoLABViewModel.removeAllCookies.collectAsStateWithLifecycle(
-        context = Dispatchers.Default
-    )
-    /*val loginHoYoLABState = rememberLoginHoYoLABState(
-        navController = navController,
-        loginHoYoLABViewModel = loginHoYoLABViewModel,
-        hoyolabUrl = remember { "https://m.hoyolab.com" },
-        excludedUrls = remember {
-            listOf("www.webstatic-sea.mihoyo.com", "www.webstatic-sea.hoyolab.com")
-        }.toImmutableList(),
-        securityPopUpUrls = remember {
-            listOf(
-                "https://account.hoyolab.com/security.html",
-                "https://m.hoyolab.com/account-system-sea/security.html",
-                "about:blank",
-                "https://account.hoyolab.com/single-page/cross-login.html"
-            )
-        }.toImmutableList(),
-        webViewNavigator = rememberWebViewNavigator()
-    )*/
+    val removeAllCookiesState by loginHoYoLABViewModel.removeAllCookies.collectAsStateWithLifecycle()
+    val currentCookie by loginHoYoLABViewModel.currentCookie.collectAsStateWithLifecycle()
 
     LoginHoYoLABContent(
         removeAllCookiesState = removeAllCookiesState,
+        currentCookie = { currentCookie },
         onNavigateUp = onNavigateUp,
-        onNavigateUpWithResult = onNavigateUpWithResult
+        onNavigateUpWithResult = onNavigateUpWithResult,
+        onCurrentCookieChange = loginHoYoLABViewModel::setCurrentCookie
     )
 }
 
@@ -88,8 +75,10 @@ fun LoginHoYoLABScreen(
 @Composable
 fun LoginHoYoLABContent(
     removeAllCookiesState: Lce<Boolean>,
+    currentCookie: () -> String,
     onNavigateUp: () -> Unit,
-    onNavigateUpWithResult: (cookie: String) -> Unit
+    onNavigateUpWithResult: (cookie: String) -> Unit,
+    onCurrentCookieChange: (String) -> Unit
 ) {
     val incorrectSession = stringResource(id = R.string.incorrect_session)
     val context = LocalContext.current
@@ -112,7 +101,13 @@ fun LoginHoYoLABContent(
         listOf("www.webstatic-sea.mihoyo.com", "www.webstatic-sea.hoyolab.com")
     }.toImmutableList()
     var showSslErrorDialog by remember { mutableStateOf<Pair<SslErrorHandler?, SslError?>?>(null) }
-    val checkCookieMutex = remember { Mutex() }
+
+    LaunchedEffect(Unit) {
+        snapshotFlow(currentCookie).catch { }.flowOn(Dispatchers.IO).filter { it.isNotEmpty() }
+            .collect {
+                onNavigateUpWithResult(it)
+            }
+    }
 
     Scaffold(
         topBar = {
@@ -291,26 +286,15 @@ fun LoginHoYoLABContent(
                                 request: WebResourceRequest?
                             ): WebResourceResponse? {
                                 //in this block, codes are executed in io thread.
-                                //checkAndCatchCookieOnlyOnce callback's role is to execute navController.navigateUp()
-                                //which is must executed in main thread.
-                                //in addition, shouldInterceptRequest() callback is called many times
-                                //but navController.navigateUp() has to be called only once
+                                //and called multiple times.
+                                //but we only need first value.
+                                //use stateflow in view model to distinct and get first value
 
-                                //so, after switching context to main thread, store that job in variable
-                                //if the variable is null to ensure execute only once
+                                val cookie =
+                                    CookieManager.getInstance().getCookie(hoyolabUrl)
 
-                                coroutineScope.launch(Dispatchers.Default) {
-                                    checkCookieMutex.withLock {
-                                        val currentCookie =
-                                            CookieManager.getInstance().getCookie(hoyolabUrl)
-
-                                        if (cookieKeys.map { currentCookie.contains(it) }
-                                                .all { it }) {
-                                            withContext(Dispatchers.Main) {
-                                                onNavigateUpWithResult(currentCookie)
-                                            }
-                                        }
-                                    }
+                                if (cookieKeys.map { cookie?.contains(it) == true }.all { it }) {
+                                    onCurrentCookieChange(cookie)
                                 }
 
                                 return super.shouldInterceptRequest(view, request)
