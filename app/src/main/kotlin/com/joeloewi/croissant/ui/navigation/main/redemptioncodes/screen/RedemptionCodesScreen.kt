@@ -83,19 +83,16 @@ import com.joeloewi.croissant.util.gameNameStringResId
 import com.joeloewi.croissant.viewmodel.RedemptionCodesViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.Dispatchers
 
 @Composable
 fun RedemptionCodesScreen(
     redemptionCodesViewModel: RedemptionCodesViewModel = hiltViewModel()
 ) {
-    val hoYoLABGameRedemptionCodesState by redemptionCodesViewModel.hoYoLABGameRedemptionCodesState.collectAsStateWithLifecycle(
-        context = Dispatchers.Default
-    )
+    val hoYoLABGameRedemptionCodesState by redemptionCodesViewModel.hoYoLABGameRedemptionCodesState.collectAsStateWithLifecycle()
     val expandedItems = remember { SnapshotStateList<HoYoLABGame>() }
 
     RedemptionCodesContent(
-        hoYoLABGameRedemptionCodesState = hoYoLABGameRedemptionCodesState,
+        hoYoLABGameRedemptionCodesState = { hoYoLABGameRedemptionCodesState },
         expandedItems = { expandedItems },
         onRefresh = { redemptionCodesViewModel.getRedemptionCodes() }
     )
@@ -107,13 +104,13 @@ fun RedemptionCodesScreen(
 )
 @Composable
 private fun RedemptionCodesContent(
-    hoYoLABGameRedemptionCodesState: Lce<List<Pair<HoYoLABGame, AnnotatedString>>>,
+    hoYoLABGameRedemptionCodesState: () -> Lce<List<Pair<HoYoLABGame, AnnotatedString>>>,
     expandedItems: () -> SnapshotStateList<HoYoLABGame>,
     onRefresh: () -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val pullRefreshState = rememberPullRefreshState(
-        refreshing = hoYoLABGameRedemptionCodesState.isLoading,
+        refreshing = hoYoLABGameRedemptionCodesState().isLoading,
         onRefresh = onRefresh
     )
 
@@ -132,10 +129,11 @@ private fun RedemptionCodesContent(
     ) { innerPadding ->
         Box(
             modifier = Modifier
+                .fillMaxSize()
                 .padding(innerPadding)
                 .pullRefresh(pullRefreshState)
         ) {
-            with(hoYoLABGameRedemptionCodesState) {
+            with(hoYoLABGameRedemptionCodesState()) {
                 when (this) {
                     is Lce.Content -> {
                         RedemptionCodes(
@@ -155,7 +153,7 @@ private fun RedemptionCodesContent(
             }
 
             PullRefreshIndicator(
-                refreshing = hoYoLABGameRedemptionCodesState.isLoading,
+                refreshing = hoYoLABGameRedemptionCodesState().isLoading,
                 state = pullRefreshState,
                 modifier = Modifier.align(Alignment.TopCenter),
                 backgroundColor = MaterialTheme.colorScheme.surface,

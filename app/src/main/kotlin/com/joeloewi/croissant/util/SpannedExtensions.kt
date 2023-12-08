@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.sp
 fun Spanned.toAnnotatedString(): AnnotatedString = buildAnnotatedString {
     val spanned = this@toAnnotatedString
     append(spanned.toString())
-    getSpans(0, spanned.length, Any::class.java).forEachIndexed { index, span ->
+    getSpans(0, spanned.length, Any::class.java).forEachIndexed { _, span ->
         val start = getSpanStart(span)
         val end = getSpanEnd(span)
 

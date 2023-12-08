@@ -48,6 +48,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 const val COOKIE = "cookie"
@@ -62,7 +63,7 @@ fun LoginHoYoLABScreen(
     val currentCookie by loginHoYoLABViewModel.currentCookie.collectAsStateWithLifecycle()
 
     LoginHoYoLABContent(
-        removeAllCookiesState = removeAllCookiesState,
+        removeAllCookiesState = { removeAllCookiesState },
         currentCookie = { currentCookie },
         onNavigateUp = onNavigateUp,
         onNavigateUpWithResult = onNavigateUpWithResult,
@@ -74,7 +75,7 @@ fun LoginHoYoLABScreen(
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun LoginHoYoLABContent(
-    removeAllCookiesState: Lce<Boolean>,
+    removeAllCookiesState: () -> Lce<Boolean>,
     currentCookie: () -> String,
     onNavigateUp: () -> Unit,
     onNavigateUpWithResult: (cookie: String) -> Unit,
@@ -217,7 +218,7 @@ fun LoginHoYoLABContent(
         },
         contentWindowInsets = WindowInsets.safeDrawing.exclude(WindowInsets.navigationBars)
     ) { innerPadding ->
-        when (removeAllCookiesState) {
+        when (removeAllCookiesState()) {
             is Lce.Content -> {
                 WebView(
                     modifier = Modifier
@@ -297,7 +298,12 @@ fun LoginHoYoLABContent(
                                     onCurrentCookieChange(cookie)
                                 }
 
-                                return super.shouldInterceptRequest(view, request)
+                                return runBlocking(Dispatchers.IO) {
+                                    super.shouldInterceptRequest(
+                                        view,
+                                        request
+                                    )
+                                }
                             }
 
                             override fun shouldOverrideUrlLoading(

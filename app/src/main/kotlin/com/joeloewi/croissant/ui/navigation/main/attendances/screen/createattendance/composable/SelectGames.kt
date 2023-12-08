@@ -46,6 +46,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
@@ -64,6 +65,7 @@ import com.joeloewi.croissant.domain.entity.Attendance
 import com.joeloewi.croissant.domain.entity.Game
 import com.joeloewi.croissant.domain.entity.GameRecord
 import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.state.StableWrapper
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.gameNameStringResId
@@ -78,6 +80,7 @@ fun SelectGames(
     modifier: Modifier = Modifier,
     connectedGames: () -> Lce<List<GameRecord>>,
     duplicatedAttendance: () -> Attendance?,
+    checkedGames: () -> SnapshotStateList<Game>,
     onNextButtonClick: () -> Unit,
     onNavigateToAttendanceDetailScreen: (Long) -> Unit,
     onCancelCreateAttendance: () -> Unit
@@ -94,7 +97,6 @@ fun SelectGames(
     val containsNotSupportedGame = stringResource(id = R.string.contains_not_supported_game)
     val chooseAtLeastOneGame = stringResource(id = R.string.choose_at_least_one_game)
     val lazyListState = rememberLazyListState()
-    val checkedGames = remember { SnapshotStateList<Game>() }
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.Default) {
@@ -129,7 +131,7 @@ fun SelectGames(
     }
 
     LaunchedEffect(Unit) {
-        snapshotFlow { checkedGames }.catch { }.collect {
+        snapshotFlow(checkedGames).catch { }.collect {
             if (it.isEmpty()) {
                 snackbarHostState.apply {
                     currentSnackbarData?.dismiss()
@@ -161,7 +163,7 @@ fun SelectGames(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = DefaultDp),
-                    enabled = checkedGames.isNotEmpty(),
+                    enabled = checkedGames().isNotEmpty(),
                     onClick = onNextButtonClick
                 ) {
                     Row(
@@ -220,8 +222,8 @@ fun SelectGames(
                                 checkedGames = checkedGames,
                                 hoYoLABGame = item,
                                 gameRecord = {
-                                    connectedGames().content?.find { it.gameId == item.gameId }
-                                        ?: GameRecord()
+                                    StableWrapper(connectedGames().content?.find { it.gameId == item.gameId }
+                                        ?: GameRecord())
                                 }
                             )
                         }
@@ -382,17 +384,17 @@ fun ConnectedGamesListItemPlaceholder() {
 @Composable
 fun ConnectedGamesContentListItem(
     modifier: Modifier,
-    checkedGames: SnapshotStateList<Game>,
+    checkedGames: () -> SnapshotStateList<Game>,
     hoYoLABGame: HoYoLABGame,
-    gameRecord: (HoYoLABGame) -> GameRecord
+    gameRecord: (HoYoLABGame) -> StableWrapper<GameRecord>
 ) {
     val currentGameRecord by rememberUpdatedState(newValue = gameRecord(hoYoLABGame))
     val game by remember(hoYoLABGame, gameRecord) {
         derivedStateOf {
             Game(
-                roleId = currentGameRecord.gameRoleId,
+                roleId = currentGameRecord.value.gameRoleId,
                 type = hoYoLABGame,
-                region = currentGameRecord.region
+                region = currentGameRecord.value.region
             )
         }
     }
@@ -400,7 +402,7 @@ fun ConnectedGamesContentListItem(
     val enabled by remember(hoYoLABGame, gameRecord) {
         derivedStateOf {
             hoYoLABGame == HoYoLABGame.TearsOfThemis || hoYoLABGame == HoYoLABGame.HonkaiStarRail ||
-                    currentGameRecord.gameId != GameRecord.INVALID_GAME_ID
+                    currentGameRecord.value.gameId != GameRecord.INVALID_GAME_ID
         }
     }
 
@@ -414,18 +416,22 @@ fun ConnectedGamesContentListItem(
                     0.3f
                 }
             )
-            .toggleable(
-                value = checkedGames.contains(game),
-                enabled = enabled,
-                role = Role.Checkbox,
-                onValueChange = { checked ->
-                    if (checked) {
-                        checkedGames.add(game)
-                    } else {
-                        checkedGames.remove(game)
-                    }
+            .composed {
+                remember(checkedGames().contains(game), enabled) {
+                    toggleable(
+                        value = checkedGames().contains(game),
+                        enabled = enabled,
+                        role = Role.Checkbox,
+                        onValueChange = { checked ->
+                            if (checked) {
+                                checkedGames().add(game)
+                            } else {
+                                checkedGames().remove(game)
+                            }
+                        }
+                    )
                 }
-            ),
+            },
         leadingContent = {
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -445,7 +451,7 @@ fun ConnectedGamesContentListItem(
         },
         trailingContent = {
             Checkbox(
-                checked = checkedGames.contains(game),
+                checked = checkedGames().contains(game),
                 onCheckedChange = null
             )
         },
@@ -453,7 +459,7 @@ fun ConnectedGamesContentListItem(
             Text(text = stringResource(id = hoYoLABGame.gameNameStringResId()))
         },
         supportingContent = {
-            with(currentGameRecord) {
+            with(currentGameRecord.value) {
                 if (regionName.isNotEmpty() && region.isNotEmpty()) {
                     Text(
                         text = "$regionName (${region})"

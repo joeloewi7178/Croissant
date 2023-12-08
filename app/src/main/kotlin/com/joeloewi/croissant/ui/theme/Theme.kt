@@ -17,7 +17,6 @@
 package com.joeloewi.croissant.ui.theme
 
 import android.os.Build
-import android.view.Window
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -95,7 +94,6 @@ private val DarkColorScheme = darkColorScheme(
 
 @Composable
 fun CroissantTheme(
-    window: () -> Window,
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,

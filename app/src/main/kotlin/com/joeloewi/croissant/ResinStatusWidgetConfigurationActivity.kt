@@ -17,7 +17,6 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.core.os.bundleOf
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -74,9 +73,7 @@ class ResinStatusWidgetConfigurationActivity : AppCompatActivity() {
         }
 
         setContent {
-            CroissantTheme(
-                window = { window }
-            ) {
+            CroissantTheme {
                 CompositionLocalProvider(LocalActivity provides this) {
                     ResinStatusWidgetConfigurationApp()
                 }

@@ -8,7 +8,7 @@ sealed class Lce<out T> {
     open val error: Throwable? = null
     open val isLoading: Boolean = false
 
-    object Loading : Lce<Nothing>() {
+    data object Loading : Lce<Nothing>() {
         override val isLoading: Boolean = true
     }
 

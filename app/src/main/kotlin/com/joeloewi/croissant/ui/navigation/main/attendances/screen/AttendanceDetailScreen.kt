@@ -85,31 +85,19 @@ fun AttendanceDetailScreen(
     newCookie: () -> String,
     onNavigateUp: () -> Unit,
     onClickRefreshSession: () -> Unit,
-    onClickLogSummary: (LoggableWorker) -> Unit
+    onClickLogSummary: (Long, LoggableWorker) -> Unit
 ) {
-    val uid by attendanceDetailViewModel.uid.collectAsStateWithLifecycle(context = Dispatchers.Default)
-    val nickname by attendanceDetailViewModel.nickname.collectAsStateWithLifecycle(context = Dispatchers.Default)
-    val checkedGames = attendanceDetailViewModel.checkedGames
-    val checkSessionWorkerSuccessLogCount by attendanceDetailViewModel.checkSessionWorkerSuccessLogCount.collectAsStateWithLifecycle(
-        context = Dispatchers.Default
-    )
-    val checkSessionWorkerFailureLogCount by attendanceDetailViewModel.checkSessionWorkerFailureLogCount.collectAsStateWithLifecycle(
-        context = Dispatchers.Default
-    )
-    val attendCheckInEventWorkerSuccessLogCount by attendanceDetailViewModel.attendCheckInEventWorkerSuccessLogCount.collectAsStateWithLifecycle(
-        context = Dispatchers.Default
-    )
-    val attendCheckInEventWorkerFailureLogCount by attendanceDetailViewModel.attendCheckInEventWorkerFailureLogCount.collectAsStateWithLifecycle(
-        context = Dispatchers.Default
-    )
-    val updateAttendanceState by attendanceDetailViewModel.updateAttendanceState.collectAsStateWithLifecycle(
-        context = Dispatchers.Default
-    )
-    val hourOfDay by attendanceDetailViewModel.hourOfDay.collectAsStateWithLifecycle(context = Dispatchers.Default)
-    val minute by attendanceDetailViewModel.minute.collectAsStateWithLifecycle(context = Dispatchers.Default)
-    val attendanceWithGames by attendanceDetailViewModel.attendanceWithGamesState.collectAsStateWithLifecycle(
-        context = Dispatchers.Default
-    )
+    val uid by attendanceDetailViewModel.uid.collectAsStateWithLifecycle()
+    val nickname by attendanceDetailViewModel.nickname.collectAsStateWithLifecycle()
+    val checkedGames = remember { attendanceDetailViewModel.checkedGames }
+    val checkSessionWorkerSuccessLogCount by attendanceDetailViewModel.checkSessionWorkerSuccessLogCount.collectAsStateWithLifecycle()
+    val checkSessionWorkerFailureLogCount by attendanceDetailViewModel.checkSessionWorkerFailureLogCount.collectAsStateWithLifecycle()
+    val attendCheckInEventWorkerSuccessLogCount by attendanceDetailViewModel.attendCheckInEventWorkerSuccessLogCount.collectAsStateWithLifecycle()
+    val attendCheckInEventWorkerFailureLogCount by attendanceDetailViewModel.attendCheckInEventWorkerFailureLogCount.collectAsStateWithLifecycle()
+    val updateAttendanceState by attendanceDetailViewModel.updateAttendanceState.collectAsStateWithLifecycle()
+    val hourOfDay by attendanceDetailViewModel.hourOfDay.collectAsStateWithLifecycle()
+    val minute by attendanceDetailViewModel.minute.collectAsStateWithLifecycle()
+    val attendanceWithGames by attendanceDetailViewModel.attendanceWithGamesState.collectAsStateWithLifecycle()
 
     AttendanceDetailContent(
         uid = { uid },
@@ -122,11 +110,11 @@ fun AttendanceDetailScreen(
         updateAttendanceState = { updateAttendanceState },
         hourOfDay = { hourOfDay },
         minute = { minute },
-        attendanceWithGames = attendanceWithGames,
+        attendanceWithGames = { attendanceWithGames },
         newCookie = newCookie,
         onNavigateUp = onNavigateUp,
         onClickRefreshSession = onClickRefreshSession,
-        onClickLogSummary = onClickLogSummary,
+        onClickLogSummary = { onClickLogSummary(attendanceDetailViewModel.attendanceId, it) },
         onHourOfDayChange = attendanceDetailViewModel::setHourOfDay,
         onMinuteChange = attendanceDetailViewModel::setMinute,
         onRefreshCookie = attendanceDetailViewModel::setCookie,
@@ -150,7 +138,7 @@ private fun AttendanceDetailContent(
     updateAttendanceState: () -> Lce<Unit?>,
     hourOfDay: () -> Int,
     minute: () -> Int,
-    attendanceWithGames: Lce<AttendanceWithGames>,
+    attendanceWithGames: () -> Lce<AttendanceWithGames>,
     newCookie: () -> String,
     onNavigateUp: () -> Unit,
     onClickRefreshSession: () -> Unit,
@@ -165,21 +153,13 @@ private fun AttendanceDetailContent(
     val snackbarHostState = remember { SnackbarHostState() }
     val pressSaveButton = stringResource(id = R.string.press_save_button_to_commit)
 
-    /*LaunchedEffect(attendanceDetailViewModel) {
-        getResultFromPreviousComposable<String>(
-            navController = navController,
-            key = COOKIE
-        )?.let {
-            attendanceDetailViewModel.setCookie(cookie = it)
-            attendanceDetailState.snackbarHostState.showSnackbar(context.getString(R.string.press_save_button_to_commit))
-        }
-    }*/
-
     LaunchedEffect(snackbarHostState) {
         withContext(Dispatchers.Default) {
             snapshotFlow(newCookie).catch { }.collect {
-                onRefreshCookie(it)
-                snackbarHostState.showSnackbar(pressSaveButton)
+                if (it.isNotEmpty()) {
+                    onRefreshCookie(it)
+                    snackbarHostState.showSnackbar(pressSaveButton)
+                }
             }
         }
     }
@@ -223,7 +203,7 @@ private fun AttendanceDetailContent(
                 actions = {
                     IconButton(
                         onClick = onClickSave,
-                        enabled = attendanceWithGames is Lce.Content
+                        enabled = attendanceWithGames() is Lce.Content
                     ) {
                         Icon(
                             imageVector = Icons.Default.Save,
@@ -245,7 +225,6 @@ private fun AttendanceDetailContent(
                 .then(Modifier.padding(horizontal = DefaultDp)),
             verticalArrangement = Arrangement.spacedBy(
                 space = DefaultDp,
-                alignment = Alignment.CenterVertically
             ),
             contentPadding = WindowInsets.navigationBars.asPaddingValues()
         ) {
@@ -549,7 +528,7 @@ fun LogSummaryRow(
                 )
 
                 Text(
-                    text = "$failureLogCount",
+                    text = "${failureLogCount()}",
                     color = MaterialTheme.colorScheme.error
                 )
 
@@ -558,7 +537,7 @@ fun LogSummaryRow(
                     contentDescription = Icons.Default.Done.name
                 )
 
-                Text(text = "$successLogCount")
+                Text(text = "${successLogCount()}")
             }
         }
 
