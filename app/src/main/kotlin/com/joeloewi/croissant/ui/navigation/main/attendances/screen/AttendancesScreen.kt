@@ -32,7 +32,6 @@ import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Pending
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material3.DismissDirection
-import androidx.compose.material3.DismissState
 import androidx.compose.material3.DismissValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -55,9 +54,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
@@ -69,7 +69,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
@@ -89,7 +88,7 @@ import com.google.accompanist.placeholder.placeholder
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.domain.entity.Attendance
 import com.joeloewi.croissant.domain.entity.relational.AttendanceWithGames
-import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
+import com.joeloewi.croissant.state.StableWrapper
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.ui.theme.HalfDp
@@ -101,15 +100,18 @@ import com.joeloewi.croissant.util.isEmpty
 import com.joeloewi.croissant.util.requestReview
 import com.joeloewi.croissant.viewmodel.AttendancesViewModel
 import com.joeloewi.croissant.worker.AttendCheckInEventWorker
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
 @Composable
 fun AttendancesScreen(
-    navController: NavHostController,
     snackbarHostState: SnackbarHostState,
-    attendancesViewModel: AttendancesViewModel = hiltViewModel()
+    attendancesViewModel: AttendancesViewModel = hiltViewModel(),
+    onCreateAttendanceClick: () -> Unit,
+    onClickAttendance: (Attendance) -> Unit
 ) {
     val pagedAttendancesWithGames =
         attendancesViewModel.pagedAttendanceWithGames.collectAsLazyPagingItems()
@@ -117,15 +119,9 @@ fun AttendancesScreen(
     AttendancesContent(
         snackbarHostState = snackbarHostState,
         pagedAttendancesWithGames = pagedAttendancesWithGames,
-        onCreateAttendanceClick = {
-            navController.navigate(AttendancesDestination.CreateAttendanceScreen.route)
-        },
+        onCreateAttendanceClick = onCreateAttendanceClick,
         onDeleteAttendance = attendancesViewModel::deleteAttendance,
-        onClickAttendance = {
-            navController.navigate(
-                AttendancesDestination.AttendanceDetailScreen().generateRoute(it.id)
-            )
-        }
+        onClickAttendance = onClickAttendance
     )
 }
 
@@ -165,48 +161,49 @@ private fun AttendancesContent(
         },
         contentWindowInsets = WindowInsets.systemBars.exclude(WindowInsets.navigationBars)
     ) { innerPadding ->
-        if (pagedAttendancesWithGames.isEmpty()) {
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize()
-                    .then(Modifier.padding(DoubleDp)),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Icon(
-                    modifier = Modifier.fillMaxSize(0.3f),
-                    imageVector = Icons.Default.Error,
-                    contentDescription = Icons.Default.Error.name,
-                    tint = MaterialTheme.colorScheme.primaryContainer
-                )
-                Text(
-                    text = stringResource(id = R.string.attendance_is_empty),
-                    style = MaterialTheme.typography.titleMedium,
-                    textAlign = TextAlign.Center
-                )
-                Text(
-                    text = stringResource(id = R.string.can_attend_event_by_creating_attendance),
-                    style = MaterialTheme.typography.titleMedium,
-                    textAlign = TextAlign.Center
-                )
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize()
-            ) {
+        LazyColumn(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+        ) {
+            if (pagedAttendancesWithGames.isEmpty()) {
+                item {
+                    Column(
+                        modifier = Modifier
+                            .fillParentMaxSize()
+                            .then(Modifier.padding(DoubleDp)),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            modifier = Modifier.fillMaxSize(0.3f),
+                            imageVector = Icons.Default.Error,
+                            contentDescription = Icons.Default.Error.name,
+                            tint = MaterialTheme.colorScheme.primaryContainer
+                        )
+                        Text(
+                            text = stringResource(id = R.string.attendance_is_empty),
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = stringResource(id = R.string.can_attend_event_by_creating_attendance),
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            } else {
                 items(
                     count = pagedAttendancesWithGames.itemCount,
                     key = pagedAttendancesWithGames.itemKey { it.attendance.id }
                 ) { index ->
-                    val item = pagedAttendancesWithGames[index]
+                    val item = runCatching { pagedAttendancesWithGames[index] }.getOrNull()
 
                     if (item != null) {
                         AttendanceWithGamesItem(
                             modifier = Modifier.animateItemPlacement(),
-                            item = { item },
+                            item = { StableWrapper(item) },
                             onDeleteAttendance = onDeleteAttendance,
                             onClickAttendance = onClickAttendance
                         )
@@ -225,20 +222,20 @@ private fun AttendancesContent(
 @Composable
 fun AttendanceWithGamesItem(
     modifier: Modifier,
-    item: () -> AttendanceWithGames,
+    item: () -> StableWrapper<AttendanceWithGames>,
     onDeleteAttendance: (Attendance) -> Unit,
     onClickAttendance: (Attendance) -> Unit
 ) {
     val dismissState = rememberDismissState()
-    val isDismissedEndToStart = dismissState.isDismissed(DismissDirection.EndToStart)
     val context = LocalContext.current
     val activity = LocalActivity.current
     val coroutineScope = rememberCoroutineScope()
-    val currentItem by rememberUpdatedState(newValue = item())
 
-    LaunchedEffect(isDismissedEndToStart) {
-        if (isDismissedEndToStart) {
-            onDeleteAttendance(currentItem.attendance)
+    LaunchedEffect(Unit) {
+        snapshotFlow { dismissState.currentValue }.catch { }.collectLatest {
+            if (it == DismissValue.DismissedToStart) {
+                onDeleteAttendance(item().value.attendance)
+            }
         }
     }
 
@@ -247,40 +244,44 @@ fun AttendanceWithGamesItem(
         modifier = modifier,
         directions = setOf(DismissDirection.EndToStart),
         background = {
-            SwipeToDismissBackground(dismissState = dismissState)
+            SwipeToDismissBackground(
+                direction = dismissState.dismissDirection,
+                targetValue = { dismissState.targetValue }
+            )
         },
         dismissContent = {
             DismissContent(
                 elevation = animateDpAsState(
                     if (dismissState.dismissDirection != null) HalfDp else 0.dp, label = ""
                 ).value,
-                attendanceWithGames = { currentItem },
-                onClickOneTimeAttend = {
-                    val attendance = currentItem.attendance
-                    val oneTimeWork = OneTimeWorkRequestBuilder<AttendCheckInEventWorker>()
-                        .setInputData(workDataOf(AttendCheckInEventWorker.ATTENDANCE_ID to attendance.id))
-                        .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-                        .setConstraints(
-                            Constraints.Builder()
-                                .setRequiredNetworkType(NetworkType.CONNECTED)
-                                .build()
-                        )
-                        .build()
+                attendanceWithGames = item,
+                onClickOneTimeAttend = remember {
+                    { attendance ->
+                        val oneTimeWork = OneTimeWorkRequestBuilder<AttendCheckInEventWorker>()
+                            .setInputData(workDataOf(AttendCheckInEventWorker.ATTENDANCE_ID to attendance.id))
+                            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+                            .setConstraints(
+                                Constraints.Builder()
+                                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                                    .build()
+                            )
+                            .build()
 
-                    WorkManager.getInstance(context).beginUniqueWork(
-                        attendance.oneTimeAttendCheckInEventWorkerName.toString(),
-                        ExistingWorkPolicy.APPEND_OR_REPLACE,
-                        oneTimeWork
-                    ).enqueue()
+                        WorkManager.getInstance(context).beginUniqueWork(
+                            attendance.oneTimeAttendCheckInEventWorkerName.toString(),
+                            ExistingWorkPolicy.APPEND_OR_REPLACE,
+                            oneTimeWork
+                        ).enqueue()
 
-                    coroutineScope.launch {
-                        requestReview(
-                            activity = activity,
-                            logMessage = "ImmediateAttendance"
-                        )
+                        coroutineScope.launch {
+                            requestReview(
+                                activity = activity,
+                                logMessage = "ImmediateAttendance"
+                            )
+                        }
                     }
                 },
-                onClickAttendance = onClickAttendance
+                onClickAttendance = remember { onClickAttendance }
             )
         }
     )
@@ -289,23 +290,32 @@ fun AttendanceWithGamesItem(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SwipeToDismissBackground(
-    dismissState: DismissState
+    direction: DismissDirection?,
+    targetValue: () -> DismissValue
 ) {
-    val direction =
-        dismissState.dismissDirection ?: return
-    val alignment = when (direction) {
-        DismissDirection.StartToEnd -> Alignment.CenterStart
-        DismissDirection.EndToStart -> Alignment.CenterEnd
+    val alignment by remember(direction) {
+        derivedStateOf {
+            when (direction) {
+                DismissDirection.StartToEnd -> Alignment.CenterStart
+                DismissDirection.EndToStart -> Alignment.CenterEnd
+                null -> Alignment.TopStart
+            }
+        }
     }
-    val icon = when (direction) {
-        DismissDirection.StartToEnd -> Icons.Default.Done
-        DismissDirection.EndToStart -> Icons.Default.Delete
+    val icon by remember(direction) {
+        derivedStateOf {
+            when (direction) {
+                DismissDirection.StartToEnd -> Icons.Default.Done
+                DismissDirection.EndToStart -> Icons.Default.Delete
+                null -> Icons.Default.Pending
+            }
+        }
     }
     val scale by animateFloatAsState(
-        if (dismissState.targetValue == DismissValue.Default) 0.75f else 1f, label = ""
+        if (targetValue() == DismissValue.Default) 0.75f else 1f, label = ""
     )
     val backgroundColor by animateColorAsState(
-        when (dismissState.targetValue) {
+        when (targetValue()) {
             DismissValue.DismissedToStart -> MaterialTheme.colorScheme.errorContainer
             else -> {
                 MaterialTheme.colorScheme.surfaceColorAtElevation(HalfDp)
@@ -313,7 +323,7 @@ private fun SwipeToDismissBackground(
         }, label = ""
     )
     val iconColor by animateColorAsState(
-        when (dismissState.targetValue) {
+        when (targetValue()) {
             DismissValue.DismissedToStart -> MaterialTheme.colorScheme.onErrorContainer
             else -> {
                 MaterialTheme.colorScheme.onSurface
@@ -341,23 +351,25 @@ private fun SwipeToDismissBackground(
 @Composable
 private fun DismissContent(
     elevation: Dp,
-    attendanceWithGames: () -> AttendanceWithGames,
+    attendanceWithGames: () -> StableWrapper<AttendanceWithGames>,
     onClickAttendance: (Attendance) -> Unit,
-    onClickOneTimeAttend: () -> Unit
+    onClickOneTimeAttend: (Attendance) -> Unit
 ) {
-    val currentAttendanceWithGames by rememberUpdatedState(attendanceWithGames())
-
     ListItem(
         modifier = Modifier
             .shadow(elevation = elevation)
-            .clickable { onClickAttendance(currentAttendanceWithGames.attendance) },
+            .composed {
+                remember {
+                    clickable { onClickAttendance(attendanceWithGames().value.attendance) }
+                }
+            },
         supportingContent = {
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(space = HalfDp),
                 userScrollEnabled = false
             ) {
                 items(
-                    items = currentAttendanceWithGames.games,
+                    items = attendanceWithGames().value.games,
                     key = { it.id }
                 ) { game ->
                     AsyncImage(
@@ -377,11 +389,11 @@ private fun DismissContent(
             val hourFormat = LocalHourFormat.current
 
             val formattedTime by remember(
-                currentAttendanceWithGames.attendance,
+                attendanceWithGames().value.attendance,
                 hourFormat
             ) {
                 derivedStateOf {
-                    with(currentAttendanceWithGames.attendance) {
+                    with(attendanceWithGames().value.attendance) {
                         ZonedDateTime.now(ZoneId.of(timezoneId))
                             .withHour(hourOfDay)
                             .withMinute(minute)
@@ -400,7 +412,7 @@ private fun DismissContent(
                         )
                     )
                     append(" ")
-                    append("(${currentAttendanceWithGames.attendance.timezoneId})")
+                    append("(${attendanceWithGames().value.attendance.timezoneId})")
                 }
             )
         },
@@ -408,14 +420,14 @@ private fun DismissContent(
             Text(
                 text = stringResource(
                     id = R.string.attendance_of_nickname,
-                    currentAttendanceWithGames.attendance.nickname
+                    attendanceWithGames().value.attendance.nickname
                 ),
                 style = MaterialTheme.typography.titleMedium
             )
         },
         trailingContent = {
             val workInfos by WorkManager.getInstance(LocalContext.current)
-                .getWorkInfosForUniqueWorkLiveData(currentAttendanceWithGames.attendance.oneTimeAttendCheckInEventWorkerName.toString())
+                .getWorkInfosForUniqueWorkLiveData(attendanceWithGames().value.attendance.oneTimeAttendCheckInEventWorkerName.toString())
                 .observeAsState()
             val isRunning by remember(workInfos) {
                 derivedStateOf {
@@ -425,7 +437,9 @@ private fun DismissContent(
 
             IconButton(
                 enabled = isRunning == false,
-                onClick = onClickOneTimeAttend
+                onClick = remember {
+                    { onClickOneTimeAttend(attendanceWithGames().value.attendance) }
+                }
             ) {
                 AnimatedVisibility(
                     visible = isRunning == false,

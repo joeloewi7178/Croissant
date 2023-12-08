@@ -22,6 +22,7 @@ import com.joeloewi.croissant.domain.usecase.GameUseCase
 import com.joeloewi.croissant.domain.usecase.HoYoLABUseCase
 import com.joeloewi.croissant.receiver.AlarmReceiver
 import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.util.canScheduleExactAlarmsCompat
 import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
 import com.joeloewi.croissant.worker.CheckSessionWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -198,12 +199,20 @@ class CreateAttendanceViewModel @Inject constructor(
 
                     with(alarmManager) {
                         cancel(pendingIntent)
-                        AlarmManagerCompat.setExactAndAllowWhileIdle(
-                            this,
-                            AlarmManager.RTC_WAKEUP,
-                            targetTime.toInstant().toEpochMilli(),
-                            pendingIntent
-                        )
+                        if (canScheduleExactAlarmsCompat()) {
+                            AlarmManagerCompat.setExactAndAllowWhileIdle(
+                                this,
+                                AlarmManager.RTC_WAKEUP,
+                                targetTime.toInstant().toEpochMilli(),
+                                pendingIntent
+                            )
+                        } else {
+                            alarmManager.set(
+                                AlarmManager.RTC_WAKEUP,
+                                targetTime.toInstant().toEpochMilli(),
+                                pendingIntent
+                            )
+                        }
                     }
 
                     val periodicCheckSessionWork = PeriodicWorkRequest.Builder(
