@@ -3,9 +3,8 @@ plugins {
     alias(libs.plugins.croissant.android.application)
     alias(libs.plugins.croissant.android.application.compose)
     alias(libs.plugins.croissant.android.hilt)
-    alias(libs.plugins.gms.google.services)
+    alias(libs.plugins.croissant.android.application.firebase)
     id("kotlin-parcelize")
-    alias(libs.plugins.firebase.crashlytics)
     id("com.google.android.gms.oss-licenses-plugin")
     alias(libs.plugins.androidx.baselineprofile)
 }
@@ -138,11 +137,6 @@ dependencies {
     //in-app review
     implementation(libs.android.play.review.ktx)
 
-    //firebase
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.analytics)
-    implementation(libs.firebase.crashlytics)
-
     //leakCanary
     debugImplementation(libs.leakcanary.android)
 
@@ -156,8 +150,4 @@ dependencies {
 
     //open source license activity
     implementation(libs.gms.play.services.oss.licenses)
-}
-
-hilt {
-    enableAggregatingTask = true
 }

@@ -59,7 +59,7 @@ fun DeveloperInfoScreen(
     val textToSpeech by developerInfoViewModel.textToSpeech.collectAsStateWithLifecycle(context = Dispatchers.Default)
 
     DeveloperInfoContent(
-        textToSpeech = textToSpeech,
+        textToSpeech = { textToSpeech },
         onNavigateUp = onNavigateUp
     )
 }
@@ -67,7 +67,7 @@ fun DeveloperInfoScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DeveloperInfoContent(
-    textToSpeech: Lce<TextToSpeechInstance>,
+    textToSpeech: () -> Lce<TextToSpeechInstance>,
     onNavigateUp: () -> Unit
 ) {
     val activity = LocalActivity.current
@@ -107,10 +107,10 @@ private fun DeveloperInfoContent(
                             .clip(CircleShape)
                             .size(64.dp)
                             .clickable(
-                                enabled = textToSpeech is Lce.Content
+                                enabled = textToSpeech() is Lce.Content
                             ) {
                                 coroutineScope.launch(Dispatchers.Default) {
-                                    textToSpeech.content?.runCatching {
+                                    textToSpeech().content?.runCatching {
                                         say("안아줘요", true)
                                     }
                                 }

@@ -12,28 +12,7 @@
           "package_name": "com.joeloewi.croissant"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.joeloewi.croissant",
-            "certificate_hash": ""
-          }
-        },
-        {
-          "client_id": "",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.joeloewi.croissant",
-            "certificate_hash": ""
-          }
-        },
-        {
-          "client_id": "",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
           "current_key": "APlaceholderAPIKeyWith-ThirtyNineCharsX"
@@ -41,12 +20,7 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }

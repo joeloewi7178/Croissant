@@ -26,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -35,6 +36,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.domain.entity.Attendance
+import com.joeloewi.croissant.domain.entity.Game
 import com.joeloewi.croissant.domain.entity.GameRecord
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.composable.GetSession
@@ -59,6 +61,7 @@ fun CreateAttendanceScreen(
     val insertAttendanceState by createAttendanceViewModel.insertAttendanceState.collectAsStateWithLifecycle()
     val connectedGames by createAttendanceViewModel.connectedGames.collectAsStateWithLifecycle()
     val duplicateAttendance by createAttendanceViewModel.duplicatedAttendance.collectAsStateWithLifecycle()
+    val checkedGames = remember { createAttendanceViewModel.checkedGames }
     val hourOfDay by createAttendanceViewModel.hourOfDay.collectAsStateWithLifecycle()
     val minute by createAttendanceViewModel.minute.collectAsStateWithLifecycle()
     val tickPerSecond by createAttendanceViewModel.tickPerSecond.collectAsStateWithLifecycle()
@@ -68,6 +71,7 @@ fun CreateAttendanceScreen(
         insertAttendanceState = { insertAttendanceState },
         connectedGames = { connectedGames },
         duplicateAttendance = { duplicateAttendance },
+        checkedGames = { checkedGames },
         hourOfDay = { hourOfDay },
         minute = { minute },
         tickPerSecond = { tickPerSecond },
@@ -87,6 +91,7 @@ fun CreateAttendanceContent(
     insertAttendanceState: () -> Lce<List<Long>>,
     connectedGames: () -> Lce<List<GameRecord>>,
     duplicateAttendance: () -> Attendance?,
+    checkedGames: () -> SnapshotStateList<Game>,
     hourOfDay: () -> Int,
     minute: () -> Int,
     tickPerSecond: () -> ZonedDateTime,
@@ -176,6 +181,7 @@ fun CreateAttendanceContent(
                     SelectGames(
                         connectedGames = connectedGames,
                         duplicatedAttendance = duplicateAttendance,
+                        checkedGames = checkedGames,
                         onNextButtonClick = {
                             coroutineScope.launch {
                                 pagerState.scrollToPage(page + 1)

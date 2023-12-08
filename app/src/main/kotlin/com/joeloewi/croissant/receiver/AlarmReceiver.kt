@@ -18,6 +18,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics
 import com.joeloewi.croissant.BuildConfig
 import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
+import com.joeloewi.croissant.util.canScheduleExactAlarmsCompat
 import com.joeloewi.croissant.util.goAsync
 import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
 import com.joeloewi.croissant.worker.AttendCheckInEventWorker
@@ -89,12 +90,20 @@ class AlarmReceiver : BroadcastReceiver() {
 
                                 with(alarmManager) {
                                     cancel(pendingIntent)
-                                    AlarmManagerCompat.setExactAndAllowWhileIdle(
-                                        this,
-                                        AlarmManager.RTC_WAKEUP,
-                                        targetTime.toInstant().toEpochMilli(),
-                                        pendingIntent
-                                    )
+                                    if (canScheduleExactAlarmsCompat()) {
+                                        AlarmManagerCompat.setExactAndAllowWhileIdle(
+                                            this,
+                                            AlarmManager.RTC_WAKEUP,
+                                            targetTime.toInstant().toEpochMilli(),
+                                            pendingIntent
+                                        )
+                                    } else {
+                                        alarmManager.set(
+                                            AlarmManager.RTC_WAKEUP,
+                                            targetTime.toInstant().toEpochMilli(),
+                                            pendingIntent
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -152,12 +161,20 @@ class AlarmReceiver : BroadcastReceiver() {
 
                     with(alarmManager) {
                         cancel(pendingIntent)
-                        AlarmManagerCompat.setExactAndAllowWhileIdle(
-                            this,
-                            AlarmManager.RTC_WAKEUP,
-                            targetTime.toInstant().toEpochMilli(),
-                            pendingIntent
-                        )
+                        if (canScheduleExactAlarmsCompat()) {
+                            AlarmManagerCompat.setExactAndAllowWhileIdle(
+                                this,
+                                AlarmManager.RTC_WAKEUP,
+                                targetTime.toInstant().toEpochMilli(),
+                                pendingIntent
+                            )
+                        } else {
+                            alarmManager.set(
+                                AlarmManager.RTC_WAKEUP,
+                                targetTime.toInstant().toEpochMilli(),
+                                pendingIntent
+                            )
+                        }
                     }
                 }
             }
