@@ -1,6 +1,5 @@
 package com.joeloewi.croissant.di
 
-import android.app.AlarmManager
 import android.app.Application
 import android.content.Context
 import android.os.PowerManager
@@ -25,10 +24,6 @@ object UtilModule {
 
     @Provides
     fun providePowerManager(application: Application): PowerManager =
-        application.getSystemService()!!
-
-    @Provides
-    fun provideAlarmManager(application: Application): AlarmManager =
         application.getSystemService()!!
 
     @Provides
