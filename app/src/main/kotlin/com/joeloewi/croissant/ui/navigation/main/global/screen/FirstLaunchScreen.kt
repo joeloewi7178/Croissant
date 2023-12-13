@@ -16,15 +16,36 @@
 
 package com.joeloewi.croissant.ui.navigation.main.global.screen
 
-import android.annotation.SuppressLint
-import androidx.compose.foundation.layout.*
+import android.content.Intent
+import android.os.Build
+import android.provider.Settings
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,13 +61,18 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.util.CroissantPermission
+import com.joeloewi.croissant.util.rememberSpecialPermissionState
 import com.joeloewi.croissant.viewmodel.FirstLaunchViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 
 @Composable
 fun FirstLaunchScreen(
@@ -59,23 +85,49 @@ fun FirstLaunchScreen(
     )
 }
 
-@SuppressLint("BatteryLife")
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 private fun FirstLaunchContent(
     onFirstLaunchChange: (Boolean) -> Unit,
     onNavigateToAttendances: () -> Unit
 ) {
+    val context = LocalContext.current
+    val scheduleExactAlarmPermissionState =
+        rememberSpecialPermissionState(
+            permission = "android:schedule_exact_alarm",
+            intentForRequestPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+            } else {
+                //this intent won't be launched
+                Intent()
+            }
+        )
     val multiplePermissionsState = rememberMultiplePermissionsState(
         permissions = listOf(
             CroissantPermission.AccessHoYoLABSession.permission,
-            CroissantPermission.POST_NOTIFICATIONS_PERMISSION_COMPAT
-        )
+            CroissantPermission.PostNotifications.permission
+        ),
+        onPermissionsResult = {
+            if (scheduleExactAlarmPermissionState.status != PermissionStatus.Granted) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+
+                    if (intent.resolveActivity(context.packageManager) != null) {
+                        context.startActivity(intent)
+                    }
+                }
+            }
+        }
     )
-    val croissantPermissions = remember { CroissantPermission.values() }
+    val croissantPermissions = remember { CroissantPermission.entries }
 
     LaunchedEffect(Unit) {
-        snapshotFlow { multiplePermissionsState.allPermissionsGranted }.catch { }.collect {
+        combine(
+            snapshotFlow { multiplePermissionsState.allPermissionsGranted },
+            snapshotFlow { scheduleExactAlarmPermissionState.status == PermissionStatus.Granted }
+        ) { allNormalPermissionsGranted, isScheduleExactAlarmPermitted ->
+            allNormalPermissionsGranted && isScheduleExactAlarmPermitted
+        }.catch { }.flowOn(Dispatchers.IO).collect {
             if (it) {
                 onFirstLaunchChange(false)
                 onNavigateToAttendances()
@@ -195,6 +247,27 @@ private fun FirstLaunchContent(
                             Text(
                                 text = stringResource(id = item.detailedDescription)
                             )
+                        },
+                        trailingContent = {
+                            when (item) {
+                                CroissantPermission.AccessHoYoLABSession, CroissantPermission.PostNotifications -> {
+                                    if (multiplePermissionsState.permissions.find { it.permission == item.permission }?.status == PermissionStatus.Granted) {
+                                        Icon(
+                                            imageVector = Icons.Default.CheckCircle,
+                                            contentDescription = Icons.Default.CheckCircle.name
+                                        )
+                                    }
+                                }
+
+                                CroissantPermission.ScheduleExactAlarms -> {
+                                    if (scheduleExactAlarmPermissionState.status == PermissionStatus.Granted) {
+                                        Icon(
+                                            imageVector = Icons.Default.CheckCircle,
+                                            contentDescription = Icons.Default.CheckCircle.name
+                                        )
+                                    }
+                                }
+                            }
                         }
                     )
                 }
