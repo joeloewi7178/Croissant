@@ -120,7 +120,7 @@ class CheckSessionWorker @AssistedInject constructor(
                                 channelId = context.getString(R.string.check_session_notification_channel_id),
                             ).let { notification ->
                                 if (context.packageManager.checkPermission(
-                                        CroissantPermission.POST_NOTIFICATIONS_PERMISSION_COMPAT,
+                                        CroissantPermission.PostNotifications.permission,
                                         context.packageName
                                     ) == PackageManager.PERMISSION_GRANTED
                                 ) {
