@@ -4,9 +4,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.os.HandlerThread
+import android.os.Handler
 import android.text.format.DateFormat
-import androidx.core.os.HandlerCompat
 import com.joeloewi.croissant.data.repository.system.SystemDataSource
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -17,15 +16,11 @@ import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 class SystemDataSourceImpl @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val applicationHandler: Handler,
 ) : SystemDataSource {
 
     override fun is24HourFormat(): Flow<Boolean> = callbackFlow {
-        val handlerThread = HandlerThread("HourFormatBroadcastReceiver").apply {
-            start()
-        }
-        val handler = HandlerCompat.createAsync(handlerThread.looper)
-
         val broadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 trySend(DateFormat.is24HourFormat(context))
@@ -34,11 +29,8 @@ class SystemDataSourceImpl @Inject constructor(
 
         val intentFilter = IntentFilter(Intent.ACTION_TIME_CHANGED)
 
-        context.registerReceiver(broadcastReceiver, intentFilter, null, handler)
+        context.registerReceiver(broadcastReceiver, intentFilter, null, applicationHandler)
 
-        awaitClose {
-            context.unregisterReceiver(broadcastReceiver)
-            handlerThread.quit()
-        }
+        awaitClose { context.unregisterReceiver(broadcastReceiver) }
     }.flowOn(Dispatchers.Default)
 }
