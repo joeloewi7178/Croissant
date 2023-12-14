@@ -80,10 +80,8 @@ fun AttendanceLogsCalendarScreen(
     attendanceLogsCalendarViewModel: AttendanceLogsCalendarViewModel = hiltViewModel(),
     onNavigateUp: () -> Unit
 ) {
-    val deleteAllState by attendanceLogsCalendarViewModel.deleteAllState.collectAsStateWithLifecycle(
-        context = Dispatchers.Default
-    )
-    val year by attendanceLogsCalendarViewModel.year.collectAsStateWithLifecycle(context = Dispatchers.Default)
+    val deleteAllState by attendanceLogsCalendarViewModel.deleteAllState.collectAsStateWithLifecycle()
+    val year by attendanceLogsCalendarViewModel.year.collectAsStateWithLifecycle()
 
     AttendanceLogsCalendarContent(
         deleteAllState = { deleteAllState },
@@ -116,7 +114,7 @@ private fun AttendanceLogsCalendarContent(
     var showDeleteConfirmationDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.Default) {
+        withContext(Dispatchers.IO) {
             snapshotFlow(deleteAllState).catch { }.filterIsInstance<Lce.Content<Int>>().collect {
                 val rowCount = it.content
 

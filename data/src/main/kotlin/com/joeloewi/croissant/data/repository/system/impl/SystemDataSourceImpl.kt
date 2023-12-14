@@ -32,5 +32,5 @@ class SystemDataSourceImpl @Inject constructor(
         context.registerReceiver(broadcastReceiver, intentFilter, null, applicationHandler)
 
         awaitClose { context.unregisterReceiver(broadcastReceiver) }
-    }.flowOn(Dispatchers.Default)
+    }.flowOn(Dispatchers.IO)
 }

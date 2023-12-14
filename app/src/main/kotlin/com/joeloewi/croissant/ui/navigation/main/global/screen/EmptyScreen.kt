@@ -22,7 +22,7 @@ fun EmptyScreen(
     onShowFirstLaunchScreen: () -> Unit,
     onShowDefaultScreen: () -> Unit,
 ) {
-    val isFirstLaunch by emptyViewModel.isFirstLaunch.collectAsStateWithLifecycle(context = Dispatchers.Default)
+    val isFirstLaunch by emptyViewModel.isFirstLaunch.collectAsStateWithLifecycle()
 
     EmptyContent(
         isFirstLaunch = { isFirstLaunch },
@@ -39,7 +39,7 @@ private fun EmptyContent(
 ) {
 
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.Default) {
+        withContext(Dispatchers.IO) {
             snapshotFlow { isFirstLaunch() }.catch { }.filterNotNull()
                 .collect { showFirstLaunchScreen ->
                     withContext(Dispatchers.Main) {

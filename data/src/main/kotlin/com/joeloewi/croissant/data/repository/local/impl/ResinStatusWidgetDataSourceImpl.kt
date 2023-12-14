@@ -16,7 +16,7 @@
 
 package com.joeloewi.croissant.data.repository.local.impl
 
-import com.joeloewi.croissant.data.db.dao.ResinStatusWidgetDao
+import com.joeloewi.croissant.data.database.dao.ResinStatusWidgetDao
 import com.joeloewi.croissant.data.mapper.ResinStatusWidgetMapper
 import com.joeloewi.croissant.data.mapper.ResinStatusWithAccountsMapper
 import com.joeloewi.croissant.data.repository.local.ResinStatusWidgetDataSource

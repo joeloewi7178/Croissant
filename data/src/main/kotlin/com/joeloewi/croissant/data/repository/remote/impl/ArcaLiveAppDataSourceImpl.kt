@@ -19,6 +19,7 @@ package com.joeloewi.croissant.data.repository.remote.impl
 import com.joeloewi.croissant.data.api.dao.ArcaLiveAppService
 import com.joeloewi.croissant.data.api.model.response.ArticleResponse
 import com.joeloewi.croissant.data.repository.remote.ArcaLiveAppDataSource
+import com.joeloewi.croissant.data.util.executeAndAwait
 import com.skydoves.sandwich.ApiResponse
 import javax.inject.Inject
 
@@ -29,5 +30,5 @@ class ArcaLiveAppDataSourceImpl @Inject constructor(
         arcaLiveAppService.getArticle(
             slug = slug,
             articleId = articleId
-        )
+        ).executeAndAwait()
 }

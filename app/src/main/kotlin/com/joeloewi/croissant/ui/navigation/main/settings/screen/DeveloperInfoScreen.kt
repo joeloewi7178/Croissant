@@ -56,7 +56,7 @@ fun DeveloperInfoScreen(
     developerInfoViewModel: DeveloperInfoViewModel = hiltViewModel(),
     onNavigateUp: () -> Unit
 ) {
-    val textToSpeech by developerInfoViewModel.textToSpeech.collectAsStateWithLifecycle(context = Dispatchers.Default)
+    val textToSpeech by developerInfoViewModel.textToSpeech.collectAsStateWithLifecycle()
 
     DeveloperInfoContent(
         textToSpeech = { textToSpeech },
@@ -109,7 +109,7 @@ private fun DeveloperInfoContent(
                             .clickable(
                                 enabled = textToSpeech() is Lce.Content
                             ) {
-                                coroutineScope.launch(Dispatchers.Default) {
+                                coroutineScope.launch(Dispatchers.IO) {
                                     textToSpeech().content?.runCatching {
                                         say("안아줘요", true)
                                     }

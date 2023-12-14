@@ -43,7 +43,6 @@ import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.collectAsLazyPagingItemsWithLifecycle
 import com.joeloewi.croissant.util.navigationIconButton
 import com.joeloewi.croissant.viewmodel.AttendanceLogsDayViewModel
-import kotlinx.coroutines.Dispatchers
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -56,7 +55,7 @@ fun AttendanceLogsDayScreen(
     onNavigateUp: () -> Unit
 ) {
     val pagedAttendanceLogs =
-        attendanceLogsDayViewModel.pagedAttendanceLogs.collectAsLazyPagingItemsWithLifecycle(context = Dispatchers.Default)
+        attendanceLogsDayViewModel.pagedAttendanceLogs.collectAsLazyPagingItemsWithLifecycle()
 
     AttendanceLogsDayContent(
         pagedAttendanceLogs = pagedAttendanceLogs,

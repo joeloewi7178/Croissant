@@ -18,8 +18,8 @@ package com.joeloewi.croissant.data.di
 
 import android.content.Context
 import androidx.room.Room
-import com.joeloewi.croissant.data.db.CroissantDatabase
-import com.joeloewi.croissant.data.db.dao.*
+import com.joeloewi.croissant.data.database.CroissantDatabase
+import com.joeloewi.croissant.data.database.dao.*
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

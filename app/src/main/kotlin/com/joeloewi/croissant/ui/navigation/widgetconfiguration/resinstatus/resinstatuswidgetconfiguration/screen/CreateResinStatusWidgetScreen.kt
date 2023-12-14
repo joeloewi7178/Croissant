@@ -69,19 +69,13 @@ import kotlinx.coroutines.withContext
 fun CreateResinStatusWidgetScreen(
     createResinStatusWidgetViewModel: CreateResinStatusWidgetViewModel = hiltViewModel()
 ) {
-    val getInfoUserState by createResinStatusWidgetViewModel.getUserInfoState.collectAsStateWithLifecycle(
-        context = Dispatchers.Default
-    )
-    val insertResinStatusWidgetState by createResinStatusWidgetViewModel.createResinStatusWidgetState.collectAsStateWithLifecycle(
-        context = Dispatchers.Default
-    )
-    val appWidgetId by createResinStatusWidgetViewModel.appWidgetId.collectAsStateWithLifecycle(
-        context = Dispatchers.Default
-    )
+    val getInfoUserState by createResinStatusWidgetViewModel.getUserInfoState.collectAsStateWithLifecycle()
+    val insertResinStatusWidgetState by createResinStatusWidgetViewModel.createResinStatusWidgetState.collectAsStateWithLifecycle()
+    val appWidgetId by createResinStatusWidgetViewModel.appWidgetId.collectAsStateWithLifecycle()
     val userInfos = remember { createResinStatusWidgetViewModel.userInfos }
     val selectableIntervals =
         remember { createResinStatusWidgetViewModel.selectableIntervals.toImmutableList() }
-    val interval by createResinStatusWidgetViewModel.interval.collectAsStateWithLifecycle(context = Dispatchers.Default)
+    val interval by createResinStatusWidgetViewModel.interval.collectAsStateWithLifecycle()
 
     CreateResinStatusWidgetContent(
         getInfoUserState = { getInfoUserState },
@@ -117,7 +111,7 @@ fun CreateResinStatusWidgetContent(
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.Default) {
+        withContext(Dispatchers.IO) {
             snapshotFlow(insertResinStatusWidgetState).catch { }
                 .filterIsInstance<Lce.Content<List<Long>>>().collect() {
                     if (it.content.isNotEmpty()) {
@@ -137,7 +131,7 @@ fun CreateResinStatusWidgetContent(
     }
 
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.Default) {
+        withContext(Dispatchers.IO) {
             snapshotFlow(getInfoUserState).catch { }.filterIsInstance<Lce.Content<UserInfo?>>()
                 .collect {
                     snackbarHostState.showSnackbar(context.getString(R.string.error_occurred))

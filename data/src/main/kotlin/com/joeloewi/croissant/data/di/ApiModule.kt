@@ -33,6 +33,11 @@ import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
 import retrofit2.create
+import java.io.IOException
+import java.net.Proxy
+import java.net.ProxySelector
+import java.net.SocketAddress
+import java.net.URI
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
@@ -47,6 +52,15 @@ object ApiModule {
         .connectTimeout(1, TimeUnit.MINUTES)
         .readTimeout(1, TimeUnit.MINUTES)
         .writeTimeout(1, TimeUnit.MINUTES)
+        .proxySelector(object : ProxySelector() {
+            override fun select(p0: URI?): MutableList<Proxy> = runCatching {
+                getDefault().select(p0)
+            }.getOrNull() ?: mutableListOf(Proxy.NO_PROXY)
+
+            override fun connectFailed(p0: URI?, p1: SocketAddress?, p2: IOException?) {
+                getDefault().connectFailed(p0, p1, p2)
+            }
+        })
         .run {
             if (BuildConfig.DEBUG) {
                 addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))

@@ -14,17 +14,17 @@
  *    limitations under the License.
  */
 
-package com.joeloewi.croissant.data.db
+package com.joeloewi.croissant.data.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import com.joeloewi.croissant.data.db.dao.AccountDao
-import com.joeloewi.croissant.data.db.dao.AttendanceDao
-import com.joeloewi.croissant.data.db.dao.FailureLogDao
-import com.joeloewi.croissant.data.db.dao.GameDao
-import com.joeloewi.croissant.data.db.dao.ResinStatusWidgetDao
-import com.joeloewi.croissant.data.db.dao.SuccessLogDao
-import com.joeloewi.croissant.data.db.dao.WorkerExecutionLogDao
+import com.joeloewi.croissant.data.database.dao.AccountDao
+import com.joeloewi.croissant.data.database.dao.AttendanceDao
+import com.joeloewi.croissant.data.database.dao.FailureLogDao
+import com.joeloewi.croissant.data.database.dao.GameDao
+import com.joeloewi.croissant.data.database.dao.ResinStatusWidgetDao
+import com.joeloewi.croissant.data.database.dao.SuccessLogDao
+import com.joeloewi.croissant.data.database.dao.WorkerExecutionLogDao
 import com.joeloewi.croissant.data.entity.local.AccountEntity
 import com.joeloewi.croissant.data.entity.local.AttendanceEntity
 import com.joeloewi.croissant.data.entity.local.FailureLogEntity

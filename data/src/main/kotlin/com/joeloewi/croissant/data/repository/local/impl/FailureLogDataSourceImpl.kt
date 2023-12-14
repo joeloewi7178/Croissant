@@ -16,7 +16,7 @@
 
 package com.joeloewi.croissant.data.repository.local.impl
 
-import com.joeloewi.croissant.data.db.dao.FailureLogDao
+import com.joeloewi.croissant.data.database.dao.FailureLogDao
 import com.joeloewi.croissant.data.mapper.FailureLogMapper
 import com.joeloewi.croissant.data.repository.local.FailureLogDataSource
 import com.joeloewi.croissant.domain.entity.FailureLog
