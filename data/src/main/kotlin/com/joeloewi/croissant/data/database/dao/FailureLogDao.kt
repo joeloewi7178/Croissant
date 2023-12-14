@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.joeloewi.croissant.data.db.dao
+package com.joeloewi.croissant.data.database.dao
 
 import androidx.room.Dao
 import androidx.room.Insert

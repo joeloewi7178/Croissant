@@ -15,7 +15,7 @@ import javax.inject.Inject
 class EmptyViewModel @Inject constructor(
     getSettings: SettingsUseCase.GetSettings
 ) : ViewModel() {
-    val isFirstLaunch = getSettings().map { it.isFirstLaunch }.flowOn(Dispatchers.Default).stateIn(
+    val isFirstLaunch = getSettings().map { it.isFirstLaunch }.flowOn(Dispatchers.IO).stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(),
         initialValue = null

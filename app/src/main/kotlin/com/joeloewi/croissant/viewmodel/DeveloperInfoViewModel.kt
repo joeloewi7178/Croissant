@@ -35,7 +35,7 @@ class DeveloperInfoViewModel @Inject constructor(
         trySend(textToSpeech)
 
         awaitClose { textToSpeech.content?.closeQuietly() }
-    }.flowOn(Dispatchers.Default).stateIn(
+    }.flowOn(Dispatchers.IO).stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(),
         initialValue = Lce.Loading

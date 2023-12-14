@@ -18,7 +18,7 @@ class SettingsViewModel @Inject constructor(
     private val setDarkThemeEnabledSettingUseCase: SettingsUseCase.SetDarkThemeEnabled
 ) : ViewModel() {
     val darkThemeEnabled =
-        getSettingsUseCase().map { it.darkThemeEnabled }.flowOn(Dispatchers.Default).stateIn(
+        getSettingsUseCase().map { it.darkThemeEnabled }.flowOn(Dispatchers.IO).stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(),
             initialValue = false

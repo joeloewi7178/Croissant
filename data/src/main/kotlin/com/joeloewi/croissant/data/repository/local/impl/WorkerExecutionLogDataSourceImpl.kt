@@ -20,7 +20,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
-import com.joeloewi.croissant.data.db.dao.WorkerExecutionLogDao
+import com.joeloewi.croissant.data.database.dao.WorkerExecutionLogDao
 import com.joeloewi.croissant.data.mapper.WorkerExecutionLogMapper
 import com.joeloewi.croissant.data.mapper.WorkerExecutionLogWithStateMapper
 import com.joeloewi.croissant.data.repository.local.WorkerExecutionLogDataSource

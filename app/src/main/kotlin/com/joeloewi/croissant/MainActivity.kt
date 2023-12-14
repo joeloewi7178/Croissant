@@ -133,15 +133,9 @@ class MainActivity : AppCompatActivity() {
 
         setContent {
             CroissantTheme {
-                val hourFormat by _mainActivityViewModel.hourFormat.collectAsStateWithLifecycle(
-                    context = Dispatchers.Default
-                )
-                val appUpdateResultState by _mainActivityViewModel.appUpdateResultState.collectAsStateWithLifecycle(
-                    context = Dispatchers.Default
-                )
-                val isDeviceRooted by _mainActivityViewModel.isDeviceRooted.collectAsStateWithLifecycle(
-                    context = Dispatchers.Default
-                )
+                val hourFormat by _mainActivityViewModel.hourFormat.collectAsStateWithLifecycle()
+                val appUpdateResultState by _mainActivityViewModel.appUpdateResultState.collectAsStateWithLifecycle()
+                val isDeviceRooted by _mainActivityViewModel.isDeviceRooted.collectAsStateWithLifecycle()
 
                 CompositionLocalProvider(
                     LocalActivity provides this,
@@ -193,7 +187,7 @@ fun CroissantApp(
     }
 
     LaunchedEffect(navController) {
-        withContext(Dispatchers.Default + CoroutineExceptionHandler { _, _ -> }) {
+        withContext(Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
             navController.currentBackStackEntryFlow.catch { }.collect {
                 Firebase.analytics.logEvent(
                     FirebaseAnalytics.Event.SCREEN_VIEW,
@@ -211,7 +205,6 @@ fun CroissantApp(
         bottomBar = {
             val currentBackStackEntry by navController.currentBackStackEntryFlow.collectAsStateWithLifecycle(
                 initialValue = null,
-                context = Dispatchers.Default
             )
             val isBottomNavigationBarVisible by remember {
                 derivedStateOf {
@@ -269,7 +262,6 @@ fun CroissantApp(
                 Column {
                     val currentBackStackEntry by navController.currentBackStackEntryFlow.collectAsStateWithLifecycle(
                         initialValue = null,
-                        context = Dispatchers.Default
                     )
                     val isNavigationRailVisible by remember {
                         derivedStateOf {
@@ -420,7 +412,7 @@ fun CroissantNavHost(
             composable(route = AttendancesDestination.CreateAttendanceScreen.route) {
                 val newCookie by remember {
                     it.savedStateHandle.getStateFlow(COOKIE, "")
-                }.collectAsStateWithLifecycle(context = Dispatchers.Default)
+                }.collectAsStateWithLifecycle()
 
                 CreateAttendanceScreen(
                     newCookie = { newCookie },

@@ -14,24 +14,16 @@
  *    limitations under the License.
  */
 
-package com.joeloewi.croissant.data.db.dao
+package com.joeloewi.croissant.data.database.dao
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
-import androidx.room.Update
-import com.joeloewi.croissant.data.entity.local.GameEntity
+import com.joeloewi.croissant.data.entity.local.AccountEntity
 
 @Dao
-interface GameDao {
+interface AccountDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(vararg gameEntity: GameEntity): List<Long>
-
-    @Update
-    suspend fun update(vararg gameEntities: GameEntity): Int
-
-    @Delete
-    suspend fun delete(vararg gameEntities: GameEntity): Int
+    suspend fun insert(vararg accountEntities: AccountEntity): List<Long>
 }

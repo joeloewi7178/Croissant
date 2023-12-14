@@ -80,7 +80,7 @@ class AttendanceDetailViewModel @Inject constructor(
             attendanceId = attendanceId,
             loggableWorker = LoggableWorker.CHECK_SESSION,
             state = WorkerExecutionLogState.SUCCESS
-        ).catch { }.flowOn(Dispatchers.Default).stateIn(
+        ).catch { }.flowOn(Dispatchers.IO).stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(),
             initialValue = 0L
@@ -90,7 +90,7 @@ class AttendanceDetailViewModel @Inject constructor(
             attendanceId = attendanceId,
             loggableWorker = LoggableWorker.CHECK_SESSION,
             state = WorkerExecutionLogState.FAILURE
-        ).catch { }.flowOn(Dispatchers.Default).stateIn(
+        ).catch { }.flowOn(Dispatchers.IO).stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(),
             initialValue = 0L
@@ -100,7 +100,7 @@ class AttendanceDetailViewModel @Inject constructor(
             attendanceId = attendanceId,
             loggableWorker = LoggableWorker.ATTEND_CHECK_IN_EVENT,
             state = WorkerExecutionLogState.SUCCESS
-        ).catch { }.flowOn(Dispatchers.Default).stateIn(
+        ).catch { }.flowOn(Dispatchers.IO).stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(),
             initialValue = 0L
@@ -110,7 +110,7 @@ class AttendanceDetailViewModel @Inject constructor(
             attendanceId = attendanceId,
             loggableWorker = LoggableWorker.ATTEND_CHECK_IN_EVENT,
             state = WorkerExecutionLogState.FAILURE
-        ).catch { }.flowOn(Dispatchers.Default).stateIn(
+        ).catch { }.flowOn(Dispatchers.IO).stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(),
             initialValue = 0L

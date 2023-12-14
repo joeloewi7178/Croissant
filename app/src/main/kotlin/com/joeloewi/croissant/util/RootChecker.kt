@@ -93,7 +93,7 @@ class RootChecker(
         }
     }
 
-    private suspend fun checkRootPackages(): Boolean = withContext(Dispatchers.Default) {
+    private suspend fun checkRootPackages(): Boolean = withContext(Dispatchers.IO) {
         context.runCatching {
             packageManager
         }.mapCatching {

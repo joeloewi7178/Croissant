@@ -16,7 +16,7 @@
 
 package com.joeloewi.croissant.data.repository.local.impl
 
-import com.joeloewi.croissant.data.db.dao.AccountDao
+import com.joeloewi.croissant.data.database.dao.AccountDao
 import com.joeloewi.croissant.data.mapper.AccountMapper
 import com.joeloewi.croissant.data.repository.local.AccountDataSource
 import com.joeloewi.croissant.domain.entity.Account

@@ -117,7 +117,7 @@ fun CreateAttendanceContent(
     }
 
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.Default) {
+        withContext(Dispatchers.IO) {
             snapshotFlow(insertAttendanceState).catch { }.collect {
                 when (it) {
                     is Lce.Content -> {

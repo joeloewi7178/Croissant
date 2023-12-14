@@ -16,7 +16,7 @@
 
 package com.joeloewi.croissant.data.repository.local.impl
 
-import com.joeloewi.croissant.data.db.dao.GameDao
+import com.joeloewi.croissant.data.database.dao.GameDao
 import com.joeloewi.croissant.data.mapper.GameMapper
 import com.joeloewi.croissant.data.repository.local.GameDataSource
 import com.joeloewi.croissant.domain.entity.Game
