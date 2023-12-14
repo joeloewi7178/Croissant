@@ -49,10 +49,8 @@ import kotlinx.coroutines.withContext
 fun ResinStatusWidgetDetailScreen(
     resinStatusWidgetDetailViewModel: ResinStatusWidgetDetailViewModel = hiltViewModel()
 ) {
-    val updateResinStatusWidgetState by resinStatusWidgetDetailViewModel.updateResinStatusWidgetState.collectAsStateWithLifecycle(
-        context = Dispatchers.Default
-    )
-    val interval by resinStatusWidgetDetailViewModel.interval.collectAsStateWithLifecycle(context = Dispatchers.Default)
+    val updateResinStatusWidgetState by resinStatusWidgetDetailViewModel.updateResinStatusWidgetState.collectAsStateWithLifecycle()
+    val interval by resinStatusWidgetDetailViewModel.interval.collectAsStateWithLifecycle()
     val selectableIntervals =
         remember { resinStatusWidgetDetailViewModel.selectableIntervals.toImmutableList() }
 
@@ -77,7 +75,7 @@ fun ResinStatusWidgetDetailContent(
     val activity = LocalActivity.current
 
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.Default) {
+        withContext(Dispatchers.IO) {
             snapshotFlow { updateResinStatusWidgetState() }.catch { }
                 .filterIsInstance<Lce.Content<Int>>().collect {
                     if (it.content != 0) {

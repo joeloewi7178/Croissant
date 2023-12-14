@@ -36,14 +36,13 @@ import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.viewmodel.SettingsViewModel
-import kotlinx.coroutines.Dispatchers
 
 @Composable
 fun SettingsScreen(
     settingsViewModel: SettingsViewModel = hiltViewModel(),
     onDeveloperInfoClick: () -> Unit
 ) {
-    val darkThemeEnabled by settingsViewModel.darkThemeEnabled.collectAsStateWithLifecycle(context = Dispatchers.Default)
+    val darkThemeEnabled by settingsViewModel.darkThemeEnabled.collectAsStateWithLifecycle()
 
     SettingsContent(
         darkThemeEnabled = { darkThemeEnabled },

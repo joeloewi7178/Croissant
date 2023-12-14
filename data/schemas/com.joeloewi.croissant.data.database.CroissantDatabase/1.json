@@ -1,0 +1,474 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "e8846f98a8a1b614fd7d0c623c759c3e",
+    "entities": [
+      {
+        "tableName": "AttendanceEntity",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `createdAt` INTEGER NOT NULL, `modifiedAt` INTEGER NOT NULL, `cookie` TEXT NOT NULL, `nickname` TEXT NOT NULL, `uid` INTEGER NOT NULL, `hourOfDay` INTEGER NOT NULL, `minute` INTEGER NOT NULL, `timezoneId` TEXT NOT NULL, `attendCheckInEventWorkerName` BLOB NOT NULL, `attendCheckInEventWorkerId` BLOB NOT NULL, `checkSessionWorkerName` BLOB NOT NULL, `checkSessionWorkerId` BLOB NOT NULL, `oneTimeAttendCheckInEventWorkerName` BLOB NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "modifiedAt",
+            "columnName": "modifiedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cookie",
+            "columnName": "cookie",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nickname",
+            "columnName": "nickname",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uid",
+            "columnName": "uid",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "hourOfDay",
+            "columnName": "hourOfDay",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "minute",
+            "columnName": "minute",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timezoneId",
+            "columnName": "timezoneId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "attendCheckInEventWorkerName",
+            "columnName": "attendCheckInEventWorkerName",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "attendCheckInEventWorkerId",
+            "columnName": "attendCheckInEventWorkerId",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "checkSessionWorkerName",
+            "columnName": "checkSessionWorkerName",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "checkSessionWorkerId",
+            "columnName": "checkSessionWorkerId",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "oneTimeAttendCheckInEventWorkerName",
+            "columnName": "oneTimeAttendCheckInEventWorkerName",
+            "affinity": "BLOB",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "WorkerExecutionLogEntity",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `attendanceId` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, `timezoneId` TEXT NOT NULL, `state` TEXT NOT NULL, `loggableWorker` TEXT NOT NULL, FOREIGN KEY(`attendanceId`) REFERENCES `AttendanceEntity`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "attendanceId",
+            "columnName": "attendanceId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timezoneId",
+            "columnName": "timezoneId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "loggableWorker",
+            "columnName": "loggableWorker",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_WorkerExecutionLogEntity_attendanceId",
+            "unique": false,
+            "columnNames": [
+              "attendanceId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_WorkerExecutionLogEntity_attendanceId` ON `${TABLE_NAME}` (`attendanceId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "AttendanceEntity",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "attendanceId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "GameEntity",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `attendanceId` INTEGER NOT NULL, `roleId` INTEGER NOT NULL, `type` TEXT NOT NULL, `region` TEXT NOT NULL, FOREIGN KEY(`attendanceId`) REFERENCES `AttendanceEntity`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "attendanceId",
+            "columnName": "attendanceId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "roleId",
+            "columnName": "roleId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "region",
+            "columnName": "region",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_GameEntity_attendanceId",
+            "unique": false,
+            "columnNames": [
+              "attendanceId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_GameEntity_attendanceId` ON `${TABLE_NAME}` (`attendanceId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "AttendanceEntity",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "attendanceId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "SuccessLogEntity",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `executionLogId` INTEGER NOT NULL, `gameName` TEXT NOT NULL, `retCode` INTEGER NOT NULL, `message` TEXT NOT NULL, FOREIGN KEY(`executionLogId`) REFERENCES `WorkerExecutionLogEntity`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "executionLogId",
+            "columnName": "executionLogId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gameName",
+            "columnName": "gameName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "retCode",
+            "columnName": "retCode",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "message",
+            "columnName": "message",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_SuccessLogEntity_executionLogId",
+            "unique": false,
+            "columnNames": [
+              "executionLogId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_SuccessLogEntity_executionLogId` ON `${TABLE_NAME}` (`executionLogId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "WorkerExecutionLogEntity",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "executionLogId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "FailureLogEntity",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `executionLogId` INTEGER NOT NULL, `failureMessage` TEXT NOT NULL, `failureStackTrace` TEXT NOT NULL, FOREIGN KEY(`executionLogId`) REFERENCES `WorkerExecutionLogEntity`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "executionLogId",
+            "columnName": "executionLogId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "failureMessage",
+            "columnName": "failureMessage",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "failureStackTrace",
+            "columnName": "failureStackTrace",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_FailureLogEntity_executionLogId",
+            "unique": false,
+            "columnNames": [
+              "executionLogId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_FailureLogEntity_executionLogId` ON `${TABLE_NAME}` (`executionLogId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "WorkerExecutionLogEntity",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "executionLogId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "ResinStatusWidgetEntity",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `appWidgetId` INTEGER NOT NULL, `interval` INTEGER NOT NULL, `refreshGenshinResinStatusWorkerName` BLOB NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "appWidgetId",
+            "columnName": "appWidgetId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "interval",
+            "columnName": "interval",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "refreshGenshinResinStatusWorkerName",
+            "columnName": "refreshGenshinResinStatusWorkerName",
+            "affinity": "BLOB",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "AccountEntity",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `resinStatusWidgetId` INTEGER NOT NULL, `cookie` TEXT NOT NULL, `uid` INTEGER NOT NULL, FOREIGN KEY(`resinStatusWidgetId`) REFERENCES `ResinStatusWidgetEntity`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "resinStatusWidgetId",
+            "columnName": "resinStatusWidgetId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cookie",
+            "columnName": "cookie",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uid",
+            "columnName": "uid",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_AccountEntity_resinStatusWidgetId",
+            "unique": false,
+            "columnNames": [
+              "resinStatusWidgetId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_AccountEntity_resinStatusWidgetId` ON `${TABLE_NAME}` (`resinStatusWidgetId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "ResinStatusWidgetEntity",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "resinStatusWidgetId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e8846f98a8a1b614fd7d0c623c759c3e')"
+    ]
+  }
+}

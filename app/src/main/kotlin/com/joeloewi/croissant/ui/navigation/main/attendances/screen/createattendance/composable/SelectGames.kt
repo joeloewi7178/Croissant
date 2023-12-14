@@ -99,13 +99,15 @@ fun SelectGames(
     val lazyListState = rememberLazyListState()
 
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.Default) {
+        withContext(Dispatchers.IO) {
             snapshotFlow(connectedGames).catch { }.collect {
                 when (it) {
                     is Lce.Content -> {
-                        if (it.content.any {
-                                !supportedGames.map { it.gameId }.contains(it.gameId)
-                            }) {
+                        if (
+                            it.content.any {
+                                supportedGames.find { game -> game.gameId == it.gameId } == null
+                            }
+                        ) {
                             snackbarHostState.apply {
                                 currentSnackbarData?.dismiss()
                                 showSnackbar(message = containsNotSupportedGame)
@@ -423,7 +425,7 @@ fun ConnectedGamesContentListItem(
                         enabled = enabled,
                         role = Role.Checkbox,
                         onValueChange = { checked ->
-                            if (checked) {
+                            if (!checked) {
                                 checkedGames().add(game)
                             } else {
                                 checkedGames().remove(game)

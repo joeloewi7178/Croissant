@@ -16,7 +16,7 @@
 
 package com.joeloewi.croissant.data.repository.local.impl
 
-import com.joeloewi.croissant.data.db.dao.SuccessLogDao
+import com.joeloewi.croissant.data.database.dao.SuccessLogDao
 import com.joeloewi.croissant.data.mapper.SuccessLogMapper
 import com.joeloewi.croissant.data.repository.local.SuccessLogDataSource
 import com.joeloewi.croissant.domain.entity.SuccessLog

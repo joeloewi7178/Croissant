@@ -37,7 +37,7 @@ class MainActivityViewModel @Inject constructor(
 ) : ViewModel() {
     private val _settings = getSettingsUseCase()
 
-    val hourFormat = is24HourFormat().flowOn(Dispatchers.Default).map {
+    val hourFormat = is24HourFormat().flowOn(Dispatchers.IO).map {
         HourFormat.fromSystemHourFormat(it)
     }.stateIn(
         scope = viewModelScope,
@@ -53,7 +53,7 @@ class MainActivityViewModel @Inject constructor(
             AppUpdateManagerFactory.create(application)
         }.flatMapConcat {
             it.requestUpdateFlow()
-        }.flowOn(Dispatchers.Default).catch { cause ->
+        }.flowOn(Dispatchers.IO).catch { cause ->
             Firebase.crashlytics.apply {
                 log("AppUpdateManager")
                 recordException(cause)
@@ -70,7 +70,7 @@ class MainActivityViewModel @Inject constructor(
     )
     val isDeviceRooted = flow {
         emit(rootChecker.isDeviceRooted())
-    }.flowOn(Dispatchers.Default).stateIn(
+    }.flowOn(Dispatchers.IO).stateIn(
         scope = viewModelScope,
         started = SharingStarted.Lazily,
         initialValue = false

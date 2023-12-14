@@ -26,6 +26,7 @@ import com.joeloewi.croissant.data.common.GenshinImpactServer
 import com.joeloewi.croissant.data.common.HeaderInformation
 import com.joeloewi.croissant.data.common.generateDS
 import com.joeloewi.croissant.data.repository.remote.HoYoLABDataSource
+import com.joeloewi.croissant.data.util.executeAndAwait
 import com.skydoves.sandwich.ApiResponse
 import javax.inject.Inject
 
@@ -33,12 +34,13 @@ class HoYoLABDataSourceImpl @Inject constructor(
     private val hoYoLABService: HoYoLABService,
 ) : HoYoLABDataSource {
     override suspend fun getUserFullInfo(cookie: String): ApiResponse<UserFullInfoResponse> =
-        hoYoLABService.getUserFullInfo(cookie)
+        hoYoLABService.getUserFullInfo(cookie).executeAndAwait()
 
     override suspend fun getGameRecordCard(
         cookie: String,
         uid: Long
-    ): ApiResponse<GameRecordCardResponse> = hoYoLABService.getGameRecordCard(cookie, uid)
+    ): ApiResponse<GameRecordCardResponse> =
+        hoYoLABService.getGameRecordCard(cookie, uid).executeAndAwait()
 
     override suspend fun getGenshinDailyNote(
         ds: String,
@@ -69,7 +71,7 @@ class HoYoLABDataSourceImpl @Inject constructor(
             xRpcClientType = headerInformation.xRpcClientType,
             roleId,
             server
-        )
+        ).executeAndAwait()
     }
 
     override suspend fun changeDataSwitch(
@@ -81,5 +83,5 @@ class HoYoLABDataSourceImpl @Inject constructor(
         cookie, DataSwitchRequest(
             switchId, isPublic, gameId
         )
-    )
+    ).executeAndAwait()
 }

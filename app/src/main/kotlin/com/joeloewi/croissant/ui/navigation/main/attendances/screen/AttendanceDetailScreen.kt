@@ -154,7 +154,7 @@ private fun AttendanceDetailContent(
     val pressSaveButton = stringResource(id = R.string.press_save_button_to_commit)
 
     LaunchedEffect(snackbarHostState) {
-        withContext(Dispatchers.Default) {
+        withContext(Dispatchers.IO) {
             snapshotFlow(newCookie).catch { }.collect {
                 if (it.isNotEmpty()) {
                     onRefreshCookie(it)
@@ -165,7 +165,7 @@ private fun AttendanceDetailContent(
     }
 
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.Default) {
+        withContext(Dispatchers.IO) {
             combine(
                 snapshotFlow(attendCheckInEventWorkerSuccessLogCount),
                 snapshotFlow(attendCheckInEventWorkerFailureLogCount)

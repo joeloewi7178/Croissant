@@ -20,7 +20,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
-import com.joeloewi.croissant.data.db.dao.AttendanceDao
+import com.joeloewi.croissant.data.database.dao.AttendanceDao
 import com.joeloewi.croissant.data.mapper.AttendanceMapper
 import com.joeloewi.croissant.data.mapper.AttendanceWithGamesMapper
 import com.joeloewi.croissant.data.repository.local.AttendanceDataSource

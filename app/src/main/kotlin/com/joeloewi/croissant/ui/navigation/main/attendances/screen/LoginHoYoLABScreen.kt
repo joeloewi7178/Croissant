@@ -153,14 +153,13 @@ fun LoginHoYoLABContent(
 
                         IconButton(
                             onClick = {
-                                coroutineScope.launch(Dispatchers.Default) {
-                                    val currentCookie = withContext(Dispatchers.IO) {
+                                coroutineScope.launch(Dispatchers.IO) {
+                                    val hoyolabCookie =
                                         CookieManager.getInstance().getCookie(hoyolabUrl)
-                                    }
 
-                                    if (cookieKeys.map { currentCookie.contains(it) }.all { it }) {
+                                    if (cookieKeys.map { hoyolabCookie.contains(it) }.all { it }) {
                                         withContext(Dispatchers.Main) {
-                                            onNavigateUpWithResult(currentCookie)
+                                            onNavigateUpWithResult(hoyolabCookie)
                                         }
                                     } else {
                                         snackbarHostState.showSnackbar(
