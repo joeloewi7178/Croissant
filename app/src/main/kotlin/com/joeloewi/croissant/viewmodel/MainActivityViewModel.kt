@@ -1,11 +1,9 @@
 package com.joeloewi.croissant.viewmodel
 
-import android.app.Application
 import android.os.Build
-import android.text.format.DateFormat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+import com.google.android.play.core.appupdate.AppUpdateManager
 import com.google.android.play.core.ktx.AppUpdateResult
 import com.google.android.play.core.ktx.requestUpdateFlow
 import com.google.firebase.Firebase
@@ -13,7 +11,6 @@ import com.google.firebase.crashlytics.crashlytics
 import com.joeloewi.croissant.domain.usecase.SettingsUseCase
 import com.joeloewi.croissant.domain.usecase.SystemUseCase
 import com.joeloewi.croissant.util.HourFormat
-import com.joeloewi.croissant.util.RootChecker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
@@ -30,35 +27,34 @@ import javax.inject.Inject
 @FlowPreview
 @HiltViewModel
 class MainActivityViewModel @Inject constructor(
-    application: Application,
+    private val appUpdateManager: AppUpdateManager,
+    is24HourFormatImmediate: Boolean,
     getSettingsUseCase: SettingsUseCase.GetSettings,
     is24HourFormat: SystemUseCase.Is24HourFormat,
-    rootChecker: RootChecker,
+    isDeviceRooted: SystemUseCase.IsDeviceRooted
 ) : ViewModel() {
     private val _settings = getSettingsUseCase()
 
-    val hourFormat = is24HourFormat().flowOn(Dispatchers.IO).map {
+    val hourFormat = is24HourFormat().map {
         HourFormat.fromSystemHourFormat(it)
-    }.stateIn(
+    }.catch { }.flowOn(Dispatchers.IO).stateIn(
         scope = viewModelScope,
         started = SharingStarted.Lazily,
-        initialValue = HourFormat.fromSystemHourFormat(DateFormat.is24HourFormat(application))
+        initialValue = HourFormat.fromSystemHourFormat(is24HourFormatImmediate)
     )
     val appUpdateResultState =
         flow {
             emit(Build.MODEL)
         }.filter {
             !listOf("LG-H790", "LG-H791").contains(it.uppercase())
-        }.map {
-            AppUpdateManagerFactory.create(application)
         }.flatMapConcat {
-            it.requestUpdateFlow()
-        }.flowOn(Dispatchers.IO).catch { cause ->
+            appUpdateManager.requestUpdateFlow()
+        }.catch { cause ->
             Firebase.crashlytics.apply {
                 log("AppUpdateManager")
                 recordException(cause)
             }
-        }.stateIn(
+        }.flowOn(Dispatchers.IO).stateIn(
             scope = viewModelScope,
             started = SharingStarted.Lazily,
             initialValue = AppUpdateResult.NotAvailable
@@ -69,8 +65,8 @@ class MainActivityViewModel @Inject constructor(
         initialValue = false
     )
     val isDeviceRooted = flow {
-        emit(rootChecker.isDeviceRooted())
-    }.flowOn(Dispatchers.IO).stateIn(
+        emit(isDeviceRooted())
+    }.catch { }.flowOn(Dispatchers.IO).stateIn(
         scope = viewModelScope,
         started = SharingStarted.Lazily,
         initialValue = false

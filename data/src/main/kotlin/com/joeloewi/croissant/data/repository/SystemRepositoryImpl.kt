@@ -10,4 +10,6 @@ class SystemRepositoryImpl @Inject constructor(
 ) : SystemRepository {
 
     override fun is24HourFormat(): Flow<Boolean> = systemDataSource.is24HourFormat()
+
+    override suspend fun isDeviceRooted(): Boolean = systemDataSource.isDeviceRooted()
 }

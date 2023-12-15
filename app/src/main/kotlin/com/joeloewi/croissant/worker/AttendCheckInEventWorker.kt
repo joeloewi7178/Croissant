@@ -87,7 +87,8 @@ class AttendCheckInEventWorker @AssistedInject constructor(
             context,
             getOrCreateNotificationChannel(
                 context.getString(R.string.attendance_foreground_notification_channel_id),
-                context.getString(R.string.attendance_foreground_notification_channel_name)
+                context.getString(R.string.attendance_foreground_notification_channel_name),
+                NotificationManagerCompat.IMPORTANCE_MIN
             )
         )
         .setContentTitle(context.getString(R.string.attendance_foreground_notification_title))
@@ -116,7 +117,8 @@ class AttendCheckInEventWorker @AssistedInject constructor(
 
     private fun getOrCreateNotificationChannel(
         channelId: String,
-        channelName: String
+        channelName: String,
+        importance: Int
     ): String =
         if (NotificationManagerCompat.from(context).getNotificationChannel(channelId) != null) {
             channelId
@@ -125,7 +127,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                 val notificationChannelCompat = NotificationChannelCompat
                     .Builder(
                         it,
-                        NotificationManagerCompat.IMPORTANCE_MAX
+                        importance
                     )
                     .setName(channelName)
                     .build()
