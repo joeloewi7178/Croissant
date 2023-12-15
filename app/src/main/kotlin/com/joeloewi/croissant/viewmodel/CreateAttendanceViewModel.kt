@@ -1,11 +1,6 @@
 package com.joeloewi.croissant.viewmodel
 
-import android.app.AlarmManager
-import android.app.Application
-import android.app.PendingIntent
-import android.content.Intent
 import androidx.compose.runtime.mutableStateListOf
-import androidx.core.app.AlarmManagerCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.Constraints
@@ -20,10 +15,8 @@ import com.joeloewi.croissant.domain.entity.Game
 import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
 import com.joeloewi.croissant.domain.usecase.GameUseCase
 import com.joeloewi.croissant.domain.usecase.HoYoLABUseCase
-import com.joeloewi.croissant.receiver.AlarmReceiver
 import com.joeloewi.croissant.state.Lce
-import com.joeloewi.croissant.util.canScheduleExactAlarmsCompat
-import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
+import com.joeloewi.croissant.util.AlarmScheduler
 import com.joeloewi.croissant.worker.CheckSessionWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -50,8 +43,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CreateAttendanceViewModel @Inject constructor(
-    private val application: Application,
-    private val alarmManager: AlarmManager,
+    private val alarmScheduler: AlarmScheduler,
+    private val workManager: WorkManager,
     private val getUserFullInfoHoYoLABUseCase: HoYoLABUseCase.GetUserFullInfo,
     private val getGameRecordCardHoYoLABUseCase: HoYoLABUseCase.GetGameRecordCard,
     private val insertAttendanceUseCase: AttendanceUseCase.Insert,
@@ -170,50 +163,12 @@ class CreateAttendanceViewModel @Inject constructor(
                     }
                 }.mapCatching { attendance ->
                     val now = ZonedDateTime.now(ZoneId.of(attendance.timezoneId))
-                    val canExecuteToday =
-                        (now.hour < attendance.hourOfDay) || (now.hour == attendance.hourOfDay && now.minute < attendance.minute)
 
-                    val targetTime = ZonedDateTime.now(ZoneId.of(attendance.timezoneId))
-                        .plusDays(
-                            if (!canExecuteToday) {
-                                1
-                            } else {
-                                0
-                            }
-                        )
-                        .withHour(attendance.hourOfDay)
-                        .withMinute(attendance.minute)
-                        .withSecond(30)
-
-                    val alarmIntent = Intent(application, AlarmReceiver::class.java).apply {
-                        action = AlarmReceiver.RECEIVE_ATTEND_CHECK_IN_ALARM
-                        putExtra(AlarmReceiver.ATTENDANCE_ID, attendance.id)
-                    }
-
-                    val pendingIntent = PendingIntent.getBroadcast(
-                        application,
-                        attendance.id.toInt(),
-                        alarmIntent,
-                        pendingIntentFlagUpdateCurrent
+                    alarmScheduler.scheduleCheckInAlarm(
+                        attendanceId = attendance.id,
+                        hourOfDay = attendance.hourOfDay,
+                        minute = attendance.minute
                     )
-
-                    with(alarmManager) {
-                        cancel(pendingIntent)
-                        if (canScheduleExactAlarmsCompat()) {
-                            AlarmManagerCompat.setExactAndAllowWhileIdle(
-                                this,
-                                AlarmManager.RTC_WAKEUP,
-                                targetTime.toInstant().toEpochMilli(),
-                                pendingIntent
-                            )
-                        } else {
-                            alarmManager.set(
-                                AlarmManager.RTC_WAKEUP,
-                                targetTime.toInstant().toEpochMilli(),
-                                pendingIntent
-                            )
-                        }
-                    }
 
                     val periodicCheckSessionWork = PeriodicWorkRequest.Builder(
                         CheckSessionWorker::class.java,
@@ -228,12 +183,11 @@ class CreateAttendanceViewModel @Inject constructor(
                         )
                         .build()
 
-                    WorkManager.getInstance(application)
-                        .enqueueUniquePeriodicWork(
-                            attendance.checkSessionWorkerName.toString(),
-                            ExistingPeriodicWorkPolicy.UPDATE,
-                            periodicCheckSessionWork
-                        )
+                    workManager.enqueueUniquePeriodicWork(
+                        attendance.checkSessionWorkerName.toString(),
+                        ExistingPeriodicWorkPolicy.UPDATE,
+                        periodicCheckSessionWork
+                    )
 
                     updateAttendanceUseCase(
                         attendance.copy(

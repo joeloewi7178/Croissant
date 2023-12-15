@@ -4,4 +4,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface SystemRepository {
     fun is24HourFormat(): Flow<Boolean>
+
+    suspend fun isDeviceRooted(): Boolean
 }

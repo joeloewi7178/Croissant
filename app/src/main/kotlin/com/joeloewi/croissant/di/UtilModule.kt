@@ -1,13 +1,15 @@
 package com.joeloewi.croissant.di
 
-import android.app.Application
 import android.content.Context
-import android.os.PowerManager
-import androidx.core.content.getSystemService
+import android.text.format.DateFormat
 import androidx.work.RunnableScheduler
+import androidx.work.WorkManager
 import coil.ImageLoader
+import com.google.android.play.core.appupdate.AppUpdateManager
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.util.RootChecker
+import com.joeloewi.croissant.util.AlarmScheduler
+import com.joeloewi.croissant.util.impl.AlarmSchedulerImpl
 import com.joeloewi.croissant.util.impl.RunnableSchedulerImpl
 import dagger.Binds
 import dagger.Module
@@ -15,19 +17,33 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import nl.marc_apps.tts.TextToSpeechEngine
+import nl.marc_apps.tts.TextToSpeechFactory
 import okhttp3.OkHttpClient
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object UtilModule {
+    @Provides
+    fun provideWorkManager(
+        @ApplicationContext context: Context
+    ): WorkManager = WorkManager.getInstance(context)
 
     @Provides
-    fun providePowerManager(application: Application): PowerManager =
-        application.getSystemService()!!
+    fun provideIs24HourFormat(
+        @ApplicationContext context: Context
+    ): Boolean = DateFormat.is24HourFormat(context)
 
     @Provides
-    fun provideRootChecker(application: Application): RootChecker = RootChecker(application)
+    fun provideAppUpdateManager(
+        @ApplicationContext context: Context
+    ): AppUpdateManager = AppUpdateManagerFactory.create(context)
+
+    @Provides
+    fun provideTextToSpeechFactory(
+        @ApplicationContext context: Context
+    ): TextToSpeechFactory = TextToSpeechFactory(context, TextToSpeechEngine.SystemDefault)
 
     @Singleton
     @Provides
@@ -49,4 +65,10 @@ abstract class UtilModuleForBind {
     abstract fun bindRunnableScheduler(
         runnableSchedulerImpl: RunnableSchedulerImpl
     ): RunnableScheduler
+
+    @Singleton
+    @Binds
+    abstract fun bindAlarmScheduler(
+        alarmSchedulerImpl: AlarmSchedulerImpl
+    ): AlarmScheduler
 }

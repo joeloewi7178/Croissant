@@ -10,4 +10,10 @@ sealed class SystemUseCase {
     ) {
         operator fun invoke() = systemRepository.is24HourFormat()
     }
+
+    class IsDeviceRooted @Inject constructor(
+        private val systemRepository: SystemRepository
+    ) {
+        suspend operator fun invoke() = systemRepository.isDeviceRooted()
+    }
 }

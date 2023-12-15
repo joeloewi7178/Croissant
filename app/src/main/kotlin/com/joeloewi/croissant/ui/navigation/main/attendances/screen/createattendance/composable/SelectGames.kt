@@ -132,19 +132,19 @@ fun SelectGames(
         }
     }
 
-    LaunchedEffect(Unit) {
-        snapshotFlow(checkedGames).catch { }.collect {
-            if (it.isEmpty()) {
-                snackbarHostState.apply {
-                    currentSnackbarData?.dismiss()
-                    showSnackbar(
-                        message = chooseAtLeastOneGame,
-                        duration = SnackbarDuration.Indefinite
-                    )
-                }
-            } else {
-                snackbarHostState.currentSnackbarData?.dismiss()
+    LaunchedEffect(checkedGames().isEmpty()) {
+        val isEmpty = checkedGames().isEmpty()
+
+        if (isEmpty) {
+            snackbarHostState.apply {
+                currentSnackbarData?.dismiss()
+                showSnackbar(
+                    message = chooseAtLeastOneGame,
+                    duration = SnackbarDuration.Indefinite
+                )
             }
+        } else {
+            snackbarHostState.currentSnackbarData?.dismiss()
         }
     }
 
@@ -425,7 +425,7 @@ fun ConnectedGamesContentListItem(
                         enabled = enabled,
                         role = Role.Checkbox,
                         onValueChange = { checked ->
-                            if (!checked) {
+                            if (checked) {
                                 checkedGames().add(game)
                             } else {
                                 checkedGames().remove(game)

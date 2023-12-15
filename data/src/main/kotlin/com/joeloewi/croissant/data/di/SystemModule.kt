@@ -5,9 +5,11 @@ import android.app.AppOpsManager
 import android.content.Context
 import android.os.Handler
 import android.os.HandlerThread
+import android.os.PowerManager
 import android.os.Process
 import androidx.core.content.getSystemService
 import androidx.core.os.HandlerCompat
+import com.joeloewi.croissant.data.system.RootChecker
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -37,4 +39,15 @@ object SystemModule {
     fun provideAlarmManager(
         @ApplicationContext context: Context
     ): AlarmManager = context.getSystemService()!!
+
+    @Provides
+    fun providePowerManager(
+        @ApplicationContext context: Context
+    ): PowerManager = context.getSystemService()!!
+
+    @Singleton
+    @Provides
+    fun provideRootChecker(
+        @ApplicationContext context: Context
+    ): RootChecker = RootChecker(context)
 }
