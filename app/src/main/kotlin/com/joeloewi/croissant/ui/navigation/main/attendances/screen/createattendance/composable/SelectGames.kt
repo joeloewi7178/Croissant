@@ -425,7 +425,7 @@ fun ConnectedGamesContentListItem(
                         enabled = enabled,
                         role = Role.Checkbox,
                         onValueChange = { checked ->
-                            if (!checked) {
+                            if (checked) {
                                 checkedGames().add(game)
                             } else {
                                 checkedGames().remove(game)
