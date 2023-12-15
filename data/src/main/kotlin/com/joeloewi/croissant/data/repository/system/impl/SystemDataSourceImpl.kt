@@ -7,6 +7,7 @@ import android.content.IntentFilter
 import android.os.Handler
 import android.text.format.DateFormat
 import com.joeloewi.croissant.data.repository.system.SystemDataSource
+import com.joeloewi.croissant.data.system.RootChecker
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
@@ -18,6 +19,7 @@ import javax.inject.Inject
 class SystemDataSourceImpl @Inject constructor(
     @ApplicationContext private val context: Context,
     private val applicationHandler: Handler,
+    private val rootChecker: RootChecker
 ) : SystemDataSource {
 
     override fun is24HourFormat(): Flow<Boolean> = callbackFlow {
@@ -33,4 +35,6 @@ class SystemDataSourceImpl @Inject constructor(
 
         awaitClose { context.unregisterReceiver(broadcastReceiver) }
     }.flowOn(Dispatchers.IO)
+
+    override suspend fun isDeviceRooted(): Boolean = rootChecker.isDeviceRooted()
 }

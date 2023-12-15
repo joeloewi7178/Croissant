@@ -1,6 +1,5 @@
 package com.joeloewi.croissant.viewmodel
 
-import android.app.Application
 import android.appwidget.AppWidgetManager
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.SavedStateHandle
@@ -35,7 +34,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CreateResinStatusWidgetViewModel @Inject constructor(
-    private val application: Application,
+    private val workManager: WorkManager,
     private val getUserFullInfoHoYoLABUseCase: HoYoLABUseCase.GetUserFullInfo,
     private val insertResinStatusWidgetUseCase: ResinStatusWidgetUseCase.Insert,
     private val insertAccountUseCase: AccountUseCase.Insert,
@@ -120,12 +119,11 @@ class CreateResinStatusWidgetViewModel @Inject constructor(
                             .build()
                     ).build()
 
-                    WorkManager.getInstance(application)
-                        .enqueueUniquePeriodicWork(
-                            resinStatusWidget.refreshGenshinResinStatusWorkerName.toString(),
-                            ExistingPeriodicWorkPolicy.UPDATE,
-                            periodicWorkRequest
-                        ).await()
+                    workManager.enqueueUniquePeriodicWork(
+                        resinStatusWidget.refreshGenshinResinStatusWorkerName.toString(),
+                        ExistingPeriodicWorkPolicy.UPDATE,
+                        periodicWorkRequest
+                    ).await()
 
                     insertAccountUseCase(*accounts.toTypedArray())
                 }.fold(

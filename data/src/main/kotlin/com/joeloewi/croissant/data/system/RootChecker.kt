@@ -1,9 +1,12 @@
-package com.joeloewi.croissant.util
+package com.joeloewi.croissant.data.system
 
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.nio.charset.Charset
@@ -11,7 +14,6 @@ import java.nio.charset.Charset
 class RootChecker(
     private val context: Context
 ) {
-
     private val rootFiles = arrayOf(
         "/system/app/Superuser.apk",
         "/sbin/su",
@@ -56,10 +58,33 @@ class RootChecker(
         Runtime.getRuntime()
     }
 
-    suspend fun isDeviceRooted(): Boolean =
-        checkRootFiles() || checkSUExist() || checkRootPackages()
+    suspend fun isDeviceRooted(): Boolean = withContext(Dispatchers.IO) {
+        awaitAll(
+            async(SupervisorJob()) {
+                try {
+                    isRootFilesExists()
+                } catch (_: Throwable) {
+                    false
+                }
+            },
+            async(SupervisorJob()) {
+                try {
+                    isSUExists()
+                } catch (_: Throwable) {
+                    false
+                }
+            },
+            async(SupervisorJob()) {
+                try {
+                    hasRootPackages()
+                } catch (_: Throwable) {
+                    false
+                }
+            },
+        ).any { it }
+    }
 
-    private suspend fun checkRootFiles(): Boolean = withContext(Dispatchers.IO) {
+    private suspend fun isRootFilesExists(): Boolean = withContext(Dispatchers.IO) {
         rootFiles.runCatching {
             any { path -> File(path).exists() }
         }.fold(
@@ -72,7 +97,7 @@ class RootChecker(
         )
     }
 
-    private suspend fun checkSUExist(): Boolean = withContext(Dispatchers.IO) {
+    private suspend fun isSUExists(): Boolean = withContext(Dispatchers.IO) {
         var process: Process? = null
 
         runtime.runCatching {
@@ -93,7 +118,7 @@ class RootChecker(
         }
     }
 
-    private suspend fun checkRootPackages(): Boolean = withContext(Dispatchers.IO) {
+    private suspend fun hasRootPackages(): Boolean = withContext(Dispatchers.IO) {
         context.runCatching {
             packageManager
         }.mapCatching {

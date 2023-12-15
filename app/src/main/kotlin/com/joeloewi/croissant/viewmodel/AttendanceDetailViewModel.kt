@@ -1,11 +1,6 @@
 package com.joeloewi.croissant.viewmodel
 
-import android.app.AlarmManager
-import android.app.Application
-import android.app.PendingIntent
-import android.content.Intent
 import androidx.compose.runtime.mutableStateListOf
-import androidx.core.app.AlarmManagerCompat
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -22,11 +17,9 @@ import com.joeloewi.croissant.domain.entity.relational.AttendanceWithGames
 import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
 import com.joeloewi.croissant.domain.usecase.GameUseCase
 import com.joeloewi.croissant.domain.usecase.WorkerExecutionLogUseCase
-import com.joeloewi.croissant.receiver.AlarmReceiver
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
-import com.joeloewi.croissant.util.canScheduleExactAlarmsCompat
-import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
+import com.joeloewi.croissant.util.AlarmScheduler
 import com.joeloewi.croissant.worker.CheckSessionWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -46,13 +39,13 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AttendanceDetailViewModel @Inject constructor(
-    private val alarmManager: AlarmManager,
-    getCountByStateWorkerExecutionLogUseCase: WorkerExecutionLogUseCase.GetCountByState,
+    private val workManager: WorkManager,
+    private val alarmScheduler: AlarmScheduler,
     private val getOneAttendanceUseCase: AttendanceUseCase.GetOne,
     private val updateAttendanceUseCase: AttendanceUseCase.Update,
     private val deleteGameUseCase: GameUseCase.Delete,
     private val insertGameUseCase: GameUseCase.Insert,
-    private val application: Application,
+    getCountByStateWorkerExecutionLogUseCase: WorkerExecutionLogUseCase.GetCountByState,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     //parameter
@@ -174,54 +167,15 @@ class AttendanceDetailViewModel @Inject constructor(
                 getOneAttendanceUseCase.runCatching {
                     invoke(attendanceId)
                 }.mapCatching { attendanceWithGames ->
-                    val timeZonedId = ZoneId.systemDefault().id
                     val attendance = attendanceWithGames.attendance
-                    val now = ZonedDateTime.now(ZoneId.of(timeZonedId))
-                    val canExecuteToday =
-                        (now.hour < _hourOfDay.value) || (now.hour == _hourOfDay.value && now.minute < _minute.value)
 
-                    val targetTime = ZonedDateTime.now(ZoneId.of(timeZonedId))
-                        .plusDays(
-                            if (!canExecuteToday) {
-                                1
-                            } else {
-                                0
-                            }
-                        )
-                        .withHour(_hourOfDay.value)
-                        .withMinute(_minute.value)
-                        .withSecond(30)
+                    workManager.cancelUniqueWork(attendance.attendCheckInEventWorkerName.toString())
 
-                    WorkManager.getInstance(application)
-                        .cancelUniqueWork(attendance.attendCheckInEventWorkerName.toString())
-
-                    val alarmPendingIntent = PendingIntent.getBroadcast(
-                        application,
-                        attendance.id.toInt(),
-                        Intent(application, AlarmReceiver::class.java).apply {
-                            action = AlarmReceiver.RECEIVE_ATTEND_CHECK_IN_ALARM
-                            putExtra(AlarmReceiver.ATTENDANCE_ID, attendance.id)
-                        },
-                        pendingIntentFlagUpdateCurrent
+                    alarmScheduler.scheduleCheckInAlarm(
+                        attendanceId = attendance.id,
+                        hourOfDay = _hourOfDay.value,
+                        minute = _minute.value
                     )
-
-                    with(alarmManager) {
-                        cancel(alarmPendingIntent)
-                        if (canScheduleExactAlarmsCompat()) {
-                            AlarmManagerCompat.setExactAndAllowWhileIdle(
-                                this,
-                                AlarmManager.RTC_WAKEUP,
-                                targetTime.toInstant().toEpochMilli(),
-                                alarmPendingIntent
-                            )
-                        } else {
-                            alarmManager.set(
-                                AlarmManager.RTC_WAKEUP,
-                                targetTime.toInstant().toEpochMilli(),
-                                alarmPendingIntent
-                            )
-                        }
-                    }
 
                     val periodicCheckSessionWork = PeriodicWorkRequest.Builder(
                         CheckSessionWorker::class.java,
@@ -236,12 +190,11 @@ class AttendanceDetailViewModel @Inject constructor(
                         )
                         .build()
 
-                    WorkManager.getInstance(application)
-                        .enqueueUniquePeriodicWork(
-                            attendance.checkSessionWorkerName.toString(),
-                            ExistingPeriodicWorkPolicy.UPDATE,
-                            periodicCheckSessionWork
-                        )
+                    workManager.enqueueUniquePeriodicWork(
+                        attendance.checkSessionWorkerName.toString(),
+                        ExistingPeriodicWorkPolicy.UPDATE,
+                        periodicCheckSessionWork
+                    )
 
                     updateAttendanceUseCase(
                         attendance.copy(
@@ -251,7 +204,7 @@ class AttendanceDetailViewModel @Inject constructor(
                             uid = _uid.value,
                             hourOfDay = _hourOfDay.value,
                             minute = _minute.value,
-                            timezoneId = timeZonedId,
+                            timezoneId = ZoneId.systemDefault().id,
                             checkSessionWorkerId = periodicCheckSessionWork.id
                         )
                     )

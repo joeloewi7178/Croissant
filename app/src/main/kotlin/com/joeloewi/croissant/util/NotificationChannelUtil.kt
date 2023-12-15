@@ -28,13 +28,15 @@ fun Context.createNotificationChannels(
         getString(R.string.time_zone_changed_notification_channel_id) to getString(R.string.time_zone_changed_notification_channel_name),
         getString(R.string.attendance_foreground_notification_channel_id) to getString(R.string.attendance_foreground_notification_channel_name)
     )
-) = idNamePairs.filter { pair ->
-    NotificationManagerCompat.from(this).getNotificationChannel(pair.first) == null
-}.map { pair ->
+) = idNamePairs.map { pair ->
     NotificationChannelCompat
         .Builder(
             pair.first,
-            NotificationManagerCompat.IMPORTANCE_MAX
+            if (pair.first == getString(R.string.attendance_foreground_notification_channel_id)) {
+                NotificationManagerCompat.IMPORTANCE_MIN
+            } else {
+                NotificationManagerCompat.IMPORTANCE_MAX
+            }
         )
         .setName(pair.second)
         .build()
