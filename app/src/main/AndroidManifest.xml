@@ -50,7 +50,7 @@
         android:theme="@style/Theme.AppSplash">
         <profileable
             android:shell="true"
-            tools:targetApi="q" />
+            tools:targetApi="29,q" />
 
         <meta-data
             android:name="android.supports_size_changes"
