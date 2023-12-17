@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "YourProjectId",
+    "project_id": "abc",
+    "storage_bucket": "abc"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "Your:App:Id",
+        "android_client_info": {
+          "package_name": "com.joeloewi.croissant"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.joeloewi.croissant",
+            "certificate_hash": ""
+          }
+        },
+        {
+          "client_id": "",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.joeloewi.croissant",
+            "certificate_hash": ""
+          }
+        },
+        {
+          "client_id": "",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "APlaceholderAPIKeyWith-ThirtyNineCharsX"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
