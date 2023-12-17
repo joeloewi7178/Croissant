@@ -50,7 +50,7 @@ fun rememberSpecialPermissionState(
         onDispose { lifecycle.removeObserver(permissionCheckerObserver) }
     }
 
-    DisposableEffect(context) {
+    DisposableEffect(Unit) {
         val appOpsManager: AppOpsManager? = context.getSystemService()
 
         val opChangedListener = AppOpsManager.OnOpChangedListener { op, packageName ->

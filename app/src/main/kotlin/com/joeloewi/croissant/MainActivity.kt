@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
@@ -173,7 +174,9 @@ fun CroissantApp(
     val fullScreenDestinations = remember {
         listOf(
             AttendancesDestination.CreateAttendanceScreen.route,
-            AttendancesDestination.LoginHoYoLabScreen.route
+            AttendancesDestination.LoginHoYoLabScreen.route,
+            GlobalDestination.FirstLaunchScreen.route,
+            GlobalDestination.EmptyScreen.route
         ).toImmutableList()
     }
     val currentBackStack by navController.currentBackStack.collectAsStateWithLifecycle()
@@ -291,7 +294,13 @@ fun CroissantApp(
                 }
                 Column {
                     CroissantNavHost(
-                        modifier = Modifier,
+                        modifier = Modifier.run {
+                            if (windowSizeClass.isCompactWindowSize()) {
+                                this
+                            } else {
+                                navigationBarsPadding()
+                            }
+                        },
                         navController = StableWrapper(navController),
                         snackbarHostState = snackbarHostState,
                         deepLinkUri = deepLinkUri.toString()
@@ -333,46 +342,6 @@ fun CroissantApp(
                 )
             )
         }
-
-        /*if (lifecycle == Lifecycle.Event.ON_RESUME) {
-            if (!croissantAppState.canScheduleExactAlarms) {
-                AlertDialog(
-                    onDismissRequest = {},
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                                    Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).also {
-                                        context.startActivity(it)
-                                    }
-                                }
-                            }
-                        ) {
-                            Text(text = stringResource(id = R.string.confirm))
-                        }
-                    },
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Warning,
-                            contentDescription = Icons.Default.Warning.name
-                        )
-                    },
-                    title = {
-                        Text(text = stringResource(id = R.string.caution))
-                    },
-                    text = {
-                        Text(
-                            textAlign = TextAlign.Center,
-                            text = stringResource(id = R.string.schedule_exact_alarm_disabled)
-                        )
-                    },
-                    properties = DialogProperties(
-                        dismissOnClickOutside = false,
-                        dismissOnBackPress = false
-                    )
-                )
-            }
-        }*/
     }
 }
 
