@@ -49,6 +49,9 @@ interface RepositoryModule {
     fun bindWorkerExecutionLogRepository(workerExecutionLogRepositoryImpl: WorkerExecutionLogRepositoryImpl): WorkerExecutionLogRepository
 
     @Binds
+    fun bindResultCountRepository(resultCountRepositoryImpl: ResultCountRepositoryImpl): ResultCountRepository
+
+    @Binds
     fun bindSettingsRepository(settingsRepositoryImpl: SettingsRepositoryImpl): SettingsRepository
 
     @Binds

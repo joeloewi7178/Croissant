@@ -53,6 +53,9 @@ interface DataSourceModule {
     fun bindWorkerExecutionLogDataSource(workerExecutionLogDataSourceImpl: WorkerExecutionLogDataSourceImpl): WorkerExecutionLogDataSource
 
     @Binds
+    fun bindResultCountDataSource(resultCountDataSourceImpl: ResultCountDataSourceImpl): ResultCountDataSource
+
+    @Binds
     fun bindSettingsDataSource(settingsDataSourceImpl: SettingsDataSourceImpl): SettingsDataSource
 
     @Binds

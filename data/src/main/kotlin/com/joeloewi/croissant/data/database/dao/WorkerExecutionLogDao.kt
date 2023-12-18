@@ -69,4 +69,38 @@ interface WorkerExecutionLogDao {
         loggableWorker: LoggableWorker,
         state: WorkerExecutionLogState
     ): Flow<Long>
+
+    @Transaction
+    @Query(
+        """
+        SELECT(
+            MIN(
+                IFNULL(
+                    MIN(createdAt),
+                    CAST (ROUND((julianday('now', 'localtime', 'start of month', 'start of day', 'utc') - 2440587.5) * 86400.0 * 1000) AS INTEGER)
+                ),
+                CAST (ROUND((julianday('now', 'localtime', 'start of month', 'start of day', 'utc') - 2440587.5) * 86400.0 * 1000) AS INTEGER)
+            )
+        )
+        FROM WorkerExecutionLogEntity
+    """
+    )
+    fun getStartOfRange(): Flow<Long>
+
+    @Transaction
+    @Query(
+        """
+        SELECT(
+            MAX(
+                IFNULL(
+                    MAX(createdAt),
+                    CAST (ROUND((julianday('now', 'localtime', '+1 month', 'start of month', 'start of day', '-0.001 second', 'utc') - 2440587.5) * 86400.0 * 1000) AS INTEGER)
+                ),
+                CAST (ROUND((julianday('now', 'localtime', '+1 month', 'start of month', 'start of day', '-0.001 second', 'utc') - 2440587.5) * 86400.0 * 1000) AS INTEGER)
+            )
+        )
+        FROM WorkerExecutionLogEntity
+    """
+    )
+    fun getEndOfRange(): Flow<Long>
 }

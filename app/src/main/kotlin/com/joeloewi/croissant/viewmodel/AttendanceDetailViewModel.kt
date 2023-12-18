@@ -43,6 +43,7 @@ class AttendanceDetailViewModel @Inject constructor(
     private val alarmScheduler: AlarmScheduler,
     private val getOneAttendanceUseCase: AttendanceUseCase.GetOne,
     private val updateAttendanceUseCase: AttendanceUseCase.Update,
+    private val deleteAttendanceUseCase: AttendanceUseCase.Delete,
     private val deleteGameUseCase: GameUseCase.Delete,
     private val insertGameUseCase: GameUseCase.Insert,
     getCountByStateWorkerExecutionLogUseCase: WorkerExecutionLogUseCase.GetCountByState,
@@ -59,6 +60,7 @@ class AttendanceDetailViewModel @Inject constructor(
     private val _nickname = MutableStateFlow("")
     private val _uid = MutableStateFlow(0L)
     private val _updateAttendanceState = MutableStateFlow<Lce<Unit?>>(Lce.Content(null))
+    private val _deleteAttendanceState = MutableStateFlow<Lce<Unit?>>(Lce.Content(null))
 
     val checkedGames = mutableStateListOf<Game>()
     val attendanceWithGamesState = _attendanceWithGamesState.asStateFlow()
@@ -109,6 +111,7 @@ class AttendanceDetailViewModel @Inject constructor(
             initialValue = 0L
         )
     val updateAttendanceState = _updateAttendanceState.asStateFlow()
+    val deleteAttendanceState = _deleteAttendanceState.asStateFlow()
 
     fun setCookie(cookie: String) {
         _cookie.update { cookie }
@@ -257,6 +260,22 @@ class AttendanceDetailViewModel @Inject constructor(
                     }
                 )
             }
+        }
+    }
+
+    fun deleteAttendance() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _deleteAttendanceState.value = Lce.Loading
+            _deleteAttendanceState.value = runCatching {
+                deleteAttendanceUseCase(getOneAttendanceUseCase(attendanceId).attendance)
+            }.fold(
+                onSuccess = {
+                    Lce.Content(Unit)
+                },
+                onFailure = {
+                    Lce.Error(it)
+                }
+            )
         }
     }
 }

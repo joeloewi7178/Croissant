@@ -11,6 +11,8 @@ import android.os.PowerManager
 import android.provider.Settings
 import android.view.View
 import android.widget.RemoteViews
+import androidx.lifecycle.ProcessLifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
@@ -19,15 +21,16 @@ import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.domain.usecase.ResinStatusWidgetUseCase
-import com.joeloewi.croissant.util.goAsync
 import com.joeloewi.croissant.util.isIgnoringBatteryOptimizationsCompat
 import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
 import com.joeloewi.croissant.worker.RefreshResinStatusWorker
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -45,6 +48,8 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
     @Inject
     lateinit var deleteByAppWidgetIdResinStatusWidgetUseCase: ResinStatusWidgetUseCase.DeleteByAppWidgetId
 
+    private val _processLifecycleOwner by lazy { ProcessLifecycleOwner.get() }
+
     override fun onUpdate(
         context: Context,
         appWidgetManager: AppWidgetManager,
@@ -53,10 +58,7 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
         super.onUpdate(context, appWidgetManager, appWidgetIds)
         //this method also called when user put widget on home screen
 
-        goAsync(
-            onError = {},
-            coroutineContext = Dispatchers.IO
-        ) {
+        _processLifecycleOwner.lifecycleScope.launch(Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
             appWidgetIds.map { appWidgetId ->
                 async(Dispatchers.IO) {
                     if (powerManager.isPowerSaveMode && !powerManager.isIgnoringBatteryOptimizationsCompat(
@@ -141,10 +143,8 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
 
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
         super.onDeleted(context, appWidgetIds)
-        goAsync(
-            onError = {},
-            coroutineContext = Dispatchers.IO
-        ) {
+
+        _processLifecycleOwner.lifecycleScope.launch(Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
             appWidgetIds.run {
                 map { appWidgetId ->
                     async(Dispatchers.IO) {

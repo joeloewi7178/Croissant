@@ -1,28 +1,12 @@
 package com.joeloewi.croissant.worker
 
-import android.app.Notification
-import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.content.pm.ServiceInfo
-import android.net.Uri
-import android.os.Build
-import androidx.core.app.NotificationChannelCompat
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
-import androidx.core.app.TaskStackBuilder
-import androidx.core.graphics.drawable.toBitmap
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
-import coil.imageLoader
-import coil.request.ImageRequest
 import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics
-import com.joeloewi.croissant.R
-import com.joeloewi.croissant.data.common.generateGameIntent
 import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.domain.common.HoYoLABRetCode
 import com.joeloewi.croissant.domain.common.LoggableWorker
@@ -36,10 +20,7 @@ import com.joeloewi.croissant.domain.usecase.CheckInUseCase
 import com.joeloewi.croissant.domain.usecase.FailureLogUseCase
 import com.joeloewi.croissant.domain.usecase.SuccessLogUseCase
 import com.joeloewi.croissant.domain.usecase.WorkerExecutionLogUseCase
-import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
-import com.joeloewi.croissant.util.CroissantPermission
-import com.joeloewi.croissant.util.gameNameStringResId
-import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
+import com.joeloewi.croissant.util.NotificationGenerator
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
@@ -58,193 +39,30 @@ class AttendCheckInEventWorker @AssistedInject constructor(
     private val attendCheckInHonkaiStarRail: CheckInUseCase.AttendCheckInHonkaiStarRail,
     private val insertWorkerExecutionLogUseCase: WorkerExecutionLogUseCase.Insert,
     private val insertSuccessLogUseCase: SuccessLogUseCase.Insert,
-    private val insertFailureLogUseCase: FailureLogUseCase.Insert
+    private val insertFailureLogUseCase: FailureLogUseCase.Insert,
+    private val notificationGenerator: NotificationGenerator
 ) : CoroutineWorker(
     appContext = context,
     params = params
 ) {
     private val _attendanceId = inputData.getLong(ATTENDANCE_ID, Long.MIN_VALUE)
 
-    private fun generateAttendanceDetailDeepLinkUri(attendanceId: Long) =
-        Uri.Builder()
-            .scheme(context.getString(R.string.deep_link_scheme))
-            .authority(context.packageName)
-            .appendEncodedPath(
-                AttendancesDestination.AttendanceDetailScreen().generateRoute(attendanceId)
-            )
-            .build()
-
-    private fun getAttendanceDetailIntent(attendanceId: Long): Intent = Intent(
-        Intent.ACTION_VIEW,
-        generateAttendanceDetailDeepLinkUri(attendanceId)
-    )
-
     override suspend fun getForegroundInfo(): ForegroundInfo =
-        createForegroundInfo(_attendanceId.toInt())
-
-    private fun createForegroundInfo(notificationId: Int): ForegroundInfo = NotificationCompat
-        .Builder(
-            context,
-            getOrCreateNotificationChannel(
-                context.getString(R.string.attendance_foreground_notification_channel_id),
-                context.getString(R.string.attendance_foreground_notification_channel_name),
-                NotificationManagerCompat.IMPORTANCE_MIN
-            )
-        )
-        .setContentTitle(context.getString(R.string.attendance_foreground_notification_title))
-        .setContentText(context.getString(R.string.wait_for_a_moment))
-        .setSmallIcon(R.drawable.ic_baseline_bakery_dining_24)
-        .apply {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                foregroundServiceBehavior = Notification.FOREGROUND_SERVICE_IMMEDIATE
-            }
-        }
-        .build()
-        .run {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                ForegroundInfo(
-                    notificationId,
-                    this,
-                    ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
-                )
-            } else {
-                ForegroundInfo(
-                    notificationId,
-                    this
-                )
-            }
-        }
-
-    private fun getOrCreateNotificationChannel(
-        channelId: String,
-        channelName: String,
-        importance: Int
-    ): String =
-        if (NotificationManagerCompat.from(context).getNotificationChannel(channelId) != null) {
-            channelId
-        } else {
-            channelId.also {
-                val notificationChannelCompat = NotificationChannelCompat
-                    .Builder(
-                        it,
-                        importance
-                    )
-                    .setName(channelName)
-                    .build()
-
-                NotificationManagerCompat.from(context)
-                    .createNotificationChannel(notificationChannelCompat)
-            }
-        }
-
-    private suspend fun createSuccessfulAttendanceNotification(
-        context: Context,
-        channelId: String,
-        nickname: String,
-        hoYoLABGame: HoYoLABGame,
-        region: String,
-        message: String,
-        retCode: Int
-    ): Notification = NotificationCompat
-        .Builder(context, channelId)
-        .setContentTitle(
-            "${
-                context.getString(
-                    R.string.attendance_of_nickname,
-                    nickname
-                )
-            } - ${context.getString(hoYoLABGame.gameNameStringResId())}"
-        )
-        .setContentText("$message (${retCode})")
-        .setAutoCancel(true)
-        .setSmallIcon(R.drawable.ic_baseline_bakery_dining_24)
-        .apply {
-            context.imageLoader.runCatching {
-                execute(
-                    ImageRequest.Builder(context = context)
-                        .data(hoYoLABGame.gameIconUrl)
-                        .build()
-                ).drawable
-            }.getOrNull()?.run {
-                setLargeIcon(toBitmap())
-            }
-        }
-        .apply {
-            val pendingIntentFlag = pendingIntentFlagUpdateCurrent
-
-            val pendingIntent =
-                PendingIntent.getActivity(
-                    context,
-                    0,
-                    generateGameIntent(
-                        context = context,
-                        hoYoLABGame = hoYoLABGame,
-                        region = region
-                    ),
-                    pendingIntentFlag
-                )
-
-            setContentIntent(pendingIntent)
-        }
-        .build()
+        notificationGenerator.createForegroundInfo(_attendanceId.toInt())
 
     //with known error
     private suspend fun createUnsuccessfulAttendanceNotification(
-        context: Context,
-        channelId: String,
         nickname: String,
         hoYoLABGame: HoYoLABGame,
         region: String,
         hoYoLABUnsuccessfulResponseException: HoYoLABUnsuccessfulResponseException
-    ) = createSuccessfulAttendanceNotification(
-        context = context,
-        channelId = channelId,
+    ) = notificationGenerator.createSuccessfulAttendanceNotification(
         nickname = nickname,
         hoYoLABGame = hoYoLABGame,
         region = region,
         message = hoYoLABUnsuccessfulResponseException.responseMessage,
         retCode = hoYoLABUnsuccessfulResponseException.retCode
     )
-
-    //with unknown error
-    private suspend fun createUnsuccessfulAttendanceNotification(
-        context: Context,
-        channelId: String,
-        nickname: String,
-        hoYoLABGame: HoYoLABGame,
-    ): Notification = NotificationCompat
-        .Builder(context, channelId)
-        .setContentTitle(
-            "${
-                context.getString(
-                    R.string.attendance_of_nickname,
-                    nickname
-                )
-            } - ${context.getString(hoYoLABGame.gameNameStringResId())}"
-        )
-        .setContentText(context.getString(R.string.attendance_failed))
-        .setAutoCancel(true)
-        .setSmallIcon(R.drawable.ic_baseline_bakery_dining_24)
-        .apply {
-            context.imageLoader.runCatching {
-                execute(
-                    ImageRequest.Builder(context = context)
-                        .data(hoYoLABGame.gameIconUrl)
-                        .build()
-                ).drawable
-            }.getOrNull()?.run {
-                setLargeIcon(toBitmap())
-            }
-        }
-        .apply {
-            val pendingIntent = TaskStackBuilder.create(context).run {
-                addNextIntentWithParentStack(getAttendanceDetailIntent(_attendanceId))
-                getPendingIntent(0, pendingIntentFlagUpdateCurrent)
-            }
-
-            setContentIntent(pendingIntent)
-        }
-        .build()
 
     private suspend fun addFailureLog(
         attendanceId: Long,
@@ -268,7 +86,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
     }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
-        setForeground(createForegroundInfo(_attendanceId.toInt()))
+        setForeground(notificationGenerator.createForegroundInfo(_attendanceId.toInt()))
         _attendanceId.runCatching {
             takeIf { it != Long.MIN_VALUE }!!
         }.mapCatching { attendanceId ->
@@ -300,26 +118,18 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                             throw Exception()
                         }
                     }.getOrThrow().also { response ->
-                        createSuccessfulAttendanceNotification(
-                            context = context,
-                            channelId = context.getString(R.string.attendance_notification_channel_id),
+                        notificationGenerator.createSuccessfulAttendanceNotification(
                             nickname = attendanceWithGames.attendance.nickname,
                             hoYoLABGame = game.type,
                             region = game.region,
                             message = response.message,
                             retCode = response.retCode
                         ).let { notification ->
-                            if (context.packageManager.checkPermission(
-                                    CroissantPermission.PostNotifications.permission,
-                                    context.packageName
-                                ) == PackageManager.PERMISSION_GRANTED
-                            ) {
-                                NotificationManagerCompat.from(context).notify(
-                                    UUID.randomUUID().toString(),
-                                    game.type.gameId,
-                                    notification
-                                )
-                            }
+                            notificationGenerator.safeNotify(
+                                UUID.randomUUID().toString(),
+                                game.type.gameId,
+                                notification
+                            )
                         }
 
                         val executionLogId = insertWorkerExecutionLogUseCase(
@@ -357,24 +167,16 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                         }
 
                         createUnsuccessfulAttendanceNotification(
-                            context = context,
-                            channelId = context.getString(R.string.attendance_notification_channel_id),
                             nickname = attendanceWithGames.attendance.nickname,
                             hoYoLABGame = game.type,
                             region = game.region,
                             hoYoLABUnsuccessfulResponseException = cause
                         ).let { notification ->
-                            if (context.packageManager.checkPermission(
-                                    CroissantPermission.PostNotifications.permission,
-                                    context.packageName
-                                ) == PackageManager.PERMISSION_GRANTED
-                            ) {
-                                NotificationManagerCompat.from(context).notify(
-                                    UUID.randomUUID().toString(),
-                                    game.type.gameId,
-                                    notification
-                                )
-                            }
+                            notificationGenerator.safeNotify(
+                                UUID.randomUUID().toString(),
+                                game.type.gameId,
+                                notification
+                            )
                         }
                     } else {
                         //if result is unsuccessful with unknown error
@@ -390,23 +192,16 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                             recordException(cause)
                         }
 
-                        createUnsuccessfulAttendanceNotification(
-                            context = context,
-                            channelId = context.getString(R.string.attendance_notification_channel_id),
+                        notificationGenerator.createUnsuccessfulAttendanceNotification(
                             nickname = attendanceWithGames.attendance.nickname,
                             hoYoLABGame = game.type,
+                            attendanceId = _attendanceId
                         ).let { notification ->
-                            if (context.packageManager.checkPermission(
-                                    CroissantPermission.PostNotifications.permission,
-                                    context.packageName
-                                ) == PackageManager.PERMISSION_GRANTED
-                            ) {
-                                NotificationManagerCompat.from(context).notify(
-                                    UUID.randomUUID().toString(),
-                                    game.type.gameId,
-                                    notification
-                                )
-                            }
+                            notificationGenerator.safeNotify(
+                                UUID.randomUUID().toString(),
+                                game.type.gameId,
+                                notification
+                            )
                         }
                     }
 

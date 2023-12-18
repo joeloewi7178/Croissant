@@ -19,11 +19,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.NavigateNext
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -35,17 +38,21 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.DefaultAlpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -98,6 +105,7 @@ fun AttendanceDetailScreen(
     val hourOfDay by attendanceDetailViewModel.hourOfDay.collectAsStateWithLifecycle()
     val minute by attendanceDetailViewModel.minute.collectAsStateWithLifecycle()
     val attendanceWithGames by attendanceDetailViewModel.attendanceWithGamesState.collectAsStateWithLifecycle()
+    val deleteAttendanceState by attendanceDetailViewModel.deleteAttendanceState.collectAsStateWithLifecycle()
 
     AttendanceDetailContent(
         uid = { uid },
@@ -112,13 +120,15 @@ fun AttendanceDetailScreen(
         minute = { minute },
         attendanceWithGames = { attendanceWithGames },
         newCookie = newCookie,
+        deleteAttendanceState = { deleteAttendanceState },
         onNavigateUp = onNavigateUp,
         onClickRefreshSession = onClickRefreshSession,
         onClickLogSummary = { onClickLogSummary(attendanceDetailViewModel.attendanceId, it) },
         onHourOfDayChange = attendanceDetailViewModel::setHourOfDay,
         onMinuteChange = attendanceDetailViewModel::setMinute,
         onRefreshCookie = attendanceDetailViewModel::setCookie,
-        onClickSave = attendanceDetailViewModel::updateAttendance
+        onClickSave = attendanceDetailViewModel::updateAttendance,
+        onConfirmDelete = attendanceDetailViewModel::deleteAttendance
     )
 }
 
@@ -140,18 +150,27 @@ private fun AttendanceDetailContent(
     minute: () -> Int,
     attendanceWithGames: () -> Lce<AttendanceWithGames>,
     newCookie: () -> String,
+    deleteAttendanceState: () -> Lce<Unit?>,
     onNavigateUp: () -> Unit,
     onClickRefreshSession: () -> Unit,
     onClickLogSummary: (LoggableWorker) -> Unit,
     onHourOfDayChange: (Int) -> Unit,
     onMinuteChange: (Int) -> Unit,
     onRefreshCookie: (String) -> Unit,
-    onClickSave: () -> Unit
+    onClickSave: () -> Unit,
+    onConfirmDelete: () -> Unit,
 ) {
     val viewModelStoreOwner = LocalViewModelStoreOwner.current
     val activity = LocalActivity.current
     val snackbarHostState = remember { SnackbarHostState() }
     val pressSaveButton = stringResource(id = R.string.press_save_button_to_commit)
+    val list by rememberUpdatedState(
+        newValue = listOf(
+            stringResource(id = R.string.uid) to uid().toString(),
+            stringResource(id = R.string.nickname) to nickname,
+        )
+    )
+    var showConfirmDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(snackbarHostState) {
         withContext(Dispatchers.IO) {
@@ -182,12 +201,27 @@ private fun AttendanceDetailContent(
         }
     }
 
-    val list by rememberUpdatedState(
-        newValue = listOf(
-            stringResource(id = R.string.uid) to uid().toString(),
-            stringResource(id = R.string.nickname) to nickname,
-        )
-    )
+    LaunchedEffect(Unit) {
+        snapshotFlow(deleteAttendanceState).catch { }.collect {
+            when (it) {
+                is Lce.Content -> {
+                    showConfirmDeleteDialog = false
+                    if (it.content != null) {
+                        onNavigateUp()
+                    }
+                }
+
+                is Lce.Error -> {
+                    showConfirmDeleteDialog = false
+                    snackbarHostState.showSnackbar(activity.getString(R.string.error_occurred))
+                }
+
+                Lce.Loading -> {
+                    showConfirmDeleteDialog = true
+                }
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -201,6 +235,18 @@ private fun AttendanceDetailContent(
                     onClick = onNavigateUp
                 ),
                 actions = {
+                    IconButton(
+                        onClick = {
+                            showConfirmDeleteDialog = true
+                        },
+                        enabled = attendanceWithGames() is Lce.Content
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = Icons.Default.Delete.name
+                        )
+                    }
+
                     IconButton(
                         onClick = onClickSave,
                         enabled = attendanceWithGames() is Lce.Content
@@ -350,6 +396,35 @@ private fun AttendanceDetailContent(
                 onDismissRequest = {}
             )
         }
+
+        if (showConfirmDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showConfirmDeleteDialog = false },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Warning,
+                        contentDescription = Icons.Default.Warning.name
+                    )
+                },
+                title = {
+                    Text(text = stringResource(id = R.string.alert))
+                },
+                text = {
+                    //TODO: add text resources
+                    Text(text = stringResource(id = R.string.logs_deleted))
+                },
+                confirmButton = {
+                    TextButton(onClick = onConfirmDelete) {
+                        Text(text = stringResource(id = R.string.confirm))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showConfirmDeleteDialog = false }) {
+                        Text(text = stringResource(id = R.string.dismiss))
+                    }
+                }
+            )
+        }
     }
 }
 
@@ -367,6 +442,7 @@ fun ConnectedGameListItem(
     )
 
     Card(
+        enabled = game.type != HoYoLABGame.GenshinImpact,
         onClick = {
             val checked = checkedGames().contains(game)
 
@@ -396,6 +472,7 @@ fun ConnectedGameListItem(
                 )
 
                 Checkbox(
+                    enabled = game.type != HoYoLABGame.GenshinImpact,
                     modifier = Modifier.weight(1f),
                     checked = checkedGames().contains(game),
                     onCheckedChange = null
@@ -409,6 +486,11 @@ fun ConnectedGameListItem(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(hoYoLABGame.gameIconUrl)
                     .build(),
+                alpha = if (game.type != HoYoLABGame.GenshinImpact) {
+                    DefaultAlpha
+                } else {
+                    0.38f
+                },
                 contentDescription = null
             )
         }

@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -21,6 +22,7 @@ import androidx.core.os.bundleOf
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.NavHost
@@ -33,6 +35,7 @@ import com.google.android.material.color.DynamicColors
 import com.google.firebase.Firebase
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.analytics
+import com.joeloewi.croissant.ui.navigation.main.attendances.screen.COOKIE
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.LoginHoYoLABScreen
 import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.ResinStatusWidgetConfigurationNavigation
 import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration.ResinStatusWidgetConfigurationDestination
@@ -107,7 +110,9 @@ fun ResinStatusWidgetConfigurationApp() {
         )
     }
 
-    Scaffold { innerPadding ->
+    Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+    ) { innerPadding ->
         NavHost(
             modifier = Modifier
                 .fillMaxSize()
@@ -160,7 +165,16 @@ fun ResinStatusWidgetConfigurationApp() {
                         }
                     },
                 ) {
-                    CreateResinStatusWidgetScreen()
+                    val newCookie by remember {
+                        it.savedStateHandle.getStateFlow(COOKIE, "")
+                    }.collectAsStateWithLifecycle()
+
+                    CreateResinStatusWidgetScreen(
+                        newCookie = { newCookie },
+                        onClickAdd = {
+                            navController.navigate(ResinStatusWidgetConfigurationDestination.LoginHoYoLABScreen.route)
+                        }
+                    )
                 }
 
                 composable(
@@ -171,7 +185,10 @@ fun ResinStatusWidgetConfigurationApp() {
                             navController.navigateUp()
                         },
                         onNavigateUpWithResult = {
-
+                            navController.apply {
+                                previousBackStackEntry?.savedStateHandle?.set(COOKIE, it)
+                                navigateUp()
+                            }
                         }
                     )
                 }

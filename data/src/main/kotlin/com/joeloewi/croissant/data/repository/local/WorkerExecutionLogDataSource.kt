@@ -49,4 +49,6 @@ interface WorkerExecutionLogDataSource {
         loggableWorker: LoggableWorker,
         state: WorkerExecutionLogState
     ): Flow<Long>
+
+    fun getStartToEnd(): Flow<Pair<Long, Long>>
 }

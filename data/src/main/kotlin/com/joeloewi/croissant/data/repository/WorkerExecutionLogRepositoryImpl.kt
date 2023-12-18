@@ -69,4 +69,7 @@ class WorkerExecutionLogRepositoryImpl @Inject constructor(
         state: WorkerExecutionLogState
     ): Flow<Long> =
         workerExecutionLogDataSource.getCountByState(attendanceId, loggableWorker, state)
+
+    override fun getStartToEnd(): Flow<Pair<Long, Long>> =
+        workerExecutionLogDataSource.getStartToEnd()
 }

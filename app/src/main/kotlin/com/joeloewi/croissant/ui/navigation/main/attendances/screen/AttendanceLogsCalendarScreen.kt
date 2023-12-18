@@ -22,10 +22,7 @@ import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -37,8 +34,15 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
-import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,6 +56,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import com.joeloewi.croissant.R
+import com.joeloewi.croissant.domain.common.LoggableWorker
+import com.joeloewi.croissant.domain.entity.ResultCount
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
@@ -64,31 +70,41 @@ import com.joeloewi.croissant.util.generateCalendarDays
 import com.joeloewi.croissant.util.isCompactWindowSize
 import com.joeloewi.croissant.util.navigationIconButton
 import com.joeloewi.croissant.viewmodel.AttendanceLogsCalendarViewModel
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
-import java.time.Month
 import java.time.Year
+import java.time.YearMonth
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 @Composable
 fun AttendanceLogsCalendarScreen(
     attendanceLogsCalendarViewModel: AttendanceLogsCalendarViewModel = hiltViewModel(),
-    onNavigateUp: () -> Unit
+    onNavigateUp: () -> Unit,
+    onClickDay: (attendanceId: Long, loggableWorker: LoggableWorker, localDate: String) -> Unit
 ) {
     val deleteAllState by attendanceLogsCalendarViewModel.deleteAllState.collectAsStateWithLifecycle()
-    val year by attendanceLogsCalendarViewModel.year.collectAsStateWithLifecycle()
+    val resultCounts by attendanceLogsCalendarViewModel.resultCounts.collectAsStateWithLifecycle()
+    val startToEnd by attendanceLogsCalendarViewModel.startToEnd.collectAsStateWithLifecycle()
 
     AttendanceLogsCalendarContent(
         deleteAllState = { deleteAllState },
-        year = { year },
-        onYearChange = attendanceLogsCalendarViewModel::setYear,
+        startToEnd = { startToEnd },
+        resultCounts = { resultCounts },
         onDeleteAll = attendanceLogsCalendarViewModel::deleteAll,
-        onNavigateUp = onNavigateUp
+        onNavigateUp = onNavigateUp,
+        onClickDay = {
+            onClickDay(
+                attendanceLogsCalendarViewModel.attendanceId,
+                attendanceLogsCalendarViewModel.loggableWorker.value,
+                it
+            )
+        }
     )
 }
 
@@ -96,20 +112,19 @@ fun AttendanceLogsCalendarScreen(
 @Composable
 private fun AttendanceLogsCalendarContent(
     deleteAllState: () -> Lce<Int>,
-    year: () -> Year,
-    onYearChange: (Year) -> Unit,
+    startToEnd: () -> Pair<ZonedDateTime, ZonedDateTime>,
+    resultCounts: () -> ImmutableList<ResultCount>,
     onDeleteAll: () -> Unit,
-    onNavigateUp: () -> Unit
+    onNavigateUp: () -> Unit,
+    onClickDay: (localDate: String) -> Unit
 ) {
     val context = LocalContext.current
-    val pagerState = rememberPagerState { Month.entries.size }
-    val snackbarHostState = remember { SnackbarHostState() }
-    val (expanded, onExpandedChange) = rememberSaveable { mutableStateOf(false) }
-    val years by remember(Year.now()) {
-        derivedStateOf {
-            (1900..Year.now().value).reversed().map { Year.of(it) }
-        }
+    val pagerState = rememberPagerState {
+        with(startToEnd()) {
+            ChronoUnit.MONTHS.between(first, second) + 1
+        }.toInt()
     }
+    val snackbarHostState = remember { SnackbarHostState() }
     val viewModelStoreOwner = LocalViewModelStoreOwner.current
     var showDeleteConfirmationDialog by remember { mutableStateOf(false) }
 
@@ -162,65 +177,24 @@ private fun AttendanceLogsCalendarContent(
                 .padding(innerPadding)
                 .fillMaxSize(),
         ) {
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = {
-                        onExpandedChange(it)
-                    }
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            modifier = Modifier.menuAnchor(),
-                            text = year().value.toString(),
-                            style = MaterialTheme.typography.displayMedium,
-                        )
-
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                    }
-
-                    ExposedDropdownMenu(
-                        modifier = Modifier.exposedDropdownSize(),
-                        expanded = expanded,
-                        onDismissRequest = { onExpandedChange(false) }
-                    ) {
-                        years.forEach { year ->
-                            key(year.value) {
-                                DropdownMenuItem(
-                                    text = {
-                                        Text(text = "${year.value}")
-                                    },
-                                    onClick = {
-                                        onYearChange(year)
-                                        onExpandedChange(false)
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
             Row {
                 HorizontalPager(
                     modifier = Modifier.fillMaxSize(),
                     state = pagerState,
                     key = {
-                        year().atMonth(it + 1).format(DateTimeFormatter.ofPattern("yyyy-MM"))
+                        startToEnd().first.plusMonths(it.toLong())
+                            .format(DateTimeFormatter.ofPattern("yyyy-MM"))
                     }
                 ) { page ->
 
                     MonthPage(
-                        page = page,
-                        year = year,
-                        dayLogCount = { _, _, _ -> emptyFlow() },
-                        onClickDay = { }
+                        yearMonth = {
+                            with(startToEnd().first.plusMonths(page.toLong())) {
+                                Year.of(year).atMonth(month)
+                            }
+                        },
+                        resultCounts = resultCounts,
+                        onClickDay = onClickDay
                     )
                 }
             }
@@ -271,17 +245,14 @@ private fun AttendanceLogsCalendarContent(
 
 @Composable
 private fun MonthPage(
-    page: Int,
-    year: () -> Year,
-    dayLogCount: (Year, Month, Int) -> Flow<Pair<Long, Long>>,
+    yearMonth: () -> YearMonth,
+    resultCounts: () -> ImmutableList<ResultCount>,
     onClickDay: (localDate: String) -> Unit
 ) {
     val updatedOnDayClick by rememberUpdatedState(newValue = onClickDay)
-    val month = remember(page) { Month.entries[page] }
-    val totalDays =
-        remember(year().atMonth(month)) {
-            year().atMonth(month).generateCalendarDays()
-        }
+    val totalDays = remember(yearMonth()) {
+        yearMonth().generateCalendarDays()
+    }
 
     Column(
         modifier = Modifier
@@ -293,7 +264,7 @@ private fun MonthPage(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = DefaultDp),
-                text = month.value.toString(),
+                text = yearMonth().toString(),
                 style = MaterialTheme.typography.displaySmall,
                 textAlign = TextAlign.Center,
             )
@@ -306,16 +277,14 @@ private fun MonthPage(
             itemsIndexed(
                 items = totalDays,
                 key = { index, _ ->
-                    year().atMonth(month)
-                        .format(DateTimeFormatter.ofPattern("yyyy-MM")) + "[$index]"
+                    yearMonth().format(DateTimeFormatter.ofPattern("yyyy-MM")) + "[$index]"
                 }
             ) { _, day ->
 
                 DayGridItem(
-                    year = year,
-                    month = month,
+                    yearMonth = yearMonth,
                     day = day,
-                    dayLogCount = dayLogCount,
+                    resultCounts = resultCounts,
                     onClickDay = updatedOnDayClick
                 )
             }
@@ -326,10 +295,9 @@ private fun MonthPage(
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 private fun DayGridItem(
-    year: () -> Year,
-    month: Month,
+    yearMonth: () -> YearMonth,
     day: Int,
-    dayLogCount: (Year, Month, Int) -> Flow<Pair<Long, Long>>,
+    resultCounts: () -> ImmutableList<ResultCount>,
     onClickDay: (localDate: String) -> Unit
 ) {
     val windowSizeClass = calculateWindowSizeClass(activity = LocalActivity.current)
@@ -348,24 +316,21 @@ private fun DayGridItem(
             )
     ) {
         if (day != 0) {
-            val logCount by remember(year(), month, day) {
-                dayLogCount(year(), month, day)
-            }.collectAsStateWithLifecycle(initialValue = 0L to 0L, context = Dispatchers.IO)
+            val date = remember(yearMonth(), day) {
+                yearMonth().atDay(day)
+            }
+            val logCount = resultCounts().find {
+                it.date == date.toString()
+            } ?: ResultCount(date = date.toString())
             val colorScheme = MaterialTheme.colorScheme
-
             val primaryColor = remember(colorScheme) {
                 colorScheme.primary
             }
-            val date = remember(year(), month, day) {
-                year().atMonth(month).atDay(day)
-            }
-
             val isToday by remember(LocalDate.now(), date) {
                 derivedStateOf {
                     LocalDate.now() == date
                 }
             }
-
             val circleModifier by remember(isToday) {
                 derivedStateOf {
                     if (isToday) {
@@ -379,7 +344,6 @@ private fun DayGridItem(
                     }
                 }
             }
-
             val dayTextColor = remember(isToday, colorScheme) {
                 if (isToday) {
                     colorScheme.onPrimary
@@ -407,15 +371,15 @@ private fun DayGridItem(
                     logCount
                 ) {
                     when {
-                        first > 0L && second > 0 -> {
+                        successCount > 0L && failureCount > 0 -> {
                             warningContainerColor
                         }
 
-                        first > 0 -> {
+                        successCount > 0 -> {
                             successContainerColor
                         }
 
-                        second > 0 -> {
+                        failureCount > 0 -> {
                             MaterialTheme.colorScheme.errorContainer
                         }
 
@@ -430,7 +394,7 @@ private fun DayGridItem(
                         .fillMaxSize()
                         .clickable(
                             enabled = with(logCount) {
-                                first > 0 || second > 0
+                                successCount > 0 || failureCount > 0
                             },
                         ) {
                             updatedOnClick(
@@ -443,7 +407,7 @@ private fun DayGridItem(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    if (logCount.first > 0) {
+                    if (logCount.successCount > 0) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(
@@ -460,14 +424,14 @@ private fun DayGridItem(
                             )
 
                             Text(
-                                text = "${logCount.first}",
+                                text = "${logCount.successCount}",
                                 color = onSuccessContainerColor,
                                 style = MaterialTheme.typography.labelSmall
                             )
                         }
                     }
 
-                    if (logCount.second > 0) {
+                    if (logCount.failureCount > 0) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(
@@ -484,7 +448,7 @@ private fun DayGridItem(
                             )
 
                             Text(
-                                text = "${logCount.second}",
+                                text = "${logCount.failureCount}",
                                 color = MaterialTheme.colorScheme.error,
                                 style = MaterialTheme.typography.labelSmall
                             )

@@ -75,4 +75,8 @@ object DatabaseModule {
     @Provides
     fun provideWorkerExecutionLogDao(croissantDatabase: CroissantDatabase): WorkerExecutionLogDao =
         croissantDatabase.workerExecutionLogDao()
+
+    @Provides
+    fun provideResultCountDao(croissantDatabase: CroissantDatabase): ResultCountDao =
+        croissantDatabase.resultCountDao()
 }
