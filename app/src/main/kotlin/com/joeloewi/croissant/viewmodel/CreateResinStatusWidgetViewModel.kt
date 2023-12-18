@@ -25,7 +25,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -85,56 +84,56 @@ class CreateResinStatusWidgetViewModel @Inject constructor(
     }
 
     fun configureAppWidget() {
-        _createResinStatusWidgetState.update { Lce.Loading }
+        _createResinStatusWidgetState.value = Lce.Loading
         viewModelScope.launch(Dispatchers.IO) {
-            _createResinStatusWidgetState.update {
-                runCatching {
-                    val resinStatusWidget = ResinStatusWidget(
-                        appWidgetId = appWidgetId.first(),
-                        interval = _interval.value,
-                    )
+            _createResinStatusWidgetState.value = runCatching {
+                val appWidgetId = appWidgetId.value
 
-                    val resinStatusWidgetId = insertResinStatusWidgetUseCase(
-                        resinStatusWidget = resinStatusWidget
-                    )
-
-                    val accounts = userInfos
-                        .map {
-                            Account(
-                                resinStatusWidgetId = resinStatusWidgetId,
-                                cookie = it.first,
-                                uid = it.second.uid
-                            )
-                        }
-
-                    val periodicWorkRequest = PeriodicWorkRequest.Builder(
-                        RefreshResinStatusWorker::class.java,
-                        _interval.value,
-                        TimeUnit.MINUTES
-                    ).setInputData(
-                        workDataOf(RefreshResinStatusWorker.APP_WIDGET_ID to appWidgetId)
-                    ).setConstraints(
-                        Constraints.Builder()
-                            .setRequiredNetworkType(NetworkType.CONNECTED)
-                            .build()
-                    ).build()
-
-                    workManager.enqueueUniquePeriodicWork(
-                        resinStatusWidget.refreshGenshinResinStatusWorkerName.toString(),
-                        ExistingPeriodicWorkPolicy.UPDATE,
-                        periodicWorkRequest
-                    ).await()
-
-                    insertAccountUseCase(*accounts.toTypedArray())
-                }.fold(
-                    onSuccess = {
-                        Lce.Content(it)
-                    },
-                    onFailure = {
-                        Lce.Error(it)
-                    }
+                val resinStatusWidget = ResinStatusWidget(
+                    appWidgetId = appWidgetId,
+                    interval = _interval.value,
                 )
-            }
+
+                val resinStatusWidgetId = insertResinStatusWidgetUseCase(
+                    resinStatusWidget = resinStatusWidget
+                )
+
+                val accounts = userInfos
+                    .map {
+                        Account(
+                            resinStatusWidgetId = resinStatusWidgetId,
+                            cookie = it.first,
+                            uid = it.second.uid
+                        )
+                    }
+
+                val periodicWorkRequest = PeriodicWorkRequest.Builder(
+                    RefreshResinStatusWorker::class.java,
+                    _interval.value,
+                    TimeUnit.MINUTES
+                ).setInputData(
+                    workDataOf(RefreshResinStatusWorker.APP_WIDGET_ID to appWidgetId)
+                ).setConstraints(
+                    Constraints.Builder()
+                        .setRequiredNetworkType(NetworkType.CONNECTED)
+                        .build()
+                ).build()
+
+                workManager.enqueueUniquePeriodicWork(
+                    resinStatusWidget.refreshGenshinResinStatusWorkerName.toString(),
+                    ExistingPeriodicWorkPolicy.UPDATE,
+                    periodicWorkRequest
+                ).await()
+
+                insertAccountUseCase(*accounts.toTypedArray())
+            }.fold(
+                onSuccess = {
+                    Lce.Content(it)
+                },
+                onFailure = {
+                    Lce.Error(it)
+                }
+            )
         }
     }
 }

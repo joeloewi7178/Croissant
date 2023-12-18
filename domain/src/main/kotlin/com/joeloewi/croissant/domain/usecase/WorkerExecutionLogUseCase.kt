@@ -76,4 +76,11 @@ sealed class WorkerExecutionLogUseCase {
             state: WorkerExecutionLogState
         ) = workerExecutionLogRepository.getCountByState(attendanceId, loggableWorker, state)
     }
+
+    class GetStartToEnd @Inject constructor(
+        private val workerExecutionLogRepository: WorkerExecutionLogRepository
+    ) {
+
+        operator fun invoke() = workerExecutionLogRepository.getStartToEnd()
+    }
 }

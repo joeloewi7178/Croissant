@@ -90,13 +90,17 @@ class CreateAttendanceViewModel @Inject constructor(
                     pair.first.uid
                 ).getOrThrow()!!.list.onEach { gameRecord ->
                     withContext(Dispatchers.Main) {
-                        checkedGames.add(
-                            Game(
-                                roleId = gameRecord.gameRoleId,
-                                type = HoYoLABGame.findByGameId(gameId = gameRecord.gameId),
-                                region = gameRecord.region
+                        val type = HoYoLABGame.findByGameId(gameId = gameRecord.gameId)
+
+                        if (type != HoYoLABGame.GenshinImpact) {
+                            checkedGames.add(
+                                Game(
+                                    roleId = gameRecord.gameRoleId,
+                                    type = type,
+                                    region = gameRecord.region
+                                )
                             )
-                        )
+                        }
                     }
                 }
             }.fold(

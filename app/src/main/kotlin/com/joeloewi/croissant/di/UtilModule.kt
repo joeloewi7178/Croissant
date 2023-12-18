@@ -9,6 +9,7 @@ import com.google.android.play.core.appupdate.AppUpdateManager
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.util.AlarmScheduler
+import com.joeloewi.croissant.util.NotificationGenerator
 import com.joeloewi.croissant.util.impl.AlarmSchedulerImpl
 import com.joeloewi.croissant.util.impl.RunnableSchedulerImpl
 import dagger.Binds
@@ -44,6 +45,11 @@ object UtilModule {
     fun provideTextToSpeechFactory(
         @ApplicationContext context: Context
     ): TextToSpeechFactory = TextToSpeechFactory(context, TextToSpeechEngine.SystemDefault)
+
+    @Provides
+    fun provideNotificationGenerator(
+        @ApplicationContext context: Context
+    ): NotificationGenerator = NotificationGenerator(context)
 
     @Singleton
     @Provides

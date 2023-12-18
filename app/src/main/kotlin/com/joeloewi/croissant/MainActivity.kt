@@ -454,7 +454,16 @@ fun CroissantNavHost(
                 }
             ) {
                 AttendanceLogsCalendarScreen(
-                    onNavigateUp = { navController.value.navigateUp() }
+                    onNavigateUp = { navController.value.navigateUp() },
+                    onClickDay = { attendanceId, loggableWorker, localDate ->
+                        navController.value.navigate(
+                            AttendancesDestination.AttendanceLogsDayScreen().generateRoute(
+                                attendanceId = attendanceId,
+                                loggableWorker = loggableWorker,
+                                localDate = localDate,
+                            )
+                        )
+                    }
                 )
             }
 

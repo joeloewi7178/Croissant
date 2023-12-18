@@ -8,10 +8,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import nl.marc_apps.tts.TextToSpeechFactory
-import okhttp3.internal.closeQuietly
 import javax.inject.Inject
 
 @HiltViewModel
@@ -32,8 +32,8 @@ class DeveloperInfoViewModel @Inject constructor(
 
         trySend(textToSpeech)
 
-        awaitClose { textToSpeech.content?.closeQuietly() }
-    }.flowOn(Dispatchers.IO).stateIn(
+        awaitClose { textToSpeech.content?.close() }
+    }.catch { }.flowOn(Dispatchers.IO).stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(),
         initialValue = Lce.Loading

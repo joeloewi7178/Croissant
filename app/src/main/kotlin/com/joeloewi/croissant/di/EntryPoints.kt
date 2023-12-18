@@ -22,6 +22,7 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.RunnableScheduler
 import coil.ImageLoader
 import com.joeloewi.croissant.data.di.DefaultDispatcherExecutor
+import com.joeloewi.croissant.util.NotificationGenerator
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -39,6 +40,7 @@ interface InitializerEntryPoint {
     @DefaultDispatcherExecutor
     fun executor(): Executor
     fun runnableScheduler(): RunnableScheduler
+    fun notificationGenerator(): NotificationGenerator
 }
 
 inline fun <reified EntryPoint : Any> Context.entryPoints(): Lazy<EntryPoint> = EntryPointLazy(

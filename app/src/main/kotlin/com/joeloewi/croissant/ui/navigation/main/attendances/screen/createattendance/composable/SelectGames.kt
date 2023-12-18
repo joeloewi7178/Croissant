@@ -404,7 +404,7 @@ fun ConnectedGamesContentListItem(
     val enabled by remember(hoYoLABGame, gameRecord) {
         derivedStateOf {
             hoYoLABGame == HoYoLABGame.TearsOfThemis || hoYoLABGame == HoYoLABGame.HonkaiStarRail ||
-                    currentGameRecord.value.gameId != GameRecord.INVALID_GAME_ID
+                    (hoYoLABGame != HoYoLABGame.GenshinImpact && currentGameRecord.value.gameId != GameRecord.INVALID_GAME_ID)
         }
     }
 
@@ -415,7 +415,7 @@ fun ConnectedGamesContentListItem(
                 if (enabled) {
                     1.0f
                 } else {
-                    0.3f
+                    0.38f
                 }
             )
             .composed {

@@ -56,7 +56,7 @@ fun DeveloperInfoScreen(
     developerInfoViewModel: DeveloperInfoViewModel = hiltViewModel(),
     onNavigateUp: () -> Unit
 ) {
-    val textToSpeech by developerInfoViewModel.textToSpeech.collectAsStateWithLifecycle()
+    val textToSpeech by developerInfoViewModel.textToSpeech.collectAsStateWithLifecycle(context = Dispatchers.IO)
 
     DeveloperInfoContent(
         textToSpeech = { textToSpeech },

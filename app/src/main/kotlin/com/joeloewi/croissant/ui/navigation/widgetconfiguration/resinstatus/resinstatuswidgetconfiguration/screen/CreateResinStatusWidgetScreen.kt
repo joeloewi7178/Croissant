@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -62,12 +63,13 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.withContext
 
 @Composable
 fun CreateResinStatusWidgetScreen(
-    createResinStatusWidgetViewModel: CreateResinStatusWidgetViewModel = hiltViewModel()
+    createResinStatusWidgetViewModel: CreateResinStatusWidgetViewModel = hiltViewModel(),
+    newCookie: () -> String,
+    onClickAdd: () -> Unit
 ) {
     val getInfoUserState by createResinStatusWidgetViewModel.getUserInfoState.collectAsStateWithLifecycle()
     val insertResinStatusWidgetState by createResinStatusWidgetViewModel.createResinStatusWidgetState.collectAsStateWithLifecycle()
@@ -84,11 +86,11 @@ fun CreateResinStatusWidgetScreen(
         userInfos = userInfos,
         selectableIntervals = selectableIntervals,
         interval = { interval },
+        newCookie = newCookie,
         onIntervalChange = createResinStatusWidgetViewModel::setInterval,
-        onClickAdd = {
-
-        },
+        onClickAdd = onClickAdd,
         onClickDone = createResinStatusWidgetViewModel::configureAppWidget,
+        onReceiveCookie = createResinStatusWidgetViewModel::onReceiveCookie
     )
 }
 
@@ -101,9 +103,11 @@ fun CreateResinStatusWidgetContent(
     userInfos: SnapshotStateList<Pair<String, UserInfo>>,
     selectableIntervals: ImmutableList<Long>,
     interval: () -> Long,
+    newCookie: () -> String,
     onIntervalChange: (Long) -> Unit,
     onClickAdd: () -> Unit,
-    onClickDone: () -> Unit
+    onClickDone: () -> Unit,
+    onReceiveCookie: (String) -> Unit
 ) {
     val context = LocalContext.current
     val activity = LocalActivity.current
@@ -112,30 +116,50 @@ fun CreateResinStatusWidgetContent(
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
-            snapshotFlow(insertResinStatusWidgetState).catch { }
-                .filterIsInstance<Lce.Content<List<Long>>>().collect() {
-                    if (it.content.isNotEmpty()) {
-                        val resultValue = Intent().apply {
-                            putExtra(
-                                AppWidgetManager.EXTRA_APPWIDGET_ID,
-                                appWidgetId()
-                            )
-                        }
-                        with(activity) {
-                            setResult(Activity.RESULT_OK, resultValue)
-                            finish()
+            snapshotFlow(insertResinStatusWidgetState).catch { }.collect {
+                when (it) {
+                    is Lce.Content -> {
+                        if (it.content.isNotEmpty()) {
+                            val resultValue = Intent().apply {
+                                putExtra(
+                                    AppWidgetManager.EXTRA_APPWIDGET_ID,
+                                    appWidgetId()
+                                )
+                            }
+                            with(activity) {
+                                setResult(Activity.RESULT_OK, resultValue)
+                                finish()
+                            }
                         }
                     }
+
+                    else -> {
+
+                    }
                 }
+            }
         }
     }
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
-            snapshotFlow(getInfoUserState).catch { }.filterIsInstance<Lce.Content<UserInfo?>>()
-                .collect {
-                    snackbarHostState.showSnackbar(context.getString(R.string.error_occurred))
+            snapshotFlow(getInfoUserState).catch { }.collect {
+                when (it) {
+                    is Lce.Error -> {
+                        snackbarHostState.showSnackbar(context.getString(R.string.error_occurred))
+                    }
+
+                    else -> {
+
+                    }
                 }
+            }
+        }
+    }
+
+    LaunchedEffect(newCookie()) {
+        if (newCookie().isNotEmpty()) {
+            onReceiveCookie(newCookie())
         }
     }
 
@@ -150,15 +174,6 @@ fun CreateResinStatusWidgetContent(
             setResult(Activity.RESULT_CANCELED, resultValue)
         }
     }
-
-    /*LaunchedEffect(createResinStatusWidgetState) {
-        getResultFromPreviousComposable<String>(
-            navController = navController,
-            key = COOKIE
-        )?.let {
-            createResinStatusWidgetState.onReceiveCookie(cookie = it)
-        }
-    }*/
 
     BackHandler {
         with(activity) {
@@ -198,7 +213,8 @@ fun CreateResinStatusWidgetContent(
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(DefaultDp),
+                    .padding(DefaultDp)
+                    .navigationBarsPadding(),
                 enabled = userInfos.isNotEmpty(),
                 onClick = onClickDone
             ) {

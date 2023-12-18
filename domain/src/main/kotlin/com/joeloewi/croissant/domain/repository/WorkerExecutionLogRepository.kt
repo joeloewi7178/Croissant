@@ -49,4 +49,6 @@ interface WorkerExecutionLogRepository {
         loggableWorker: LoggableWorker,
         state: WorkerExecutionLogState
     ): Flow<Long>
+
+    fun getStartToEnd(): Flow<Pair<Long, Long>>
 }
