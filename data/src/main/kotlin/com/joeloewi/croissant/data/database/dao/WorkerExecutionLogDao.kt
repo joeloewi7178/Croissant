@@ -39,14 +39,32 @@ interface WorkerExecutionLogDao {
     suspend fun delete(vararg workerExecutionLogEntities: WorkerExecutionLogEntity): Int
 
     @Transaction
-    @Query("DELETE FROM WorkerExecutionLogEntity WHERE attendanceId = :attendanceId AND loggableWorker = :loggableWorker")
+    @Query(
+        """
+            DELETE 
+            FROM WorkerExecutionLogEntity 
+            WHERE 
+                attendanceId = :attendanceId 
+                AND loggableWorker = :loggableWorker
+        """
+    )
     suspend fun deleteAll(
         attendanceId: Long,
         loggableWorker: LoggableWorker
     ): Int
 
     @Transaction
-    @Query("SELECT * FROM WorkerExecutionLogEntity WHERE attendanceId = :attendanceId AND loggableWorker = :loggableWorker AND DATE(createdAt / 1000, 'unixepoch', 'localtime') = :localDate ORDER BY createdAt DESC")
+    @Query(
+        """
+            SELECT * 
+            FROM WorkerExecutionLogEntity 
+            WHERE 
+                attendanceId = :attendanceId 
+                AND loggableWorker = :loggableWorker 
+                AND DATE(createdAt / 1000, 'unixepoch', 'localtime') = :localDate 
+            ORDER BY createdAt DESC
+        """
+    )
     fun getByDatePaged(
         attendanceId: Long,
         loggableWorker: LoggableWorker,
@@ -54,7 +72,17 @@ interface WorkerExecutionLogDao {
     ): PagingSource<Int, WorkerExecutionLogWithStateEntity>
 
     @Transaction
-    @Query("SELECT COUNT(*) FROM WorkerExecutionLogEntity WHERE attendanceId = :attendanceId AND loggableWorker = :loggableWorker AND state = :state AND DATE(createdAt / 1000, 'unixepoch', 'localtime') = :localDate")
+    @Query(
+        """
+            SELECT COUNT(*) 
+            FROM WorkerExecutionLogEntity 
+            WHERE 
+                attendanceId = :attendanceId 
+                AND loggableWorker = :loggableWorker 
+                AND state = :state 
+                AND DATE(createdAt / 1000, 'unixepoch', 'localtime') = :localDate 
+        """
+    )
     fun getCountByStateAndDate(
         attendanceId: Long,
         loggableWorker: LoggableWorker,
@@ -63,7 +91,16 @@ interface WorkerExecutionLogDao {
     ): Flow<Long>
 
     @Transaction
-    @Query("SELECT COUNT(*) FROM WorkerExecutionLogEntity WHERE attendanceId = :attendanceId AND loggableWorker = :loggableWorker AND state = :state")
+    @Query(
+        """
+            SELECT COUNT(*) 
+            FROM WorkerExecutionLogEntity 
+            WHERE 
+                attendanceId = :attendanceId 
+                AND loggableWorker = :loggableWorker 
+                AND state = :state
+        """
+    )
     fun getCountByState(
         attendanceId: Long,
         loggableWorker: LoggableWorker,

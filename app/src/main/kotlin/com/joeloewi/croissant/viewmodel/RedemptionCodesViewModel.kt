@@ -10,6 +10,8 @@ import com.joeloewi.croissant.domain.usecase.ArcaLiveAppUseCase
 import com.joeloewi.croissant.state.Lce
 import com.joeloewi.croissant.util.toAnnotatedString
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
@@ -27,7 +29,7 @@ class RedemptionCodesViewModel @Inject constructor(
     private val getArticleArcaLiveAppUseCase: ArcaLiveAppUseCase.GetArticle
 ) : ViewModel() {
     private val _hoYoLABGameRedemptionCodesState =
-        MutableStateFlow<Lce<List<Pair<HoYoLABGame, AnnotatedString>>>>(Lce.Loading)
+        MutableStateFlow<Lce<ImmutableList<Pair<HoYoLABGame, AnnotatedString>>>>(Lce.Loading)
 
     val hoYoLABGameRedemptionCodesState = _hoYoLABGameRedemptionCodesState.asStateFlow()
     val expandedItems = mutableStateListOf<HoYoLABGame>()
@@ -40,7 +42,9 @@ class RedemptionCodesViewModel @Inject constructor(
         _hoYoLABGameRedemptionCodesState.update { Lce.Loading }
         viewModelScope.launch(Dispatchers.IO) {
             _hoYoLABGameRedemptionCodesState.update {
-                HoYoLABGame.entries.runCatching {
+                HoYoLABGame.entries.filter {
+                    !listOf(HoYoLABGame.Unknown, HoYoLABGame.TearsOfThemis).contains(it)
+                }.runCatching {
                     map {
                         async(SupervisorJob() + Dispatchers.IO) {
                             it to HtmlCompat.fromHtml(
@@ -50,7 +54,7 @@ class RedemptionCodesViewModel @Inject constructor(
                         }
                     }
                 }.mapCatching {
-                    it.awaitAll()
+                    it.awaitAll().toImmutableList()
                 }.fold(
                     onSuccess = {
                         Lce.Content(it)
@@ -70,7 +74,7 @@ class RedemptionCodesViewModel @Inject constructor(
                 HoYoLABGame.HonkaiImpact3rd -> {
                     getArticleArcaLiveAppUseCase(
                         slug = "hk3rd",
-                        articleId = 7334792
+                        articleId = 85815048
                     ).mapCatching { content ->
                         Jsoup.parse(content).apply {
                             select("*:has(> img)").remove()
@@ -103,7 +107,7 @@ class RedemptionCodesViewModel @Inject constructor(
                             repeat(9) {
                                 select("p:last-child").remove()
                             }
-                        }.select("p:nth-child(n+48)").html().replace("https://oo.pe/", "")
+                        }.select("p:nth-child(n+49)").html().replace("https://oo.pe/", "")
                     }
                 }
 

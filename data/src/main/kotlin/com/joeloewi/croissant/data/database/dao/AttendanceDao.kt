@@ -39,26 +39,62 @@ interface AttendanceDao {
     @Delete
     suspend fun delete(vararg attendanceEntities: AttendanceEntity): Int
 
-    @Query("SELECT * FROM AttendanceEntity WHERE uid = :uid")
+    @Query(
+        """
+            SELECT * 
+            FROM AttendanceEntity 
+            WHERE uid = :uid
+        """
+    )
     suspend fun getOneByUid(uid: Long): AttendanceEntity
 
     @Transaction
-    @Query("SELECT * FROM AttendanceEntity WHERE id = :id")
+    @Query(
+        """
+            SELECT * 
+            FROM AttendanceEntity 
+            WHERE id = :id
+        """
+    )
     suspend fun getOne(id: Long): AttendanceWithGamesEntity
 
     @Transaction
-    @Query("SELECT * FROM AttendanceEntity WHERE id IN (:ids)")
+    @Query(
+        """
+            SELECT * 
+            FROM AttendanceEntity 
+            WHERE id IN (:ids)
+        """
+    )
     suspend fun getByIds(vararg ids: Long): List<AttendanceWithGamesEntity>
 
     @Transaction
-    @Query("SELECT * FROM AttendanceEntity ORDER BY createdAt DESC")
+    @Query(
+        """
+            SELECT * 
+            FROM AttendanceEntity 
+            ORDER BY createdAt DESC
+        """
+    )
     fun getAllPaged(): PagingSource<Int, AttendanceWithGamesEntity>
 
     @Transaction
-    @Query("SELECT * FROM AttendanceEntity ORDER BY createdAt DESC")
+    @Query(
+        """
+            SELECT * 
+            FROM AttendanceEntity 
+            ORDER BY createdAt DESC
+        """
+    )
     fun getAll(): Flow<List<AttendanceWithGamesEntity>>
 
     @Transaction
-    @Query("SELECT * FROM AttendanceEntity ORDER BY createdAt DESC")
+    @Query(
+        """
+            SELECT * 
+            FROM AttendanceEntity 
+            ORDER BY createdAt DESC 
+        """
+    )
     suspend fun getAllOneShot(): List<AttendanceEntity>
 }

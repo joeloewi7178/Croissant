@@ -7,6 +7,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.AlarmManagerCompat
+import androidx.lifecycle.ProcessLifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
@@ -19,19 +21,28 @@ import com.google.firebase.crashlytics.crashlytics
 import com.joeloewi.croissant.BuildConfig
 import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
 import com.joeloewi.croissant.util.canScheduleExactAlarmsCompat
-import com.joeloewi.croissant.util.goAsync
 import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
 import com.joeloewi.croissant.worker.AttendCheckInEventWorker
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.launch
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class AlarmReceiver : BroadcastReceiver() {
+    private val _coroutineContext = Dispatchers.IO + CoroutineExceptionHandler { _, throwable ->
+        Firebase.crashlytics.apply {
+            log(this@AlarmReceiver.javaClass.simpleName)
+            recordException(throwable)
+        }
+    }
+    private val _processLifecycleScope by lazy { ProcessLifecycleOwner.get().lifecycleScope }
+
     @Inject
     lateinit var application: Application
 
@@ -47,15 +58,7 @@ class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(p0: Context, p1: Intent) {
         when (p1.action) {
             Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED, AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED -> {
-                goAsync(
-                    onError = { cause ->
-                        Firebase.crashlytics.apply {
-                            log(this@AlarmReceiver.javaClass.simpleName)
-                            recordException(cause)
-                        }
-                    },
-                    coroutineContext = Dispatchers.IO
-                ) {
+                _processLifecycleScope.launch(_coroutineContext) {
                     getAllOneShotAttendanceUseCase().map { attendance ->
                         async(Dispatchers.IO) {
                             attendance.runCatching {
@@ -114,15 +117,7 @@ class AlarmReceiver : BroadcastReceiver() {
             RECEIVE_ATTEND_CHECK_IN_ALARM -> {
                 val attendanceId = p1.getLongExtra(ATTENDANCE_ID, Long.MIN_VALUE)
 
-                goAsync(
-                    onError = { cause ->
-                        Firebase.crashlytics.apply {
-                            log(this@AlarmReceiver.javaClass.simpleName)
-                            recordException(cause)
-                        }
-                    },
-                    coroutineContext = Dispatchers.IO
-                ) {
+                _processLifecycleScope.launch(_coroutineContext) {
                     val attendanceWithGames = getOneAttendanceUseCase(attendanceId)
                     val attendance = attendanceWithGames.attendance
                     val oneTimeWork = OneTimeWorkRequestBuilder<AttendCheckInEventWorker>()

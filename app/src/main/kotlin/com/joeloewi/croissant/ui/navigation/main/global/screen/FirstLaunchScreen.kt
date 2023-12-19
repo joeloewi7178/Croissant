@@ -67,6 +67,7 @@ import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.util.CroissantPermission
+import com.joeloewi.croissant.util.SpecialPermission
 import com.joeloewi.croissant.util.rememberSpecialPermissionState
 import com.joeloewi.croissant.viewmodel.FirstLaunchViewModel
 import kotlinx.coroutines.Dispatchers
@@ -93,15 +94,7 @@ private fun FirstLaunchContent(
 ) {
     val context = LocalContext.current
     val scheduleExactAlarmPermissionState =
-        rememberSpecialPermissionState(
-            permission = "android:schedule_exact_alarm",
-            intentForRequestPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
-            } else {
-                //this intent won't be launched
-                Intent()
-            }
-        )
+        rememberSpecialPermissionState(specialPermission = SpecialPermission.ScheduleExactAlarms)
     val multiplePermissionsState = rememberMultiplePermissionsState(
         permissions = listOf(
             CroissantPermission.AccessHoYoLABSession.permission,

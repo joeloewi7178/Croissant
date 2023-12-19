@@ -33,7 +33,6 @@ class NotificationGenerator(
             NotificationManagerCompat.IMPORTANCE_MAX
         )
             .setName(context.getString(R.string.attendance_notification_channel_name))
-            .setVibrationPattern(null)
             .build()
     }
 
@@ -43,7 +42,6 @@ class NotificationGenerator(
             NotificationManagerCompat.IMPORTANCE_MAX
         )
             .setName(context.getString(R.string.check_session_notification_channel_name))
-            .setVibrationPattern(null)
             .build()
     }
 
@@ -53,14 +51,13 @@ class NotificationGenerator(
             NotificationManagerCompat.IMPORTANCE_MAX
         )
             .setName(context.getString(R.string.time_zone_changed_notification_channel_name))
-            .setVibrationPattern(null)
             .build()
     }
 
     private val _attendanceForegroundNotificationChannel by lazy {
         NotificationChannelCompat.Builder(
             context.getString(R.string.attendance_foreground_notification_channel_id),
-            NotificationManagerCompat.IMPORTANCE_MAX
+            NotificationManagerCompat.IMPORTANCE_MIN
         )
             .setName(context.getString(R.string.attendance_foreground_notification_channel_name))
             .setVibrationPattern(null)

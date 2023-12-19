@@ -51,16 +51,7 @@ jobs:
           target: google_apis
           arch: x86_64
           emulator-build: 9322596
-          script: ./gradlew :benchmark:connectedBenchmarkAndroidTest -P android.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile
-
-      - name: Move generated baseline profile to target folder
-        run: mv -f './benchmark/build/outputs/connected_android_test_additional_output/benchmark/connected/baselineProfGenerator(AVD) - 13/BaselineProfileGenerator_generate-baseline-prof.txt' ./app/src/main/baseline-prof.txt
-
-      - name: Check baseline-prof file status
-        run: stat ./app/src/main/baseline-prof.txt
-
-      - name: View some lines of baseline-prof file
-        run: head ./app/src/main/baseline-prof.txt
+          script: ./gradlew :app:generateBaselineProfile
 
       - name: Build with Gradle
         run: ./gradlew assemble

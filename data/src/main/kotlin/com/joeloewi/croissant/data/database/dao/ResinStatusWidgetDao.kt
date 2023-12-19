@@ -29,7 +29,12 @@ import com.joeloewi.croissant.data.entity.local.relational.ResinStatusWidgetWith
 @Dao
 interface ResinStatusWidgetDao {
 
-    @Query("SELECT * FROM ResinStatusWidgetEntity")
+    @Query(
+        """
+            SELECT * 
+            FROM ResinStatusWidgetEntity
+        """
+    )
     suspend fun getAll(): List<ResinStatusWidgetEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -42,14 +47,32 @@ interface ResinStatusWidgetDao {
     suspend fun update(resinStatusWidgetEntity: ResinStatusWidgetEntity): Int
 
     @Transaction
-    @Query("SELECT * FROM ResinStatusWidgetEntity WHERE id = :id")
+    @Query(
+        """
+            SELECT * 
+            FROM ResinStatusWidgetEntity 
+            WHERE id = :id
+        """
+    )
     suspend fun getOne(id: Long): ResinStatusWidgetWithAccountsEntity
 
     @Transaction
-    @Query("DELETE FROM ResinStatusWidgetEntity WHERE appWidgetId IN (:appWidgetIds)")
+    @Query(
+        """
+            DELETE 
+            FROM ResinStatusWidgetEntity 
+            WHERE appWidgetId IN (:appWidgetIds)
+        """
+    )
     suspend fun deleteByAppWidgetId(vararg appWidgetIds: Int): Int
 
     @Transaction
-    @Query("SELECT * FROM ResinStatusWidgetEntity WHERE appWidgetId = :appWidgetId")
+    @Query(
+        """
+            SELECT * 
+            FROM ResinStatusWidgetEntity 
+            WHERE appWidgetId = :appWidgetId
+        """
+    )
     suspend fun getOneByAppWidgetId(appWidgetId: Int): ResinStatusWidgetWithAccountsEntity
 }
