@@ -36,7 +36,7 @@ enum class CroissantPermission(
     ScheduleExactAlarms(
         permission = "ScheduleExactAlarms",
         icon = Icons.Default.Schedule,
-        label = R.string.permission_post_notification_label,
-        detailedDescription = R.string.permission_post_notification_detailed_description
+        label = R.string.permission_schedule_exact_alarms_label,
+        detailedDescription = R.string.permission_schedule_exact_alarms_detailed_description
     );
 }

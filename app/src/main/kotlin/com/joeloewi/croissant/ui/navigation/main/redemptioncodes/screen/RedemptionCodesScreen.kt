@@ -3,7 +3,7 @@ package com.joeloewi.croissant.ui.navigation.main.redemptioncodes.screen
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
@@ -55,12 +55,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -82,14 +85,13 @@ import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.gameNameStringResId
 import com.joeloewi.croissant.viewmodel.RedemptionCodesViewModel
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
 
 @Composable
 fun RedemptionCodesScreen(
     redemptionCodesViewModel: RedemptionCodesViewModel = hiltViewModel()
 ) {
     val hoYoLABGameRedemptionCodesState by redemptionCodesViewModel.hoYoLABGameRedemptionCodesState.collectAsStateWithLifecycle()
-    val expandedItems = remember { SnapshotStateList<HoYoLABGame>() }
+    val expandedItems = remember { redemptionCodesViewModel.expandedItems }
 
     RedemptionCodesContent(
         hoYoLABGameRedemptionCodesState = { hoYoLABGameRedemptionCodesState },
@@ -100,11 +102,11 @@ fun RedemptionCodesScreen(
 
 @OptIn(
     ExperimentalMaterial3Api::class,
-    ExperimentalMaterialApi::class
+    ExperimentalMaterialApi::class, ExperimentalFoundationApi::class
 )
 @Composable
 private fun RedemptionCodesContent(
-    hoYoLABGameRedemptionCodesState: () -> Lce<List<Pair<HoYoLABGame, AnnotatedString>>>,
+    hoYoLABGameRedemptionCodesState: () -> Lce<ImmutableList<Pair<HoYoLABGame, AnnotatedString>>>,
     expandedItems: () -> SnapshotStateList<HoYoLABGame>,
     onRefresh: () -> Unit
 ) {
@@ -133,21 +135,79 @@ private fun RedemptionCodesContent(
                 .padding(innerPadding)
                 .pullRefresh(pullRefreshState)
         ) {
-            with(hoYoLABGameRedemptionCodesState()) {
-                when (this) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize(),
+            ) {
+                when (val state = hoYoLABGameRedemptionCodesState()) {
                     is Lce.Content -> {
-                        RedemptionCodes(
-                            hoYoLABGameRedemptionCodes = content.toImmutableList(),
-                            expandedItems = expandedItems,
-                        )
+                        items(
+                            items = state.content,
+                            key = { it.first.name }
+                        ) { item ->
+                            RedemptionCodeListItem(
+                                modifier = Modifier.animateItemPlacement(),
+                                item = item,
+                                expandedItems = expandedItems
+                            )
+                        }
                     }
 
                     is Lce.Error -> {
-                        RedemptionCodesError(onRefresh = onRefresh)
+                        item(key = "redemptionCodesError") {
+                            Column(
+                                modifier = Modifier
+                                    .fillParentMaxSize()
+                                    .then(Modifier.padding(DoubleDp)),
+                                verticalArrangement = Arrangement.spacedBy(
+                                    DefaultDp,
+                                    Alignment.CenterVertically
+                                ),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(
+                                    modifier = Modifier
+                                        .fillMaxSize(0.3f),
+                                    imageVector = Icons.Default.Error,
+                                    contentDescription = Icons.Default.Error.name,
+                                    tint = MaterialTheme.colorScheme.primaryContainer
+                                )
+                                Text(
+                                    text = stringResource(id = R.string.error_occurred),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    textAlign = TextAlign.Center
+                                )
+                                Text(
+                                    text = stringResource(id = R.string.due_to_site_policy),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    textAlign = TextAlign.Center
+                                )
+                                Button(onClick = onRefresh) {
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(
+                                            DefaultDp,
+                                            Alignment.CenterHorizontally
+                                        ),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Refresh,
+                                            contentDescription = Icons.Default.Refresh.name
+                                        )
+                                        Text(text = stringResource(id = R.string.retry))
+                                    }
+                                }
+                            }
+                        }
                     }
 
                     Lce.Loading -> {
-                        RedemptionCodesLoading()
+                        items(
+                            items = IntArray(3) { it }.toTypedArray(),
+                            key = { "placeholder${it}" }
+                        ) {
+                            RedemptionCodeListItemPlaceholder()
+                        }
                     }
                 }
             }
@@ -159,21 +219,6 @@ private fun RedemptionCodesContent(
                 backgroundColor = MaterialTheme.colorScheme.surface,
                 contentColor = contentColorFor(backgroundColor = MaterialTheme.colorScheme.surface)
             )
-        }
-    }
-}
-
-@Composable
-private fun RedemptionCodesLoading() {
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        items(
-            items = IntArray(3) { it }.toTypedArray(),
-            key = { "placeholder${it}" }
-        ) {
-            RedemptionCodeListItemPlaceholder()
         }
     }
 }
@@ -264,23 +309,31 @@ private fun RedemptionCodeListItem(
     expandedItems: () -> SnapshotStateList<HoYoLABGame>,
     item: Pair<HoYoLABGame, AnnotatedString>
 ) {
-    val height by remember(expandedItems, item.first) {
+    val foldedHeight = 216.dp
+    val context = LocalContext.current
+    val textStyle = LocalTextStyle.current
+    val textColor = textStyle.color.takeOrElse {
+        LocalContentColor.current
+    }
+    val density = LocalDensity.current
+    val contentTextMeasurer = rememberTextMeasurer()
+    val isContentCanBeFolded by remember {
         derivedStateOf {
-            if (expandedItems().contains(item.first)) {
-                Dp.Unspecified
-            } else {
-                216.dp
-            }
+            with(density) {
+                contentTextMeasurer.measure(
+                    text = item.second,
+                    style = textStyle.copy(color = textColor)
+                ).size.height.toDp()
+            } > foldedHeight
         }
     }
-    val context = LocalContext.current
 
     Card(
         modifier = modifier
             .animateContentSize(
                 animationSpec = tween(
                     durationMillis = 300,
-                    easing = LinearOutSlowInEasing
+                    easing = LinearEasing
                 )
             )
             .fillMaxWidth()
@@ -307,25 +360,27 @@ private fun RedemptionCodeListItem(
                     Text(text = stringResource(id = item.first.gameNameStringResId()))
                 },
                 actions = {
-                    IconButton(
-                        onClick = {
-                            if (!expandedItems().contains(item.first)) {
-                                expandedItems().add(item.first)
-                            } else {
-                                expandedItems().remove(item.first)
+                    if (isContentCanBeFolded) {
+                        IconButton(
+                            onClick = {
+                                if (!expandedItems().contains(item.first)) {
+                                    expandedItems().add(item.first)
+                                } else {
+                                    expandedItems().remove(item.first)
+                                }
                             }
-                        }
-                    ) {
-                        if (expandedItems().contains(item.first)) {
-                            Icon(
-                                imageVector = Icons.Default.ExpandLess,
-                                contentDescription = Icons.Default.ExpandLess.name
-                            )
-                        } else {
-                            Icon(
-                                imageVector = Icons.Default.ExpandMore,
-                                contentDescription = Icons.Default.ExpandMore.name
-                            )
+                        ) {
+                            if (expandedItems().contains(item.first)) {
+                                Icon(
+                                    imageVector = Icons.Default.ExpandLess,
+                                    contentDescription = Icons.Default.ExpandLess.name
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.ExpandMore,
+                                    contentDescription = Icons.Default.ExpandMore.name
+                                )
+                            }
                         }
                     }
                 },
@@ -334,15 +389,32 @@ private fun RedemptionCodeListItem(
 
             Row(
                 modifier = Modifier
-                    .height(height)
+                    .composed {
+                        val measureHeight by remember(
+                            isContentCanBeFolded,
+                            expandedItems,
+                            item.first
+                        ) {
+                            derivedStateOf {
+                                if (!isContentCanBeFolded) {
+                                    return@derivedStateOf Dp.Unspecified
+                                }
+
+                                if (expandedItems().contains(item.first)) {
+                                    return@derivedStateOf Dp.Unspecified
+                                }
+
+                                return@derivedStateOf foldedHeight
+                            }
+                        }
+
+                        remember(measureHeight) {
+                            height(measureHeight)
+                        }
+                    }
                     .padding(horizontal = DefaultDp),
             ) {
                 SelectionContainer {
-                    val textStyle = LocalTextStyle.current
-                    val textColor = textStyle.color.takeOrElse {
-                        LocalContentColor.current
-                    }
-
                     ClickableText(
                         text = item.second,
                         style = textStyle.copy(color = textColor),

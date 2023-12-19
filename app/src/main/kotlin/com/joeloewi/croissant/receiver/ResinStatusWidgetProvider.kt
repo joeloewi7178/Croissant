@@ -19,6 +19,8 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
 import androidx.work.workDataOf
+import com.google.firebase.Firebase
+import com.google.firebase.crashlytics.crashlytics
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.domain.usecase.ResinStatusWidgetUseCase
 import com.joeloewi.croissant.util.isIgnoringBatteryOptimizationsCompat
@@ -35,6 +37,13 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class ResinStatusWidgetProvider : AppWidgetProvider() {
+    private val _coroutineContext = Dispatchers.IO + CoroutineExceptionHandler { _, throwable ->
+        Firebase.crashlytics.apply {
+            log(this@ResinStatusWidgetProvider.javaClass.simpleName)
+            recordException(throwable)
+        }
+    }
+    private val _processLifecycleScope by lazy { ProcessLifecycleOwner.get().lifecycleScope }
 
     @Inject
     lateinit var powerManager: PowerManager
@@ -58,7 +67,7 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
         super.onUpdate(context, appWidgetManager, appWidgetIds)
         //this method also called when user put widget on home screen
 
-        _processLifecycleOwner.lifecycleScope.launch(Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
+        _processLifecycleOwner.lifecycleScope.launch(_coroutineContext) {
             appWidgetIds.map { appWidgetId ->
                 async(Dispatchers.IO) {
                     if (powerManager.isPowerSaveMode && !powerManager.isIgnoringBatteryOptimizationsCompat(

@@ -223,6 +223,22 @@ private fun AttendanceDetailContent(
         }
     }
 
+    LaunchedEffect(Unit) {
+        snapshotFlow(updateAttendanceState).catch { }.collect {
+            when (it) {
+                is Lce.Content -> {
+                    if (it.content != null) {
+                        onNavigateUp()
+                    }
+                }
+
+                else -> {
+
+                }
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -410,8 +426,7 @@ private fun AttendanceDetailContent(
                     Text(text = stringResource(id = R.string.alert))
                 },
                 text = {
-                    //TODO: add text resources
-                    Text(text = stringResource(id = R.string.logs_deleted))
+                    Text(text = stringResource(id = R.string.confirm_delete_attendance_job))
                 },
                 confirmButton = {
                     TextButton(onClick = onConfirmDelete) {

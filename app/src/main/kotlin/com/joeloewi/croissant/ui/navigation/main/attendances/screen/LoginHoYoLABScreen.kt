@@ -48,7 +48,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 const val COOKIE = "cookie"
@@ -297,12 +296,10 @@ fun LoginHoYoLABContent(
                                     onCurrentCookieChange(cookie)
                                 }
 
-                                return runBlocking(Dispatchers.IO) {
-                                    super.shouldInterceptRequest(
-                                        view,
-                                        request
-                                    )
-                                }
+                                return super.shouldInterceptRequest(
+                                    view,
+                                    request
+                                )
                             }
 
                             override fun shouldOverrideUrlLoading(

@@ -128,4 +128,7 @@
     <string name="permissions">Permissions</string>
     <string name="retrieving_data">Retrieving data</string>
     <string name="honkai_star_rail_game_name">Honkai: Star Rail</string>
+    <string name="confirm_delete_attendance_job">Are you sure you want to delete this attendance job?</string>
+    <string name="permission_schedule_exact_alarms_label">Schedule exact alarms</string>
+    <string name="permission_schedule_exact_alarms_detailed_description">Perform the check-in event in exact time</string>
 </resources>
