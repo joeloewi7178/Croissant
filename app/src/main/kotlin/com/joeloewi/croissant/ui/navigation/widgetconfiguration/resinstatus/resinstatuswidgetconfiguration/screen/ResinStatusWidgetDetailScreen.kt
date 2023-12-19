@@ -33,7 +33,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.state.LCE
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.ProgressDialog
@@ -66,7 +66,7 @@ fun ResinStatusWidgetDetailScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResinStatusWidgetDetailContent(
-    updateResinStatusWidgetState: () -> Lce<Int>,
+    updateResinStatusWidgetState: () -> LCE<Int>,
     selectableIntervals: ImmutableList<Long>,
     interval: Long,
     onUpdateResinStatusWidget: () -> Unit,
@@ -77,7 +77,7 @@ fun ResinStatusWidgetDetailContent(
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
             snapshotFlow { updateResinStatusWidgetState() }.catch { }
-                .filterIsInstance<Lce.Content<Int>>().collect {
+                .filterIsInstance<LCE.Content<Int>>().collect {
                     if (it.content != 0) {
                         activity.finish()
                     }

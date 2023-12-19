@@ -5,7 +5,7 @@ import android.webkit.CookieManager
 import android.webkit.ValueCallback
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.state.LCE
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.android.asCoroutineDispatcher
@@ -26,10 +26,10 @@ class LoginHoYoLABViewModel @Inject constructor(
 ) : ViewModel() {
     private val _currentCookie = MutableStateFlow("")
 
-    val removeAllCookies = callbackFlow<Lce<Boolean>> {
+    val removeAllCookies = callbackFlow<LCE<Boolean>> {
         var valueCallback: ValueCallback<Boolean>? = ValueCallback<Boolean> { hasRemoved ->
             CookieManager.getInstance().flush()
-            trySend(Lce.Content(hasRemoved))
+            trySend(LCE.Content(hasRemoved))
         }
 
         CookieManager.getInstance().runCatching {
@@ -44,7 +44,7 @@ class LoginHoYoLABViewModel @Inject constructor(
     }.catch { }.flowOn(Dispatchers.IO).stateIn(
         scope = viewModelScope,
         started = SharingStarted.Lazily,
-        initialValue = Lce.Loading
+        initialValue = LCE.Loading
     )
 
     val currentCookie = _currentCookie.asStateFlow()

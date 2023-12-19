@@ -43,7 +43,7 @@ import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.state.LCE
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.navigationIconButton
 import com.joeloewi.croissant.viewmodel.DeveloperInfoViewModel
@@ -67,7 +67,7 @@ fun DeveloperInfoScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DeveloperInfoContent(
-    textToSpeech: () -> Lce<TextToSpeechInstance>,
+    textToSpeech: () -> LCE<TextToSpeechInstance>,
     onNavigateUp: () -> Unit
 ) {
     val activity = LocalActivity.current
@@ -107,7 +107,7 @@ private fun DeveloperInfoContent(
                             .clip(CircleShape)
                             .size(64.dp)
                             .clickable(
-                                enabled = textToSpeech() is Lce.Content
+                                enabled = textToSpeech() is LCE.Content
                             ) {
                                 coroutineScope.launch(Dispatchers.IO) {
                                     textToSpeech().content?.runCatching {

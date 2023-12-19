@@ -18,7 +18,8 @@ import com.joeloewi.croissant.domain.entity.UserInfo
 import com.joeloewi.croissant.domain.usecase.AccountUseCase
 import com.joeloewi.croissant.domain.usecase.HoYoLABUseCase
 import com.joeloewi.croissant.domain.usecase.ResinStatusWidgetUseCase
-import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.state.ILCE
+import com.joeloewi.croissant.state.foldAsILCE
 import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration.ResinStatusWidgetConfigurationDestination
 import com.joeloewi.croissant.worker.RefreshResinStatusWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -43,12 +44,8 @@ class CreateResinStatusWidgetViewModel @Inject constructor(
         ResinStatusWidgetConfigurationDestination.CreateResinStatusWidgetScreen.APP_WIDGET_ID
     val selectableIntervals = listOf(15L, 30L)
 
-    private val _createResinStatusWidgetState = MutableStateFlow<Lce<List<Long>>>(
-        Lce.Content(
-            listOf()
-        )
-    )
-    private val _getUserInfoState = MutableStateFlow<Lce<UserInfo?>>(Lce.Content(null))
+    private val _createResinStatusWidgetState = MutableStateFlow<ILCE<List<Long>>>(ILCE.Idle)
+    private val _getUserInfoState = MutableStateFlow<ILCE<UserInfo>>(ILCE.Idle)
     private val _interval = MutableStateFlow(selectableIntervals.first())
 
     val appWidgetId =
@@ -59,23 +56,16 @@ class CreateResinStatusWidgetViewModel @Inject constructor(
     val userInfos = SnapshotStateList<Pair<String, UserInfo>>()
 
     fun onReceiveCookie(cookie: String) {
-        _getUserInfoState.update { Lce.Loading }
+        _getUserInfoState.value = ILCE.Loading
         viewModelScope.launch(Dispatchers.IO) {
-            _getUserInfoState.update {
-                getUserFullInfoHoYoLABUseCase(cookie).mapCatching {
-                    it.data?.userInfo!!
-                }.fold(
-                    onSuccess = {
-                        withContext(Dispatchers.Main) {
-                            userInfos.add(cookie to it)
-                        }
-                        Lce.Content(it)
-                    },
-                    onFailure = {
-                        Lce.Error(it)
-                    }
-                )
-            }
+            _getUserInfoState.value = getUserFullInfoHoYoLABUseCase(cookie).mapCatching {
+                it.data?.userInfo!!
+            }.mapCatching {
+                withContext(Dispatchers.Main) {
+                    userInfos.add(cookie to it)
+                }
+                it
+            }.foldAsILCE()
         }
     }
 
@@ -84,7 +74,7 @@ class CreateResinStatusWidgetViewModel @Inject constructor(
     }
 
     fun configureAppWidget() {
-        _createResinStatusWidgetState.value = Lce.Loading
+        _createResinStatusWidgetState.value = ILCE.Loading
         viewModelScope.launch(Dispatchers.IO) {
             _createResinStatusWidgetState.value = runCatching {
                 val appWidgetId = appWidgetId.value
@@ -126,14 +116,7 @@ class CreateResinStatusWidgetViewModel @Inject constructor(
                 ).await()
 
                 insertAccountUseCase(*accounts.toTypedArray())
-            }.fold(
-                onSuccess = {
-                    Lce.Content(it)
-                },
-                onFailure = {
-                    Lce.Error(it)
-                }
-            )
+            }.foldAsILCE()
         }
     }
 }

@@ -16,7 +16,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics
-import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.state.LCE
 import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration.ResinStatusWidgetConfigurationDestination
 import com.joeloewi.croissant.viewmodel.LoadingViewModel
 
@@ -30,7 +30,7 @@ fun LoadingScreen(
 
     LaunchedEffect(isAppWidgetConfigured) {
         when (isAppWidgetConfigured) {
-            is Lce.Content -> {
+            is LCE.Content -> {
                 runCatching {
                     if (isAppWidgetConfigured.content == true) {
                         navController.navigate(

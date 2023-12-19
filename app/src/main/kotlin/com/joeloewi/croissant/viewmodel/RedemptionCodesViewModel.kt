@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.domain.usecase.ArcaLiveAppUseCase
-import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.state.LCE
 import com.joeloewi.croissant.util.toAnnotatedString
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
@@ -29,7 +29,7 @@ class RedemptionCodesViewModel @Inject constructor(
     private val getArticleArcaLiveAppUseCase: ArcaLiveAppUseCase.GetArticle
 ) : ViewModel() {
     private val _hoYoLABGameRedemptionCodesState =
-        MutableStateFlow<Lce<ImmutableList<Pair<HoYoLABGame, AnnotatedString>>>>(Lce.Loading)
+        MutableStateFlow<LCE<ImmutableList<Pair<HoYoLABGame, AnnotatedString>>>>(LCE.Loading)
 
     val hoYoLABGameRedemptionCodesState = _hoYoLABGameRedemptionCodesState.asStateFlow()
     val expandedItems = mutableStateListOf<HoYoLABGame>()
@@ -39,7 +39,7 @@ class RedemptionCodesViewModel @Inject constructor(
     }
 
     fun getRedemptionCodes() {
-        _hoYoLABGameRedemptionCodesState.update { Lce.Loading }
+        _hoYoLABGameRedemptionCodesState.update { LCE.Loading }
         viewModelScope.launch(Dispatchers.IO) {
             _hoYoLABGameRedemptionCodesState.update {
                 HoYoLABGame.entries.filter {
@@ -57,10 +57,10 @@ class RedemptionCodesViewModel @Inject constructor(
                     it.awaitAll().toImmutableList()
                 }.fold(
                     onSuccess = {
-                        Lce.Content(it)
+                        LCE.Content(it)
                     },
                     onFailure = {
-                        Lce.Error(it)
+                        LCE.Error(it)
                     }
                 )
             }

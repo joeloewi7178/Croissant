@@ -12,7 +12,7 @@ import androidx.work.WorkManager
 import androidx.work.await
 import androidx.work.workDataOf
 import com.joeloewi.croissant.domain.usecase.ResinStatusWidgetUseCase
-import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.state.LCE
 import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration.ResinStatusWidgetConfigurationDestination
 import com.joeloewi.croissant.worker.RefreshResinStatusWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -37,7 +37,7 @@ class ResinStatusWidgetDetailViewModel @Inject constructor(
         savedStateHandle.get<Int>(_appWidgetIdKey) ?: AppWidgetManager.INVALID_APPWIDGET_ID
     val selectableIntervals = listOf(15L, 30L)
 
-    private val _updateResinStatusWidgetState = MutableStateFlow<Lce<Int>>(Lce.Content(0))
+    private val _updateResinStatusWidgetState = MutableStateFlow<LCE<Int>>(LCE.Content(0))
     private val _interval = MutableStateFlow(selectableIntervals.first())
 
     val updateResinStatusWidgetState = _updateResinStatusWidgetState.asStateFlow()
@@ -58,7 +58,7 @@ class ResinStatusWidgetDetailViewModel @Inject constructor(
     }
 
     fun updateResinStatusWidget() {
-        _updateResinStatusWidgetState.update { Lce.Loading }
+        _updateResinStatusWidgetState.update { LCE.Loading }
         viewModelScope.launch(Dispatchers.IO) {
             _updateResinStatusWidgetState.update {
                 getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
@@ -91,10 +91,10 @@ class ResinStatusWidgetDetailViewModel @Inject constructor(
                     updateResinStatusWidgetUseCase(it)
                 }.fold(
                     onSuccess = {
-                        Lce.Content(it)
+                        LCE.Content(it)
                     },
                     onFailure = {
-                        Lce.Error(it)
+                        LCE.Error(it)
                     }
                 )
             }
