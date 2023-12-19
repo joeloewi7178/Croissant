@@ -2,7 +2,7 @@ package com.joeloewi.croissant.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.state.LCE
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
@@ -23,10 +23,10 @@ class DeveloperInfoViewModel @Inject constructor(
             createOrThrow()
         }.fold(
             onSuccess = {
-                Lce.Content(it)
+                LCE.Content(it)
             },
             onFailure = {
-                Lce.Error(it)
+                LCE.Error(it)
             }
         )
 
@@ -36,6 +36,6 @@ class DeveloperInfoViewModel @Inject constructor(
     }.catch { }.flowOn(Dispatchers.IO).stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(),
-        initialValue = Lce.Loading
+        initialValue = LCE.Loading
     )
 }

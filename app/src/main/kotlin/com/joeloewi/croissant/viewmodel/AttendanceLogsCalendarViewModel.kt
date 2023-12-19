@@ -6,7 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.joeloewi.croissant.domain.common.LoggableWorker
 import com.joeloewi.croissant.domain.usecase.ResultCountUseCase
 import com.joeloewi.croissant.domain.usecase.WorkerExecutionLogUseCase
-import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.state.ILCE
+import com.joeloewi.croissant.state.foldAsILCE
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.persistentListOf
@@ -37,7 +38,7 @@ class AttendanceLogsCalendarViewModel @Inject constructor(
     private val _attendanceIdKey = AttendancesDestination.AttendanceLogsCalendarScreen.ATTENDANCE_ID
     private val _loggableWorkerKey =
         AttendancesDestination.AttendanceLogsCalendarScreen.LOGGABLE_WORKER
-    private val _deleteAllState = MutableStateFlow<Lce<Int>>(Lce.Content(-1))
+    private val _deleteAllState = MutableStateFlow<ILCE<Int>>(ILCE.Idle)
 
     val loggableWorker =
         savedStateHandle.getStateFlow(_loggableWorkerKey, LoggableWorker.UNKNOWN)
@@ -68,21 +69,14 @@ class AttendanceLogsCalendarViewModel @Inject constructor(
     )
 
     fun deleteAll() {
-        _deleteAllState.value = Lce.Loading
+        _deleteAllState.value = ILCE.Loading
         viewModelScope.launch(Dispatchers.IO) {
             _deleteAllState.value = deleteAllPagedWorkerExecutionLogUseCase.runCatching {
                 invoke(
                     attendanceId = attendanceId,
                     loggableWorker = loggableWorker.value
                 )
-            }.fold(
-                onSuccess = {
-                    Lce.Content(it)
-                },
-                onFailure = {
-                    Lce.Error(it)
-                }
-            )
+            }.foldAsILCE()
         }
     }
 }

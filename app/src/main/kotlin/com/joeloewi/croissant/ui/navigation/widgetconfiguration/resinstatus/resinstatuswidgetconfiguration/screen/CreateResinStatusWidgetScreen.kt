@@ -53,7 +53,7 @@ import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.domain.entity.UserInfo
-import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.state.ILCE
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.util.LocalActivity
@@ -97,8 +97,8 @@ fun CreateResinStatusWidgetScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateResinStatusWidgetContent(
-    getInfoUserState: () -> Lce<UserInfo?>,
-    insertResinStatusWidgetState: () -> Lce<List<Long>>,
+    getInfoUserState: () -> ILCE<UserInfo?>,
+    insertResinStatusWidgetState: () -> ILCE<List<Long>>,
     appWidgetId: () -> Int,
     userInfos: SnapshotStateList<Pair<String, UserInfo>>,
     selectableIntervals: ImmutableList<Long>,
@@ -118,7 +118,7 @@ fun CreateResinStatusWidgetContent(
         withContext(Dispatchers.IO) {
             snapshotFlow(insertResinStatusWidgetState).catch { }.collect {
                 when (it) {
-                    is Lce.Content -> {
+                    is ILCE.Content -> {
                         if (it.content.isNotEmpty()) {
                             val resultValue = Intent().apply {
                                 putExtra(
@@ -145,7 +145,7 @@ fun CreateResinStatusWidgetContent(
         withContext(Dispatchers.IO) {
             snapshotFlow(getInfoUserState).catch { }.collect {
                 when (it) {
-                    is Lce.Error -> {
+                    is ILCE.Error -> {
                         snackbarHostState.showSnackbar(context.getString(R.string.error_occurred))
                     }
 
@@ -359,43 +359,5 @@ fun UserInfoListItem(
         modifier = Modifier
             .fillMaxWidth(),
         headlineContent = { Text(text = currentItem.second.nickname) },
-    )
-}
-
-@Composable
-fun GameRecordListItemPlaceholder() {
-    ListItem(
-        modifier = Modifier
-            .fillMaxWidth(),
-        headlineContent = {
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .placeholder(
-                        visible = true,
-                        shape = MaterialTheme.shapes.extraSmall,
-                        color = MaterialTheme.colorScheme.outline,
-                        highlight = PlaceholderHighlight.fade(
-                            highlightColor = MaterialTheme.colorScheme.background,
-                        )
-                    ),
-                text = ""
-            )
-        },
-        trailingContent = {
-            Checkbox(
-                modifier = Modifier
-                    .placeholder(
-                        visible = true,
-                        shape = MaterialTheme.shapes.extraSmall,
-                        color = MaterialTheme.colorScheme.outline,
-                        highlight = PlaceholderHighlight.fade(
-                            highlightColor = MaterialTheme.colorScheme.background,
-                        )
-                    ),
-                checked = false,
-                onCheckedChange = null
-            )
-        }
     )
 }

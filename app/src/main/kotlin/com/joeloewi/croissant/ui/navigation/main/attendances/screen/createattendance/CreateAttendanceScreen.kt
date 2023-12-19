@@ -38,7 +38,8 @@ import com.joeloewi.croissant.R
 import com.joeloewi.croissant.domain.entity.Attendance
 import com.joeloewi.croissant.domain.entity.Game
 import com.joeloewi.croissant.domain.entity.GameRecord
-import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.state.ILCE
+import com.joeloewi.croissant.state.LCE
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.composable.GetSession
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.composable.SelectGames
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.composable.SetTime
@@ -88,8 +89,8 @@ fun CreateAttendanceScreen(
 @Composable
 fun CreateAttendanceContent(
     newCookie: () -> String,
-    insertAttendanceState: () -> Lce<List<Long>>,
-    connectedGames: () -> Lce<List<GameRecord>>,
+    insertAttendanceState: () -> ILCE<List<Long>>,
+    connectedGames: () -> LCE<List<GameRecord>>,
     duplicateAttendance: () -> Attendance?,
     checkedGames: () -> SnapshotStateList<Game>,
     hourOfDay: () -> Int,
@@ -120,7 +121,7 @@ fun CreateAttendanceContent(
         withContext(Dispatchers.IO) {
             snapshotFlow(insertAttendanceState).catch { }.collect {
                 when (it) {
-                    is Lce.Content -> {
+                    is ILCE.Content -> {
                         withContext(Dispatchers.Main) {
                             if (it.content.isNotEmpty()) {
                                 onNavigateUp()

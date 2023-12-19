@@ -15,7 +15,10 @@ import com.joeloewi.croissant.domain.entity.Game
 import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
 import com.joeloewi.croissant.domain.usecase.GameUseCase
 import com.joeloewi.croissant.domain.usecase.HoYoLABUseCase
-import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.state.ILCE
+import com.joeloewi.croissant.state.LCE
+import com.joeloewi.croissant.state.foldAsILCE
+import com.joeloewi.croissant.state.foldAsLce
 import com.joeloewi.croissant.util.AlarmScheduler
 import com.joeloewi.croissant.worker.CheckSessionWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,7 +36,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.ZoneId
@@ -55,7 +57,7 @@ class CreateAttendanceViewModel @Inject constructor(
     private val _cookie = MutableStateFlow("")
     private val _hourOfDay = MutableStateFlow(ZonedDateTime.now().hour)
     private val _minute = MutableStateFlow(ZonedDateTime.now().minute)
-    private val _insertAttendanceState = MutableStateFlow<Lce<List<Long>>>(Lce.Content(listOf()))
+    private val _insertAttendanceState = MutableStateFlow<ILCE<List<Long>>>(ILCE.Idle)
     private val _userInfo = _cookie
         .filter { it.isNotEmpty() }
         .map { cookie ->
@@ -103,18 +105,11 @@ class CreateAttendanceViewModel @Inject constructor(
                         }
                     }
                 }
-            }.fold(
-                onSuccess = {
-                    Lce.Content(it)
-                },
-                onFailure = {
-                    Lce.Error(it)
-                }
-            )
+            }.foldAsLce()
         }.flowOn(Dispatchers.IO).stateIn(
             scope = viewModelScope,
             started = SharingStarted.Lazily,
-            initialValue = Lce.Loading
+            initialValue = LCE.Loading
         )
     val cookie = _cookie.asStateFlow()
     val checkedGames = mutableStateListOf<Game>()
@@ -145,76 +140,65 @@ class CreateAttendanceViewModel @Inject constructor(
     }
 
     fun createAttendance() {
-        _insertAttendanceState.update { Lce.Loading }
+        _insertAttendanceState.value = ILCE.Loading
         viewModelScope.launch(Dispatchers.IO) {
-            _insertAttendanceState.update {
-                insertAttendanceUseCase.runCatching {
-                    val hourOfDay = _hourOfDay.value
-                    val minute = _minute.value
-                    val attendance = Attendance(
-                        cookie = _cookie.value,
-                        nickname = _userInfo.value!!.nickname,
-                        uid = _userInfo.value!!.uid,
-                        hourOfDay = hourOfDay,
-                        minute = minute,
-                        timezoneId = ZoneId.systemDefault().id
-                    )
-
-                    with(attendance) {
-                        copy(
-                            id = invoke(attendance)
-                        )
-                    }
-                }.mapCatching { attendance ->
-                    val now = ZonedDateTime.now(ZoneId.of(attendance.timezoneId))
-
-                    alarmScheduler.scheduleCheckInAlarm(
-                        attendanceId = attendance.id,
-                        hourOfDay = attendance.hourOfDay,
-                        minute = attendance.minute
-                    )
-
-                    val periodicCheckSessionWork = PeriodicWorkRequest.Builder(
-                        CheckSessionWorker::class.java,
-                        6L,
-                        TimeUnit.HOURS
-                    )
-                        .setInputData(workDataOf(CheckSessionWorker.ATTENDANCE_ID to attendance.id))
-                        .setConstraints(
-                            Constraints.Builder()
-                                .setRequiredNetworkType(NetworkType.CONNECTED)
-                                .build()
-                        )
-                        .build()
-
-                    workManager.enqueueUniquePeriodicWork(
-                        attendance.checkSessionWorkerName.toString(),
-                        ExistingPeriodicWorkPolicy.UPDATE,
-                        periodicCheckSessionWork
-                    )
-
-                    updateAttendanceUseCase(
-                        attendance.copy(
-                            checkSessionWorkerId = periodicCheckSessionWork.id
-                        )
-                    )
-
-                    attendance.id
-                }.mapCatching { attendanceId ->
-                    insertGameUseCase(
-                        *checkedGames.map {
-                            it.copy(attendanceId = attendanceId)
-                        }.toTypedArray()
-                    )
-                }.fold(
-                    onSuccess = {
-                        Lce.Content(it)
-                    },
-                    onFailure = {
-                        Lce.Error(it)
-                    }
+            _insertAttendanceState.value = insertAttendanceUseCase.runCatching {
+                val hourOfDay = _hourOfDay.value
+                val minute = _minute.value
+                val attendance = Attendance(
+                    cookie = _cookie.value,
+                    nickname = _userInfo.value!!.nickname,
+                    uid = _userInfo.value!!.uid,
+                    hourOfDay = hourOfDay,
+                    minute = minute,
+                    timezoneId = ZoneId.systemDefault().id
                 )
-            }
+
+                with(attendance) {
+                    copy(
+                        id = invoke(attendance)
+                    )
+                }
+            }.mapCatching { attendance ->
+                alarmScheduler.scheduleCheckInAlarm(
+                    attendanceId = attendance.id,
+                    hourOfDay = attendance.hourOfDay,
+                    minute = attendance.minute
+                )
+
+                val periodicCheckSessionWork = PeriodicWorkRequest.Builder(
+                    CheckSessionWorker::class.java,
+                    6L,
+                    TimeUnit.HOURS
+                )
+                    .setInputData(workDataOf(CheckSessionWorker.ATTENDANCE_ID to attendance.id))
+                    .setConstraints(
+                        Constraints.Builder()
+                            .setRequiredNetworkType(NetworkType.CONNECTED)
+                            .build()
+                    )
+                    .build()
+
+                workManager.enqueueUniquePeriodicWork(
+                    attendance.checkSessionWorkerName.toString(),
+                    ExistingPeriodicWorkPolicy.UPDATE,
+                    periodicCheckSessionWork
+                )
+
+                updateAttendanceUseCase(
+                    attendance.copy(
+                        checkSessionWorkerId = periodicCheckSessionWork.id
+                    )
+                )
+
+                attendance.id
+            }.mapCatching { attendanceId ->
+                insertGameUseCase(
+                    *checkedGames.map {
+                        it.copy(attendanceId = attendanceId)
+                    }.toTypedArray()
+                )
+            }.foldAsILCE()
         }
     }
 }

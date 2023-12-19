@@ -58,7 +58,7 @@ import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.domain.common.LoggableWorker
 import com.joeloewi.croissant.domain.entity.ResultCount
-import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.state.ILCE
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.ui.theme.HalfDp
@@ -73,7 +73,6 @@ import com.joeloewi.croissant.viewmodel.AttendanceLogsCalendarViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.Year
@@ -111,7 +110,7 @@ fun AttendanceLogsCalendarScreen(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 private fun AttendanceLogsCalendarContent(
-    deleteAllState: () -> Lce<Int>,
+    deleteAllState: () -> ILCE<Int>,
     startToEnd: () -> Pair<ZonedDateTime, ZonedDateTime>,
     resultCounts: () -> ImmutableList<ResultCount>,
     onDeleteAll: () -> Unit,
@@ -130,16 +129,24 @@ private fun AttendanceLogsCalendarContent(
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
-            snapshotFlow(deleteAllState).catch { }.filterIsInstance<Lce.Content<Int>>().collect {
-                val rowCount = it.content
+            snapshotFlow(deleteAllState).catch { }.collect {
+                when (it) {
+                    is ILCE.Content -> {
+                        val rowCount = it.content
 
-                if (rowCount != -1) {
-                    snackbarHostState.showSnackbar(
-                        context.getString(
-                            R.string.logs_deleted,
-                            rowCount
-                        )
-                    )
+                        if (rowCount > 0) {
+                            snackbarHostState.showSnackbar(
+                                context.getString(
+                                    R.string.logs_deleted,
+                                    rowCount
+                                )
+                            )
+                        }
+                    }
+
+                    else -> {
+
+                    }
                 }
             }
         }

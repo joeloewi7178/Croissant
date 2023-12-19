@@ -71,7 +71,8 @@ import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.domain.common.LoggableWorker
 import com.joeloewi.croissant.domain.entity.Game
 import com.joeloewi.croissant.domain.entity.relational.AttendanceWithGames
-import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.state.ILCE
+import com.joeloewi.croissant.state.LCE
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.LocalActivity
@@ -145,12 +146,12 @@ private fun AttendanceDetailContent(
     checkSessionWorkerFailureLogCount: () -> Long,
     attendCheckInEventWorkerSuccessLogCount: () -> Long,
     attendCheckInEventWorkerFailureLogCount: () -> Long,
-    updateAttendanceState: () -> Lce<Unit?>,
+    updateAttendanceState: () -> ILCE<Unit>,
     hourOfDay: () -> Int,
     minute: () -> Int,
-    attendanceWithGames: () -> Lce<AttendanceWithGames>,
+    attendanceWithGames: () -> LCE<AttendanceWithGames>,
     newCookie: () -> String,
-    deleteAttendanceState: () -> Lce<Unit?>,
+    deleteAttendanceState: () -> ILCE<Unit>,
     onNavigateUp: () -> Unit,
     onClickRefreshSession: () -> Unit,
     onClickLogSummary: (LoggableWorker) -> Unit,
@@ -204,19 +205,20 @@ private fun AttendanceDetailContent(
     LaunchedEffect(Unit) {
         snapshotFlow(deleteAttendanceState).catch { }.collect {
             when (it) {
-                is Lce.Content -> {
-                    showConfirmDeleteDialog = false
-                    if (it.content != null) {
-                        onNavigateUp()
-                    }
+                is ILCE.Content -> {
+                    onNavigateUp()
                 }
 
-                is Lce.Error -> {
+                is ILCE.Error -> {
                     showConfirmDeleteDialog = false
                     snackbarHostState.showSnackbar(activity.getString(R.string.error_occurred))
                 }
 
-                Lce.Loading -> {
+                ILCE.Idle -> {
+
+                }
+
+                ILCE.Loading -> {
                     showConfirmDeleteDialog = true
                 }
             }
@@ -226,10 +228,8 @@ private fun AttendanceDetailContent(
     LaunchedEffect(Unit) {
         snapshotFlow(updateAttendanceState).catch { }.collect {
             when (it) {
-                is Lce.Content -> {
-                    if (it.content != null) {
-                        onNavigateUp()
-                    }
+                is ILCE.Content -> {
+                    onNavigateUp()
                 }
 
                 else -> {
@@ -255,7 +255,7 @@ private fun AttendanceDetailContent(
                         onClick = {
                             showConfirmDeleteDialog = true
                         },
-                        enabled = attendanceWithGames() is Lce.Content
+                        enabled = attendanceWithGames() is LCE.Content
                     ) {
                         Icon(
                             imageVector = Icons.Default.Delete,
@@ -265,7 +265,7 @@ private fun AttendanceDetailContent(
 
                     IconButton(
                         onClick = onClickSave,
-                        enabled = attendanceWithGames() is Lce.Content
+                        enabled = attendanceWithGames() is LCE.Content
                     ) {
                         Icon(
                             imageVector = Icons.Default.Save,

@@ -64,7 +64,7 @@ import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.domain.entity.Attendance
 import com.joeloewi.croissant.domain.entity.Game
 import com.joeloewi.croissant.domain.entity.GameRecord
-import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.state.LCE
 import com.joeloewi.croissant.state.StableWrapper
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.IconDp
@@ -78,7 +78,7 @@ import kotlinx.coroutines.withContext
 @Composable
 fun SelectGames(
     modifier: Modifier = Modifier,
-    connectedGames: () -> Lce<List<GameRecord>>,
+    connectedGames: () -> LCE<List<GameRecord>>,
     duplicatedAttendance: () -> Attendance?,
     checkedGames: () -> SnapshotStateList<Game>,
     onNextButtonClick: () -> Unit,
@@ -102,7 +102,7 @@ fun SelectGames(
         withContext(Dispatchers.IO) {
             snapshotFlow(connectedGames).catch { }.collect {
                 when (it) {
-                    is Lce.Content -> {
+                    is LCE.Content -> {
                         if (
                             it.content.any {
                                 supportedGames.find { game -> game.gameId == it.gameId } == null
@@ -115,7 +115,7 @@ fun SelectGames(
                         }
                     }
 
-                    is Lce.Error -> {
+                    is LCE.Error -> {
                         it.error.message?.let {
                             snackbarHostState.apply {
                                 currentSnackbarData?.dismiss()
@@ -124,7 +124,7 @@ fun SelectGames(
                         }
                     }
 
-                    Lce.Loading -> {
+                    LCE.Loading -> {
 
                     }
                 }
@@ -209,7 +209,7 @@ fun SelectGames(
             )
 
             when (connectedGames()) {
-                is Lce.Content -> {
+                is LCE.Content -> {
                     LazyColumn(
                         state = lazyListState,
                         modifier = Modifier
@@ -232,7 +232,7 @@ fun SelectGames(
                     }
                 }
 
-                is Lce.Error -> {
+                is LCE.Error -> {
                     Column(
                         modifier = Modifier
                             .fillMaxSize(),
@@ -247,7 +247,7 @@ fun SelectGames(
                     }
                 }
 
-                Lce.Loading -> {
+                LCE.Loading -> {
                     LazyColumn(
                         state = lazyListState,
                         modifier = Modifier

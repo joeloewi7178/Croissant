@@ -76,7 +76,7 @@ import com.google.accompanist.placeholder.fade
 import com.google.accompanist.placeholder.placeholder
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.domain.common.HoYoLABGame
-import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.state.LCE
 import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
@@ -106,7 +106,7 @@ fun RedemptionCodesScreen(
 )
 @Composable
 private fun RedemptionCodesContent(
-    hoYoLABGameRedemptionCodesState: () -> Lce<ImmutableList<Pair<HoYoLABGame, AnnotatedString>>>,
+    hoYoLABGameRedemptionCodesState: () -> LCE<ImmutableList<Pair<HoYoLABGame, AnnotatedString>>>,
     expandedItems: () -> SnapshotStateList<HoYoLABGame>,
     onRefresh: () -> Unit
 ) {
@@ -140,7 +140,7 @@ private fun RedemptionCodesContent(
                     .fillMaxSize(),
             ) {
                 when (val state = hoYoLABGameRedemptionCodesState()) {
-                    is Lce.Content -> {
+                    is LCE.Content -> {
                         items(
                             items = state.content,
                             key = { it.first.name }
@@ -153,7 +153,7 @@ private fun RedemptionCodesContent(
                         }
                     }
 
-                    is Lce.Error -> {
+                    is LCE.Error -> {
                         item(key = "redemptionCodesError") {
                             Column(
                                 modifier = Modifier
@@ -201,7 +201,7 @@ private fun RedemptionCodesContent(
                         }
                     }
 
-                    Lce.Loading -> {
+                    LCE.Loading -> {
                         items(
                             items = IntArray(3) { it }.toTypedArray(),
                             key = { "placeholder${it}" }
@@ -219,85 +219,6 @@ private fun RedemptionCodesContent(
                 backgroundColor = MaterialTheme.colorScheme.surface,
                 contentColor = contentColorFor(backgroundColor = MaterialTheme.colorScheme.surface)
             )
-        }
-    }
-}
-
-@Composable
-private fun RedemptionCodesError(
-    onRefresh: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .then(Modifier.padding(DoubleDp)),
-        verticalArrangement = Arrangement.spacedBy(DefaultDp, Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            modifier = Modifier
-                .fillMaxSize(0.3f),
-            imageVector = Icons.Default.Error,
-            contentDescription = Icons.Default.Error.name,
-            tint = MaterialTheme.colorScheme.primaryContainer
-        )
-        Text(
-            text = stringResource(id = R.string.error_occurred),
-            style = MaterialTheme.typography.titleMedium,
-            textAlign = TextAlign.Center
-        )
-        Text(
-            text = stringResource(id = R.string.due_to_site_policy),
-            style = MaterialTheme.typography.titleMedium,
-            textAlign = TextAlign.Center
-        )
-        Button(onClick = onRefresh) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(
-                    DefaultDp,
-                    Alignment.CenterHorizontally
-                ),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Refresh,
-                    contentDescription = Icons.Default.Refresh.name
-                )
-                Text(text = stringResource(id = R.string.retry))
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun RedemptionCodes(
-    hoYoLABGameRedemptionCodes: ImmutableList<Pair<HoYoLABGame, AnnotatedString>>,
-    expandedItems: () -> SnapshotStateList<HoYoLABGame>,
-) {
-    Box(modifier = Modifier) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize(),
-        ) {
-            items(
-                items = hoYoLABGameRedemptionCodes,
-                key = { it.first.gameId }
-            ) { item ->
-                when (item.first) {
-                    HoYoLABGame.Unknown, HoYoLABGame.TearsOfThemis -> {
-
-                    }
-
-                    else -> {
-                        RedemptionCodeListItem(
-                            modifier = Modifier.animateItemPlacement(),
-                            item = item,
-                            expandedItems = expandedItems
-                        )
-                    }
-                }
-            }
         }
     }
 }

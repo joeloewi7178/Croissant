@@ -39,7 +39,7 @@ import androidx.webkit.WebViewFeature
 import com.google.accompanist.web.*
 import com.joeloewi.croissant.BuildConfig
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.state.Lce
+import com.joeloewi.croissant.state.LCE
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.viewmodel.LoginHoYoLABViewModel
 import kotlinx.collections.immutable.toImmutableList
@@ -74,7 +74,7 @@ fun LoginHoYoLABScreen(
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun LoginHoYoLABContent(
-    removeAllCookiesState: () -> Lce<Boolean>,
+    removeAllCookiesState: () -> LCE<Boolean>,
     currentCookie: () -> String,
     onNavigateUp: () -> Unit,
     onNavigateUpWithResult: (cookie: String) -> Unit,
@@ -217,7 +217,7 @@ fun LoginHoYoLABContent(
         contentWindowInsets = WindowInsets.safeDrawing.exclude(WindowInsets.navigationBars)
     ) { innerPadding ->
         when (removeAllCookiesState()) {
-            is Lce.Content -> {
+            is LCE.Content -> {
                 WebView(
                     modifier = Modifier
                         .fillMaxSize()
@@ -418,11 +418,11 @@ fun LoginHoYoLABContent(
                 )
             }
 
-            is Lce.Error -> {
+            is LCE.Error -> {
 
             }
 
-            Lce.Loading -> {
+            LCE.Loading -> {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
