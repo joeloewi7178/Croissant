@@ -12,14 +12,14 @@ import androidx.work.WorkManager
 import androidx.work.await
 import androidx.work.workDataOf
 import com.joeloewi.croissant.domain.usecase.ResinStatusWidgetUseCase
-import com.joeloewi.croissant.state.LCE
+import com.joeloewi.croissant.state.ILCE
+import com.joeloewi.croissant.state.foldAsILCE
 import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration.ResinStatusWidgetConfigurationDestination
 import com.joeloewi.croissant.worker.RefreshResinStatusWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -37,7 +37,7 @@ class ResinStatusWidgetDetailViewModel @Inject constructor(
         savedStateHandle.get<Int>(_appWidgetIdKey) ?: AppWidgetManager.INVALID_APPWIDGET_ID
     val selectableIntervals = listOf(15L, 30L)
 
-    private val _updateResinStatusWidgetState = MutableStateFlow<LCE<Int>>(LCE.Content(0))
+    private val _updateResinStatusWidgetState = MutableStateFlow<ILCE<Int>>(ILCE.Idle)
     private val _interval = MutableStateFlow(selectableIntervals.first())
 
     val updateResinStatusWidgetState = _updateResinStatusWidgetState.asStateFlow()
@@ -48,19 +48,19 @@ class ResinStatusWidgetDetailViewModel @Inject constructor(
             getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
                 invoke(appWidgetId = _appWidgetId)
             }.mapCatching { resinStatusWidgetWithAccounts ->
-                _interval.update { resinStatusWidgetWithAccounts.resinStatusWidget.interval }
+                _interval.value = resinStatusWidgetWithAccounts.resinStatusWidget.interval
             }
         }
     }
 
     fun setInterval(interval: Long) {
-        _interval.update { interval }
+        _interval.value = interval
     }
 
     fun updateResinStatusWidget() {
-        _updateResinStatusWidgetState.update { LCE.Loading }
+        _updateResinStatusWidgetState.value = ILCE.Loading
         viewModelScope.launch(Dispatchers.IO) {
-            _updateResinStatusWidgetState.update {
+            _updateResinStatusWidgetState.value =
                 getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
                     invoke(appWidgetId = _appWidgetId)
                 }.mapCatching {
@@ -89,15 +89,7 @@ class ResinStatusWidgetDetailViewModel @Inject constructor(
                     )
                 }.mapCatching {
                     updateResinStatusWidgetUseCase(it)
-                }.fold(
-                    onSuccess = {
-                        LCE.Content(it)
-                    },
-                    onFailure = {
-                        LCE.Error(it)
-                    }
-                )
-            }
+                }.foldAsILCE()
         }
     }
 }

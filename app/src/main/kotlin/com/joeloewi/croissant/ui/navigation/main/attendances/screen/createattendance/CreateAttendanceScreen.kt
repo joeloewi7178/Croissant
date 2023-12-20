@@ -50,7 +50,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.time.ZonedDateTime
 
 @Composable
 fun CreateAttendanceScreen(
@@ -65,7 +64,6 @@ fun CreateAttendanceScreen(
     val checkedGames = remember { createAttendanceViewModel.checkedGames }
     val hourOfDay by createAttendanceViewModel.hourOfDay.collectAsStateWithLifecycle()
     val minute by createAttendanceViewModel.minute.collectAsStateWithLifecycle()
-    val tickPerSecond by createAttendanceViewModel.tickPerSecond.collectAsStateWithLifecycle()
 
     CreateAttendanceContent(
         newCookie = newCookie,
@@ -75,7 +73,6 @@ fun CreateAttendanceScreen(
         checkedGames = { checkedGames },
         hourOfDay = { hourOfDay },
         minute = { minute },
-        tickPerSecond = { tickPerSecond },
         onLoginHoYoLAB = onLoginHoYoLAB,
         onCookieChange = createAttendanceViewModel::setCookie,
         onHourOfDayChange = createAttendanceViewModel::setHourOfDay,
@@ -95,7 +92,6 @@ fun CreateAttendanceContent(
     checkedGames: () -> SnapshotStateList<Game>,
     hourOfDay: () -> Int,
     minute: () -> Int,
-    tickPerSecond: () -> ZonedDateTime,
     onLoginHoYoLAB: () -> Unit,
     onCookieChange: (String) -> Unit,
     onHourOfDayChange: (Int) -> Unit,
@@ -203,7 +199,6 @@ fun CreateAttendanceContent(
                         minute = minute,
                         onHourOfDayChange = onHourOfDayChange,
                         onMinuteChange = onMinuteChange,
-                        tickPerSecond = tickPerSecond,
                         onNextButtonClick = onCreateAttendance
                     )
                 }

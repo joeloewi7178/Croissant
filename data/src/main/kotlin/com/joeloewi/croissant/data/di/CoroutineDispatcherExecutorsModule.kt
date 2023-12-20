@@ -26,13 +26,6 @@ object CoroutineDispatcherExecutorsModule {
     ): Executor = coroutineDispatcher.asExecutor()
 
     @Singleton
-    @SingleDefaultDispatcherExecutor
-    @Provides
-    fun provideSingleDefaultDispatcherExecutor(
-        @DefaultDispatcher coroutineDispatcher: CoroutineDispatcher
-    ): Executor = coroutineDispatcher.limitedParallelism(1).asExecutor()
-
-    @Singleton
     @IoDispatcherExecutor
     @Provides
     fun providesIoDispatcherExecutor(

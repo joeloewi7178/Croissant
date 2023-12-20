@@ -525,7 +525,7 @@ fun CroissantNavHost(
                         }
                     },
                     onShowDefaultScreen = {
-                        navController.value.navigate(GlobalDestination.FirstLaunchScreen.route) {
+                        navController.value.navigate(AttendancesDestination.AttendancesScreen.route) {
                             popUpTo(activity::class.java.simpleName) {
                                 inclusive = true
                             }
@@ -537,7 +537,11 @@ fun CroissantNavHost(
             composable(route = GlobalDestination.FirstLaunchScreen.route) {
                 FirstLaunchScreen(
                     onNavigateToAttendances = {
-                        navController.value.navigate(AttendancesDestination.AttendancesScreen.route)
+                        navController.value.navigate(AttendancesDestination.AttendancesScreen.route) {
+                            popUpTo(activity::class.java.simpleName) {
+                                inclusive = true
+                            }
+                        }
                     }
                 )
             }

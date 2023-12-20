@@ -36,7 +36,6 @@ object DatabaseModule {
     @Provides
     fun provideCroissantDatabase(
         @IoDispatcherExecutor ioDispatcherExecutor: Executor,
-        @SingleDefaultDispatcherExecutor singleDefaultDispatcherExecutor: Executor,
         @ApplicationContext context: Context
     ): CroissantDatabase =
         Room.databaseBuilder(
@@ -45,7 +44,7 @@ object DatabaseModule {
             "croissant"
         )
             .setQueryExecutor(ioDispatcherExecutor)
-            .setTransactionExecutor(singleDefaultDispatcherExecutor)
+            .setTransactionExecutor(ioDispatcherExecutor)
             .enableMultiInstanceInvalidation()
             .build()
 

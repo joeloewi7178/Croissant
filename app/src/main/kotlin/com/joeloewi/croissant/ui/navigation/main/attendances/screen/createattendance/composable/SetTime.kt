@@ -23,21 +23,33 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import androidx.lifecycle.flowWithLifecycle
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.util.LocalHourFormat
 import com.joeloewi.croissant.util.TimeAndTimePicker
 import com.joeloewi.croissant.util.dateTimeFormatterPerHourFormat
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.isActive
 import java.time.ZonedDateTime
 
 @Composable
@@ -47,7 +59,6 @@ fun SetTime(
     minute: () -> Int,
     onHourOfDayChange: (Int) -> Unit,
     onMinuteChange: (Int) -> Unit,
-    tickPerSecond: () -> ZonedDateTime,
     onNextButtonClick: () -> Unit
 ) {
     Scaffold(
@@ -123,8 +134,7 @@ fun SetTime(
             ) {
                 FirstExecutionTime(
                     hourOfDay = hourOfDay,
-                    minute = minute,
-                    tickPerSecond = tickPerSecond
+                    minute = minute
                 )
             }
 
@@ -175,17 +185,12 @@ private fun TimePickerWithState(
 @Composable
 private fun FirstExecutionTime(
     hourOfDay: () -> Int,
-    minute: () -> Int,
-    tickPerSecond: () -> ZonedDateTime
+    minute: () -> Int
 ) {
-    val canExecuteToday by remember(tickPerSecond, hourOfDay, minute) {
-        derivedStateOf {
-            (tickPerSecond().hour < hourOfDay()) || (tickPerSecond().hour == hourOfDay() && tickPerSecond().minute < minute())
-        }
-    }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var canExecuteToday by remember { mutableStateOf(false) }
     val today = stringResource(id = R.string.today)
     val tomorrow = stringResource(id = R.string.tomorrow)
-
     val todayOrTomorrow by remember(canExecuteToday) {
         derivedStateOf {
             if (canExecuteToday) {
@@ -214,6 +219,18 @@ private fun FirstExecutionTime(
     val firstExecutionTime by remember(todayOrTomorrow, formattedTime) {
         derivedStateOf {
             "$todayOrTomorrow $formattedTime"
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        flow {
+            while (currentCoroutineContext().isActive) {
+                emit(ZonedDateTime.now())
+                delay(1000)
+            }
+        }.catch {}.flowWithLifecycle(lifecycleOwner.lifecycle).flowOn(Dispatchers.IO).collect {
+            canExecuteToday =
+                (it.hour < hourOfDay()) || (it.hour == hourOfDay() && it.minute < minute())
         }
     }
 

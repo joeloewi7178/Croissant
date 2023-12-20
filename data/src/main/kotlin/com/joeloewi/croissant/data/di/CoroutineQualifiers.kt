@@ -36,10 +36,6 @@ annotation class DefaultDispatcherExecutor
 
 @Retention(AnnotationRetention.RUNTIME)
 @Qualifier
-annotation class SingleDefaultDispatcherExecutor
-
-@Retention(AnnotationRetention.RUNTIME)
-@Qualifier
 annotation class IoDispatcherExecutor
 
 @Retention(AnnotationRetention.RUNTIME)
