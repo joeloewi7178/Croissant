@@ -33,7 +33,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.state.LCE
+import com.joeloewi.croissant.state.ILCE
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.ProgressDialog
@@ -42,7 +42,6 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.withContext
 
 @Composable
@@ -66,7 +65,7 @@ fun ResinStatusWidgetDetailScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResinStatusWidgetDetailContent(
-    updateResinStatusWidgetState: () -> LCE<Int>,
+    updateResinStatusWidgetState: () -> ILCE<Int>,
     selectableIntervals: ImmutableList<Long>,
     interval: Long,
     onUpdateResinStatusWidget: () -> Unit,
@@ -76,12 +75,19 @@ fun ResinStatusWidgetDetailContent(
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
-            snapshotFlow { updateResinStatusWidgetState() }.catch { }
-                .filterIsInstance<LCE.Content<Int>>().collect {
-                    if (it.content != 0) {
-                        activity.finish()
+            snapshotFlow { updateResinStatusWidgetState() }.catch { }.collect {
+                when (it) {
+                    is ILCE.Content -> {
+                        if (it.content != 0) {
+                            activity.finish()
+                        }
+                    }
+
+                    else -> {
+
                     }
                 }
+            }
         }
     }
 

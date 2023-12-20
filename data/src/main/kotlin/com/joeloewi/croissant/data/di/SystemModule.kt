@@ -23,7 +23,7 @@ object SystemModule {
     @Singleton
     @Provides
     fun provideApplicationHandler(): Handler =
-        HandlerThread("ApplicationHandler", Process.THREAD_PRIORITY_DEFAULT).apply {
+        HandlerThread("ApplicationHandlerThread", Process.THREAD_PRIORITY_DEFAULT).apply {
             isDaemon = true
             start()
         }.let {

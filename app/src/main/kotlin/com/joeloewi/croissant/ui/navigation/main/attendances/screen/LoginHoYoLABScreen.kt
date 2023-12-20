@@ -289,11 +289,14 @@ fun LoginHoYoLABContent(
                                 //but we only need first value.
                                 //use stateflow in view model to distinct and get first value
 
-                                val cookie =
-                                    CookieManager.getInstance().getCookie(hoyolabUrl)
+                                coroutineScope.launch(Dispatchers.IO) {
+                                    val cookie =
+                                        CookieManager.getInstance().getCookie(hoyolabUrl)
 
-                                if (cookieKeys.map { cookie?.contains(it) == true }.all { it }) {
-                                    onCurrentCookieChange(cookie)
+                                    if (cookieKeys.map { cookie?.contains(it) == true }
+                                            .all { it }) {
+                                        onCurrentCookieChange(cookie)
+                                    }
                                 }
 
                                 return super.shouldInterceptRequest(

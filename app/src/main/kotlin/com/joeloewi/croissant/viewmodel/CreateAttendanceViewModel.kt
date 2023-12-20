@@ -23,8 +23,6 @@ import com.joeloewi.croissant.util.AlarmScheduler
 import com.joeloewi.croissant.worker.CheckSessionWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ObsoleteCoroutinesApi
-import kotlinx.coroutines.channels.ticker
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,7 +32,6 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -113,16 +110,6 @@ class CreateAttendanceViewModel @Inject constructor(
         )
     val cookie = _cookie.asStateFlow()
     val checkedGames = mutableStateListOf<Game>()
-
-    @OptIn(ObsoleteCoroutinesApi::class)
-    val tickPerSecond = ticker(delayMillis = 1000).receiveAsFlow()
-        .map { ZonedDateTime.now() }
-        .flowOn(Dispatchers.IO)
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(),
-            initialValue = ZonedDateTime.now()
-        )
     val hourOfDay = _hourOfDay.asStateFlow()
     val minute = _minute.asStateFlow()
     val insertAttendanceState = _insertAttendanceState.asStateFlow()
