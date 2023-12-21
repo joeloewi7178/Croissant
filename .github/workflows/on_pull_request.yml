@@ -40,7 +40,7 @@ jobs:
           encodedString: ${{ secrets.SIGNING_KEY }}
 
       - name: Build with Gradle
-        run: ./gradlew clean build --no-daemon --parallel build
+        run: ./gradlew build
         env:
           ALIAS: ${{ secrets.ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
