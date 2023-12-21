@@ -26,6 +26,9 @@ jobs:
           distribution: 'zulu' # See 'Supported distributions' for available options
           java-version: '17'
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
