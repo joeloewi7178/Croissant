@@ -1,27 +1,20 @@
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
-    id("croissant.android.library")
-    id("croissant.android.hilt")
+    alias(libs.plugins.croissant.android.library)
+    alias(libs.plugins.croissant.android.hilt)
+    alias(libs.plugins.croissant.android.room)
     alias(libs.plugins.protobuf)
     alias(libs.plugins.ksp)
-}
-
-kotlin {
-    jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
-    }
 }
 
 android {
     defaultConfig {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-proguard-rules.pro")
+    }
 
-        ksp {
-            arg("room.schemaLocation", "$projectDir/schemas")
-            arg("room.incremental", "true")
-            arg("room.expandProjection", "true")
-        }
+    buildFeatures {
+        buildConfig = true
     }
 
     namespace = "com.joeloewi.croissant.data"
@@ -36,12 +29,6 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit.ktx)
     androidTestImplementation(libs.androidx.test.espresso.core)
-
-    //room
-    implementation(libs.room.runtime)
-    ksp(libs.room.compiler)
-    implementation(libs.room.ktx)
-    implementation(libs.room.paging)
 
     //retrofit2
     implementation(libs.retrofit)
@@ -63,6 +50,7 @@ dependencies {
     implementation(libs.androidx.dataStore.core)
 
     implementation(libs.sandwich)
+    implementation(libs.sandwich.retrofit)
 
     implementation(libs.kotlinx.coroutines.android)
 }
@@ -85,8 +73,4 @@ protobuf {
             }
         }
     }
-}
-
-hilt {
-    enableAggregatingTask = true
 }

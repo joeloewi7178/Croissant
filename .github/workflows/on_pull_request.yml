@@ -1,19 +1,24 @@
 # This is a basic workflow to help you get started with Actions
-
-name: Build
+name: OnPullRequest
 
 # Controls when the workflow will run
 on:
   # Triggers the workflow on push or pull request events but only for the "master" branch
   pull_request:
-    branches: [ "master" ]
+    branches: [ master ]
+
+env:
+  ALIAS: ${{ secrets.ALIAS }}
+  KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+  KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
   build:
     # The type of runner that the job will run on
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
+    timeout-minutes: 120
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -25,6 +30,9 @@ jobs:
         with:
           distribution: 'zulu' # See 'Supported distributions' for available options
           java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -39,9 +47,10 @@ jobs:
           fileDir: './'
           encodedString: ${{ secrets.SIGNING_KEY }}
 
-      - name: Build with Gradle
-        run: ./gradlew clean build --no-daemon --parallel build
-        env:
-          ALIAS: ${{ secrets.ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+      - name: Build release variant including baseline profile generation
+        run: ./gradlew :app:assembleRelease
+          -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile
+          -Pandroid.testoptions.manageddevices.emulator.gpu="swiftshader_indirect"
+          -Pandroid.experimental.testOptions.managedDevices.emulator.showKernelLogging=true
+          -Pandroid.experimental.androidTest.numManagedDeviceShards=1
+          -Pandroid.experimental.testOptions.managedDevices.maxConcurrentDevices=1

@@ -19,9 +19,3 @@ An android app that can attend HoYoLAB check-in events automatically
 
 - Clean Architecture
 - MVVM
-
-# Before Build & Run
-
-This project uses firebase and not contains *google-services.json* file because it's a server key.
-There will be errors if you only cloned and run it, so you have to get *google-services.json* from
-your own firebase project and put in to cloned project directory.

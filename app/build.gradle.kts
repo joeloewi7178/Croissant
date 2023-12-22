@@ -1,12 +1,12 @@
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
-    id("croissant.android.application")
-    id("croissant.android.application.compose")
-    id("croissant.android.hilt")
-    alias(libs.plugins.gms.google.services)
+    alias(libs.plugins.croissant.android.application)
+    alias(libs.plugins.croissant.android.application.compose)
+    alias(libs.plugins.croissant.android.hilt)
+    alias(libs.plugins.croissant.android.application.firebase)
     id("kotlin-parcelize")
-    alias(libs.plugins.firebase.crashlytics)
     id("com.google.android.gms.oss-licenses-plugin")
+    alias(libs.plugins.androidx.baselineprofile)
 }
 
 kotlin {
@@ -20,8 +20,9 @@ android {
 
     defaultConfig {
         applicationId = "com.joeloewi.croissant"
-        versionCode = 41
-        versionName = "1.2.0"
+        versionCode = 42
+        versionName = "1.2.1"
+        targetSdk = 34
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -50,24 +51,27 @@ android {
             )
             signingConfig = signingConfigs.getByName("release")
         }
-        val benchmark by creating {
-            initWith(release)
-            signingConfig = signingConfigs.getByName("release")
-            matchingFallbacks += listOf("release")
-            isDebuggable = false
-            proguardFiles("baseline-profiles-rules.pro")
-        }
     }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    buildFeatures {
+        buildConfig = true
+    }
+}
+
+baselineProfile {
+    // Don't build on every iteration of a full assemble.
+    // Instead enable generation directly for the release build variant.
+    automaticGenerationDuringBuild = false
 }
 
 dependencies {
     implementation(project(":data"))
     implementation(project(":domain"))
+    baselineProfile(project(":baselineprofile"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.android.material)
@@ -90,7 +94,6 @@ dependencies {
 
     //hilt-extension
     implementation(libs.hilt.ext.work)
-    kapt(libs.hilt.ext.compiler)
 
     //compose
     implementation(libs.androidx.compose.foundation)
@@ -99,6 +102,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.runtime.livedata)
     implementation(libs.androidx.compose.material.iconsExtended)
+    implementation(libs.androidx.compose.ui.util)
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     //accompanist
@@ -140,11 +144,6 @@ dependencies {
     //in-app review
     implementation(libs.android.play.review.ktx)
 
-    //firebase
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.analytics.ktx)
-    implementation(libs.firebase.crashlytics.ktx)
-
     //leakCanary
     debugImplementation(libs.leakcanary.android)
 
@@ -158,8 +157,4 @@ dependencies {
 
     //open source license activity
     implementation(libs.gms.play.services.oss.licenses)
-}
-
-hilt {
-    enableAggregatingTask = true
 }
