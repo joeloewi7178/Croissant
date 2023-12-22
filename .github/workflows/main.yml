@@ -30,6 +30,9 @@ jobs:
           distribution: 'zulu' # See 'Supported distributions' for available options
           java-version: '17'
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
@@ -43,22 +46,13 @@ jobs:
           fileDir: './'
           encodedString: ${{ secrets.SIGNING_KEY }}
 
-      - name: Generate baseline profile
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 33
-          avd-name: baselineProfGenerator
-          target: google_apis
-          arch: x86_64
-          emulator-build: 9322596
-          script: ./gradlew :app:generateBaselineProfile
-
-      - name: Build with Gradle
-        run: ./gradlew assemble
-
-      - name: Build Release AAB
-        id: buildRelease
-        run: ./gradlew bundleRelease
+      - name: Build release variant including baseline profile generation
+        run: ./gradlew :app:assembleDemoRelease
+          -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile
+          -Pandroid.testoptions.manageddevices.emulator.gpu="swiftshader_indirect"
+          -Pandroid.experimental.testOptions.managedDevices.emulator.showKernelLogging=true
+          -Pandroid.experimental.androidTest.numManagedDeviceShards=1
+          -Pandroid.experimental.testOptions.managedDevices.maxConcurrentDevices=1
 
       - name: Upload Android Release to Play Store
         uses: r0adkll/upload-google-play@v1
