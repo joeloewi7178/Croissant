@@ -18,6 +18,7 @@ jobs:
   build:
     # The type of runner that the job will run on
     runs-on: macos-latest
+    timeout-minutes: 120
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -47,7 +48,7 @@ jobs:
           encodedString: ${{ secrets.SIGNING_KEY }}
 
       - name: Build release variant including baseline profile generation
-        run: ./gradlew :app:assembleDemoRelease
+        run: ./gradlew :app:assembleRelease
           -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile
           -Pandroid.testoptions.manageddevices.emulator.gpu="swiftshader_indirect"
           -Pandroid.experimental.testOptions.managedDevices.emulator.showKernelLogging=true
