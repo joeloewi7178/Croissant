@@ -20,29 +20,45 @@ import com.joeloewi.croissant.data.repository.local.ResinStatusWidgetDataSource
 import com.joeloewi.croissant.domain.entity.ResinStatusWidget
 import com.joeloewi.croissant.domain.entity.relational.ResinStatusWidgetWithAccounts
 import com.joeloewi.croissant.domain.repository.ResinStatusWidgetRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class ResinStatusWidgetRepositoryImpl @Inject constructor(
     private val resinStatusWidgetDataSource: ResinStatusWidgetDataSource
 ) : ResinStatusWidgetRepository {
     override suspend fun getAll(): List<ResinStatusWidget> =
-        resinStatusWidgetDataSource.getAll()
+        withContext(Dispatchers.IO) {
+            resinStatusWidgetDataSource.getAll()
+        }
 
     override suspend fun insert(resinStatusWidget: ResinStatusWidget): Long =
-        resinStatusWidgetDataSource.insert(resinStatusWidget)
+        withContext(Dispatchers.IO) {
+            resinStatusWidgetDataSource.insert(resinStatusWidget)
+        }
 
     override suspend fun delete(vararg resinStatusWidgets: ResinStatusWidget): Int =
-        resinStatusWidgetDataSource.delete(*resinStatusWidgets)
+        withContext(Dispatchers.IO) {
+            resinStatusWidgetDataSource.delete(*resinStatusWidgets)
+        }
 
     override suspend fun update(resinStatusWidget: ResinStatusWidget): Int =
-        resinStatusWidgetDataSource.update(resinStatusWidget)
+        withContext(Dispatchers.IO) {
+            resinStatusWidgetDataSource.update(resinStatusWidget)
+        }
 
     override suspend fun getOne(id: Long): ResinStatusWidgetWithAccounts =
-        resinStatusWidgetDataSource.getOne(id)
+        withContext(Dispatchers.IO) {
+            resinStatusWidgetDataSource.getOne(id)
+        }
 
     override suspend fun deleteByAppWidgetId(vararg appWidgetIds: Int): Int =
-        resinStatusWidgetDataSource.deleteByAppWidgetId(*appWidgetIds)
+        withContext(Dispatchers.IO) {
+            resinStatusWidgetDataSource.deleteByAppWidgetId(*appWidgetIds)
+        }
 
     override suspend fun getOneByAppWidgetId(appWidgetId: Int): ResinStatusWidgetWithAccounts =
-        resinStatusWidgetDataSource.getOneByAppWidgetId(appWidgetId)
+        withContext(Dispatchers.IO) {
+            resinStatusWidgetDataSource.getOneByAppWidgetId(appWidgetId)
+        }
 }

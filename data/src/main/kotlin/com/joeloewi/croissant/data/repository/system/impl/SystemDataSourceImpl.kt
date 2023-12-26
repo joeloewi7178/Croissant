@@ -6,6 +6,8 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Handler
 import android.text.format.DateFormat
+import androidx.core.content.PackageManagerCompat
+import androidx.core.content.UnusedAppRestrictionsConstants
 import com.joeloewi.croissant.data.repository.system.SystemDataSource
 import com.joeloewi.croissant.data.system.RootChecker
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -14,6 +16,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.guava.await
 import javax.inject.Inject
 
 class SystemDataSourceImpl @Inject constructor(
@@ -37,4 +40,22 @@ class SystemDataSourceImpl @Inject constructor(
     }.flowOn(Dispatchers.IO)
 
     override suspend fun isDeviceRooted(): Boolean = rootChecker.isDeviceRooted()
+
+    override suspend fun isUnusedAppRestrictionEnabled(): Result<Boolean> = runCatching {
+        PackageManagerCompat.getUnusedAppRestrictionsStatus(context).await()
+    }.mapCatching {
+        when (it) {
+            UnusedAppRestrictionsConstants.API_30_BACKPORT, UnusedAppRestrictionsConstants.API_30, UnusedAppRestrictionsConstants.API_31 -> {
+                true
+            }
+
+            UnusedAppRestrictionsConstants.DISABLED -> {
+                false
+            }
+
+            else -> {
+                throw IllegalStateException()
+            }
+        }
+    }
 }

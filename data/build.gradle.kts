@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.sandwich.retrofit)
 
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.coroutines.guava)
 }
 
 protobuf {

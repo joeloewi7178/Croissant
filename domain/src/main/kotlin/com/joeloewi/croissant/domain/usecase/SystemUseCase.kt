@@ -16,4 +16,10 @@ sealed class SystemUseCase {
     ) {
         suspend operator fun invoke() = systemRepository.isDeviceRooted()
     }
+
+    class IsUnusedAppRestrictionEnabled @Inject constructor(
+        private val systemRepository: SystemRepository
+    ) {
+        suspend operator fun invoke() = systemRepository.isUnusedAppRestrictionEnabled()
+    }
 }

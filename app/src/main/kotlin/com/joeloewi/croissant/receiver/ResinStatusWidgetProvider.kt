@@ -1,6 +1,5 @@
 package com.joeloewi.croissant.receiver
 
-import android.app.Application
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
@@ -37,27 +36,22 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class ResinStatusWidgetProvider : AppWidgetProvider() {
+    private val _processLifecycleOwner by lazy { ProcessLifecycleOwner.get() }
     private val _coroutineContext = Dispatchers.IO + CoroutineExceptionHandler { _, throwable ->
         Firebase.crashlytics.apply {
             log(this@ResinStatusWidgetProvider.javaClass.simpleName)
             recordException(throwable)
         }
     }
-    private val _processLifecycleScope by lazy { ProcessLifecycleOwner.get().lifecycleScope }
 
     @Inject
     lateinit var powerManager: PowerManager
-
-    @Inject
-    lateinit var application: Application
 
     @Inject
     lateinit var getOneByAppWidgetIdResinStatusWidgetUseCase: ResinStatusWidgetUseCase.GetOneByAppWidgetId
 
     @Inject
     lateinit var deleteByAppWidgetIdResinStatusWidgetUseCase: ResinStatusWidgetUseCase.DeleteByAppWidgetId
-
-    private val _processLifecycleOwner by lazy { ProcessLifecycleOwner.get() }
 
     override fun onUpdate(
         context: Context,
@@ -71,20 +65,20 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
             appWidgetIds.map { appWidgetId ->
                 async(Dispatchers.IO) {
                     if (powerManager.isPowerSaveMode && !powerManager.isIgnoringBatteryOptimizationsCompat(
-                            application
+                            context
                         )
                     ) {
                         RemoteViews(
-                            application.packageName,
+                            context.packageName,
                             R.layout.widget_resin_status_battery_optimization_enabled
                         ).apply {
                             setOnClickPendingIntent(
                                 R.id.button_retry,
                                 PendingIntent.getBroadcast(
-                                    application,
+                                    context,
                                     appWidgetId,
                                     Intent(
-                                        application,
+                                        context,
                                         ResinStatusWidgetProvider::class.java
                                     ).apply {
                                         action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
@@ -101,7 +95,7 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
                                 setOnClickPendingIntent(
                                     R.id.button_change_setting,
                                     PendingIntent.getActivity(
-                                        application,
+                                        context,
                                         appWidgetId,
                                         Intent(
                                             Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS
@@ -134,7 +128,7 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
                                     )
                                     .build()
 
-                            WorkManager.getInstance(application).enqueueUniqueWork(
+                            WorkManager.getInstance(context).enqueueUniqueWork(
                                 it.resinStatusWidget.id.toString(),
                                 ExistingWorkPolicy.APPEND_OR_REPLACE,
                                 oneTimeWorkRequest
@@ -160,7 +154,7 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
                         getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
                             invoke(appWidgetId)
                         }.onSuccess {
-                            WorkManager.getInstance(application)
+                            WorkManager.getInstance(context)
                                 .cancelUniqueWork(it.resinStatusWidget.refreshGenshinResinStatusWorkerName.toString())
 
                         }

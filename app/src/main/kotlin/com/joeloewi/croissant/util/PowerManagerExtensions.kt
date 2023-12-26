@@ -1,12 +1,12 @@
 package com.joeloewi.croissant.util
 
-import android.app.Application
+import android.content.Context
 import android.os.Build
 import android.os.PowerManager
 
-fun PowerManager.isIgnoringBatteryOptimizationsCompat(application: Application) =
+fun PowerManager.isIgnoringBatteryOptimizationsCompat(context: Context) =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-        isIgnoringBatteryOptimizations(application.packageName)
+        isIgnoringBatteryOptimizations(context.packageName)
     } else {
         true
     }

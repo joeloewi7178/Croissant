@@ -22,6 +22,8 @@ import com.joeloewi.croissant.domain.common.exception.HoYoLABUnsuccessfulRespons
 import com.joeloewi.croissant.domain.entity.BaseResponse
 import com.joeloewi.croissant.domain.repository.CheckInRepository
 import com.skydoves.sandwich.getOrThrow
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class CheckInRepositoryImpl @Inject constructor(
@@ -29,8 +31,24 @@ class CheckInRepositoryImpl @Inject constructor(
 ) : CheckInRepository {
 
     override suspend fun attend(actId: String, cookie: String): Result<BaseResponse> =
+        withContext(Dispatchers.IO) {
+            checkInDataSource.runCatching {
+                attend(actId, cookie).getOrThrow().also { response ->
+                    if (HoYoLABRetCode.findByCode(response.retCode) != HoYoLABRetCode.OK) {
+                        throw HoYoLABUnsuccessfulResponseException(
+                            responseMessage = response.message,
+                            retCode = response.retCode
+                        )
+                    }
+                }
+            }
+        }
+
+    override suspend fun attendCheckInGenshinImpact(
+        cookie: String
+    ): Result<BaseResponse> = withContext(Dispatchers.IO) {
         checkInDataSource.runCatching {
-            attend(actId, cookie).getOrThrow().also { response ->
+            attendCheckInGenshinImpact(cookie).getOrThrow().also { response ->
                 if (HoYoLABRetCode.findByCode(response.retCode) != HoYoLABRetCode.OK) {
                     throw HoYoLABUnsuccessfulResponseException(
                         responseMessage = response.message,
@@ -39,29 +57,19 @@ class CheckInRepositoryImpl @Inject constructor(
                 }
             }
         }
-
-    override suspend fun attendCheckInGenshinImpact(
-        cookie: String
-    ): Result<BaseResponse> = checkInDataSource.runCatching {
-        attendCheckInGenshinImpact(cookie).getOrThrow().also { response ->
-            if (HoYoLABRetCode.findByCode(response.retCode) != HoYoLABRetCode.OK) {
-                throw HoYoLABUnsuccessfulResponseException(
-                    responseMessage = response.message,
-                    retCode = response.retCode
-                )
-            }
-        }
     }
 
     override suspend fun attendCheckInHonkaiImpact3rd(
         cookie: String
-    ): Result<BaseResponse> = checkInDataSource.runCatching {
-        attendCheckInHonkaiImpact3rd(cookie).getOrThrow().also { response ->
-            if (HoYoLABRetCode.findByCode(response.retCode) != HoYoLABRetCode.OK) {
-                throw HoYoLABUnsuccessfulResponseException(
-                    responseMessage = response.message,
-                    retCode = response.retCode
-                )
+    ): Result<BaseResponse> = withContext(Dispatchers.IO) {
+        checkInDataSource.runCatching {
+            attendCheckInHonkaiImpact3rd(cookie).getOrThrow().also { response ->
+                if (HoYoLABRetCode.findByCode(response.retCode) != HoYoLABRetCode.OK) {
+                    throw HoYoLABUnsuccessfulResponseException(
+                        responseMessage = response.message,
+                        retCode = response.retCode
+                    )
+                }
             }
         }
     }
