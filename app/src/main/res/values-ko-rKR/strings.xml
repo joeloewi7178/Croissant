@@ -130,4 +130,9 @@
     <string name="confirm_delete_attendance_job">이 출석작업을 삭제하시겠습니까?</string>
     <string name="permission_schedule_exact_alarms_label">정확한 알람 예약</string>
     <string name="permission_schedule_exact_alarms_detailed_description">"출석을 정확히 지정한 시간에 실행합니다. "</string>
+    <string name="maintenance">관리</string>
+    <string name="ignore_battery_optimizations">배터리 최적화 무시</string>
+    <string name="ignore_battery_optimizations_description">절전모드 등으로 인해 출석이 안 될 수도 있는 문제를 방지합니다.</string>
+    <string name="disable_app_hibernation">앱 최대 절전모드 비활성화</string>
+    <string name="disable_app_hibernation_description">앱을 오랫동안 실행하지 않아 출석이 안 될 수도 있는 문제를 방지합니다.</string>
 </resources>

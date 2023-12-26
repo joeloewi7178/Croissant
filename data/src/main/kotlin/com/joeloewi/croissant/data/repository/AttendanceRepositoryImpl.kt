@@ -21,31 +21,46 @@ import com.joeloewi.croissant.data.repository.local.AttendanceDataSource
 import com.joeloewi.croissant.domain.entity.Attendance
 import com.joeloewi.croissant.domain.entity.relational.AttendanceWithGames
 import com.joeloewi.croissant.domain.repository.AttendanceRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class AttendanceRepositoryImpl @Inject constructor(
     private val attendanceDataSource: AttendanceDataSource,
 ) : AttendanceRepository {
-    override suspend fun insert(attendance: Attendance): Long =
+    override suspend fun insert(attendance: Attendance): Long = withContext(Dispatchers.IO) {
         attendanceDataSource.insert(attendance)
+    }
 
-    override suspend fun update(vararg attendances: Attendance): Int =
+    override suspend fun update(vararg attendances: Attendance): Int = withContext(Dispatchers.IO) {
         attendanceDataSource.update(*attendances)
+    }
 
-    override suspend fun delete(vararg attendances: Attendance): Int =
+    override suspend fun delete(vararg attendances: Attendance): Int = withContext(Dispatchers.IO) {
         attendanceDataSource.delete(*attendances)
+    }
 
-    override suspend fun getOneByUid(uid: Long): Attendance = attendanceDataSource.getOneByUid(uid)
+
+    override suspend fun getOneByUid(uid: Long): Attendance = withContext(Dispatchers.IO) {
+        attendanceDataSource.getOneByUid(uid)
+    }
 
     override suspend fun getOne(id: Long): AttendanceWithGames =
-        attendanceDataSource.getOne(id)
+        withContext(Dispatchers.IO) {
+            attendanceDataSource.getOne(id)
+        }
 
     override suspend fun getByIds(vararg ids: Long): List<AttendanceWithGames> =
-        attendanceDataSource.getByIds(*ids)
+        withContext(Dispatchers.IO) {
+            attendanceDataSource.getByIds(*ids)
+        }
 
     override fun getAllPaged(): Flow<PagingData<AttendanceWithGames>> =
-        attendanceDataSource.getAllPaged()
+        attendanceDataSource.getAllPaged().flowOn(Dispatchers.IO)
 
-    override suspend fun getAllOneShot(): List<Attendance> = attendanceDataSource.getAllOneShot()
+    override suspend fun getAllOneShot(): List<Attendance> = withContext(Dispatchers.IO) {
+        attendanceDataSource.getAllOneShot()
+    }
 }
