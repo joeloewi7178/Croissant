@@ -136,4 +136,5 @@
     <string name="ignore_battery_optimizations_description">Prevent problems that can caused by power saver mode</string>
     <string name="disable_app_hibernation">Disable app hibernation</string>
     <string name="disable_app_hibernation_description">Prevent problems that can happen when system treat this app as unused app</string>
+    <string name="select_time">Select time</string>
 </resources>

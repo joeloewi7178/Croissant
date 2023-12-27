@@ -31,9 +31,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.joeloewi.croissant.R
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -47,29 +49,30 @@ fun TimeAndTimePicker(
     onHourOfDayChange: (Int) -> Unit,
     onMinuteChange: (Int) -> Unit
 ) {
-    var showTimePicker by remember { mutableStateOf(false) }
-    val state = rememberTimePickerState(
-        initialHour = hourOfDay(),
-        initialMinute = minute()
-    )
     val configuration = LocalConfiguration.current
-    var showingPicker by remember { mutableStateOf(true) }
-    val localTime by remember {
-        derivedStateOf {
-            ZonedDateTime.now().withHour(hourOfDay()).withMinute(minute())
-                .toLocalTime()
-                .format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT))
-        }
-    }
+    var showTimePicker by remember { mutableStateOf(false) }
 
     TextButton(
         modifier = modifier,
         onClick = { showTimePicker = true }
     ) {
+        val localTime by remember {
+            derivedStateOf {
+                ZonedDateTime.now().withHour(hourOfDay()).withMinute(minute())
+                    .toLocalTime()
+                    .format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT))
+            }
+        }
+
         Text(text = localTime)
     }
 
     if (showTimePicker) {
+        var showingPicker by remember { mutableStateOf(true) }
+        val state = rememberTimePickerState(
+            initialHour = hourOfDay(),
+            initialMinute = minute()
+        )
         TimePickerDialog(
             onCancel = { showTimePicker = false },
             onConfirm = {
@@ -109,7 +112,7 @@ fun TimeAndTimePicker(
 
 @Composable
 fun TimePickerDialog(
-    title: String = "Select Time",
+    title: String = stringResource(id = R.string.select_time),
     onCancel: () -> Unit,
     onConfirm: () -> Unit,
     toggle: @Composable () -> Unit = {},
@@ -154,12 +157,12 @@ fun TimePickerDialog(
                     TextButton(
                         onClick = onCancel
                     ) {
-                        Text("Cancel")
+                        Text(stringResource(id = R.string.dismiss))
                     }
                     TextButton(
                         onClick = onConfirm
                     ) {
-                        Text("OK")
+                        Text(stringResource(id = R.string.confirm))
                     }
                 }
             }
