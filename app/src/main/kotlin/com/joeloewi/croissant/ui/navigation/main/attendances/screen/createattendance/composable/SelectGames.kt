@@ -133,18 +133,29 @@ fun SelectGames(
     }
 
     LaunchedEffect(checkedGames().isEmpty()) {
-        val isEmpty = checkedGames().isEmpty()
+        withContext(Dispatchers.IO) {
+            snapshotFlow(connectedGames).catch { }.collect {
+                when (it) {
+                    is LCE.Content -> {
+                        val isEmpty = checkedGames().isEmpty()
 
-        if (isEmpty) {
-            snackbarHostState.apply {
-                currentSnackbarData?.dismiss()
-                showSnackbar(
-                    message = chooseAtLeastOneGame,
-                    duration = SnackbarDuration.Indefinite
-                )
+                        if (isEmpty) {
+                            snackbarHostState.apply {
+                                currentSnackbarData?.dismiss()
+                                showSnackbar(
+                                    message = chooseAtLeastOneGame,
+                                    duration = SnackbarDuration.Indefinite
+                                )
+                            }
+                        } else {
+                            snackbarHostState.currentSnackbarData?.dismiss()
+                        }
+                    }
+                    else -> {
+
+                    }
+                }
             }
-        } else {
-            snackbarHostState.currentSnackbarData?.dismiss()
         }
     }
 
