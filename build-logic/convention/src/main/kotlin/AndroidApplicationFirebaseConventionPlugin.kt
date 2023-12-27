@@ -40,7 +40,7 @@ class AndroidApplicationFirebaseConventionPlugin : Plugin<Project> {
             extensions.configure<ApplicationExtension> {
                 buildTypes.configureEach {
                     configure<CrashlyticsExtension> {
-                        mappingFileUploadEnabled = isMinifyEnabled
+                        mappingFileUploadEnabled = this@configureEach.name == "release"
                     }
                 }
             }
