@@ -165,7 +165,8 @@ fun CreateAttendanceContent(
 
         HorizontalPager(
             modifier = Modifier.padding(innerPadding),
-            state = pagerState
+            state = pagerState,
+            userScrollEnabled = false
         ) { page ->
             when (page) {
                 0 -> {

@@ -19,17 +19,25 @@ package com.joeloewi.croissant.data.repository
 import com.joeloewi.croissant.data.repository.local.GameDataSource
 import com.joeloewi.croissant.domain.entity.Game
 import com.joeloewi.croissant.domain.repository.GameRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class GameRepositoryImpl @Inject constructor(
     private val gameDataSource: GameDataSource
 ) : GameRepository {
     override suspend fun insert(vararg games: Game): List<Long> =
-        gameDataSource.insert(*games)
+        withContext(Dispatchers.IO) {
+            gameDataSource.insert(*games)
+        }
 
     override suspend fun update(vararg games: Game): Int =
-        gameDataSource.update(*games)
+        withContext(Dispatchers.IO) {
+            gameDataSource.update(*games)
+        }
 
     override suspend fun delete(vararg games: Game): Int =
-        gameDataSource.delete(*games)
+        withContext(Dispatchers.IO) {
+            gameDataSource.delete(*games)
+        }
 }

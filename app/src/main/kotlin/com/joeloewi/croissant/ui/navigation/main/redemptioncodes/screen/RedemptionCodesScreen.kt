@@ -262,7 +262,7 @@ private fun RedemptionCodeListItem(
     ) {
         Column {
             TopAppBar(
-                colors = TopAppBarDefaults.smallTopAppBarColors(
+                colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant
                 ),
                 navigationIcon = {

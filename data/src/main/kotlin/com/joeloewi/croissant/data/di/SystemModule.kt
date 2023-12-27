@@ -1,7 +1,6 @@
 package com.joeloewi.croissant.data.di
 
 import android.app.AlarmManager
-import android.app.AppOpsManager
 import android.content.Context
 import android.os.Handler
 import android.os.HandlerThread
@@ -29,11 +28,6 @@ object SystemModule {
         }.let {
             HandlerCompat.createAsync(it.looper)
         }
-
-    @Provides
-    fun provideAppOpsManager(
-        @ApplicationContext context: Context
-    ): AppOpsManager = context.getSystemService()!!
 
     @Provides
     fun provideAlarmManager(
