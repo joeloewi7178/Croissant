@@ -151,6 +151,7 @@ fun SelectGames(
                             snackbarHostState.currentSnackbarData?.dismiss()
                         }
                     }
+
                     else -> {
 
                     }
@@ -414,8 +415,7 @@ fun ConnectedGamesContentListItem(
 
     val enabled by remember(hoYoLABGame, gameRecord) {
         derivedStateOf {
-            hoYoLABGame == HoYoLABGame.TearsOfThemis || hoYoLABGame == HoYoLABGame.HonkaiStarRail ||
-                    (hoYoLABGame != HoYoLABGame.GenshinImpact && currentGameRecord.value.gameId != GameRecord.INVALID_GAME_ID)
+            hoYoLABGame == HoYoLABGame.TearsOfThemis || hoYoLABGame == HoYoLABGame.HonkaiStarRail || currentGameRecord.value.gameId != GameRecord.INVALID_GAME_ID
         }
     }
 

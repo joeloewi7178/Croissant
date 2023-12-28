@@ -29,8 +29,6 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 import java.time.Instant
 import java.time.ZoneId
@@ -54,14 +52,170 @@ class RefreshResinStatusWorker @AssistedInject constructor(
         inputData.getInt(APP_WIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
     private val _appWidgetManager by lazy { AppWidgetManager.getInstance(context) }
 
+    private fun createErrorDueToPowerSaveModeRemoteViews() = RemoteViews(
+        context.packageName,
+        R.layout.widget_resin_status_battery_optimization_enabled
+    ).apply {
+        setOnClickPendingIntent(
+            R.id.button_retry,
+            PendingIntent.getBroadcast(
+                context,
+                _appWidgetId,
+                Intent(
+                    context,
+                    ResinStatusWidgetProvider::class.java
+                ).apply {
+                    action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+
+                    putExtra(
+                        AppWidgetManager.EXTRA_APPWIDGET_IDS,
+                        intArrayOf(_appWidgetId)
+                    )
+                },
+                pendingIntentFlagUpdateCurrent
+            )
+        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            setOnClickPendingIntent(
+                R.id.button_change_setting,
+                PendingIntent.getActivity(
+                    context,
+                    _appWidgetId,
+                    Intent(
+                        Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS
+                    ),
+                    pendingIntentFlagUpdateCurrent
+                )
+            )
+        } else {
+            setViewVisibility(R.id.button_change_setting, View.INVISIBLE)
+        }
+    }
+
+    private fun createUnknownErrorRemoteViews() = RemoteViews(
+        context.packageName,
+        R.layout.widget_resin_status_error
+    ).apply {
+        setOnClickPendingIntent(
+            R.id.button_retry,
+            PendingIntent.getBroadcast(
+                context,
+                _appWidgetId,
+                Intent(
+                    context,
+                    ResinStatusWidgetProvider::class.java
+                ).apply {
+                    action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+
+                    putExtra(
+                        AppWidgetManager.EXTRA_APPWIDGET_IDS,
+                        intArrayOf(_appWidgetId)
+                    )
+                },
+                pendingIntentFlagUpdateCurrent
+            )
+        )
+    }
+
+    private fun createLoadingRemoteViews() = RemoteViews(
+        context.packageName,
+        R.layout.widget_resin_status_loading
+    )
+
+    private fun createContentRemoteViews(resinStatuses: List<ResinStatus>) = RemoteViews(
+        context.packageName,
+        R.layout.widget_resin_status
+    ).apply {
+        //set timestamp
+        val dateTimeFormatter =
+            DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
+
+        val localDateTime =
+            Instant.now()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime()
+        val readableTimestamp = dateTimeFormatter.format(localDateTime)
+
+        setTextViewText(R.id.widget_timestamp, readableTimestamp)
+
+        //set click listener
+        setOnClickPendingIntent(
+            R.id.widget_refresh,
+            PendingIntent.getBroadcast(
+                context,
+                _appWidgetId,
+                Intent(
+                    context,
+                    ResinStatusWidgetProvider::class.java
+                ).apply {
+                    action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+
+                    putExtra(
+                        AppWidgetManager.EXTRA_APPWIDGET_IDS,
+                        intArrayOf(_appWidgetId)
+                    )
+                },
+                pendingIntentFlagUpdateCurrent
+            )
+        )
+
+        //set resin status
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val items = RemoteViews.RemoteCollectionItems.Builder()
+                .apply {
+                    resinStatuses.forEach {
+                        addItem(
+                            it.id,
+                            RemoteViews(
+                                context.packageName,
+                                android.R.layout.two_line_list_item
+                            ).apply {
+                                setTextViewText(
+                                    android.R.id.text1,
+                                    it.nickname
+                                )
+                                setTextViewText(
+                                    android.R.id.text2,
+                                    "${it.currentResin} / ${it.maxResin}"
+                                )
+                            }
+                        )
+                    }
+                }
+                .setViewTypeCount(1)
+                .setHasStableIds(false)
+                .build()
+
+            setRemoteAdapter(
+                R.id.resin_statuses,
+                items
+            )
+        } else {
+            val serviceIntent = Intent(
+                context,
+                RemoteViewsFactoryService::class.java
+            )
+
+            val extrasBundle = bundleOf().apply {
+                putParcelableArrayList(
+                    ListRemoteViewsFactory.RESIN_STATUSES,
+                    ArrayList(resinStatuses)
+                )
+            }
+
+            serviceIntent.putExtra(ListRemoteViewsFactory.BUNDLE, extrasBundle)
+
+            setRemoteAdapter(
+                R.id.resin_statuses, serviceIntent
+            )
+        }
+    }
+
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         runCatching {
             if (powerManager.isInteractive) {
                 //loading view
-                RemoteViews(
-                    context.packageName,
-                    R.layout.widget_resin_status_loading
-                ).also { remoteViews ->
+                createLoadingRemoteViews().let { remoteViews ->
                     _appWidgetManager.updateAppWidget(
                         _appWidgetId,
                         remoteViews
@@ -71,147 +225,57 @@ class RefreshResinStatusWorker @AssistedInject constructor(
                 val resinStatusWidgetWithAccounts =
                     getOneByAppWidgetIdResinStatusWidgetUseCase(_appWidgetId)
 
-                val resinStatuses =
-                    resinStatusWidgetWithAccounts.accounts.map { account ->
-                        async(Dispatchers.IO) {
-                            getGameRecordCardHoYoLABUseCase.runCatching {
-                                invoke(
-                                    cookie = account.cookie,
-                                    uid = account.uid
-                                ).getOrThrow()?.list
-                            }.mapCatching { gameRecords ->
-                                gameRecords?.find { gameRecord ->
-                                    HoYoLABGame.findByGameId(gameRecord.gameId) == HoYoLABGame.GenshinImpact
-                                }!!
-                            }.mapCatching { gameRecord ->
-                                val isDailyNoteEnabled =
-                                    gameRecord.dataSwitches.find { it.switchId == DataSwitch.GENSHIN_IMPACT_DAILY_NOTE_SWITCH_ID }?.isPublic
+                val resinStatuses = resinStatusWidgetWithAccounts.accounts.map { account ->
+                    getGameRecordCardHoYoLABUseCase.runCatching {
+                        invoke(
+                            cookie = account.cookie,
+                            uid = account.uid
+                        ).getOrThrow()?.list
+                    }.mapCatching { gameRecords ->
+                        gameRecords?.find { gameRecord ->
+                            HoYoLABGame.findByGameId(gameRecord.gameId) == HoYoLABGame.GenshinImpact
+                        }!!
+                    }.mapCatching { gameRecord ->
+                        val isDailyNoteEnabled =
+                            gameRecord.dataSwitches.find { it.switchId == DataSwitch.GENSHIN_IMPACT_DAILY_NOTE_SWITCH_ID }?.isPublic
 
-                                if (isDailyNoteEnabled == false) {
-                                    changeDataSwitchHoYoLABUseCase(
-                                        cookie = account.cookie,
-                                        switchId = DataSwitch.GENSHIN_IMPACT_DAILY_NOTE_SWITCH_ID,
-                                        isPublic = true,
-                                        gameId = gameRecord.gameId,
-                                    ).getOrThrow()
-                                }
-
-                                val genshinDailyNote = getGenshinDailyNoteHoYoLABUseCase(
-                                    cookie = account.cookie,
-                                    server = gameRecord.region,
-                                    roleId = gameRecord.gameRoleId
-                                ).getOrThrow()
-
-                                ResinStatus(
-                                    id = account.id,
-                                    nickname = gameRecord.nickname,
-                                    currentResin = genshinDailyNote?.currentResin
-                                        ?: 0,
-                                    maxResin = genshinDailyNote?.maxResin
-                                        ?: 0
-                                )
-                            }.fold(
-                                onSuccess = {
-                                    it
-                                },
-                                onFailure = { cause ->
-                                    if (cause is CancellationException) {
-                                        throw cause
-                                    }
-                                    ResinStatus()
-                                }
-                            )
+                        if (isDailyNoteEnabled == false) {
+                            changeDataSwitchHoYoLABUseCase(
+                                cookie = account.cookie,
+                                switchId = DataSwitch.GENSHIN_IMPACT_DAILY_NOTE_SWITCH_ID,
+                                isPublic = true,
+                                gameId = gameRecord.gameId,
+                            ).getOrThrow()
                         }
-                    }.awaitAll()
 
-                RemoteViews(
-                    context.packageName,
-                    R.layout.widget_resin_status
-                ).apply {
-                    //set timestamp
-                    val dateTimeFormatter =
-                        DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
+                        val genshinDailyNote = getGenshinDailyNoteHoYoLABUseCase(
+                            cookie = account.cookie,
+                            server = gameRecord.region,
+                            roleId = gameRecord.gameRoleId
+                        ).getOrThrow()
 
-                    val localDateTime =
-                        Instant.now()
-                            .atZone(ZoneId.systemDefault())
-                            .toLocalDateTime()
-                    val readableTimestamp = dateTimeFormatter.format(localDateTime)
-
-                    setTextViewText(R.id.widget_timestamp, readableTimestamp)
-
-                    //set click listener
-                    setOnClickPendingIntent(
-                        R.id.widget_refresh,
-                        PendingIntent.getBroadcast(
-                            context,
-                            _appWidgetId,
-                            Intent(
-                                context,
-                                ResinStatusWidgetProvider::class.java
-                            ).apply {
-                                action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-
-                                putExtra(
-                                    AppWidgetManager.EXTRA_APPWIDGET_IDS,
-                                    intArrayOf(_appWidgetId)
-                                )
-                            },
-                            pendingIntentFlagUpdateCurrent
+                        ResinStatus(
+                            id = account.id,
+                            nickname = gameRecord.nickname,
+                            currentResin = genshinDailyNote?.currentResin
+                                ?: 0,
+                            maxResin = genshinDailyNote?.maxResin
+                                ?: 0
                         )
-                    )
-
-                    //set resin status
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        val items = RemoteViews.RemoteCollectionItems.Builder()
-                            .apply {
-                                resinStatuses.forEach {
-                                    addItem(
-                                        it.id,
-                                        RemoteViews(
-                                            context.packageName,
-                                            android.R.layout.two_line_list_item
-                                        ).apply {
-                                            setTextViewText(
-                                                android.R.id.text1,
-                                                it.nickname
-                                            )
-                                            setTextViewText(
-                                                android.R.id.text2,
-                                                "${it.currentResin} / ${it.maxResin}"
-                                            )
-                                        }
-                                    )
-                                }
+                    }.fold(
+                        onSuccess = {
+                            it
+                        },
+                        onFailure = { cause ->
+                            if (cause is CancellationException) {
+                                throw cause
                             }
-                            .setViewTypeCount(1)
-                            .setHasStableIds(false)
-                            .build()
-
-                        setRemoteAdapter(
-                            R.id.resin_statuses,
-                            items
-                        )
-                    } else {
-                        val serviceIntent = Intent(
-                            context,
-                            RemoteViewsFactoryService::class.java
-                        )
-
-                        val extrasBundle = bundleOf().apply {
-                            putParcelableArrayList(
-                                ListRemoteViewsFactory.RESIN_STATUSES,
-                                ArrayList(resinStatuses)
-                            )
+                            ResinStatus()
                         }
+                    )
+                }
 
-                        serviceIntent.putExtra(ListRemoteViewsFactory.BUNDLE, extrasBundle)
-
-                        setRemoteAdapter(
-                            R.id.resin_statuses, serviceIntent
-                        )
-                    }
-                }.let { remoteViews ->
+                createContentRemoteViews(resinStatuses).let { remoteViews ->
                     _appWidgetManager.updateAppWidget(
                         _appWidgetId,
                         remoteViews
@@ -235,81 +299,15 @@ class RefreshResinStatusWorker @AssistedInject constructor(
                 }
 
                 if (powerManager.isPowerSaveMode) {
-                    RemoteViews(
-                        context.packageName,
-                        R.layout.widget_resin_status_battery_optimization_enabled
-                    ).apply {
-                        setOnClickPendingIntent(
-                            R.id.button_retry,
-                            PendingIntent.getBroadcast(
-                                context,
-                                _appWidgetId,
-                                Intent(
-                                    context,
-                                    ResinStatusWidgetProvider::class.java
-                                ).apply {
-                                    action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-
-                                    putExtra(
-                                        AppWidgetManager.EXTRA_APPWIDGET_IDS,
-                                        intArrayOf(_appWidgetId)
-                                    )
-                                },
-                                pendingIntentFlagUpdateCurrent
-                            )
-                        )
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                            setOnClickPendingIntent(
-                                R.id.button_change_setting,
-                                PendingIntent.getActivity(
-                                    context,
-                                    _appWidgetId,
-                                    Intent(
-                                        Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS
-                                    ),
-                                    pendingIntentFlagUpdateCurrent
-                                )
-                            )
-                        } else {
-                            setViewVisibility(R.id.button_change_setting, View.INVISIBLE)
-                        }
-                    }.also { remoteViews ->
-                        _appWidgetManager?.updateAppWidget(
-                            _appWidgetId,
-                            remoteViews
-                        )
-                    }
+                    createErrorDueToPowerSaveModeRemoteViews()
                 } else {
                     //error view
-                    RemoteViews(
-                        context.packageName,
-                        R.layout.widget_resin_status_error
-                    ).apply {
-                        setOnClickPendingIntent(
-                            R.id.button_retry,
-                            PendingIntent.getBroadcast(
-                                context,
-                                _appWidgetId,
-                                Intent(
-                                    context,
-                                    ResinStatusWidgetProvider::class.java
-                                ).apply {
-                                    action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-
-                                    putExtra(
-                                        AppWidgetManager.EXTRA_APPWIDGET_IDS,
-                                        intArrayOf(_appWidgetId)
-                                    )
-                                },
-                                pendingIntentFlagUpdateCurrent
-                            )
-                        )
-                    }.also { remoteViews ->
-                        _appWidgetManager.updateAppWidget(
-                            _appWidgetId,
-                            remoteViews
-                        )
-                    }
+                    createUnknownErrorRemoteViews()
+                }.let { remoteViews ->
+                    _appWidgetManager?.updateAppWidget(
+                        _appWidgetId,
+                        remoteViews
+                    )
                 }
 
                 Result.failure()

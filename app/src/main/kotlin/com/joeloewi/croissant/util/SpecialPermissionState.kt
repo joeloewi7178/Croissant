@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.AlarmManager
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
@@ -45,17 +44,7 @@ enum class SpecialPermission {
     IgnoreBatteryOptimization {
         override fun getIntentForRequest(context: Context): Intent =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                val withPackage =
-                    Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                        data = Uri.parse("package:${context.packageName}")
-                    }
-                val withoutPackage =
-                    Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
-
-                listOf(
-                    withPackage,
-                    withoutPackage
-                ).find { it.resolveActivity(context.packageManager) != null }!!
+                Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
             } else {
                 //this intent won't be launched
                 Intent()
