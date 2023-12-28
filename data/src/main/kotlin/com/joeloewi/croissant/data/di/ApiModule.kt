@@ -119,6 +119,14 @@ object ApiModule {
 
     @Singleton
     @Provides
+    fun provideGenshinImpactCheckInService(retrofitBuilder: Retrofit.Builder): GenshinImpactCheckInService =
+        retrofitBuilder
+            .baseUrl("https://sg-hk4e-api.hoyolab.com/")
+            .build()
+            .create()
+
+    @Singleton
+    @Provides
     fun provideCommonCheckInService(retrofitBuilder: Retrofit.Builder): CheckInService =
         retrofitBuilder
             .baseUrl("https://sg-public-api.hoyolab.com/")

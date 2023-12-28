@@ -33,13 +33,6 @@ interface CheckInService {
         @Header("Cookie") cookie: String
     ): Call<ApiResponse<AttendanceResponse>>
 
-    @POST("event/sol/sign")
-    fun attendCheckInGenshinImpact(
-        @Query("act_id") actId: String = "e202102251931481",
-        @Query("lang") language: String = Locale.getDefault().toLanguageTag().lowercase(),
-        @Header("Cookie") cookie: String
-    ): Call<ApiResponse<AttendanceResponse>>
-
     @POST("event/mani/sign")
     fun attendCheckInHonkaiImpact3rd(
         @Query("act_id") actId: String = "e202110291205111",

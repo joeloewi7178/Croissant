@@ -1,8 +1,6 @@
 package com.joeloewi.croissant.ui.navigation.main.settings.screen
 
 import android.content.Intent
-import android.net.Uri
-import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -164,13 +162,6 @@ fun SettingsContent(
                         value = ignoreBatteryOptimizations.status.isGranted,
                         role = Role.Switch,
                         onValueChange = {
-                            if (ignoreBatteryOptimizations.status.isGranted) {
-                                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                    data = Uri.fromParts("package", activity.packageName, null)
-                                }.let {
-                                    activity.startActivity(it)
-                                }
-                            }
                             ignoreBatteryOptimizations.launchPermissionRequest()
                         }
                     ),
