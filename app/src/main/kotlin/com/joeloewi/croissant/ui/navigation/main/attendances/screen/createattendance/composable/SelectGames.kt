@@ -40,8 +40,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
@@ -97,6 +99,9 @@ fun SelectGames(
     val containsNotSupportedGame = stringResource(id = R.string.contains_not_supported_game)
     val chooseAtLeastOneGame = stringResource(id = R.string.choose_at_least_one_game)
     val lazyListState = rememberLazyListState()
+    var showDuplicateAlertDialog by remember(duplicatedAttendance()) {
+        mutableStateOf(duplicatedAttendance() != null)
+    }
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
@@ -277,13 +282,16 @@ fun SelectGames(
             }
         }
 
-        if (duplicatedAttendance() != null) {
+        if (showDuplicateAlertDialog) {
             AlertDialog(
-                onDismissRequest = { },
+                onDismissRequest = {
+                    showDuplicateAlertDialog = false
+                },
                 confirmButton = {
                     TextButton(
                         onClick = {
                             duplicatedAttendance()?.id?.let {
+                                showDuplicateAlertDialog = false
                                 onNavigateToAttendanceDetailScreen(it)
                             }
                         }
@@ -294,6 +302,7 @@ fun SelectGames(
                 dismissButton = {
                     TextButton(
                         onClick = {
+                            showDuplicateAlertDialog = false
                             onCancelCreateAttendance()
                         }
                     ) {

@@ -8,8 +8,4 @@
         <item name="android:background">@drawable/app_widget_background</item>
     </style>
 
-    <style name="Widget.Croissant.AppWidget.InnerView" parent="android:Widget">
-        <item name="android:padding">?attr/appWidgetPadding</item>
-        <item name="android:background">@drawable/app_widget_inner_view_background</item>
-    </style>
 </resources>

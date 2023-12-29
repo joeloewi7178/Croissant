@@ -191,7 +191,8 @@ private fun AttendanceLogsCalendarContent(
                     key = {
                         startToEnd().second.minusMonths(it.toLong())
                             .format(DateTimeFormatter.ofPattern("yyyy-MM"))
-                    }
+                    },
+                    reverseLayout = true
                 ) { page ->
 
                     MonthPage(

@@ -56,6 +56,7 @@ fun CreateAttendanceScreen(
     createAttendanceViewModel: CreateAttendanceViewModel = hiltViewModel(),
     newCookie: () -> String,
     onLoginHoYoLAB: () -> Unit,
+    onNavigateToAttendanceDetailScreen: (Long) -> Unit,
     onNavigateUp: () -> Unit
 ) {
     val insertAttendanceState by createAttendanceViewModel.insertAttendanceState.collectAsStateWithLifecycle()
@@ -78,6 +79,7 @@ fun CreateAttendanceScreen(
         onHourOfDayChange = createAttendanceViewModel::setHourOfDay,
         onMinuteChange = createAttendanceViewModel::setMinute,
         onCreateAttendance = createAttendanceViewModel::createAttendance,
+        onNavigateToAttendanceDetailScreen = onNavigateToAttendanceDetailScreen,
         onNavigateUp = onNavigateUp
     )
 }
@@ -97,6 +99,7 @@ fun CreateAttendanceContent(
     onHourOfDayChange: (Int) -> Unit,
     onMinuteChange: (Int) -> Unit,
     onCreateAttendance: () -> Unit,
+    onNavigateToAttendanceDetailScreen: (Long) -> Unit,
     onNavigateUp: () -> Unit
 ) {
     val pagerState = rememberPagerState { 3 }
@@ -185,12 +188,8 @@ fun CreateAttendanceContent(
                                 pagerState.scrollToPage(page + 1)
                             }
                         },
-                        onNavigateToAttendanceDetailScreen = {
-
-                        },
-                        onCancelCreateAttendance = {
-
-                        }
+                        onNavigateToAttendanceDetailScreen = onNavigateToAttendanceDetailScreen,
+                        onCancelCreateAttendance = onNavigateUp
                     )
                 }
 

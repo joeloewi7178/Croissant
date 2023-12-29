@@ -143,7 +143,7 @@ class MainActivity : AppCompatActivity() {
                     LocalHourFormat provides hourFormat
                 ) {
                     RequireAppUpdate(
-                        appUpdateResultState = appUpdateResultState,
+                        appUpdateResultState = { appUpdateResultState },
                     ) {
                         CroissantApp(
                             isDeviceRooted = isDeviceRooted
@@ -387,6 +387,15 @@ fun CroissantNavHost(
                     newCookie = { newCookie },
                     onLoginHoYoLAB = {
                         navController.value.navigate(AttendancesDestination.LoginHoYoLabScreen.route)
+                    },
+                    onNavigateToAttendanceDetailScreen = {
+                        navController.value.navigate(
+                            AttendancesDestination.AttendanceDetailScreen().generateRoute(it)
+                        ) {
+                            popUpTo(AttendancesDestination.CreateAttendanceScreen.route) {
+                                inclusive = true
+                            }
+                        }
                     },
                     onNavigateUp = {
                         navController.value.navigateUp()

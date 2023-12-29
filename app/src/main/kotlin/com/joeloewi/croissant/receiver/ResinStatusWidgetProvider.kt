@@ -1,15 +1,9 @@
 package com.joeloewi.croissant.receiver
 
-import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
-import android.content.Intent
-import android.os.Build
 import android.os.PowerManager
-import android.provider.Settings
-import android.view.View
-import android.widget.RemoteViews
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.work.Constraints
@@ -20,15 +14,15 @@ import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics
-import com.joeloewi.croissant.R
 import com.joeloewi.croissant.domain.usecase.ResinStatusWidgetUseCase
+import com.joeloewi.croissant.util.createErrorDueToPowerSaveModeRemoteViews
 import com.joeloewi.croissant.util.isIgnoringBatteryOptimizationsCompat
-import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
 import com.joeloewi.croissant.worker.RefreshResinStatusWorker
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
@@ -53,6 +47,9 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
     @Inject
     lateinit var deleteByAppWidgetIdResinStatusWidgetUseCase: ResinStatusWidgetUseCase.DeleteByAppWidgetId
 
+    @Inject
+    lateinit var workManager: WorkManager
+
     override fun onUpdate(
         context: Context,
         appWidgetManager: AppWidgetManager,
@@ -63,55 +60,15 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
 
         _processLifecycleOwner.lifecycleScope.launch(_coroutineContext) {
             appWidgetIds.map { appWidgetId ->
-                async(Dispatchers.IO) {
+                async(SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
                     if (powerManager.isPowerSaveMode && !powerManager.isIgnoringBatteryOptimizationsCompat(
                             context
                         )
                     ) {
-                        RemoteViews(
-                            context.packageName,
-                            R.layout.widget_resin_status_battery_optimization_enabled
-                        ).apply {
-                            setOnClickPendingIntent(
-                                R.id.button_retry,
-                                PendingIntent.getBroadcast(
-                                    context,
-                                    appWidgetId,
-                                    Intent(
-                                        context,
-                                        ResinStatusWidgetProvider::class.java
-                                    ).apply {
-                                        action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-
-                                        putExtra(
-                                            AppWidgetManager.EXTRA_APPWIDGET_IDS,
-                                            intArrayOf(appWidgetId)
-                                        )
-                                    },
-                                    pendingIntentFlagUpdateCurrent
-                                )
-                            )
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                setOnClickPendingIntent(
-                                    R.id.button_change_setting,
-                                    PendingIntent.getActivity(
-                                        context,
-                                        appWidgetId,
-                                        Intent(
-                                            Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS
-                                        ),
-                                        pendingIntentFlagUpdateCurrent
-                                    )
-                                )
-                            } else {
-                                setViewVisibility(R.id.button_change_setting, View.INVISIBLE)
-                            }
-                        }.also { remoteViews ->
-                            appWidgetManager.updateAppWidget(
-                                appWidgetId,
-                                remoteViews
-                            )
-                        }
+                        appWidgetManager.updateAppWidget(
+                            appWidgetId,
+                            createErrorDueToPowerSaveModeRemoteViews(context, appWidgetId)
+                        )
                     } else {
                         getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
                             invoke(appWidgetId)
@@ -128,7 +85,7 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
                                     )
                                     .build()
 
-                            WorkManager.getInstance(context).enqueueUniqueWork(
+                            workManager.enqueueUniqueWork(
                                 it.resinStatusWidget.id.toString(),
                                 ExistingWorkPolicy.APPEND_OR_REPLACE,
                                 oneTimeWorkRequest
@@ -147,16 +104,14 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
         super.onDeleted(context, appWidgetIds)
 
-        _processLifecycleOwner.lifecycleScope.launch(Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
+        _processLifecycleOwner.lifecycleScope.launch(_coroutineContext) {
             appWidgetIds.run {
                 map { appWidgetId ->
-                    async(Dispatchers.IO) {
+                    async(SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
                         getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
                             invoke(appWidgetId)
                         }.onSuccess {
-                            WorkManager.getInstance(context)
-                                .cancelUniqueWork(it.resinStatusWidget.refreshGenshinResinStatusWorkerName.toString())
-
+                            workManager.cancelUniqueWork(it.resinStatusWidget.refreshGenshinResinStatusWorkerName.toString())
                         }
                     }
                 }.awaitAll()

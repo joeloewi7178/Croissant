@@ -203,6 +203,7 @@ private fun AttendanceDetailContent(
         snapshotFlow(deleteAttendanceState).catch { }.collect {
             when (it) {
                 is ILCE.Content -> {
+                    showConfirmDeleteDialog = false
                     onNavigateUp()
                 }
 

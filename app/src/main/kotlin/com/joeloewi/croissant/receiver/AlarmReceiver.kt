@@ -26,6 +26,7 @@ import com.joeloewi.croissant.worker.AttendCheckInEventWorker
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
@@ -55,12 +56,15 @@ class AlarmReceiver : BroadcastReceiver() {
     @Inject
     lateinit var alarmManager: AlarmManager
 
+    @Inject
+    lateinit var workManager: WorkManager
+
     override fun onReceive(p0: Context, p1: Intent) {
         when (p1.action) {
             Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED, AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED -> {
                 _processLifecycleScope.launch(_coroutineContext) {
                     getAllOneShotAttendanceUseCase().map { attendance ->
-                        async(Dispatchers.IO) {
+                        async(SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
                             attendance.runCatching {
                                 val alarmIntent =
                                     Intent(application, AlarmReceiver::class.java).apply {
@@ -130,7 +134,7 @@ class AlarmReceiver : BroadcastReceiver() {
                         )
                         .build()
 
-                    WorkManager.getInstance(application).beginUniqueWork(
+                    workManager.beginUniqueWork(
                         attendance.oneTimeAttendCheckInEventWorkerName.toString(),
                         ExistingWorkPolicy.APPEND_OR_REPLACE,
                         oneTimeWork

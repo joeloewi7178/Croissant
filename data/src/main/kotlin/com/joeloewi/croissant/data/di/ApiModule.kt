@@ -63,10 +63,9 @@ object ApiModule {
         })
         .run {
             if (BuildConfig.DEBUG) {
-                addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
-            } else {
-                this
+                return@run addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
             }
+            return@run this
         }
         .build()
 

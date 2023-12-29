@@ -11,7 +11,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.navigation.NavBackStackEntry
-import androidx.navigation.NavHostController
 
 @Composable
 fun ViewModelStoreOwner?.navigationIconButton(
@@ -34,15 +33,5 @@ fun ViewModelStoreOwner?.navigationIconButton(
         {
 
         }
-    }
-}
-
-
-fun <T> getResultFromPreviousComposable(
-    navController: NavHostController,
-    key: String
-): T? = navController.currentBackStackEntry?.savedStateHandle?.run {
-    get<T>(key).apply {
-        this@run.remove<T>(key)
     }
 }
