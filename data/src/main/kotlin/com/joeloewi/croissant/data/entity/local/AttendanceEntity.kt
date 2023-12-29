@@ -1,19 +1,11 @@
 package com.joeloewi.croissant.data.entity.local
 
 import androidx.room.Entity
-import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.util.TimeZone
 import java.util.UUID
 
-@Entity(
-    indices = [
-        Index(
-            value = ["createdAt"],
-            orders = [Index.Order.DESC]
-        )
-    ]
-)
+@Entity
 data class AttendanceEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
