@@ -26,7 +26,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
@@ -70,7 +69,7 @@ class CreateResinStatusWidgetViewModel @Inject constructor(
     }
 
     fun setInterval(interval: Long) {
-        _interval.update { interval }
+        _interval.value = interval
     }
 
     fun configureAppWidget() {
