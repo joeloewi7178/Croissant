@@ -121,6 +121,7 @@ obj/
 .idea/navEditor.xml
 .idea/inspectionProfiles
 .idea/deploymentTargetDropDown.xml
+.idea/appInsightsSettings.xml
 
 # Legacy Eclipse project files
 .classpath

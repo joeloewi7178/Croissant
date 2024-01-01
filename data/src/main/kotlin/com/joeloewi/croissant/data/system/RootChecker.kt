@@ -60,21 +60,21 @@ class RootChecker(
 
     suspend fun isDeviceRooted(): Boolean = withContext(Dispatchers.IO) {
         awaitAll(
-            async(SupervisorJob()) {
+            async(SupervisorJob() + Dispatchers.IO) {
                 try {
                     isRootFilesExists()
                 } catch (_: Throwable) {
                     false
                 }
             },
-            async(SupervisorJob()) {
+            async(SupervisorJob() + Dispatchers.IO) {
                 try {
                     isSUExists()
                 } catch (_: Throwable) {
                     false
                 }
             },
-            async(SupervisorJob()) {
+            async(SupervisorJob() + Dispatchers.IO) {
                 try {
                     hasRootPackages()
                 } catch (_: Throwable) {
@@ -106,14 +106,7 @@ class RootChecker(
             process = it
             it.inputStream.bufferedReader(Charset.forName("UTF-8"))
                 .use { reader -> reader.readLine() } != null
-        }.fold(
-            onSuccess = {
-                it
-            },
-            onFailure = {
-                false
-            }
-        ).also {
+        }.getOrDefault(false).also {
             process?.destroy()
         }
     }
@@ -129,13 +122,6 @@ class RootChecker(
                     it.getPackageInfo(pkg, 0)
                 }
             }
-        }.fold(
-            onSuccess = {
-                true
-            },
-            onFailure = {
-                false
-            }
-        )
+        }.getOrNull() != null
     }
 }

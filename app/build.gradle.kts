@@ -20,7 +20,7 @@ android {
 
     defaultConfig {
         applicationId = "com.joeloewi.croissant"
-        versionCode = 43
+        versionCode = 44
         versionName = "1.2.1"
         targetSdk = 34
 
@@ -63,9 +63,7 @@ android {
 }
 
 baselineProfile {
-    // Don't build on every iteration of a full assemble.
-    // Instead enable generation directly for the release build variant.
-    automaticGenerationDuringBuild = false
+    automaticGenerationDuringBuild = true
 }
 
 dependencies {

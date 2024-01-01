@@ -189,14 +189,15 @@ private fun AttendanceLogsCalendarContent(
                     modifier = Modifier.fillMaxSize(),
                     state = pagerState,
                     key = {
-                        startToEnd().first.plusMonths(it.toLong())
+                        startToEnd().second.minusMonths(it.toLong())
                             .format(DateTimeFormatter.ofPattern("yyyy-MM"))
-                    }
+                    },
+                    reverseLayout = true
                 ) { page ->
 
                     MonthPage(
                         yearMonth = {
-                            with(startToEnd().first.plusMonths(page.toLong())) {
+                            with(startToEnd().second.minusMonths(page.toLong())) {
                                 Year.of(year).atMonth(month)
                             }
                         },

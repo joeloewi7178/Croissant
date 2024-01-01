@@ -63,10 +63,9 @@ object ApiModule {
         })
         .run {
             if (BuildConfig.DEBUG) {
-                addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
-            } else {
-                this
+                return@run addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
             }
+            return@run this
         }
         .build()
 
@@ -114,6 +113,14 @@ object ApiModule {
     fun provideHoYoLabService(retrofitBuilder: Retrofit.Builder): HoYoLABService =
         retrofitBuilder
             .baseUrl("https://bbs-api-os.hoyolab.com/")
+            .build()
+            .create()
+
+    @Singleton
+    @Provides
+    fun provideGenshinImpactCheckInService(retrofitBuilder: Retrofit.Builder): GenshinImpactCheckInService =
+        retrofitBuilder
+            .baseUrl("https://sg-hk4e-api.hoyolab.com/")
             .build()
             .create()
 

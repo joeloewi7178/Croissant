@@ -15,8 +15,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Card
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -33,10 +31,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.lifecycle.flowWithLifecycle
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.theme.DefaultDp
@@ -136,31 +130,6 @@ fun SetTime(
                     hourOfDay = hourOfDay,
                     minute = minute
                 )
-            }
-
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Row(
-                    modifier = Modifier.padding(DefaultDp),
-                ) {
-                    Icon(
-                        modifier = Modifier.padding(DefaultDp),
-                        imageVector = Icons.Default.Star,
-                        contentDescription = Icons.Default.Star.name
-                    )
-                    Text(
-                        modifier = Modifier.padding(DefaultDp),
-                        text = buildAnnotatedString {
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append(stringResource(id = R.string.note))
-                                append(": ")
-                            }
-                            append(stringResource(id = R.string.first_execution_is_for_reference))
-                        },
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
             }
         }
     }

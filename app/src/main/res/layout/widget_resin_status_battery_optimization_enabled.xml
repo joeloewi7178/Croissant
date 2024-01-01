@@ -10,14 +10,12 @@
     android:theme="@style/Theme.Croissant.AppWidgetContainer">
 
     <ImageView
-        android:id="@+id/error_icon"
         android:layout_width="wrap_content"
         android:layout_height="72dp"
         android:adjustViewBounds="true"
         android:src="@drawable/ic_baseline_error_24" />
 
     <TextView
-        android:id="@+id/text_view_error_occurred"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="center"

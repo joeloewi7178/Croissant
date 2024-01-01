@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -52,20 +51,17 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.DefaultAlpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastForEach
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.google.accompanist.placeholder.PlaceholderHighlight
-import com.google.accompanist.placeholder.fade
-import com.google.accompanist.placeholder.placeholder
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.domain.common.LoggableWorker
@@ -82,6 +78,7 @@ import com.joeloewi.croissant.util.gameNameStringResId
 import com.joeloewi.croissant.util.navigationIconButton
 import com.joeloewi.croissant.util.requestReview
 import com.joeloewi.croissant.viewmodel.AttendanceDetailViewModel
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
@@ -166,7 +163,7 @@ private fun AttendanceDetailContent(
     val snackbarHostState = remember { SnackbarHostState() }
     val pressSaveButton = stringResource(id = R.string.press_save_button_to_commit)
     val list by rememberUpdatedState(
-        newValue = listOf(
+        newValue = persistentListOf(
             stringResource(id = R.string.uid) to uid().toString(),
             stringResource(id = R.string.nickname) to nickname,
         )
@@ -206,6 +203,7 @@ private fun AttendanceDetailContent(
         snapshotFlow(deleteAttendanceState).catch { }.collect {
             when (it) {
                 is ILCE.Content -> {
+                    showConfirmDeleteDialog = false
                     onNavigateUp()
                 }
 
@@ -299,7 +297,7 @@ private fun AttendanceDetailContent(
             }
 
             item("sessionInfos") {
-                list.forEach {
+                list.fastForEach {
                     SessionInfoRow(
                         key = it.first,
                         value = it.second
@@ -457,7 +455,6 @@ fun ConnectedGameListItem(
     )
 
     Card(
-        enabled = game.type != HoYoLABGame.GenshinImpact,
         onClick = {
             val checked = checkedGames().contains(game)
 
@@ -487,7 +484,6 @@ fun ConnectedGameListItem(
                 )
 
                 Checkbox(
-                    enabled = game.type != HoYoLABGame.GenshinImpact,
                     modifier = Modifier.weight(1f),
                     checked = checkedGames().contains(game),
                     onCheckedChange = null
@@ -501,81 +497,6 @@ fun ConnectedGameListItem(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(hoYoLABGame.gameIconUrl)
                     .build(),
-                alpha = if (game.type != HoYoLABGame.GenshinImpact) {
-                    DefaultAlpha
-                } else {
-                    0.38f
-                },
-                contentDescription = null
-            )
-        }
-    }
-}
-
-@Composable
-fun ConnectedGameListItemPlaceHolder(
-    modifier: Modifier,
-) {
-    Card(
-        modifier = modifier.size(120.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(DefaultDp)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    modifier = Modifier
-                        .width(64.dp)
-                        .placeholder(
-                            visible = true,
-                            shape = MaterialTheme.shapes.extraSmall,
-                            color = MaterialTheme.colorScheme.outline,
-                            highlight = PlaceholderHighlight.fade(
-                                highlightColor = MaterialTheme.colorScheme.surfaceVariant,
-                            )
-                        ),
-                    text = ""
-                )
-
-                AsyncImage(
-                    modifier = Modifier
-                        .size(IconDp)
-                        .placeholder(
-                            visible = true,
-                            shape = MaterialTheme.shapes.extraSmall,
-                            color = MaterialTheme.colorScheme.outline,
-                            highlight = PlaceholderHighlight.fade(
-                                highlightColor = MaterialTheme.colorScheme.surfaceVariant,
-                            )
-                        ),
-                    model = ImageRequest.Builder(
-                        LocalContext.current
-                    ).build(),
-                    contentDescription = null
-                )
-            }
-
-            AsyncImage(
-                modifier = Modifier
-                    .size(IconDp)
-                    .placeholder(
-                        visible = true,
-                        shape = MaterialTheme.shapes.extraSmall,
-                        color = MaterialTheme.colorScheme.outline,
-                        highlight = PlaceholderHighlight.fade(
-                            highlightColor = MaterialTheme.colorScheme.surfaceVariant,
-                        )
-                    ),
-                model = ImageRequest.Builder(
-                    LocalContext.current
-                ).build(),
                 contentDescription = null
             )
         }

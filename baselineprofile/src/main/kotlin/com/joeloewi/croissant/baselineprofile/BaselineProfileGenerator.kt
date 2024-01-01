@@ -38,14 +38,14 @@ class BaselineProfileGenerator {
     @Test
     fun generate() {
         rule.collect(
-            packageName = "com.zerodesktop.appdetox.qualitytime",
+            packageName = "com.joeloewi.croissant",
             includeInStartupProfile = true
         ) {
             pressHome()
             startActivityAndWait()
         }
 
-        rule.collect("com.zerodesktop.appdetox.qualitytime") {
+        rule.collect("com.joeloewi.croissant") {
             // This block defines the app's critical user journey. Here we are interested in
             // optimizing for app startup. But you can also navigate and scroll
             // through your most important UI.

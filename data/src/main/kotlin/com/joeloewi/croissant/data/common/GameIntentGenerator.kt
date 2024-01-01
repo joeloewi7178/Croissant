@@ -42,7 +42,7 @@ fun generateGameIntent(
     context.packageManager.getLaunchIntentForPackage(it.first)
         ?: if (it.second.authority?.contains("taptap.io") == true) {
             //for chinese server
-            Intent(Intent.ACTION_VIEW, it.second)
+            return@let Intent(Intent.ACTION_VIEW, it.second)
         } else {
             Intent(Intent.ACTION_VIEW).apply {
                 addCategory(Intent.CATEGORY_DEFAULT)

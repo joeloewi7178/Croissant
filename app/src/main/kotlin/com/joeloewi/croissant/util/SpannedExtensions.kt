@@ -31,12 +31,13 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastForEach
 
 @OptIn(ExperimentalTextApi::class)
 fun Spanned.toAnnotatedString(): AnnotatedString = buildAnnotatedString {
     val spanned = this@toAnnotatedString
     append(spanned.toString())
-    getSpans(0, spanned.length, Any::class.java).forEachIndexed { _, span ->
+    getSpans(0, spanned.length, Any::class.java).toList().fastForEach { span ->
         val start = getSpanStart(span)
         val end = getSpanEnd(span)
 
@@ -51,7 +52,7 @@ fun Spanned.toAnnotatedString(): AnnotatedString = buildAnnotatedString {
                 ), start, end
             )
 
-            is AlignmentSpan -> addStyle(
+            /*is AlignmentSpan -> addStyle(
                 ParagraphStyle(
                     textAlign = when (span.alignment) {
                         Layout.Alignment.ALIGN_CENTER -> {
@@ -69,7 +70,7 @@ fun Spanned.toAnnotatedString(): AnnotatedString = buildAnnotatedString {
                         else -> null
                     }
                 ), start, end
-            )
+            )*/
 
             is BackgroundColorSpan -> addStyle(
                 SpanStyle(background = Color(span.backgroundColor)),

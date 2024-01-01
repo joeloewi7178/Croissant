@@ -20,6 +20,8 @@ import com.joeloewi.croissant.R
 import com.joeloewi.croissant.data.common.generateGameIntent
 import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class NotificationGenerator(
     private val context: Context,
@@ -62,6 +64,24 @@ class NotificationGenerator(
             .setName(context.getString(R.string.attendance_foreground_notification_channel_name))
             .setVibrationPattern(null)
             .build()
+    }
+
+    private suspend fun NotificationCompat.Builder.setLargeIconViaCoil(
+        resource: Any,
+        context: Context
+    ): NotificationCompat.Builder {
+        val gameIcon = context.imageLoader.runCatching {
+            execute(
+                ImageRequest.Builder(context = context)
+                    .data(resource)
+                    .build()
+            ).drawable
+        }.getOrNull()
+
+        if (gameIcon != null) {
+            return setLargeIcon(gameIcon.toBitmap())
+        }
+        return this
     }
 
     fun createNotificationChannels() = _notificationManagerCompat.createNotificationChannelsCompat(
@@ -115,17 +135,7 @@ class NotificationGenerator(
         .setContentText("$message (${retCode})")
         .setAutoCancel(true)
         .setSmallIcon(R.drawable.ic_baseline_bakery_dining_24)
-        .apply {
-            context.imageLoader.runCatching {
-                execute(
-                    ImageRequest.Builder(context = context)
-                        .data(hoYoLABGame.gameIconUrl)
-                        .build()
-                ).drawable
-            }.getOrNull()?.run {
-                setLargeIcon(toBitmap())
-            }
-        }
+        .setLargeIconViaCoil(hoYoLABGame.gameIconUrl, context)
         .apply {
             val pendingIntentFlag = pendingIntentFlagUpdateCurrent
 
@@ -162,17 +172,7 @@ class NotificationGenerator(
         .setContentText(context.getString(R.string.attendance_failed))
         .setAutoCancel(true)
         .setSmallIcon(R.drawable.ic_baseline_bakery_dining_24)
-        .apply {
-            context.imageLoader.runCatching {
-                execute(
-                    ImageRequest.Builder(context = context)
-                        .data(hoYoLABGame.gameIconUrl)
-                        .build()
-                ).drawable
-            }.getOrNull()?.run {
-                setLargeIcon(toBitmap())
-            }
-        }
+        .setLargeIconViaCoil(hoYoLABGame.gameIconUrl, context)
         .apply {
             val pendingIntent = TaskStackBuilder.create(context).run {
                 addNextIntentWithParentStack(
@@ -211,17 +211,16 @@ class NotificationGenerator(
         .build()
         .run {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                ForegroundInfo(
+                return@run ForegroundInfo(
                     notificationId,
                     this,
                     ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
                 )
-            } else {
-                ForegroundInfo(
-                    notificationId,
-                    this
-                )
             }
+            return@run ForegroundInfo(
+                notificationId,
+                this
+            )
         }
 
     fun createCheckSessionNotification(
@@ -254,11 +253,11 @@ class NotificationGenerator(
         }
         .build()
 
-    fun safeNotify(
+    suspend fun safeNotify(
         tag: String,
         notificationId: Int,
         notification: Notification
-    ) {
+    ) = withContext(Dispatchers.IO) {
         if (context.packageManager.checkPermission(
                 CroissantPermission.PostNotifications.permission,
                 context.packageName
