@@ -10,6 +10,7 @@ import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.util.AlarmScheduler
 import com.joeloewi.croissant.util.NotificationGenerator
+import com.joeloewi.croissant.util.TextToSpeechFactory
 import com.joeloewi.croissant.util.impl.AlarmSchedulerImpl
 import com.joeloewi.croissant.util.impl.RunnableSchedulerImpl
 import dagger.Binds
@@ -18,8 +19,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import nl.marc_apps.tts.TextToSpeechEngine
-import nl.marc_apps.tts.TextToSpeechFactory
 import okhttp3.OkHttpClient
 import javax.inject.Singleton
 
@@ -44,7 +43,7 @@ object UtilModule {
     @Provides
     fun provideTextToSpeechFactory(
         @ApplicationContext context: Context
-    ): TextToSpeechFactory = TextToSpeechFactory(context, TextToSpeechEngine.SystemDefault)
+    ): TextToSpeechFactory = TextToSpeechFactory(context)
 
     @Provides
     fun provideNotificationGenerator(

@@ -151,8 +151,6 @@ dependencies {
 
     implementation(libs.androidx.profileinstaller)
 
-    implementation(libs.tts)
-
     //open source license activity
     implementation(libs.gms.play.services.oss.licenses)
 }
