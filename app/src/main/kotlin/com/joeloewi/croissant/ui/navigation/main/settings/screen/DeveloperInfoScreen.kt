@@ -2,6 +2,7 @@ package com.joeloewi.croissant.ui.navigation.main.settings.screen
 
 import android.content.Intent
 import android.net.Uri
+import android.speech.tts.TextToSpeech
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -37,6 +38,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.os.bundleOf
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
@@ -49,7 +51,6 @@ import com.joeloewi.croissant.util.navigationIconButton
 import com.joeloewi.croissant.viewmodel.DeveloperInfoViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import nl.marc_apps.tts.TextToSpeechInstance
 
 @Composable
 fun DeveloperInfoScreen(
@@ -67,7 +68,7 @@ fun DeveloperInfoScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DeveloperInfoContent(
-    textToSpeech: () -> LCE<TextToSpeechInstance>,
+    textToSpeech: () -> LCE<TextToSpeech>,
     onNavigateUp: () -> Unit
 ) {
     val activity = LocalActivity.current
@@ -111,7 +112,12 @@ private fun DeveloperInfoContent(
                             ) {
                                 coroutineScope.launch(Dispatchers.IO) {
                                     textToSpeech().content?.runCatching {
-                                        say("안아줘요", true)
+                                        speak(
+                                            "안아줘요",
+                                            TextToSpeech.QUEUE_FLUSH,
+                                            bundleOf(),
+                                            "hug_me"
+                                        )
                                     }
                                 }
                             },
