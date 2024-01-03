@@ -23,6 +23,9 @@
 
             <data android:scheme="*" />
         </intent>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
     </queries>
 
     <permission

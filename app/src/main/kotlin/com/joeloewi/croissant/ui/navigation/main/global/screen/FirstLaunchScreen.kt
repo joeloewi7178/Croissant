@@ -62,6 +62,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
+import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.theme.DefaultDp
@@ -101,7 +102,7 @@ private fun FirstLaunchContent(
             CroissantPermission.PostNotifications.permission
         ),
         onPermissionsResult = {
-            if (scheduleExactAlarmPermissionState.status != PermissionStatus.Granted) {
+            if (!scheduleExactAlarmPermissionState.status.isGranted) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                     val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
 

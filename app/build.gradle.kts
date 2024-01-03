@@ -20,7 +20,7 @@ android {
 
     defaultConfig {
         applicationId = "com.joeloewi.croissant"
-        versionCode = 44
+        versionCode = 45
         versionName = "1.2.1"
         targetSdk = 34
 
@@ -150,8 +150,6 @@ dependencies {
     implementation(libs.kotlinx.collections.immutable)
 
     implementation(libs.androidx.profileinstaller)
-
-    implementation(libs.tts)
 
     //open source license activity
     implementation(libs.gms.play.services.oss.licenses)
