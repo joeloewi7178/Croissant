@@ -1,5 +1,6 @@
 package com.joeloewi.croissant.util
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.PendingIntent
 import android.content.Context
@@ -195,6 +196,7 @@ class NotificationGenerator(
         }
         .build()
 
+    @SuppressLint("InlinedApi")
     fun createForegroundInfo(notificationId: Int): ForegroundInfo = NotificationCompat
         .Builder(
             context,
@@ -214,7 +216,7 @@ class NotificationGenerator(
                 return@run ForegroundInfo(
                     notificationId,
                     this,
-                    ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE
                 )
             }
             return@run ForegroundInfo(
