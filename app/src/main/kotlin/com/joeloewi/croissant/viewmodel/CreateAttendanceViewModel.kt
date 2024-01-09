@@ -142,9 +142,8 @@ class CreateAttendanceViewModel @Inject constructor(
                 }
             }.mapCatching { attendance ->
                 alarmScheduler.scheduleCheckInAlarm(
-                    attendanceId = attendance.id,
-                    hourOfDay = attendance.hourOfDay,
-                    minute = attendance.minute
+                    attendance = attendance,
+                    scheduleForTomorrow = false
                 )
 
                 val periodicCheckSessionWork = PeriodicWorkRequest.Builder(

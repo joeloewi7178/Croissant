@@ -167,9 +167,8 @@ class AttendanceDetailViewModel @Inject constructor(
                 workManager.cancelUniqueWork(attendance.attendCheckInEventWorkerName.toString())
 
                 alarmScheduler.scheduleCheckInAlarm(
-                    attendanceId = attendance.id,
-                    hourOfDay = _hourOfDay.value,
-                    minute = _minute.value
+                    attendance = attendance,
+                    scheduleForTomorrow = false
                 )
 
                 val periodicCheckSessionWork = PeriodicWorkRequest.Builder(
