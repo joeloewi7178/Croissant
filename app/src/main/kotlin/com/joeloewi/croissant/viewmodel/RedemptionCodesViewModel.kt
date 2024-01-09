@@ -72,7 +72,7 @@ class RedemptionCodesViewModel @Inject constructor(
                             repeat(5) {
                                 select("body > p:last-child").remove()
                             }
-                        }.html().replace("모유", "체력")
+                        }.html()
                     }
                 }
 
