@@ -110,8 +110,10 @@ androidx-test-ext-junit-ktx = { group = "androidx.test.ext", name = "junit-ktx",
 androidx-test-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "androidxTestUiAutomater" }
 androidx-benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "androidxBenchmarkMacroJunit4" }
 coil-kt-bom = { group = "io.coil-kt", name = "coil-bom", version.ref = "coil" }
-coil-kt-base = { group = "io.coil-kt", name = "coil-base" }
+coil-kt = { group = "io.coil-kt", name = "coil-base" }
 coil-kt-compose = { group = "io.coil-kt", name = "coil-compose" }
+coil-kt-svg = { group = "io.coil-kt", name = "coil-svg" }
+coil-kt-gif = { group = "io.coil-kt", name = "coil-gif" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-ext-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "hiltExt" }
 hilt-ext-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "hiltExt" }

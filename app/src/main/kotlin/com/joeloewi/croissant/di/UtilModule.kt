@@ -1,12 +1,18 @@
 package com.joeloewi.croissant.di
 
 import android.content.Context
+import android.os.Build
 import android.text.format.DateFormat
 import androidx.work.RunnableScheduler
 import androidx.work.WorkManager
 import coil.ImageLoader
+import coil.decode.GifDecoder
+import coil.decode.ImageDecoderDecoder
+import coil.decode.SvgDecoder
+import coil.util.DebugLogger
 import com.google.android.play.core.appupdate.AppUpdateManager
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+import com.joeloewi.croissant.BuildConfig
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.util.AlarmScheduler
 import com.joeloewi.croissant.util.NotificationGenerator
@@ -57,7 +63,23 @@ object UtilModule {
         okHttpClient: OkHttpClient
     ): ImageLoader = ImageLoader.Builder(context)
         .crossfade(true)
-        .okHttpClient(okHttpClient)
+        .components {
+            add(SvgDecoder.Factory())
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                add(ImageDecoderDecoder.Factory())
+            } else {
+                add(GifDecoder.Factory())
+            }
+        }
+        .run {
+            if (BuildConfig.DEBUG) {
+                logger(DebugLogger())
+            } else {
+                this
+            }
+        }
+        .okHttpClient { okHttpClient }
         .placeholder(R.drawable.image_placeholder)
         .build()
 }

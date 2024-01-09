@@ -124,8 +124,10 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
 
     //image load
-    implementation(libs.coil.kt.base)
+    implementation(libs.coil.kt)
     implementation(libs.coil.kt.compose)
+    implementation(libs.coil.kt.svg)
+    implementation(libs.coil.kt.gif)
 
     //webkit
     implementation(libs.androidx.webkit)

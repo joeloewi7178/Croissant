@@ -59,20 +59,20 @@ class CreateAttendanceViewModel @Inject constructor(
         .filter { it.isNotEmpty() }
         .map { cookie ->
             getUserFullInfoHoYoLABUseCase(cookie = cookie).getOrThrow().data?.userInfo
-        }.flowOn(Dispatchers.IO).catch {
-
-        }.stateIn(
+        }
+        .flowOn(Dispatchers.IO)
+        .catch {}
+        .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Lazily,
             initialValue = null
         )
     val duplicatedAttendance = _userInfo
         .filterNotNull()
-        .map {
-            getOneByUidAttendanceUseCase(it.uid)
-        }.flowOn(Dispatchers.IO).catch {
-
-        }.stateIn(
+        .map { getOneByUidAttendanceUseCase(it.uid) }
+        .flowOn(Dispatchers.IO)
+        .catch {}
+        .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Lazily,
             initialValue = null
