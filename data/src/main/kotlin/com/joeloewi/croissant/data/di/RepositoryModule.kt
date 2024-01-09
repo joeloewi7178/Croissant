@@ -52,6 +52,9 @@ interface RepositoryModule {
     fun bindResultCountRepository(resultCountRepositoryImpl: ResultCountRepositoryImpl): ResultCountRepository
 
     @Binds
+    fun bindResultRangeRepository(resultRangeRepositoryImpl: ResultRangeRepositoryImpl): ResultRangeRepository
+
+    @Binds
     fun bindSettingsRepository(settingsRepositoryImpl: SettingsRepositoryImpl): SettingsRepository
 
     @Binds

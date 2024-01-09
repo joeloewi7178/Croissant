@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.joeloewi.croissant.domain.common.LoggableWorker
 import com.joeloewi.croissant.domain.usecase.ResultCountUseCase
+import com.joeloewi.croissant.domain.usecase.ResultRangeUseCase
 import com.joeloewi.croissant.domain.usecase.WorkerExecutionLogUseCase
 import com.joeloewi.croissant.state.ILCE
 import com.joeloewi.croissant.state.foldAsILCE
@@ -30,7 +31,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AttendanceLogsCalendarViewModel @Inject constructor(
     private val deleteAllPagedWorkerExecutionLogUseCase: WorkerExecutionLogUseCase.DeleteAll,
-    getStartToEndWorkerExecutionLogUseCase: WorkerExecutionLogUseCase.GetStartToEnd,
+    getStartToEnd: ResultRangeUseCase.GetStartToEnd,
     getAllResultCountUseCase: ResultCountUseCase.GetAll,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -53,11 +54,13 @@ class AttendanceLogsCalendarViewModel @Inject constructor(
         started = SharingStarted.Eagerly,
         initialValue = persistentListOf()
     )
-    val startToEnd = getStartToEndWorkerExecutionLogUseCase().map {
-        ZonedDateTime.ofInstant(
-            Instant.ofEpochMilli(it.first),
-            ZoneId.systemDefault()
-        ) to ZonedDateTime.ofInstant(Instant.ofEpochMilli(it.second), ZoneId.systemDefault())
+    val startToEnd = loggableWorker.flatMapLatest {
+        getStartToEnd(it).map {
+            ZonedDateTime.ofInstant(
+                Instant.ofEpochMilli(it.start),
+                ZoneId.systemDefault()
+            ) to ZonedDateTime.ofInstant(Instant.ofEpochMilli(it.end), ZoneId.systemDefault())
+        }
     }.flowOn(Dispatchers.IO).stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(),

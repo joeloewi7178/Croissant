@@ -24,6 +24,7 @@ import com.joeloewi.croissant.data.database.dao.FailureLogDao
 import com.joeloewi.croissant.data.database.dao.GameDao
 import com.joeloewi.croissant.data.database.dao.ResinStatusWidgetDao
 import com.joeloewi.croissant.data.database.dao.ResultCountDao
+import com.joeloewi.croissant.data.database.dao.ResultRangeDao
 import com.joeloewi.croissant.data.database.dao.SuccessLogDao
 import com.joeloewi.croissant.data.database.dao.WorkerExecutionLogDao
 import com.joeloewi.croissant.data.entity.local.AccountEntity
@@ -56,6 +57,7 @@ abstract class CroissantDatabase : RoomDatabase() {
     abstract fun resinStatusWidgetDao(): ResinStatusWidgetDao
     abstract fun accountDao(): AccountDao
     abstract fun resultCountDao(): ResultCountDao
+    abstract fun resultRangeDao(): ResultRangeDao
 
     companion object {
         const val LATEST_VERSION = 1
