@@ -81,7 +81,9 @@ class RedemptionCodesViewModel @Inject constructor(
                         slug = "genshin",
                         articleId = 95519559
                     ).mapCatching { content ->
-                        Jsoup.parse(content).select("table:first-of-type").apply {
+                        Jsoup.parse(content).apply {
+                            select("img").remove()
+                        }.select("table:first-of-type").apply {
                             select("tr:last-child").remove()
                         }.html().replace("https://oo.pe/", "")
                     }
