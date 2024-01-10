@@ -1,11 +1,9 @@
 package com.joeloewi.croissant.ui.navigation.main.attendances.screen
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -49,9 +47,9 @@ import androidx.compose.material3.rememberDismissState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
@@ -100,8 +98,11 @@ import com.joeloewi.croissant.util.isEmpty
 import com.joeloewi.croissant.util.requestReview
 import com.joeloewi.croissant.viewmodel.AttendancesViewModel
 import com.joeloewi.croissant.worker.AttendCheckInEventWorker
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -426,41 +427,37 @@ private fun DismissContent(
             )
         },
         trailingContent = {
-            val workInfos by WorkManager.getInstance(LocalContext.current)
-                .getWorkInfosForUniqueWorkLiveData(attendanceWithGames().value.attendance.oneTimeAttendCheckInEventWorkerName.toString())
-                .observeAsState()
-            val isRunning by remember(workInfos) {
-                derivedStateOf {
-                    workInfos?.any { it.state == WorkInfo.State.RUNNING }
-                }
-            }
+            val context = LocalContext.current
+            val workerName =
+                attendanceWithGames().value.attendance.oneTimeAttendCheckInEventWorkerName.toString()
+            val isRunning by remember(context, workerName) {
+                WorkManager.getInstance(context)
+                    .getWorkInfosForUniqueWorkFlow(workerName)
+                    .map { list -> list.any { it.state == WorkInfo.State.RUNNING } }
+                    .flowOn(Dispatchers.IO)
+            }.collectAsState(initial = false)
 
             IconButton(
-                enabled = isRunning == false,
+                enabled = !isRunning,
                 onClick = remember {
                     { onClickOneTimeAttend(attendanceWithGames().value.attendance) }
                 }
             ) {
-                AnimatedVisibility(
-                    visible = isRunning == false,
-                    enter = fadeIn(),
-                    exit = fadeOut()
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.PlayCircle,
-                        contentDescription = Icons.Default.PlayCircle.name
-                    )
-                }
-
-                AnimatedVisibility(
-                    visible = isRunning == true,
-                    enter = fadeIn(),
-                    exit = fadeOut()
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Pending,
-                        contentDescription = Icons.Default.Pending.name
-                    )
+                AnimatedContent(
+                    targetState = isRunning,
+                    label = ""
+                ) { state ->
+                    if (state) {
+                        Icon(
+                            imageVector = Icons.Default.Pending,
+                            contentDescription = Icons.Default.Pending.name
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.PlayCircle,
+                            contentDescription = Icons.Default.PlayCircle.name
+                        )
+                    }
                 }
             }
         }

@@ -59,20 +59,20 @@ class CreateAttendanceViewModel @Inject constructor(
         .filter { it.isNotEmpty() }
         .map { cookie ->
             getUserFullInfoHoYoLABUseCase(cookie = cookie).getOrThrow().data?.userInfo
-        }.flowOn(Dispatchers.IO).catch {
-
-        }.stateIn(
+        }
+        .flowOn(Dispatchers.IO)
+        .catch {}
+        .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Lazily,
             initialValue = null
         )
     val duplicatedAttendance = _userInfo
         .filterNotNull()
-        .map {
-            getOneByUidAttendanceUseCase(it.uid)
-        }.flowOn(Dispatchers.IO).catch {
-
-        }.stateIn(
+        .map { getOneByUidAttendanceUseCase(it.uid) }
+        .flowOn(Dispatchers.IO)
+        .catch {}
+        .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Lazily,
             initialValue = null
@@ -87,20 +87,14 @@ class CreateAttendanceViewModel @Inject constructor(
                 invoke(
                     pair.second,
                     pair.first.uid
-                ).getOrThrow()!!.list.onEach { gameRecord ->
-                    withContext(Dispatchers.Main) {
-                        val type = HoYoLABGame.findByGameId(gameId = gameRecord.gameId)
-
-                        if (type != HoYoLABGame.GenshinImpact) {
-                            checkedGames.add(
-                                Game(
-                                    roleId = gameRecord.gameRoleId,
-                                    type = type,
-                                    region = gameRecord.region
-                                )
-                            )
-                        }
-                    }
+                ).getOrThrow()!!.list.also { list ->
+                    list.map { gameRecord ->
+                        Game(
+                            roleId = gameRecord.gameRoleId,
+                            type = HoYoLABGame.findByGameId(gameId = gameRecord.gameId),
+                            region = gameRecord.region
+                        )
+                    }.let { withContext(Dispatchers.Main) { checkedGames.addAll(it) } }
                 }
             }.foldAsLce()
         }.flowOn(Dispatchers.IO).stateIn(
@@ -148,9 +142,8 @@ class CreateAttendanceViewModel @Inject constructor(
                 }
             }.mapCatching { attendance ->
                 alarmScheduler.scheduleCheckInAlarm(
-                    attendanceId = attendance.id,
-                    hourOfDay = attendance.hourOfDay,
-                    minute = attendance.minute
+                    attendance = attendance,
+                    scheduleForTomorrow = false
                 )
 
                 val periodicCheckSessionWork = PeriodicWorkRequest.Builder(

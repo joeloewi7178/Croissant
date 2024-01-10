@@ -72,20 +72,20 @@ class RedemptionCodesViewModel @Inject constructor(
                             repeat(5) {
                                 select("body > p:last-child").remove()
                             }
-                        }.html().replace("모유", "체력")
+                        }.html()
                     }
                 }
 
                 HoYoLABGame.GenshinImpact -> {
                     getArticleArcaLiveAppUseCase(
                         slug = "genshin",
-                        articleId = 67138915
+                        articleId = 95519559
                     ).mapCatching { content ->
                         Jsoup.parse(content).apply {
-                            repeat(2) {
-                                select("p:last-child").remove()
-                            }
-                        }.select("p:nth-child(n+8)").html().replace("https://oo.pe/", "")
+                            select("img").remove()
+                        }.select("table:first-of-type").apply {
+                            select("tr:last-child").remove()
+                        }.html().replace("https://oo.pe/", "")
                     }
                 }
 

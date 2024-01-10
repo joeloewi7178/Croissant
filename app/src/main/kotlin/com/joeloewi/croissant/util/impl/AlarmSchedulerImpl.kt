@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.AlarmManagerCompat
+import com.joeloewi.croissant.domain.entity.Attendance
 import com.joeloewi.croissant.receiver.AlarmReceiver
 import com.joeloewi.croissant.util.AlarmScheduler
 import com.joeloewi.croissant.util.canScheduleExactAlarmsCompat
@@ -18,36 +19,26 @@ class AlarmSchedulerImpl @Inject constructor(
     private val alarmManager: AlarmManager,
     @ApplicationContext private val context: Context
 ) : AlarmScheduler {
-
     override fun scheduleCheckInAlarm(
-        attendanceId: Long,
-        hourOfDay: Int,
-        minute: Int
+        attendance: Attendance,
+        scheduleForTomorrow: Boolean
     ) {
-        val timeZoneId = ZoneId.systemDefault().id
-        val now = ZonedDateTime.now(ZoneId.of(timeZoneId))
-        val canExecuteToday =
-            (now.hour < hourOfDay) || (now.hour == hourOfDay && now.minute < minute)
-        val alarmPendingIntent = PendingIntent.getBroadcast(
-            context,
-            attendanceId.toInt(),
-            Intent(context, AlarmReceiver::class.java).apply {
-                action = AlarmReceiver.RECEIVE_ATTEND_CHECK_IN_ALARM
-                putExtra(AlarmReceiver.ATTENDANCE_ID, attendanceId)
-            },
-            pendingIntentFlagUpdateCurrent
-        )
-        val targetTime = ZonedDateTime.now(ZoneId.of(timeZoneId))
-            .plusDays(
-                if (!canExecuteToday) {
-                    1
-                } else {
-                    0
-                }
-            )
-            .withHour(hourOfDay)
-            .withMinute(minute)
+        val timeZoneId = ZoneId.of(attendance.timezoneId)
+        val now = ZonedDateTime.now(timeZoneId)
+        val alarmPendingIntent = createCheckInAlarmPendingIntent(attendance.id)
+        val target = now.withHour(attendance.hourOfDay)
+            .withMinute(attendance.minute)
             .withSecond(30)
+        val canExecuteToday = now.isBefore(target)
+        val targetTimeMillis = target.run {
+            if (!scheduleForTomorrow) {
+                if (canExecuteToday) {
+                    return@run this
+                }
+                return@run plusDays(1)
+            }
+            return@run plusDays(1)
+        }.toInstant().toEpochMilli()
 
         with(alarmManager) {
             cancel(alarmPendingIntent)
@@ -55,13 +46,13 @@ class AlarmSchedulerImpl @Inject constructor(
                 AlarmManagerCompat.setExactAndAllowWhileIdle(
                     this,
                     AlarmManager.RTC_WAKEUP,
-                    targetTime.toInstant().toEpochMilli(),
+                    targetTimeMillis,
                     alarmPendingIntent
                 )
             } else {
                 alarmManager.set(
                     AlarmManager.RTC_WAKEUP,
-                    targetTime.toInstant().toEpochMilli(),
+                    targetTimeMillis,
                     alarmPendingIntent
                 )
             }
@@ -69,16 +60,18 @@ class AlarmSchedulerImpl @Inject constructor(
     }
 
     override fun cancelCheckInAlarm(attendanceId: Long) {
-        val alarmPendingIntent = PendingIntent.getBroadcast(
-            context,
-            attendanceId.toInt(),
-            Intent(context, AlarmReceiver::class.java).apply {
-                action = AlarmReceiver.RECEIVE_ATTEND_CHECK_IN_ALARM
-                putExtra(AlarmReceiver.ATTENDANCE_ID, attendanceId)
-            },
-            pendingIntentFlagUpdateCurrent
-        )
-
-        alarmManager.cancel(alarmPendingIntent)
+        alarmManager.cancel(createCheckInAlarmPendingIntent(attendanceId))
     }
+
+    private fun createCheckInAlarmPendingIntent(
+        attendanceId: Long
+    ) = PendingIntent.getBroadcast(
+        context,
+        attendanceId.toInt(),
+        Intent(context, AlarmReceiver::class.java).apply {
+            action = AlarmReceiver.RECEIVE_ATTEND_CHECK_IN_ALARM
+            putExtra(AlarmReceiver.ATTENDANCE_ID, attendanceId)
+        },
+        pendingIntentFlagUpdateCurrent
+    )
 }

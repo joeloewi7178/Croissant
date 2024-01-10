@@ -78,4 +78,8 @@ object DatabaseModule {
     @Provides
     fun provideResultCountDao(croissantDatabase: CroissantDatabase): ResultCountDao =
         croissantDatabase.resultCountDao()
+
+    @Provides
+    fun provideResultRangeDao(croissantDatabase: CroissantDatabase): ResultRangeDao =
+        croissantDatabase.resultRangeDao()
 }

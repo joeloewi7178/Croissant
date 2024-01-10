@@ -2,11 +2,9 @@ package com.joeloewi.croissant.receiver
 
 import android.app.AlarmManager
 import android.app.Application
-import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import androidx.core.app.AlarmManagerCompat
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.work.Constraints
@@ -20,8 +18,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics
 import com.joeloewi.croissant.BuildConfig
 import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
-import com.joeloewi.croissant.util.canScheduleExactAlarmsCompat
-import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
+import com.joeloewi.croissant.util.AlarmScheduler
 import com.joeloewi.croissant.worker.AttendCheckInEventWorker
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -30,8 +27,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
-import java.time.ZoneId
-import java.time.ZonedDateTime
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -59,6 +54,9 @@ class AlarmReceiver : BroadcastReceiver() {
     @Inject
     lateinit var workManager: WorkManager
 
+    @Inject
+    lateinit var alarmScheduler: AlarmScheduler
+
     override fun onReceive(p0: Context, p1: Intent) {
         when (p1.action) {
             Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED, AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED -> {
@@ -66,52 +64,10 @@ class AlarmReceiver : BroadcastReceiver() {
                     getAllOneShotAttendanceUseCase().map { attendance ->
                         async(SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
                             attendance.runCatching {
-                                val alarmIntent =
-                                    Intent(application, AlarmReceiver::class.java).apply {
-                                        action = RECEIVE_ATTEND_CHECK_IN_ALARM
-                                        putExtra(ATTENDANCE_ID, id)
-                                    }
-
-                                val now = ZonedDateTime.now(ZoneId.of(attendance.timezoneId))
-                                val canExecuteToday =
-                                    (now.hour < hourOfDay) || (now.hour == hourOfDay && now.minute < minute)
-
-                                val targetTime = ZonedDateTime.now(ZoneId.of(attendance.timezoneId))
-                                    .plusDays(
-                                        if (!canExecuteToday) {
-                                            1
-                                        } else {
-                                            0
-                                        }
-                                    )
-                                    .withHour(hourOfDay)
-                                    .withMinute(minute)
-                                    .withSecond(30)
-
-                                val pendingIntent = PendingIntent.getBroadcast(
-                                    application,
-                                    id.toInt(),
-                                    alarmIntent,
-                                    pendingIntentFlagUpdateCurrent
+                                alarmScheduler.scheduleCheckInAlarm(
+                                    attendance = attendance,
+                                    scheduleForTomorrow = false
                                 )
-
-                                with(alarmManager) {
-                                    cancel(pendingIntent)
-                                    if (canScheduleExactAlarmsCompat()) {
-                                        AlarmManagerCompat.setExactAndAllowWhileIdle(
-                                            this,
-                                            AlarmManager.RTC_WAKEUP,
-                                            targetTime.toInstant().toEpochMilli(),
-                                            pendingIntent
-                                        )
-                                    } else {
-                                        alarmManager.set(
-                                            AlarmManager.RTC_WAKEUP,
-                                            targetTime.toInstant().toEpochMilli(),
-                                            pendingIntent
-                                        )
-                                    }
-                                }
                             }
                         }
                     }.awaitAll()
@@ -140,41 +96,10 @@ class AlarmReceiver : BroadcastReceiver() {
                         oneTimeWork
                     ).enqueue()
 
-                    val alarmIntent = Intent(application, AlarmReceiver::class.java).apply {
-                        action = RECEIVE_ATTEND_CHECK_IN_ALARM
-                        putExtra(ATTENDANCE_ID, attendance.id)
-                    }
-
-                    val targetTime = ZonedDateTime.now(ZoneId.of(attendance.timezoneId))
-                        .plusDays(1)
-                        .withHour(attendance.hourOfDay)
-                        .withMinute(attendance.minute)
-                        .withSecond(30)
-
-                    val pendingIntent = PendingIntent.getBroadcast(
-                        application,
-                        attendance.id.toInt(),
-                        alarmIntent,
-                        pendingIntentFlagUpdateCurrent
+                    alarmScheduler.scheduleCheckInAlarm(
+                        attendance = attendance,
+                        scheduleForTomorrow = true
                     )
-
-                    with(alarmManager) {
-                        cancel(pendingIntent)
-                        if (canScheduleExactAlarmsCompat()) {
-                            AlarmManagerCompat.setExactAndAllowWhileIdle(
-                                this,
-                                AlarmManager.RTC_WAKEUP,
-                                targetTime.toInstant().toEpochMilli(),
-                                pendingIntent
-                            )
-                        } else {
-                            alarmManager.set(
-                                AlarmManager.RTC_WAKEUP,
-                                targetTime.toInstant().toEpochMilli(),
-                                pendingIntent
-                            )
-                        }
-                    }
                 }
             }
 

@@ -56,6 +56,9 @@ interface DataSourceModule {
     fun bindResultCountDataSource(resultCountDataSourceImpl: ResultCountDataSourceImpl): ResultCountDataSource
 
     @Binds
+    fun bindResultRangeDataSource(resultRangeDataSourceImpl: ResultRangeDataSourceImpl): ResultRangeDataSource
+
+    @Binds
     fun bindSettingsDataSource(settingsDataSourceImpl: SettingsDataSourceImpl): SettingsDataSource
 
     @Binds
