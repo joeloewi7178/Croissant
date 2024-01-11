@@ -46,7 +46,7 @@ class AttendanceLogsCalendarViewModel @Inject constructor(
     val deleteAllState = _deleteAllState.asStateFlow()
     val attendanceId = savedStateHandle.get<Long>(_attendanceIdKey) ?: Long.MIN_VALUE
     val resultCounts = loggableWorker.flatMapLatest {
-        getAllResultCountUseCase(it)
+        getAllResultCountUseCase(attendanceId, it)
     }.map {
         it.toImmutableList()
     }.flowOn(Dispatchers.IO).stateIn(
@@ -54,8 +54,8 @@ class AttendanceLogsCalendarViewModel @Inject constructor(
         started = SharingStarted.Eagerly,
         initialValue = persistentListOf()
     )
-    val startToEnd = loggableWorker.flatMapLatest {
-        getStartToEnd(it).map {
+    val startToEnd = loggableWorker.flatMapLatest { loggableWorker ->
+        getStartToEnd(attendanceId, loggableWorker).map {
             ZonedDateTime.ofInstant(
                 Instant.ofEpochMilli(it.start),
                 ZoneId.systemDefault()

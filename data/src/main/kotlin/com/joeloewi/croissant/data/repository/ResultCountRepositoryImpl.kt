@@ -13,6 +13,9 @@ class ResultCountRepositoryImpl @Inject constructor(
     private val resultCountDataSource: ResultCountDataSource
 ) : ResultCountRepository {
 
-    override fun getAll(loggableWorker: LoggableWorker): Flow<List<ResultCount>> =
-        resultCountDataSource.getAll(loggableWorker).flowOn(Dispatchers.IO)
+    override fun getAll(
+        attendanceId: Long,
+        loggableWorker: LoggableWorker
+    ): Flow<List<ResultCount>> =
+        resultCountDataSource.getAll(attendanceId, loggableWorker).flowOn(Dispatchers.IO)
 }

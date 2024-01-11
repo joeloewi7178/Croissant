@@ -10,6 +10,8 @@ import javax.inject.Inject
 class ResultRangeRepositoryImpl @Inject constructor(
     private val resultRangeDataSource: ResultRangeDataSource
 ) : ResultRangeRepository {
-    override fun getStartToEnd(loggableWorker: LoggableWorker): Flow<ResultRange> =
-        resultRangeDataSource.getStartToEnd(loggableWorker)
+    override fun getStartToEnd(
+        attendanceId: Long,
+        loggableWorker: LoggableWorker
+    ): Flow<ResultRange> = resultRangeDataSource.getStartToEnd(attendanceId, loggableWorker)
 }

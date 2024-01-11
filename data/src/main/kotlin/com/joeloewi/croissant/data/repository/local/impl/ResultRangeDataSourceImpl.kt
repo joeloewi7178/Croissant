@@ -13,7 +13,10 @@ import javax.inject.Inject
 class ResultRangeDataSourceImpl @Inject constructor(
     private val resultRangeDao: ResultRangeDao
 ) : ResultRangeDataSource {
-    override fun getStartToEnd(loggableWorker: LoggableWorker): Flow<ResultRange> {
+    override fun getStartToEnd(
+        attendanceId: Long,
+        loggableWorker: LoggableWorker
+    ): Flow<ResultRange> {
         val query = """
             SELECT
                 MIN(
@@ -33,7 +36,8 @@ class ResultRangeDataSourceImpl @Inject constructor(
             FROM (
                 SELECT * 
                 FROM WorkerExecutionLogEntity 
-                WHERE loggableWorker = "${loggableWorker.name}"
+                WHERE loggableWorker = '${loggableWorker.name}'
+                    AND attendanceId = '${attendanceId}'
             )
         """.trimIndent()
 
