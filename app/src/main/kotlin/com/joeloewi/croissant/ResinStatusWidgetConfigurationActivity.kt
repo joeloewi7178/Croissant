@@ -143,10 +143,7 @@ fun ResinStatusWidgetConfigurationApp() {
                 composable(
                     route = ResinStatusWidgetConfigurationDestination.LoadingScreen().route,
                     arguments = ResinStatusWidgetConfigurationDestination.LoadingScreen().arguments.map { argument ->
-                        navArgument(argument.first) {
-                            type = argument.second
-                            defaultValue = AppWidgetManager.INVALID_APPWIDGET_ID
-                        }
+                        navArgument(argument.first, argument.second)
                     }
                 ) {
                     val loadingViewModel: LoadingViewModel = hiltViewModel()
@@ -160,9 +157,7 @@ fun ResinStatusWidgetConfigurationApp() {
                 composable(
                     route = ResinStatusWidgetConfigurationDestination.CreateResinStatusWidgetScreen().route,
                     arguments = ResinStatusWidgetConfigurationDestination.CreateResinStatusWidgetScreen().arguments.map { argument ->
-                        navArgument(argument.first) {
-                            type = argument.second
-                        }
+                        navArgument(argument.first, argument.second)
                     },
                 ) {
                     val newCookie by remember {
@@ -196,9 +191,7 @@ fun ResinStatusWidgetConfigurationApp() {
                 composable(
                     route = ResinStatusWidgetConfigurationDestination.ResinStatusWidgetDetailScreen().route,
                     arguments = ResinStatusWidgetConfigurationDestination.ResinStatusWidgetDetailScreen().arguments.map { argument ->
-                        navArgument(argument.first) {
-                            type = argument.second
-                        }
+                        navArgument(argument.first, argument.second)
                     }
                 ) {
                     ResinStatusWidgetDetailScreen()

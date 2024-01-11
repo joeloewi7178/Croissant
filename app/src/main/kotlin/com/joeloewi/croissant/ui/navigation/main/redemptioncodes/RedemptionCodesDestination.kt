@@ -1,9 +1,9 @@
 package com.joeloewi.croissant.ui.navigation.main.redemptioncodes
 
-import androidx.navigation.NavType
+import androidx.navigation.NavArgumentBuilder
 
 sealed class RedemptionCodesDestination {
-    abstract val arguments: List<Pair<String, NavType<*>>>
+    abstract val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>>
     protected abstract val plainRoute: String
     val route: String by lazy {
         "${plainRoute}${
@@ -18,8 +18,8 @@ sealed class RedemptionCodesDestination {
         }"
     }
 
-    object RedemptionCodesScreen : RedemptionCodesDestination() {
-        override val arguments: List<Pair<String, NavType<*>>> = listOf()
+    data object RedemptionCodesScreen : RedemptionCodesDestination() {
+        override val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>> = listOf()
         override val plainRoute: String = "redemptionCodesScreen"
     }
 }

@@ -108,8 +108,9 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("HardwareIds")
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
-        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+
+        enableEdgeToEdge()
 
         DynamicColors.applyToActivityIfAvailable(this)
 
@@ -125,12 +126,14 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        Firebase.analytics.setUserId(
-            Settings.Secure.getString(
-                contentResolver,
-                Settings.Secure.ANDROID_ID
+        lifecycleScope.launch(Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
+            Firebase.analytics.setUserId(
+                Settings.Secure.getString(
+                    contentResolver,
+                    Settings.Secure.ANDROID_ID
+                )
             )
-        )
+        }
 
         setContent {
             CroissantTheme {
@@ -155,7 +158,6 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
-@SuppressLint("RestrictedApi")
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun CroissantApp(
@@ -179,7 +181,6 @@ fun CroissantApp(
             GlobalDestination.EmptyScreen.route
         ).toImmutableList()
     }
-    val currentBackStack by navController.currentBackStack.collectAsStateWithLifecycle()
     val windowSizeClass = calculateWindowSizeClass(activity = activity)
     val croissantNavigations = remember {
         listOf(
@@ -206,9 +207,9 @@ fun CroissantApp(
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars.only(WindowInsetsSides.Horizontal),
         bottomBar = {
-            val currentBackStackEntry by navController.currentBackStackEntryFlow.collectAsStateWithLifecycle(
-                initialValue = null,
-            )
+            val currentBackStackEntry by remember(navController) {
+                navController.currentBackStackEntryFlow
+            }.collectAsStateWithLifecycle(initialValue = null)
             val isBottomNavigationBarVisible by remember {
                 derivedStateOf {
                     !fullScreenDestinations.any { route ->
@@ -226,26 +227,7 @@ fun CroissantApp(
                     currentBackStackEntry = { currentBackStackEntry },
                     onClickNavigationButton = { route ->
                         navController.navigate(route) {
-                            val startDestination =
-                                navController.graph.findStartDestination()
-
-                            val popUpToDestination =
-                                if (currentBackStack.any {
-                                        it.destination == startDestination
-                                    }) {
-
-                                    startDestination.route
-                                        ?: activity::class.java.simpleName
-                                } else if (currentBackStack.any {
-                                        it.destination.route == AttendancesDestination.AttendancesScreen.route
-                                    }) {
-
-                                    AttendancesDestination.AttendancesScreen.route
-                                } else {
-                                    activity::class.java.simpleName
-                                }
-
-                            popUpTo(popUpToDestination) {
+                            popUpTo(navController.graph.findStartDestination().id) {
                                 saveState = true
                             }
                             launchSingleTop = true
@@ -422,9 +404,7 @@ fun CroissantNavHost(
             composable(
                 route = AttendancesDestination.AttendanceDetailScreen().route,
                 arguments = AttendancesDestination.AttendanceDetailScreen().arguments.map { argument ->
-                    navArgument(argument.first) {
-                        type = argument.second
-                    }
+                    navArgument(argument.first, argument.second)
                 },
                 deepLinks = listOf(
                     navDeepLink {
@@ -432,14 +412,40 @@ fun CroissantNavHost(
                             "$deepLinkUri/${AttendancesDestination.AttendanceDetailScreen().route}"
                     }
                 )
-            ) {
+            ) { navBackStackEntry ->
+                val fromDeeplink = remember(navBackStackEntry.arguments) {
+                    navBackStackEntry.arguments?.getBoolean(AttendancesDestination.AttendanceDetailScreen.FROM_DEEPLINK)
+                        ?: false
+                }
                 val newCookie by remember {
-                    it.savedStateHandle.getStateFlow(COOKIE, "")
+                    navBackStackEntry.savedStateHandle.getStateFlow(COOKIE, "")
                 }.collectAsStateWithLifecycle()
+
+                LaunchedEffect(fromDeeplink) {
+                    if (fromDeeplink) {
+                        with(navController.value.graph) {
+                            findNode(CroissantNavigation.Attendances.route)?.id?.let {
+                                setStartDestination(
+                                    it
+                                )
+                            }
+                        }
+                    }
+                }
 
                 AttendanceDetailScreen(
                     newCookie = { newCookie },
-                    onNavigateUp = { navController.value.navigateUp() },
+                    onNavigateUp = {
+                        if (fromDeeplink) {
+                            with(navController.value.graph) {
+                                findNode(CroissantNavigation.Attendances.route)?.id?.let {
+                                    navController.value.popBackStack(it, inclusive = true)
+                                }
+                            }
+                        } else {
+                            navController.value.navigateUp()
+                        }
+                    },
                     onClickRefreshSession = {
                         navController.value.navigate(AttendancesDestination.LoginHoYoLabScreen.route)
                     },
@@ -457,9 +463,7 @@ fun CroissantNavHost(
             composable(
                 route = AttendancesDestination.AttendanceLogsCalendarScreen().route,
                 arguments = AttendancesDestination.AttendanceLogsCalendarScreen().arguments.map { argument ->
-                    navArgument(argument.first) {
-                        type = argument.second
-                    }
+                    navArgument(argument.first, argument.second)
                 }
             ) {
                 AttendanceLogsCalendarScreen(
@@ -479,9 +483,7 @@ fun CroissantNavHost(
             composable(
                 route = AttendancesDestination.AttendanceLogsDayScreen().route,
                 arguments = AttendancesDestination.AttendanceLogsDayScreen().arguments.map { argument ->
-                    navArgument(argument.first) {
-                        type = argument.second
-                    }
+                    navArgument(argument.first, argument.second)
                 }
             ) {
                 AttendanceLogsDayScreen(
@@ -534,6 +536,13 @@ fun CroissantNavHost(
                         }
                     },
                     onShowDefaultScreen = {
+                        with(navController.value.graph) {
+                            findNode(CroissantNavigation.Attendances.route)?.id?.let {
+                                setStartDestination(
+                                    it
+                                )
+                            }
+                        }
                         navController.value.navigate(AttendancesDestination.AttendancesScreen.route) {
                             popUpTo(activity::class.java.simpleName) {
                                 inclusive = true
@@ -546,6 +555,13 @@ fun CroissantNavHost(
             composable(route = GlobalDestination.FirstLaunchScreen.route) {
                 FirstLaunchScreen(
                     onNavigateToAttendances = {
+                        with(navController.value.graph) {
+                            findNode(CroissantNavigation.Attendances.route)?.id?.let {
+                                setStartDestination(
+                                    it
+                                )
+                            }
+                        }
                         navController.value.navigate(AttendancesDestination.AttendancesScreen.route) {
                             popUpTo(activity::class.java.simpleName) {
                                 inclusive = true

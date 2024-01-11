@@ -184,7 +184,7 @@ class NotificationGenerator(
                             .authority(context.packageName)
                             .appendEncodedPath(
                                 AttendancesDestination.AttendanceDetailScreen()
-                                    .generateRoute(attendanceId)
+                                    .generateRoute(attendanceId, true)
                             )
                             .build()
                     )
@@ -243,7 +243,7 @@ class NotificationGenerator(
                             .authority(context.packageName)
                             .appendEncodedPath(
                                 AttendancesDestination.AttendanceDetailScreen()
-                                    .generateRoute(attendanceId)
+                                    .generateRoute(attendanceId, true)
                             )
                             .build()
                     )
