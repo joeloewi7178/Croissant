@@ -79,7 +79,7 @@ object UtilModule {
                 this
             }
         }
-        .okHttpClient { okHttpClient }
+        .okHttpClient(okHttpClient)
         .placeholder(R.drawable.image_placeholder)
         .build()
 }
