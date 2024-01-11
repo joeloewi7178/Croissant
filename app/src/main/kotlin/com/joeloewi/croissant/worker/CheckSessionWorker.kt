@@ -3,6 +3,7 @@ package com.joeloewi.croissant.worker
 import android.content.Context
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
+import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics
@@ -46,7 +47,14 @@ class CheckSessionWorker @AssistedInject constructor(
         _attendanceId.runCatching {
             takeIf { it != Long.MIN_VALUE }!!
         }.mapCatching { attendanceId ->
-            getOneAttendanceUseCase(attendanceId)
+            val attendance = runCatching { getOneAttendanceUseCase(attendanceId) }.getOrNull()
+
+            if (attendance == null) {
+                WorkManager.getInstance(context).cancelWorkById(id)
+                return@withContext Result.failure()
+            } else {
+                attendance
+            }
         }.mapCatching { attendanceWithAllValues ->
             getUserFullInfoHoYoLABUseCase(attendanceWithAllValues.attendance.cookie).getOrThrow()
         }.fold(

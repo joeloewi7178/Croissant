@@ -252,7 +252,21 @@ class AttendanceDetailViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             _deleteAttendanceState.value = ILCE.Loading
             _deleteAttendanceState.value = runCatching {
-                deleteAttendanceUseCase(getOneAttendanceUseCase(attendanceId).attendance)
+                val attendance = getOneAttendanceUseCase(attendanceId).attendance
+
+                listOf(
+                    attendance.checkSessionWorkerName,
+                    attendance.attendCheckInEventWorkerName,
+                    attendance.oneTimeAttendCheckInEventWorkerName
+                ).map { it.toString() }.map { uniqueWorkName ->
+                    workManager.cancelUniqueWork(uniqueWorkName)
+                }
+
+                workManager.cancelWorkById(attendance.checkSessionWorkerId)
+
+                alarmScheduler.cancelCheckInAlarm(attendance.id)
+
+                deleteAttendanceUseCase(attendance)
                 Unit
             }.foldAsILCE()
         }

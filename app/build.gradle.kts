@@ -20,7 +20,7 @@ android {
 
     defaultConfig {
         applicationId = "com.joeloewi.croissant"
-        versionCode = 48
+        versionCode = 49
         versionName = "1.2.2"
         targetSdk = 34
 
