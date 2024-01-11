@@ -10,7 +10,9 @@ sealed class ResultCountUseCase {
         private val resultCountRepository: ResultCountRepository
     ) : ResultCountUseCase() {
 
-        operator fun invoke(loggableWorker: LoggableWorker) =
-            resultCountRepository.getAll(loggableWorker)
+        operator fun invoke(
+            attendanceId: Long,
+            loggableWorker: LoggableWorker
+        ) = resultCountRepository.getAll(attendanceId, loggableWorker)
     }
 }

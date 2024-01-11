@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.concurrent.TimeUnit
@@ -166,11 +167,6 @@ class AttendanceDetailViewModel @Inject constructor(
 
                 workManager.cancelUniqueWork(attendance.attendCheckInEventWorkerName.toString())
 
-                alarmScheduler.scheduleCheckInAlarm(
-                    attendance = attendance,
-                    scheduleForTomorrow = false
-                )
-
                 val periodicCheckSessionWork = PeriodicWorkRequest.Builder(
                     CheckSessionWorker::class.java,
                     6L,
@@ -190,18 +186,23 @@ class AttendanceDetailViewModel @Inject constructor(
                     periodicCheckSessionWork
                 )
 
-                updateAttendanceUseCase(
-                    attendance.copy(
-                        modifiedAt = System.currentTimeMillis(),
-                        cookie = _cookie.value,
-                        nickname = _nickname.value,
-                        uid = _uid.value,
-                        hourOfDay = _hourOfDay.value,
-                        minute = _minute.value,
-                        timezoneId = ZoneId.systemDefault().id,
-                        checkSessionWorkerId = periodicCheckSessionWork.id
-                    )
+                val newAttendance = attendance.copy(
+                    modifiedAt = Instant.now().toEpochMilli(),
+                    cookie = _cookie.value,
+                    nickname = _nickname.value,
+                    uid = _uid.value,
+                    hourOfDay = _hourOfDay.value,
+                    minute = _minute.value,
+                    timezoneId = ZoneId.systemDefault().id,
+                    checkSessionWorkerId = periodicCheckSessionWork.id
                 )
+
+                alarmScheduler.scheduleCheckInAlarm(
+                    attendance = newAttendance,
+                    scheduleForTomorrow = false
+                )
+
+                updateAttendanceUseCase(newAttendance)
 
                 val games = attendanceWithGames.games
                 val originalGames = arrayListOf<Game>()

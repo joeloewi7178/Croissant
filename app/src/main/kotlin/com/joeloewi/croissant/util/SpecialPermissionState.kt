@@ -18,10 +18,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.core.content.getSystemService
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.PermissionStatus
@@ -65,26 +63,16 @@ fun rememberSpecialPermissionState(
     onPermissionResult: (Boolean) -> Unit = {}
 ): SpecialPermissionState {
     val context = LocalContext.current
-    val lifecycle = LocalLifecycleOwner.current.lifecycle
     val permissionState = remember(specialPermission) {
         SpecialPermissionState(specialPermission.name, context)
     }
     // Refresh the permission status when the lifecycle is resumed
-    val permissionCheckerObserver = remember(permissionState) {
-        LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                // If the permission is revoked, check again.
-                // We don't check if the permission was denied as that triggers a process restart.
-                if (permissionState.status != PermissionStatus.Granted) {
-                    permissionState.refreshPermissionStatus()
-                }
-            }
+    LifecycleResumeEffect(permissionState) {
+        if (permissionState.status != PermissionStatus.Granted) {
+            permissionState.refreshPermissionStatus()
         }
-    }
 
-    DisposableEffect(lifecycle, permissionCheckerObserver) {
-        lifecycle.addObserver(permissionCheckerObserver)
-        onDispose { lifecycle.removeObserver(permissionCheckerObserver) }
+        onPauseOrDispose { }
     }
 
     val launcher =

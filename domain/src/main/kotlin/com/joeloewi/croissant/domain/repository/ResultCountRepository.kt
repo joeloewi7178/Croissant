@@ -6,5 +6,8 @@ import kotlinx.coroutines.flow.Flow
 
 interface ResultCountRepository {
 
-    fun getAll(loggableWorker: LoggableWorker): Flow<List<ResultCount>>
+    fun getAll(
+        attendanceId: Long,
+        loggableWorker: LoggableWorker
+    ): Flow<List<ResultCount>>
 }

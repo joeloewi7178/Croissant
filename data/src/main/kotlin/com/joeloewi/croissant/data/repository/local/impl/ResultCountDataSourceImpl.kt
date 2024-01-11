@@ -15,15 +15,17 @@ class ResultCountDataSourceImpl @Inject constructor(
     private val resultCountDao: ResultCountDao
 ) : ResultCountDataSource {
     override fun getAll(
+        attendanceId: Long,
         loggableWorker: LoggableWorker
     ): Flow<List<ResultCount>> {
         val query = """
             SELECT
                   DATE(createdAt / 1000, 'unixepoch', 'localtime') as date,
-                  COUNT(CASE state WHEN "${WorkerExecutionLogState.SUCCESS.name}" THEN 1 ELSE NULL END) as successCount,
-                  COUNT(CASE state WHEN "${WorkerExecutionLogState.FAILURE.name}" THEN 1 ELSE NULL END) as failureCount
+                  COUNT(CASE state WHEN '${WorkerExecutionLogState.SUCCESS.name}' THEN 1 ELSE NULL END) as successCount,
+                  COUNT(CASE state WHEN '${WorkerExecutionLogState.FAILURE.name}' THEN 1 ELSE NULL END) as failureCount
             FROM (SELECT * FROM WorkerExecutionLogEntity ORDER BY attendanceId)
-            WHERE loggableWorker = "${loggableWorker.name}"
+            WHERE loggableWorker = '${loggableWorker.name}'
+                AND attendanceId = '${attendanceId}'
             GROUP BY DATE((createdAt + 0.00) / 1000, 'unixepoch', 'localtime')
         """.trimIndent()
 

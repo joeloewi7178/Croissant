@@ -6,5 +6,8 @@ import kotlinx.coroutines.flow.Flow
 
 interface ResultRangeDataSource {
 
-    fun getStartToEnd(loggableWorker: LoggableWorker): Flow<ResultRange>
+    fun getStartToEnd(
+        attendanceId: Long,
+        loggableWorker: LoggableWorker
+    ): Flow<ResultRange>
 }

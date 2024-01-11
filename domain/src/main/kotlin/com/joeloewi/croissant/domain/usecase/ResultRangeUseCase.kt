@@ -9,7 +9,9 @@ sealed class ResultRangeUseCase {
     class GetStartToEnd @Inject constructor(
         private val resultRangeRepository: ResultRangeRepository
     ) : ResultRangeUseCase() {
-        operator fun invoke(loggableWorker: LoggableWorker) =
-            resultRangeRepository.getStartToEnd(loggableWorker)
+        operator fun invoke(
+            attendanceId: Long,
+            loggableWorker: LoggableWorker
+        ) = resultRangeRepository.getStartToEnd(attendanceId, loggableWorker)
     }
 }

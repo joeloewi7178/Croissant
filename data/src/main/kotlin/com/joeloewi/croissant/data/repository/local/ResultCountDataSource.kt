@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 interface ResultCountDataSource {
 
     fun getAll(
+        attendanceId: Long,
         loggableWorker: LoggableWorker
     ): Flow<List<ResultCount>>
 }
