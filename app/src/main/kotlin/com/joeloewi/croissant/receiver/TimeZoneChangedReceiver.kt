@@ -18,21 +18,21 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class TimeZoneChangedReceiver @Inject constructor(
 ) : BroadcastReceiver() {
+    private val _processLifecycleScope = ProcessLifecycleOwner.get().lifecycleScope
     private val _coroutineContext = Dispatchers.IO + CoroutineExceptionHandler { _, throwable ->
         Firebase.crashlytics.apply {
             log(this@TimeZoneChangedReceiver.javaClass.simpleName)
             recordException(throwable)
         }
     }
-    private val _processLifecycleScope by lazy { ProcessLifecycleOwner.get().lifecycleScope }
 
     @Inject
     lateinit var notificationGenerator: NotificationGenerator
 
     override fun onReceive(context: Context, intent: Intent) {
-        when (intent.action) {
-            Intent.ACTION_TIMEZONE_CHANGED -> {
-                _processLifecycleScope.launch(_coroutineContext) {
+        _processLifecycleScope.launch(_coroutineContext) {
+            when (intent.action) {
+                Intent.ACTION_TIMEZONE_CHANGED -> {
                     with(notificationGenerator) {
                         safeNotify(
                             UUID.randomUUID().toString(),
@@ -41,10 +41,10 @@ class TimeZoneChangedReceiver @Inject constructor(
                         )
                     }
                 }
-            }
 
-            else -> {
+                else -> {
 
+                }
             }
         }
     }

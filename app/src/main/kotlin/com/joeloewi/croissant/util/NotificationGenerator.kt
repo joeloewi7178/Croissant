@@ -179,14 +179,9 @@ class NotificationGenerator(
                 addNextIntentWithParentStack(
                     Intent(
                         Intent.ACTION_VIEW,
-                        Uri.Builder()
-                            .scheme(context.getString(R.string.deep_link_scheme))
-                            .authority(context.packageName)
-                            .appendEncodedPath(
-                                AttendancesDestination.AttendanceDetailScreen()
-                                    .generateRoute(attendanceId, true)
-                            )
-                            .build()
+                        AttendancesDestination.AttendanceDetailScreen.generateDeepLinkUri(
+                            context, attendanceId
+                        )
                     )
                 )
                 getPendingIntent(0, pendingIntentFlagUpdateCurrent)
@@ -238,14 +233,9 @@ class NotificationGenerator(
                 addNextIntentWithParentStack(
                     Intent(
                         Intent.ACTION_VIEW,
-                        Uri.Builder()
-                            .scheme(context.getString(R.string.deep_link_scheme))
-                            .authority(context.packageName)
-                            .appendEncodedPath(
-                                AttendancesDestination.AttendanceDetailScreen()
-                                    .generateRoute(attendanceId, true)
-                            )
-                            .build()
+                        AttendancesDestination.AttendanceDetailScreen.generateDeepLinkUri(
+                            context, attendanceId
+                        )
                     )
                 )
                 getPendingIntent(0, pendingIntentFlagUpdateCurrent)

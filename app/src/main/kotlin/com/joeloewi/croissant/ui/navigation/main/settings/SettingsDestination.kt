@@ -1,7 +1,9 @@
 package com.joeloewi.croissant.ui.navigation.main.settings
 
+import androidx.compose.runtime.Immutable
 import androidx.navigation.NavArgumentBuilder
 
+@Immutable
 sealed class SettingsDestination {
     abstract val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>>
     protected abstract val plainRoute: String

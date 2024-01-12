@@ -1,9 +1,11 @@
 package com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration
 
 import android.appwidget.AppWidgetManager
+import androidx.compose.runtime.Immutable
 import androidx.navigation.NavArgumentBuilder
 import androidx.navigation.NavType
 
+@Immutable
 sealed class ResinStatusWidgetConfigurationDestination {
     abstract val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>>
     protected abstract val plainRoute: String

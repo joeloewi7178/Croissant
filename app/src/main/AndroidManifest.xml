@@ -73,9 +73,6 @@
                 android:name="com.joeloewi.croissant.initializer.NotificationChannelInitializer"
                 android:value="androidx.startup" />
             <meta-data
-                android:name="com.joeloewi.croissant.initializer.DynamicColorInitializer"
-                android:value="androidx.startup" />
-            <meta-data
                 android:name="com.joeloewi.croissant.initializer.WorkManagerInitializer"
                 android:value="androidx.startup" />
             <meta-data

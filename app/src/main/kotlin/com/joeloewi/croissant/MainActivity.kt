@@ -45,6 +45,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.os.bundleOf
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -62,7 +63,6 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
-import com.google.android.material.color.DynamicColors
 import com.google.firebase.Firebase
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.analytics
@@ -111,8 +111,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()
-
-        DynamicColors.applyToActivityIfAvailable(this)
 
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -354,7 +352,7 @@ fun CroissantNavHost(
                     },
                     onClickAttendance = {
                         navController.value.navigate(
-                            AttendancesDestination.AttendanceDetailScreen().generateRoute(it.id)
+                            AttendancesDestination.AttendanceDetailScreen.generateRoute(it.id)
                         )
                     }
                 )
@@ -372,7 +370,7 @@ fun CroissantNavHost(
                     },
                     onNavigateToAttendanceDetailScreen = {
                         navController.value.navigate(
-                            AttendancesDestination.AttendanceDetailScreen().generateRoute(it)
+                            AttendancesDestination.AttendanceDetailScreen.generateRoute(it)
                         ) {
                             popUpTo(AttendancesDestination.CreateAttendanceScreen.route) {
                                 inclusive = true
@@ -402,14 +400,14 @@ fun CroissantNavHost(
             }
 
             composable(
-                route = AttendancesDestination.AttendanceDetailScreen().route,
-                arguments = AttendancesDestination.AttendanceDetailScreen().arguments.map { argument ->
+                route = AttendancesDestination.AttendanceDetailScreen.route,
+                arguments = AttendancesDestination.AttendanceDetailScreen.arguments.map { argument ->
                     navArgument(argument.first, argument.second)
                 },
                 deepLinks = listOf(
                     navDeepLink {
                         uriPattern =
-                            "$deepLinkUri/${AttendancesDestination.AttendanceDetailScreen().route}"
+                            "$deepLinkUri/${AttendancesDestination.AttendanceDetailScreen.route}"
                     }
                 )
             ) { navBackStackEntry ->
@@ -437,10 +435,8 @@ fun CroissantNavHost(
                     newCookie = { newCookie },
                     onNavigateUp = {
                         if (fromDeeplink) {
-                            with(navController.value.graph) {
-                                findNode(CroissantNavigation.Attendances.route)?.id?.let {
-                                    navController.value.popBackStack(it, inclusive = true)
-                                }
+                            with(navController.value) {
+                                popBackStack(graph.findStartDestination().id, inclusive = true)
                             }
                         } else {
                             navController.value.navigateUp()
@@ -451,7 +447,7 @@ fun CroissantNavHost(
                     },
                     onClickLogSummary = { attendanceId, loggableWorker ->
                         navController.value.navigate(
-                            AttendancesDestination.AttendanceLogsCalendarScreen().generateRoute(
+                            AttendancesDestination.AttendanceLogsCalendarScreen.generateRoute(
                                 attendanceId,
                                 loggableWorker
                             )
@@ -461,8 +457,8 @@ fun CroissantNavHost(
             }
 
             composable(
-                route = AttendancesDestination.AttendanceLogsCalendarScreen().route,
-                arguments = AttendancesDestination.AttendanceLogsCalendarScreen().arguments.map { argument ->
+                route = AttendancesDestination.AttendanceLogsCalendarScreen.route,
+                arguments = AttendancesDestination.AttendanceLogsCalendarScreen.arguments.map { argument ->
                     navArgument(argument.first, argument.second)
                 }
             ) {
@@ -470,7 +466,7 @@ fun CroissantNavHost(
                     onNavigateUp = { navController.value.navigateUp() },
                     onClickDay = { attendanceId, loggableWorker, localDate ->
                         navController.value.navigate(
-                            AttendancesDestination.AttendanceLogsDayScreen().generateRoute(
+                            AttendancesDestination.AttendanceLogsDayScreen.generateRoute(
                                 attendanceId = attendanceId,
                                 loggableWorker = loggableWorker,
                                 localDate = localDate,
@@ -481,8 +477,8 @@ fun CroissantNavHost(
             }
 
             composable(
-                route = AttendancesDestination.AttendanceLogsDayScreen().route,
-                arguments = AttendancesDestination.AttendanceLogsDayScreen().arguments.map { argument ->
+                route = AttendancesDestination.AttendanceLogsDayScreen.route,
+                arguments = AttendancesDestination.AttendanceLogsDayScreen.arguments.map { argument ->
                     navArgument(argument.first, argument.second)
                 }
             ) {
@@ -631,7 +627,7 @@ private fun CroissantBottomNavigationBar(
     NavigationBar(
         modifier = modifier
     ) {
-        croissantNavigations.forEach { croissantNavigation ->
+        croissantNavigations.fastForEach { croissantNavigation ->
             key(croissantNavigation.route) {
                 val isSelected by remember(croissantNavigation.route) {
                     derivedStateOf { currentBackStackEntry()?.destination?.hierarchy?.any { it.route == croissantNavigation.route } == true }

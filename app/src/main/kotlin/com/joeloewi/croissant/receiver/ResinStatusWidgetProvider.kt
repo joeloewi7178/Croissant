@@ -30,7 +30,7 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class ResinStatusWidgetProvider : AppWidgetProvider() {
-    private val _processLifecycleOwner by lazy { ProcessLifecycleOwner.get() }
+    private val _processLifecycleScope = ProcessLifecycleOwner.get().lifecycleScope
     private val _coroutineContext = Dispatchers.IO + CoroutineExceptionHandler { _, throwable ->
         Firebase.crashlytics.apply {
             log(this@ResinStatusWidgetProvider.javaClass.simpleName)
@@ -55,10 +55,8 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray
     ) {
-        super.onUpdate(context, appWidgetManager, appWidgetIds)
         //this method also called when user put widget on home screen
-
-        _processLifecycleOwner.lifecycleScope.launch(_coroutineContext) {
+        _processLifecycleScope.launch(_coroutineContext) {
             appWidgetIds.map { appWidgetId ->
                 async(SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
                     if (powerManager.isPowerSaveMode && !powerManager.isIgnoringBatteryOptimizationsCompat(
@@ -99,12 +97,12 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
                 }
             }.awaitAll()
         }
+
+        super.onUpdate(context, appWidgetManager, appWidgetIds)
     }
 
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
-        super.onDeleted(context, appWidgetIds)
-
-        _processLifecycleOwner.lifecycleScope.launch(_coroutineContext) {
+        _processLifecycleScope.launch(_coroutineContext) {
             appWidgetIds.run {
                 map { appWidgetId ->
                     async(SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
@@ -119,5 +117,7 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
                 deleteByAppWidgetIdResinStatusWidgetUseCase(*this)
             }
         }
+
+        super.onDeleted(context, appWidgetIds)
     }
 }

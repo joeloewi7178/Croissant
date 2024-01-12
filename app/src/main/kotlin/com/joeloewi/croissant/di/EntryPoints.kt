@@ -16,7 +16,6 @@
 
 package com.joeloewi.croissant.di
 
-import android.app.Application
 import android.content.Context
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.RunnableScheduler
@@ -35,8 +34,6 @@ import kotlin.reflect.KClass
 interface InitializerEntryPoint {
     fun imageLoader(): ImageLoader
     fun hiltWorkerFactory(): HiltWorkerFactory
-    fun application(): Application
-
     @DefaultDispatcherExecutor
     fun executor(): Executor
     fun runnableScheduler(): RunnableScheduler
