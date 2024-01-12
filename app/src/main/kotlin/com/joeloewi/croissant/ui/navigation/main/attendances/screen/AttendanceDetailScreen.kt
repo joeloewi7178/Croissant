@@ -1,5 +1,6 @@
 package com.joeloewi.croissant.ui.navigation.main.attendances.screen
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -169,6 +170,10 @@ private fun AttendanceDetailContent(
         )
     )
     var showConfirmDeleteDialog by remember { mutableStateOf(false) }
+
+    BackHandler {
+        onNavigateUp()
+    }
 
     LaunchedEffect(snackbarHostState) {
         withContext(Dispatchers.IO) {

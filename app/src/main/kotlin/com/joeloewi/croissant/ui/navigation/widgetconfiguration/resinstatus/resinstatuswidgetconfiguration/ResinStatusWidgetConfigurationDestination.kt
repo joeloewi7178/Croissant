@@ -1,9 +1,13 @@
 package com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration
 
+import android.appwidget.AppWidgetManager
+import androidx.compose.runtime.Immutable
+import androidx.navigation.NavArgumentBuilder
 import androidx.navigation.NavType
 
+@Immutable
 sealed class ResinStatusWidgetConfigurationDestination {
-    abstract val arguments: List<Pair<String, NavType<*>>>
+    abstract val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>>
     protected abstract val plainRoute: String
     val route: String by lazy {
         "${plainRoute}${
@@ -18,14 +22,17 @@ sealed class ResinStatusWidgetConfigurationDestination {
         }"
     }
 
-    object EmptyScreen : ResinStatusWidgetConfigurationDestination() {
-        override val arguments: List<Pair<String, NavType<*>>> = listOf()
+    data object EmptyScreen : ResinStatusWidgetConfigurationDestination() {
+        override val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>> = listOf()
         override val plainRoute: String = "emptyScreen"
     }
 
     class LoadingScreen(
-        override val arguments: List<Pair<String, NavType<*>>> = listOf(
-            APP_WIDGET_ID to NavType.IntType
+        override val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>> = listOf(
+            APP_WIDGET_ID to {
+                type = NavType.IntType
+                defaultValue = AppWidgetManager.INVALID_APPWIDGET_ID
+            }
         ),
         override val plainRoute: String = "loadingScreen"
     ) : ResinStatusWidgetConfigurationDestination() {
@@ -37,8 +44,8 @@ sealed class ResinStatusWidgetConfigurationDestination {
     }
 
     class CreateResinStatusWidgetScreen(
-        override val arguments: List<Pair<String, NavType<*>>> = listOf(
-            APP_WIDGET_ID to NavType.IntType
+        override val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>> = listOf(
+            APP_WIDGET_ID to { type = NavType.IntType }
         ),
         override val plainRoute: String = "createResinStatusWidgetScreen"
     ) : ResinStatusWidgetConfigurationDestination() {
@@ -50,8 +57,8 @@ sealed class ResinStatusWidgetConfigurationDestination {
     }
 
     class ResinStatusWidgetDetailScreen(
-        override val arguments: List<Pair<String, NavType<*>>> = listOf(
-            APP_WIDGET_ID to NavType.IntType
+        override val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>> = listOf(
+            APP_WIDGET_ID to { type = NavType.IntType }
         ),
         override val plainRoute: String = "resinStatusWidgetDetailScreen"
     ) : ResinStatusWidgetConfigurationDestination() {
@@ -62,8 +69,8 @@ sealed class ResinStatusWidgetConfigurationDestination {
         fun generateRoute(appWidgetId: Int) = "${plainRoute}/${appWidgetId}"
     }
 
-    object LoginHoYoLABScreen : ResinStatusWidgetConfigurationDestination() {
-        override val arguments: List<Pair<String, NavType<*>>> = listOf()
+    data object LoginHoYoLABScreen : ResinStatusWidgetConfigurationDestination() {
+        override val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>> = listOf()
         override val plainRoute: String = "loginHoYoLABScreen"
     }
 }

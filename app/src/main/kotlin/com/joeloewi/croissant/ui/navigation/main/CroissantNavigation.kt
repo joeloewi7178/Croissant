@@ -8,9 +8,11 @@ import androidx.compose.material.icons.filled.TaskAlt
 import androidx.compose.material.icons.outlined.Redeem
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.TaskAlt
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.joeloewi.croissant.R
 
+@Immutable
 sealed class CroissantNavigation(
     val route: String,
     val filledIcon: ImageVector,

@@ -51,6 +51,7 @@ object UtilModule {
         @ApplicationContext context: Context
     ): TextToSpeechFactory = TextToSpeechFactory(context)
 
+    @Singleton
     @Provides
     fun provideNotificationGenerator(
         @ApplicationContext context: Context

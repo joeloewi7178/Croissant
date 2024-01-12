@@ -22,13 +22,13 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class MigrationHelper : BroadcastReceiver() {
+    private val _processLifecycleScope = ProcessLifecycleOwner.get().lifecycleScope
     private val _coroutineContext = Dispatchers.IO + CoroutineExceptionHandler { _, throwable ->
         Firebase.crashlytics.apply {
             log(this@MigrationHelper.javaClass.simpleName)
             recordException(throwable)
         }
     }
-    private val _processLifecycleScope by lazy { ProcessLifecycleOwner.get().lifecycleScope }
 
     @Inject
     lateinit var application: Application
@@ -46,9 +46,9 @@ class MigrationHelper : BroadcastReceiver() {
     lateinit var workManager: WorkManager
 
     override fun onReceive(p0: Context, p1: Intent) {
-        when (p1.action) {
-            Intent.ACTION_MY_PACKAGE_REPLACED -> {
-                _processLifecycleScope.launch(_coroutineContext) {
+        _processLifecycleScope.launch(_coroutineContext) {
+            when (p1.action) {
+                Intent.ACTION_MY_PACKAGE_REPLACED -> {
                     //because work manager's job can be deferred, cancel check in event worker
                     //instead of work manager, use alarm manager
                     getAllOneShotAttendanceUseCase().map { attendance ->
@@ -57,10 +57,8 @@ class MigrationHelper : BroadcastReceiver() {
                         }
                     }.awaitAll()
                 }
-            }
 
-            else -> {
-
+                else -> {}
             }
         }
     }

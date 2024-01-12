@@ -31,7 +31,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.google.android.material.color.DynamicColors
 import com.google.firebase.Firebase
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.analytics
@@ -61,7 +60,6 @@ class ResinStatusWidgetConfigurationActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()
-        DynamicColors.applyToActivityIfAvailable(this)
 
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -143,10 +141,7 @@ fun ResinStatusWidgetConfigurationApp() {
                 composable(
                     route = ResinStatusWidgetConfigurationDestination.LoadingScreen().route,
                     arguments = ResinStatusWidgetConfigurationDestination.LoadingScreen().arguments.map { argument ->
-                        navArgument(argument.first) {
-                            type = argument.second
-                            defaultValue = AppWidgetManager.INVALID_APPWIDGET_ID
-                        }
+                        navArgument(argument.first, argument.second)
                     }
                 ) {
                     val loadingViewModel: LoadingViewModel = hiltViewModel()
@@ -160,9 +155,7 @@ fun ResinStatusWidgetConfigurationApp() {
                 composable(
                     route = ResinStatusWidgetConfigurationDestination.CreateResinStatusWidgetScreen().route,
                     arguments = ResinStatusWidgetConfigurationDestination.CreateResinStatusWidgetScreen().arguments.map { argument ->
-                        navArgument(argument.first) {
-                            type = argument.second
-                        }
+                        navArgument(argument.first, argument.second)
                     },
                 ) {
                     val newCookie by remember {
@@ -196,9 +189,7 @@ fun ResinStatusWidgetConfigurationApp() {
                 composable(
                     route = ResinStatusWidgetConfigurationDestination.ResinStatusWidgetDetailScreen().route,
                     arguments = ResinStatusWidgetConfigurationDestination.ResinStatusWidgetDetailScreen().arguments.map { argument ->
-                        navArgument(argument.first) {
-                            type = argument.second
-                        }
+                        navArgument(argument.first, argument.second)
                     }
                 ) {
                     ResinStatusWidgetDetailScreen()

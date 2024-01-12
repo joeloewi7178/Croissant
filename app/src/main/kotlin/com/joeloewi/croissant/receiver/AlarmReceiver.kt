@@ -31,13 +31,13 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class AlarmReceiver : BroadcastReceiver() {
+    private val _processLifecycleScope = ProcessLifecycleOwner.get().lifecycleScope
     private val _coroutineContext = Dispatchers.IO + CoroutineExceptionHandler { _, throwable ->
         Firebase.crashlytics.apply {
             log(this@AlarmReceiver.javaClass.simpleName)
             recordException(throwable)
         }
     }
-    private val _processLifecycleScope by lazy { ProcessLifecycleOwner.get().lifecycleScope }
 
     @Inject
     lateinit var application: Application
@@ -58,9 +58,9 @@ class AlarmReceiver : BroadcastReceiver() {
     lateinit var alarmScheduler: AlarmScheduler
 
     override fun onReceive(p0: Context, p1: Intent) {
-        when (p1.action) {
-            Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED, AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED -> {
-                _processLifecycleScope.launch(_coroutineContext) {
+        _processLifecycleScope.launch(_coroutineContext) {
+            when (p1.action) {
+                Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED, AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED -> {
                     getAllOneShotAttendanceUseCase().map { attendance ->
                         async(SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
                             attendance.runCatching {
@@ -72,12 +72,9 @@ class AlarmReceiver : BroadcastReceiver() {
                         }
                     }.awaitAll()
                 }
-            }
 
-            RECEIVE_ATTEND_CHECK_IN_ALARM -> {
-                val attendanceId = p1.getLongExtra(ATTENDANCE_ID, Long.MIN_VALUE)
-
-                _processLifecycleScope.launch(_coroutineContext) {
+                RECEIVE_ATTEND_CHECK_IN_ALARM -> {
+                    val attendanceId = p1.getLongExtra(ATTENDANCE_ID, Long.MIN_VALUE)
                     val attendanceWithGames = getOneAttendanceUseCase(attendanceId)
                     val attendance = attendanceWithGames.attendance
                     val oneTimeWork = OneTimeWorkRequestBuilder<AttendCheckInEventWorker>()
@@ -101,10 +98,10 @@ class AlarmReceiver : BroadcastReceiver() {
                         scheduleForTomorrow = true
                     )
                 }
-            }
 
-            else -> {
+                else -> {
 
+                }
             }
         }
     }

@@ -1,9 +1,11 @@
 package com.joeloewi.croissant.ui.navigation.main.settings
 
-import androidx.navigation.NavType
+import androidx.compose.runtime.Immutable
+import androidx.navigation.NavArgumentBuilder
 
+@Immutable
 sealed class SettingsDestination {
-    abstract val arguments: List<Pair<String, NavType<*>>>
+    abstract val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>>
     protected abstract val plainRoute: String
     val route: String by lazy {
         "${plainRoute}${
@@ -18,13 +20,13 @@ sealed class SettingsDestination {
         }"
     }
 
-    object SettingsScreen : SettingsDestination() {
-        override val arguments: List<Pair<String, NavType<*>>> = listOf()
+    data object SettingsScreen : SettingsDestination() {
+        override val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>> = listOf()
         override val plainRoute: String = "settingsScreen"
     }
 
-    object DeveloperInfoScreen : SettingsDestination() {
-        override val arguments: List<Pair<String, NavType<*>>> = listOf()
+    data object DeveloperInfoScreen : SettingsDestination() {
+        override val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>> = listOf()
         override val plainRoute: String = "developerInfoScreen"
     }
 }
