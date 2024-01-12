@@ -34,6 +34,7 @@ import kotlin.reflect.KClass
 interface InitializerEntryPoint {
     fun imageLoader(): ImageLoader
     fun hiltWorkerFactory(): HiltWorkerFactory
+
     @DefaultDispatcherExecutor
     fun executor(): Executor
     fun runnableScheduler(): RunnableScheduler
