@@ -37,18 +37,9 @@ interface WorkerExecutionLogRepository {
         localDate: String
     ): Flow<PagingData<WorkerExecutionLogWithState>>
 
-    fun getCountByStateAndDate(
-        attendanceId: Long,
-        loggableWorker: LoggableWorker,
-        state: WorkerExecutionLogState,
-        localDate: String,
-    ): Flow<Long>
-
     fun getCountByState(
         attendanceId: Long,
         loggableWorker: LoggableWorker,
         state: WorkerExecutionLogState
     ): Flow<Long>
-
-    fun getStartToEnd(): Flow<Pair<Long, Long>>
 }

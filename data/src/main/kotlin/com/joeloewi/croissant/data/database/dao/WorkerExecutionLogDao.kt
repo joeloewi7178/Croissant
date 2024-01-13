@@ -38,7 +38,6 @@ interface WorkerExecutionLogDao {
     @Delete
     suspend fun delete(vararg workerExecutionLogEntities: WorkerExecutionLogEntity): Int
 
-    @Transaction
     @Query(
         """
             DELETE 
@@ -79,25 +78,6 @@ interface WorkerExecutionLogDao {
             WHERE 
                 attendanceId = :attendanceId 
                 AND loggableWorker = :loggableWorker 
-                AND state = :state 
-                AND DATE(createdAt / 1000, 'unixepoch', 'localtime') = :localDate 
-        """
-    )
-    fun getCountByStateAndDate(
-        attendanceId: Long,
-        loggableWorker: LoggableWorker,
-        state: WorkerExecutionLogState,
-        localDate: String,
-    ): Flow<Long>
-
-    @Transaction
-    @Query(
-        """
-            SELECT COUNT(*) 
-            FROM WorkerExecutionLogEntity 
-            WHERE 
-                attendanceId = :attendanceId 
-                AND loggableWorker = :loggableWorker 
                 AND state = :state
         """
     )
@@ -106,38 +86,4 @@ interface WorkerExecutionLogDao {
         loggableWorker: LoggableWorker,
         state: WorkerExecutionLogState
     ): Flow<Long>
-
-    @Transaction
-    @Query(
-        """
-        SELECT(
-            MIN(
-                IFNULL(
-                    MIN(createdAt),
-                    CAST (ROUND((julianday('now', 'localtime', 'start of month', 'start of day', 'utc') - 2440587.5) * 86400.0 * 1000) AS INTEGER)
-                ),
-                CAST (ROUND((julianday('now', 'localtime', 'start of month', 'start of day', 'utc') - 2440587.5) * 86400.0 * 1000) AS INTEGER)
-            )
-        )
-        FROM WorkerExecutionLogEntity
-    """
-    )
-    fun getStartOfRange(): Flow<Long>
-
-    @Transaction
-    @Query(
-        """
-        SELECT(
-            MAX(
-                IFNULL(
-                    MAX(createdAt),
-                    CAST (ROUND((julianday('now', 'localtime', '+1 month', 'start of month', 'start of day', '-0.001 second', 'utc') - 2440587.5) * 86400.0 * 1000) AS INTEGER)
-                ),
-                CAST (ROUND((julianday('now', 'localtime', '+1 month', 'start of month', 'start of day', '-0.001 second', 'utc') - 2440587.5) * 86400.0 * 1000) AS INTEGER)
-            )
-        )
-        FROM WorkerExecutionLogEntity
-    """
-    )
-    fun getEndOfRange(): Flow<Long>
 }

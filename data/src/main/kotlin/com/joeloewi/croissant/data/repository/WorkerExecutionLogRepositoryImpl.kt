@@ -61,18 +61,6 @@ class WorkerExecutionLogRepositoryImpl @Inject constructor(
             }
             .flowOn(Dispatchers.IO)
 
-    override fun getCountByStateAndDate(
-        attendanceId: Long,
-        loggableWorker: LoggableWorker,
-        state: WorkerExecutionLogState,
-        localDate: String
-    ): Flow<Long> = workerExecutionLogDataSource.getCountByStateAndDate(
-        attendanceId,
-        loggableWorker,
-        state,
-        localDate
-    ).flowOn(Dispatchers.IO)
-
     override fun getCountByState(
         attendanceId: Long,
         loggableWorker: LoggableWorker,
@@ -80,7 +68,4 @@ class WorkerExecutionLogRepositoryImpl @Inject constructor(
     ): Flow<Long> =
         workerExecutionLogDataSource.getCountByState(attendanceId, loggableWorker, state)
             .flowOn(Dispatchers.IO)
-
-    override fun getStartToEnd(): Flow<Pair<Long, Long>> =
-        workerExecutionLogDataSource.getStartToEnd().flowOn(Dispatchers.IO)
 }

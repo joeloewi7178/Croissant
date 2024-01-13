@@ -73,7 +73,7 @@ interface AttendanceDao {
         """
             SELECT * 
             FROM AttendanceEntity 
-            ORDER BY createdAt DESC
+            ORDER BY hourOfDay ASC, minute ASC
         """
     )
     fun getAllPaged(): PagingSource<Int, AttendanceWithGamesEntity>
@@ -83,7 +83,7 @@ interface AttendanceDao {
         """
             SELECT * 
             FROM AttendanceEntity 
-            ORDER BY createdAt DESC
+            ORDER BY hourOfDay ASC, minute ASC
         """
     )
     fun getAll(): Flow<List<AttendanceWithGamesEntity>>
@@ -93,7 +93,7 @@ interface AttendanceDao {
         """
             SELECT * 
             FROM AttendanceEntity 
-            ORDER BY createdAt DESC 
+            ORDER BY hourOfDay ASC, minute ASC
         """
     )
     suspend fun getAllOneShot(): List<AttendanceEntity>

@@ -16,6 +16,7 @@
 
 package com.joeloewi.croissant.data.entity.local
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -25,7 +26,6 @@ import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
 import java.util.TimeZone
 
 @Entity(
-    indices = [Index("attendanceId")],
     foreignKeys = [
         ForeignKey(
             entity = AttendanceEntity::class,
@@ -38,9 +38,12 @@ import java.util.TimeZone
 data class WorkerExecutionLogEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
+    @ColumnInfo(index = true)
     val attendanceId: Long = 0,
     val createdAt: Long = System.currentTimeMillis(),
     val timezoneId: String = TimeZone.getDefault().id,
+    @ColumnInfo(index = true)
     val state: WorkerExecutionLogState = WorkerExecutionLogState.SUCCESS,
+    @ColumnInfo(index = true)
     val loggableWorker: LoggableWorker = LoggableWorker.UNKNOWN,
 )

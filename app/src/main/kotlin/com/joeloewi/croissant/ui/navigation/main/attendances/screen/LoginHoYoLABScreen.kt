@@ -26,6 +26,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
@@ -34,6 +35,8 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.flowWithLifecycle
+import androidx.webkit.CookieManagerCompat
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import com.google.accompanist.web.*
@@ -48,9 +51,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-
-const val COOKIE = "cookie"
 
 @Composable
 fun LoginHoYoLABScreen(
@@ -80,6 +80,7 @@ fun LoginHoYoLABContent(
     onNavigateUpWithResult: (cookie: String) -> Unit,
     onCurrentCookieChange: (String) -> Unit
 ) {
+    val lifecycleOwner = LocalLifecycleOwner.current
     val incorrectSession = stringResource(id = R.string.incorrect_session)
     val context = LocalContext.current
     val activity = LocalActivity.current
@@ -103,7 +104,8 @@ fun LoginHoYoLABContent(
     var showSslErrorDialog by remember { mutableStateOf<Pair<SslErrorHandler?, SslError?>?>(null) }
 
     LaunchedEffect(Unit) {
-        snapshotFlow(currentCookie).catch { }.flowOn(Dispatchers.IO).filter { it.isNotEmpty() }
+        snapshotFlow(currentCookie).catch { }.flowWithLifecycle(lifecycleOwner.lifecycle)
+            .flowOn(Dispatchers.IO).filter { it.isNotEmpty() }
             .collect {
                 onNavigateUpWithResult(it)
             }
@@ -153,13 +155,37 @@ fun LoginHoYoLABContent(
                         IconButton(
                             onClick = {
                                 coroutineScope.launch(Dispatchers.IO) {
-                                    val hoyolabCookie =
-                                        CookieManager.getInstance().getCookie(hoyolabUrl)
+                                    val cookie =
+                                        if (WebViewFeature.isFeatureSupported(WebViewFeature.GET_COOKIE_INFO)) {
+                                            val headers = hashMapOf<String, String>()
 
-                                    if (cookieKeys.map { hoyolabCookie.contains(it) }.all { it }) {
-                                        withContext(Dispatchers.Main) {
-                                            onNavigateUpWithResult(hoyolabCookie)
+                                            CookieManagerCompat.getCookieInfo(
+                                                CookieManager.getInstance(),
+                                                hoyolabUrl
+                                            ).forEach { cookie ->
+                                                cookie.split("; ").forEach {
+                                                    val keyAndValue = it.split("=")
+
+                                                    val key = keyAndValue[0]
+                                                    val value = keyAndValue.getOrElse(1) { "" }
+
+                                                    headers[key] = value
+                                                }
+                                            }
+
+                                            headers.toList().joinToString("; ") {
+                                                if (it.second.isEmpty()) {
+                                                    it.first
+                                                } else {
+                                                    "${it.first}=${it.second}"
+                                                }
+                                            }
+                                        } else {
+                                            CookieManager.getInstance().getCookie(hoyolabUrl) ?: ""
                                         }
+
+                                    if (cookieKeys.map { cookie.contains(it) }.all { it }) {
+                                        onCurrentCookieChange(cookie)
                                     } else {
                                         snackbarHostState.showSnackbar(
                                             message = incorrectSession
@@ -291,10 +317,35 @@ fun LoginHoYoLABContent(
 
                                 coroutineScope.launch(Dispatchers.IO) {
                                     val cookie =
-                                        CookieManager.getInstance().getCookie(hoyolabUrl)
+                                        if (WebViewFeature.isFeatureSupported(WebViewFeature.GET_COOKIE_INFO)) {
+                                            val headers = hashMapOf<String, String>()
 
-                                    if (cookieKeys.map { cookie?.contains(it) == true }
-                                            .all { it }) {
+                                            CookieManagerCompat.getCookieInfo(
+                                                CookieManager.getInstance(),
+                                                hoyolabUrl
+                                            ).forEach { cookie ->
+                                                cookie.split("; ").forEach {
+                                                    val keyAndValue = it.split("=")
+
+                                                    val key = keyAndValue[0]
+                                                    val value = keyAndValue.getOrElse(1) { "" }
+
+                                                    headers[key] = value
+                                                }
+                                            }
+
+                                            headers.toList().joinToString("; ") {
+                                                if (it.second.isEmpty()) {
+                                                    it.first
+                                                } else {
+                                                    "${it.first}=${it.second}"
+                                                }
+                                            }
+                                        } else {
+                                            CookieManager.getInstance().getCookie(hoyolabUrl) ?: ""
+                                        }
+
+                                    if (cookieKeys.map { cookie.contains(it) }.all { it }) {
                                         onCurrentCookieChange(cookie)
                                     }
                                 }
