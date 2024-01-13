@@ -51,22 +51,6 @@ sealed class WorkerExecutionLogUseCase {
             workerExecutionLogRepository.getByDatePaged(attendanceId, loggableWorker, localDate)
     }
 
-    class GetCountByStateAndDate @Inject constructor(
-        private val workerExecutionLogRepository: WorkerExecutionLogRepository
-    ) {
-        operator fun invoke(
-            attendanceId: Long,
-            loggableWorker: LoggableWorker,
-            state: WorkerExecutionLogState,
-            localDate: String,
-        ) = workerExecutionLogRepository.getCountByStateAndDate(
-            attendanceId,
-            loggableWorker,
-            state,
-            localDate
-        )
-    }
-
     class GetCountByState @Inject constructor(
         private val workerExecutionLogRepository: WorkerExecutionLogRepository
     ) {
@@ -75,12 +59,5 @@ sealed class WorkerExecutionLogUseCase {
             loggableWorker: LoggableWorker,
             state: WorkerExecutionLogState
         ) = workerExecutionLogRepository.getCountByState(attendanceId, loggableWorker, state)
-    }
-
-    class GetStartToEnd @Inject constructor(
-        private val workerExecutionLogRepository: WorkerExecutionLogRepository
-    ) {
-
-        operator fun invoke() = workerExecutionLogRepository.getStartToEnd()
     }
 }

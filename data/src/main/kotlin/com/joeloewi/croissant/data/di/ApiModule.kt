@@ -67,6 +67,7 @@ object ApiModule {
             }
             return@run this
         }
+        .retryOnConnectionFailure(true)
         .build()
 
     @Singleton

@@ -34,7 +34,7 @@ import androidx.navigation.navArgument
 import com.google.firebase.Firebase
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.analytics
-import com.joeloewi.croissant.ui.navigation.main.attendances.screen.COOKIE
+import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.LoginHoYoLABScreen
 import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.ResinStatusWidgetConfigurationNavigation
 import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration.ResinStatusWidgetConfigurationDestination
@@ -159,7 +159,10 @@ fun ResinStatusWidgetConfigurationApp() {
                     },
                 ) {
                     val newCookie by remember {
-                        it.savedStateHandle.getStateFlow(COOKIE, "")
+                        it.savedStateHandle.getStateFlow(
+                            AttendancesDestination.LoginHoYoLabScreen.COOKIE,
+                            ""
+                        )
                     }.collectAsStateWithLifecycle()
 
                     CreateResinStatusWidgetScreen(
@@ -179,7 +182,10 @@ fun ResinStatusWidgetConfigurationApp() {
                         },
                         onNavigateUpWithResult = {
                             navController.apply {
-                                previousBackStackEntry?.savedStateHandle?.set(COOKIE, it)
+                                previousBackStackEntry?.savedStateHandle?.set(
+                                    AttendancesDestination.LoginHoYoLabScreen.COOKIE,
+                                    it
+                                )
                                 navigateUp()
                             }
                         }

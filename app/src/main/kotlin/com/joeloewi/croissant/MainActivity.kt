@@ -73,7 +73,6 @@ import com.joeloewi.croissant.ui.navigation.main.attendances.screen.AttendanceDe
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.AttendanceLogsCalendarScreen
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.AttendanceLogsDayScreen
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.AttendancesScreen
-import com.joeloewi.croissant.ui.navigation.main.attendances.screen.COOKIE
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.LoginHoYoLABScreen
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.CreateAttendanceScreen
 import com.joeloewi.croissant.ui.navigation.main.global.GlobalDestination
@@ -360,7 +359,10 @@ fun CroissantNavHost(
 
             composable(route = AttendancesDestination.CreateAttendanceScreen.route) {
                 val newCookie by remember {
-                    it.savedStateHandle.getStateFlow(COOKIE, "")
+                    it.savedStateHandle.getStateFlow(
+                        AttendancesDestination.LoginHoYoLabScreen.COOKIE,
+                        ""
+                    )
                 }.collectAsStateWithLifecycle()
 
                 CreateAttendanceScreen(
@@ -392,7 +394,10 @@ fun CroissantNavHost(
                     },
                     onNavigateUpWithResult = {
                         navController.value.apply {
-                            previousBackStackEntry?.savedStateHandle?.set(COOKIE, it)
+                            previousBackStackEntry?.savedStateHandle?.set(
+                                AttendancesDestination.LoginHoYoLabScreen.COOKIE,
+                                it
+                            )
                             navigateUp()
                         }
                     }
@@ -416,7 +421,10 @@ fun CroissantNavHost(
                         ?: false
                 }
                 val newCookie by remember {
-                    navBackStackEntry.savedStateHandle.getStateFlow(COOKIE, "")
+                    navBackStackEntry.savedStateHandle.getStateFlow(
+                        AttendancesDestination.LoginHoYoLabScreen.COOKIE,
+                        ""
+                    )
                 }.collectAsStateWithLifecycle()
 
                 LaunchedEffect(fromDeeplink) {

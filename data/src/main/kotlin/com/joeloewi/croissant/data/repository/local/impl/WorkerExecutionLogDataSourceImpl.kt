@@ -28,10 +28,7 @@ import com.joeloewi.croissant.domain.common.LoggableWorker
 import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
 import com.joeloewi.croissant.domain.entity.WorkerExecutionLog
 import com.joeloewi.croissant.domain.entity.relational.WorkerExecutionLogWithState
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -73,28 +70,9 @@ class WorkerExecutionLogDataSourceImpl @Inject constructor(
         ).flow
             .map { pagingData -> pagingData.map { workerExecutionLogWithStateMapper.toDomain(it) } }
 
-    override fun getCountByStateAndDate(
-        attendanceId: Long,
-        loggableWorker: LoggableWorker,
-        state: WorkerExecutionLogState,
-        dateString: String,
-    ): Flow<Long> = workerExecutionLogDao.getCountByStateAndDate(
-        attendanceId,
-        loggableWorker,
-        state,
-        dateString
-    )
-
     override fun getCountByState(
         attendanceId: Long,
         loggableWorker: LoggableWorker,
         state: WorkerExecutionLogState
     ): Flow<Long> = workerExecutionLogDao.getCountByState(attendanceId, loggableWorker, state)
-
-    override fun getStartToEnd(): Flow<Pair<Long, Long>> = combine(
-        workerExecutionLogDao.getStartOfRange(),
-        workerExecutionLogDao.getEndOfRange()
-    ) { start, end ->
-        start to end
-    }.flowOn(Dispatchers.IO)
 }

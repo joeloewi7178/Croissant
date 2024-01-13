@@ -35,6 +35,8 @@ sealed class AttendancesDestination {
     }
 
     data object LoginHoYoLabScreen : AttendancesDestination() {
+        const val COOKIE = "cookie"
+
         override val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>> = listOf()
         override val plainRoute = "loginHoYoLabScreen"
     }
