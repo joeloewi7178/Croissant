@@ -16,6 +16,7 @@
 
 package com.joeloewi.croissant.data.database
 
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.joeloewi.croissant.data.database.dao.AccountDao
@@ -46,7 +47,8 @@ import com.joeloewi.croissant.data.entity.local.WorkerExecutionLogEntity
         AccountEntity::class
     ],
     exportSchema = true,
-    version = CroissantDatabase.LATEST_VERSION
+    version = CroissantDatabase.LATEST_VERSION,
+    autoMigrations = [AutoMigration(from = 1, to = 2)]
 )
 abstract class CroissantDatabase : RoomDatabase() {
     abstract fun attendanceDao(): AttendanceDao
@@ -60,6 +62,6 @@ abstract class CroissantDatabase : RoomDatabase() {
     abstract fun resultRangeDao(): ResultRangeDao
 
     companion object {
-        const val LATEST_VERSION = 1
+        const val LATEST_VERSION = 2
     }
 }

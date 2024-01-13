@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 1,
-    "identityHash": "e8846f98a8a1b614fd7d0c623c759c3e",
+    "version": 2,
+    "identityHash": "eaf7f67984370fe86ff06ba9fcc8a9f2",
     "entities": [
       {
         "tableName": "AttendanceEntity",
@@ -99,7 +99,30 @@
             "id"
           ]
         },
-        "indices": [],
+        "indices": [
+          {
+            "name": "index_AttendanceEntity_hourOfDay_minute",
+            "unique": false,
+            "columnNames": [
+              "hourOfDay",
+              "minute"
+            ],
+            "orders": [
+              "ASC",
+              "ASC"
+            ],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_AttendanceEntity_hourOfDay_minute` ON `${TABLE_NAME}` (`hourOfDay` ASC, `minute` ASC)"
+          },
+          {
+            "name": "index_AttendanceEntity_uid",
+            "unique": false,
+            "columnNames": [
+              "uid"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_AttendanceEntity_uid` ON `${TABLE_NAME}` (`uid`)"
+          }
+        ],
         "foreignKeys": []
       },
       {
@@ -158,6 +181,24 @@
             ],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_WorkerExecutionLogEntity_attendanceId` ON `${TABLE_NAME}` (`attendanceId`)"
+          },
+          {
+            "name": "index_WorkerExecutionLogEntity_state",
+            "unique": false,
+            "columnNames": [
+              "state"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_WorkerExecutionLogEntity_state` ON `${TABLE_NAME}` (`state`)"
+          },
+          {
+            "name": "index_WorkerExecutionLogEntity_loggableWorker",
+            "unique": false,
+            "columnNames": [
+              "loggableWorker"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_WorkerExecutionLogEntity_loggableWorker` ON `${TABLE_NAME}` (`loggableWorker`)"
           }
         ],
         "foreignKeys": [
@@ -401,7 +442,17 @@
             "id"
           ]
         },
-        "indices": [],
+        "indices": [
+          {
+            "name": "index_ResinStatusWidgetEntity_appWidgetId",
+            "unique": false,
+            "columnNames": [
+              "appWidgetId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ResinStatusWidgetEntity_appWidgetId` ON `${TABLE_NAME}` (`appWidgetId`)"
+          }
+        ],
         "foreignKeys": []
       },
       {
@@ -468,7 +519,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e8846f98a8a1b614fd7d0c623c759c3e')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'eaf7f67984370fe86ff06ba9fcc8a9f2')"
     ]
   }
 }
