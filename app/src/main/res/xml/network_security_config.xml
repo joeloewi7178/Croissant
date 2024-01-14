@@ -16,15 +16,8 @@
 
 <network-security-config>
     <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">bbs-api-os.hoyolab.com</domain>
-        <domain includeSubdomains="true">hk4e-api-os.mihoyo.com</domain>
-        <domain includeSubdomains="true">api-os-takumi.mihoyo.com</domain>
-        <domain includeSubdomains="true">sg-public-api.hoyolab.com</domain>
+        <domain includeSubdomains="true">hoyolab.com</domain>
         <domain includeSubdomains="true">arca.live</domain>
+        <domain includeSubdomains="true">cloudfront.net</domain>
     </domain-config>
-    <base-config cleartextTrafficPermitted="false">
-        <trust-anchors>
-            <certificates src="system" />
-        </trust-anchors>
-    </base-config>
 </network-security-config>

@@ -43,6 +43,7 @@ import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.SpecialPermission
+import com.joeloewi.croissant.util.isDeviceNexus5X
 import com.joeloewi.croissant.util.rememberSpecialPermissionState
 import com.joeloewi.croissant.viewmodel.SettingsViewModel
 
@@ -264,8 +265,10 @@ fun SettingsContent(
             ) {
                 ListItem(
                     modifier = Modifier.clickable {
-                        with(activity) {
-                            startActivity(Intent(this, OssLicensesMenuActivity::class.java))
+                        with(Intent(activity, OssLicensesMenuActivity::class.java)) {
+                            if (resolveActivity(activity.packageManager) != null && !isDeviceNexus5X()) {
+                                activity.startActivity(this)
+                            }
                         }
                     },
                     leadingContent = {

@@ -46,6 +46,6 @@ enum class HonkaiImpact3rdServer(
     );
 
     companion object {
-        fun findByRegion(region: String) = values().find { it.region == region } ?: Unknown
+        fun findByRegion(region: String) = entries.find { it.region == region } ?: Unknown
     }
 }

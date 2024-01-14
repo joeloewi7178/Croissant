@@ -23,7 +23,7 @@ sealed class CheckInUseCase {
 
     class AttendCheckInTearsOfThemis @Inject constructor(
         private val checkInRepository: CheckInRepository
-    ) {
+    ) : CheckInUseCase() {
         suspend operator fun invoke(
             actId: String = "e202202281857121",
             cookie: String
@@ -32,7 +32,7 @@ sealed class CheckInUseCase {
 
     class AttendCheckInHonkaiStarRail @Inject constructor(
         private val checkInRepository: CheckInRepository
-    ) {
+    ) : CheckInUseCase() {
         suspend operator fun invoke(
             actId: String = "e202303301540311",
             cookie: String
@@ -41,7 +41,7 @@ sealed class CheckInUseCase {
 
     class AttendCheckInHonkaiImpact3rd @Inject constructor(
         private val checkInRepository: CheckInRepository
-    ) {
+    ) : CheckInUseCase() {
         suspend operator fun invoke(
             cookie: String
         ) = checkInRepository.attendCheckInHonkaiImpact3rd(cookie)
@@ -49,7 +49,7 @@ sealed class CheckInUseCase {
 
     class AttendCheckInGenshinImpact @Inject constructor(
         private val checkInRepository: CheckInRepository
-    ) {
+    ) : CheckInUseCase() {
         suspend operator fun invoke(
             cookie: String
         ) = checkInRepository.attendCheckInGenshinImpact(cookie)

@@ -21,4 +21,6 @@ class SystemRepositoryImpl @Inject constructor(
         withContext(Dispatchers.IO) {
             systemDataSource.isUnusedAppRestrictionEnabled()
         }
+
+    override suspend fun removeAllCookies(): Result<Boolean> = systemDataSource.removeAllCookies()
 }

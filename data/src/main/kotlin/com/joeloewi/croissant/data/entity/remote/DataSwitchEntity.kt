@@ -11,8 +11,4 @@ data class DataSwitchEntity(
     val isPublic: Boolean = false,
     @Json(name = "switch_name")
     val switchName: String = ""
-) {
-    companion object {
-        const val GENSHIN_IMPACT_DAILY_NOTE_SWITCH_ID = 3
-    }
-}
+)

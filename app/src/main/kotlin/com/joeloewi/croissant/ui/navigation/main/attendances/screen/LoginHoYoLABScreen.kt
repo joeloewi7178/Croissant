@@ -36,21 +36,23 @@ import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
-import androidx.webkit.CookieManagerCompat
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import com.google.accompanist.web.*
 import com.joeloewi.croissant.BuildConfig
 import com.joeloewi.croissant.R
+import com.joeloewi.croissant.state.ILCE
 import com.joeloewi.croissant.state.LCE
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.viewmodel.LoginHoYoLABViewModel
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun LoginHoYoLABScreen(
@@ -59,14 +61,17 @@ fun LoginHoYoLABScreen(
     onNavigateUpWithResult: (cookie: String) -> Unit
 ) {
     val removeAllCookiesState by loginHoYoLABViewModel.removeAllCookies.collectAsStateWithLifecycle()
-    val currentCookie by loginHoYoLABViewModel.currentCookie.collectAsStateWithLifecycle()
+    val automaticallyCheckedCookie by loginHoYoLABViewModel.automaticallyCheckedCookie.collectAsStateWithLifecycle()
+    val manuallyCheckedCookie by loginHoYoLABViewModel.manuallyCheckedCookie.collectAsStateWithLifecycle()
 
     LoginHoYoLABContent(
+        hoyolabUrl = loginHoYoLABViewModel.hoyolabUrl,
         removeAllCookiesState = { removeAllCookiesState },
-        currentCookie = { currentCookie },
+        automaticallyCheckedCookie = { automaticallyCheckedCookie },
+        manuallyCheckedCookie = { manuallyCheckedCookie },
         onNavigateUp = onNavigateUp,
         onNavigateUpWithResult = onNavigateUpWithResult,
-        onCurrentCookieChange = loginHoYoLABViewModel::setCurrentCookie
+        onCheckCookie = loginHoYoLABViewModel::onCheckCookie
     )
 }
 
@@ -74,22 +79,22 @@ fun LoginHoYoLABScreen(
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun LoginHoYoLABContent(
+    hoyolabUrl: String,
     removeAllCookiesState: () -> LCE<Boolean>,
-    currentCookie: () -> String,
+    automaticallyCheckedCookie: () -> String,
+    manuallyCheckedCookie: () -> ILCE<Pair<Boolean, String>>,
     onNavigateUp: () -> Unit,
     onNavigateUpWithResult: (cookie: String) -> Unit,
-    onCurrentCookieChange: (String) -> Unit
+    onCheckCookie: (Boolean) -> Unit
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val incorrectSession = stringResource(id = R.string.incorrect_session)
     val context = LocalContext.current
     val activity = LocalActivity.current
-    val hoyolabUrl = remember { "https://m.hoyolab.com" }
     val webViewState = rememberWebViewState(url = hoyolabUrl)
     val webViewNavigator = rememberWebViewNavigator()
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    val cookieKeys = remember { listOf("ltoken_v2", "ltmid_v2").toImmutableList() }
     val securityPopUpUrls = remember {
         listOf(
             "https://account.hoyolab.com/security.html",
@@ -102,12 +107,45 @@ fun LoginHoYoLABContent(
         listOf("www.webstatic-sea.mihoyo.com", "www.webstatic-sea.hoyolab.com")
     }.toImmutableList()
     var showSslErrorDialog by remember { mutableStateOf<Pair<SslErrorHandler?, SslError?>?>(null) }
+    val cookieManager = remember { CookieManager.getInstance() }
 
     LaunchedEffect(Unit) {
-        snapshotFlow(currentCookie).catch { }.flowWithLifecycle(lifecycleOwner.lifecycle)
-            .flowOn(Dispatchers.IO).filter { it.isNotEmpty() }
+        snapshotFlow(automaticallyCheckedCookie).catch { }
+            .flowWithLifecycle(lifecycleOwner.lifecycle)
+            .flowOn(Dispatchers.IO)
+            .filter { it.isNotEmpty() }
             .collect {
-                onNavigateUpWithResult(it)
+                withContext(Dispatchers.Main.immediate) {
+                    onNavigateUpWithResult(it)
+                }
+            }
+    }
+
+    LaunchedEffect(Unit) {
+        snapshotFlow(manuallyCheckedCookie).catch { }
+            .flowWithLifecycle(lifecycleOwner.lifecycle)
+            .flowOn(Dispatchers.IO)
+            .collect {
+                when (it) {
+                    is ILCE.Content -> {
+                        if (it.content.first) {
+                            withContext(Dispatchers.Main.immediate) {
+                                onNavigateUpWithResult(it.content.second)
+                            }
+                        } else {
+                            coroutineScope.launch(Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
+                                with(snackbarHostState) {
+                                    currentSnackbarData?.dismiss()
+                                    showSnackbar(message = incorrectSession)
+                                }
+                            }
+                        }
+                    }
+
+                    else -> {
+
+                    }
+                }
             }
     }
 
@@ -153,46 +191,7 @@ fun LoginHoYoLABContent(
                         )
 
                         IconButton(
-                            onClick = {
-                                coroutineScope.launch(Dispatchers.IO) {
-                                    val cookie =
-                                        if (WebViewFeature.isFeatureSupported(WebViewFeature.GET_COOKIE_INFO)) {
-                                            val headers = hashMapOf<String, String>()
-
-                                            CookieManagerCompat.getCookieInfo(
-                                                CookieManager.getInstance(),
-                                                hoyolabUrl
-                                            ).forEach { cookie ->
-                                                cookie.split("; ").forEach {
-                                                    val keyAndValue = it.split("=")
-
-                                                    val key = keyAndValue[0]
-                                                    val value = keyAndValue.getOrElse(1) { "" }
-
-                                                    headers[key] = value
-                                                }
-                                            }
-
-                                            headers.toList().joinToString("; ") {
-                                                if (it.second.isEmpty()) {
-                                                    it.first
-                                                } else {
-                                                    "${it.first}=${it.second}"
-                                                }
-                                            }
-                                        } else {
-                                            CookieManager.getInstance().getCookie(hoyolabUrl) ?: ""
-                                        }
-
-                                    if (cookieKeys.map { cookie.contains(it) }.all { it }) {
-                                        onCurrentCookieChange(cookie)
-                                    } else {
-                                        snackbarHostState.showSnackbar(
-                                            message = incorrectSession
-                                        )
-                                    }
-                                }
-                            }
+                            onClick = { onCheckCookie(true) }
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Done,
@@ -240,7 +239,7 @@ fun LoginHoYoLABContent(
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         },
-        contentWindowInsets = WindowInsets.safeDrawing.exclude(WindowInsets.navigationBars)
+        contentWindowInsets = WindowInsets.safeDrawing
     ) { innerPadding ->
         when (removeAllCookiesState()) {
             is LCE.Content -> {
@@ -287,7 +286,7 @@ fun LoginHoYoLABContent(
 
                         WebStorage.getInstance().deleteAllData()
 
-                        CookieManager.getInstance().apply {
+                        cookieManager.apply {
                             setAcceptCookie(true)
                             setAcceptThirdPartyCookies(webView, true)
                         }
@@ -310,45 +309,7 @@ fun LoginHoYoLABContent(
                                 view: WebView?,
                                 request: WebResourceRequest?
                             ): WebResourceResponse? {
-                                //in this block, codes are executed in io thread.
-                                //and called multiple times.
-                                //but we only need first value.
-                                //use stateflow in view model to distinct and get first value
-
-                                coroutineScope.launch(Dispatchers.IO) {
-                                    val cookie =
-                                        if (WebViewFeature.isFeatureSupported(WebViewFeature.GET_COOKIE_INFO)) {
-                                            val headers = hashMapOf<String, String>()
-
-                                            CookieManagerCompat.getCookieInfo(
-                                                CookieManager.getInstance(),
-                                                hoyolabUrl
-                                            ).forEach { cookie ->
-                                                cookie.split("; ").forEach {
-                                                    val keyAndValue = it.split("=")
-
-                                                    val key = keyAndValue[0]
-                                                    val value = keyAndValue.getOrElse(1) { "" }
-
-                                                    headers[key] = value
-                                                }
-                                            }
-
-                                            headers.toList().joinToString("; ") {
-                                                if (it.second.isEmpty()) {
-                                                    it.first
-                                                } else {
-                                                    "${it.first}=${it.second}"
-                                                }
-                                            }
-                                        } else {
-                                            CookieManager.getInstance().getCookie(hoyolabUrl) ?: ""
-                                        }
-
-                                    if (cookieKeys.map { cookie.contains(it) }.all { it }) {
-                                        onCurrentCookieChange(cookie)
-                                    }
-                                }
+                                onCheckCookie(false)
 
                                 return super.shouldInterceptRequest(
                                     view,
@@ -364,12 +325,11 @@ fun LoginHoYoLABContent(
                                 }) {
                                 coroutineScope.launch {
                                     request?.url?.let {
-                                        activity.startActivity(
-                                            Intent(
-                                                Intent.ACTION_VIEW,
-                                                it
-                                            )
-                                        )
+                                        val intent = Intent(Intent.ACTION_VIEW, it)
+
+                                        if (intent.resolveActivity(activity.packageManager) != null) {
+                                            activity.startActivity(Intent(Intent.ACTION_VIEW, it))
+                                        }
                                     }
                                 }
                                 true
@@ -413,7 +373,7 @@ fun LoginHoYoLABContent(
                                     }
                                 }
 
-                                CookieManager.getInstance().apply {
+                                cookieManager.apply {
                                     acceptCookie()
                                     setAcceptThirdPartyCookies(popUpWebView, true)
                                 }

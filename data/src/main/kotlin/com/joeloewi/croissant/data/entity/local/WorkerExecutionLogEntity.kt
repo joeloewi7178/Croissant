@@ -19,7 +19,6 @@ package com.joeloewi.croissant.data.entity.local
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
-import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.joeloewi.croissant.domain.common.LoggableWorker
 import com.joeloewi.croissant.domain.common.WorkerExecutionLogState

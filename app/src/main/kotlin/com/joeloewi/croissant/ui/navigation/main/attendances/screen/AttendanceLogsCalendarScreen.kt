@@ -67,8 +67,8 @@ import com.joeloewi.croissant.ui.theme.successContainerColor
 import com.joeloewi.croissant.ui.theme.warningContainerColor
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.generateCalendarDays
-import com.joeloewi.croissant.util.isCompactWindowSize
 import com.joeloewi.croissant.util.navigationIconButton
+import com.joeloewi.croissant.util.useNavRail
 import com.joeloewi.croissant.viewmodel.AttendanceLogsCalendarViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.Dispatchers
@@ -316,7 +316,7 @@ private fun DayGridItem(
             .padding(1.dp)
             .fillMaxWidth()
             .aspectRatio(
-                if (windowSizeClass.isCompactWindowSize()) {
+                if (!windowSizeClass.useNavRail()) {
                     0.5f
                 } else {
                     1f

@@ -154,7 +154,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                 } catch (cause: Throwable) {
                     if (cause is HoYoLABUnsuccessfulResponseException) {
                         when (HoYoLABRetCode.findByCode(cause.retCode)) {
-                            HoYoLABRetCode.AlreadyCheckedIn -> {
+                            HoYoLABRetCode.AlreadyCheckedIn, HoYoLABRetCode.CharacterNotExists -> {
                                 //do not log to crashlytics
                             }
 

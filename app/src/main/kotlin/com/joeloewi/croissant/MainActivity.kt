@@ -87,7 +87,7 @@ import com.joeloewi.croissant.ui.theme.CroissantTheme
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.LocalHourFormat
 import com.joeloewi.croissant.util.RequireAppUpdate
-import com.joeloewi.croissant.util.isCompactWindowSize
+import com.joeloewi.croissant.util.useNavRail
 import com.joeloewi.croissant.viewmodel.MainActivityViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.collections.immutable.ImmutableList
@@ -186,6 +186,29 @@ fun CroissantApp(
             CroissantNavigation.Settings
         ).toImmutableList()
     }
+    val currentBackStackEntry by remember(navController) {
+        navController.currentBackStackEntryFlow
+    }.collectAsStateWithLifecycle(initialValue = null)
+    val isNavigationRailVisible by remember {
+        derivedStateOf {
+            !fullScreenDestinations.any { route ->
+                (currentBackStackEntry?.destination?.route?.contains(
+                    route
+                ) != false)
+            } && windowSizeClass.useNavRail()
+                    && currentBackStackEntry?.destination?.route == currentBackStackEntry?.destination?.parent?.startDestinationRoute
+        }
+    }
+    val isBottomNavigationBarVisible by remember {
+        derivedStateOf {
+            !fullScreenDestinations.any { route ->
+                (currentBackStackEntry?.destination?.route?.contains(
+                    route
+                ) != false)
+            } && !windowSizeClass.useNavRail()
+                    && currentBackStackEntry?.destination?.route == currentBackStackEntry?.destination?.parent?.startDestinationRoute
+        }
+    }
 
     LaunchedEffect(navController) {
         withContext(Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
@@ -204,20 +227,6 @@ fun CroissantApp(
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars.only(WindowInsetsSides.Horizontal),
         bottomBar = {
-            val currentBackStackEntry by remember(navController) {
-                navController.currentBackStackEntryFlow
-            }.collectAsStateWithLifecycle(initialValue = null)
-            val isBottomNavigationBarVisible by remember {
-                derivedStateOf {
-                    !fullScreenDestinations.any { route ->
-                        (currentBackStackEntry?.destination?.route?.contains(
-                            route
-                        ) != false)
-                    } && windowSizeClass.isCompactWindowSize()
-                            && currentBackStackEntry?.destination?.route == currentBackStackEntry?.destination?.parent?.startDestinationRoute
-                }
-            }
-
             if (isBottomNavigationBarVisible) {
                 CroissantBottomNavigationBar(
                     croissantNavigations = croissantNavigations,
@@ -241,45 +250,36 @@ fun CroissantApp(
                 .padding(innerPadding)
         ) {
             Row {
-                Column {
-                    val currentBackStackEntry by navController.currentBackStackEntryFlow.collectAsStateWithLifecycle(
-                        initialValue = null,
-                    )
-                    val isNavigationRailVisible by remember {
-                        derivedStateOf {
-                            !fullScreenDestinations.any { route ->
-                                (currentBackStackEntry?.destination?.route?.contains(
-                                    route
-                                ) != false)
-                            } && !windowSizeClass.isCompactWindowSize()
+                if (isNavigationRailVisible) {
+                    CroissantNavigationRail(
+                        croissantNavigations = croissantNavigations,
+                        currentBackStackEntry = { currentBackStackEntry },
+                        onClickNavigationButton = { route ->
+                            navController.navigate(route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         }
-                    }
-
-                    if (isNavigationRailVisible) {
-                        CroissantNavigationRail(
-                            croissantNavigations = croissantNavigations,
-                            currentBackStackEntry = { currentBackStackEntry },
-                            onClickNavigationButton = { route ->
-                                navController.navigate(route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
+                    )
+                }
+                Column(
+                    modifier = remember(isNavigationRailVisible) {
+                        Modifier
+                            .fillMaxSize(1f)
+                            .run {
+                                if (isNavigationRailVisible) {
+                                    navigationBarsPadding()
+                                } else {
+                                    this
                                 }
                             }
-                        )
                     }
-                }
-                Column {
+                ) {
                     CroissantNavHost(
-                        modifier = Modifier.run {
-                            if (windowSizeClass.isCompactWindowSize()) {
-                                this
-                            } else {
-                                navigationBarsPadding()
-                            }
-                        },
+                        modifier = Modifier.fillMaxSize(1f),
                         navController = StableWrapper(navController),
                         snackbarHostState = snackbarHostState,
                         deepLinkUri = deepLinkUri.toString()
@@ -594,7 +594,7 @@ private fun CroissantNavigationRail(
             )
         }
     ) {
-        croissantNavigations.forEach { croissantNavigation ->
+        croissantNavigations.fastForEach { croissantNavigation ->
             key(croissantNavigation.route) {
                 val isSelected by remember(croissantNavigation.route) {
                     derivedStateOf { currentBackStackEntry()?.destination?.hierarchy?.any { it.route == croissantNavigation.route } == true }
