@@ -10,15 +10,15 @@ import javax.inject.Qualifier
 /**
  * Dispatchers
  */
-@Retention(AnnotationRetention.RUNTIME)
+@Retention(AnnotationRetention.BINARY)
 @Qualifier
 annotation class DefaultDispatcher
 
-@Retention(AnnotationRetention.RUNTIME)
+@Retention(AnnotationRetention.BINARY)
 @Qualifier
 annotation class IoDispatcher
 
-@Retention(AnnotationRetention.RUNTIME)
+@Retention(AnnotationRetention.BINARY)
 @Qualifier
 annotation class MainDispatcher
 
@@ -26,19 +26,23 @@ annotation class MainDispatcher
 @Qualifier
 annotation class MainImmediateDispatcher
 
+@Retention(AnnotationRetention.BINARY)
+@Qualifier
+annotation class ApplicationHandlerDispatcher
+
 /**
  * Executors
  */
 
-@Retention(AnnotationRetention.RUNTIME)
+@Retention(AnnotationRetention.BINARY)
 @Qualifier
 annotation class DefaultDispatcherExecutor
 
-@Retention(AnnotationRetention.RUNTIME)
+@Retention(AnnotationRetention.BINARY)
 @Qualifier
 annotation class IoDispatcherExecutor
 
-@Retention(AnnotationRetention.RUNTIME)
+@Retention(AnnotationRetention.BINARY)
 @Qualifier
 annotation class MainDispatcherExecutor
 

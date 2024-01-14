@@ -11,6 +11,7 @@ import com.google.firebase.crashlytics.crashlytics
 import com.joeloewi.croissant.domain.usecase.SettingsUseCase
 import com.joeloewi.croissant.domain.usecase.SystemUseCase
 import com.joeloewi.croissant.util.HourFormat
+import com.joeloewi.croissant.util.isDeviceNexus5X
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
@@ -46,7 +47,7 @@ class MainActivityViewModel @Inject constructor(
         flow {
             emit(Build.MODEL)
         }.filter {
-            !listOf("LG-H790", "LG-H791").contains(it.uppercase())
+            !isDeviceNexus5X()
         }.flatMapConcat {
             appUpdateManager.requestUpdateFlow()
         }.catch { cause ->

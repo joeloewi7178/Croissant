@@ -54,6 +54,10 @@ dependencies {
 
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.guava)
+
+    implementation(libs.androidx.startup)
+
+    implementation(libs.androidx.lifecycle.process)
 }
 
 protobuf {

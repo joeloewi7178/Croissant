@@ -25,35 +25,35 @@ import javax.inject.Inject
 sealed class WorkerExecutionLogUseCase {
     class Insert @Inject constructor(
         private val workerExecutionLogRepository: WorkerExecutionLogRepository
-    ) {
+    ) : WorkerExecutionLogUseCase() {
         suspend operator fun invoke(workerExecutionLog: WorkerExecutionLog) =
             workerExecutionLogRepository.insert(workerExecutionLog)
     }
 
     class Delete @Inject constructor(
         private val workerExecutionLogRepository: WorkerExecutionLogRepository
-    ) {
+    ) : WorkerExecutionLogUseCase() {
         suspend operator fun invoke(vararg workerExecutionLogs: WorkerExecutionLog) =
             workerExecutionLogRepository.delete(*workerExecutionLogs)
     }
 
     class DeleteAll @Inject constructor(
         private val workerExecutionLogRepository: WorkerExecutionLogRepository
-    ) {
+    ) : WorkerExecutionLogUseCase() {
         suspend operator fun invoke(attendanceId: Long, loggableWorker: LoggableWorker) =
             workerExecutionLogRepository.deleteAll(attendanceId, loggableWorker)
     }
 
     class GetByDatePaged @Inject constructor(
         private val workerExecutionLogRepository: WorkerExecutionLogRepository
-    ) {
+    ) : WorkerExecutionLogUseCase() {
         operator fun invoke(attendanceId: Long, loggableWorker: LoggableWorker, localDate: String) =
             workerExecutionLogRepository.getByDatePaged(attendanceId, loggableWorker, localDate)
     }
 
     class GetCountByState @Inject constructor(
         private val workerExecutionLogRepository: WorkerExecutionLogRepository
-    ) {
+    ) : WorkerExecutionLogUseCase() {
         operator fun invoke(
             attendanceId: Long,
             loggableWorker: LoggableWorker,

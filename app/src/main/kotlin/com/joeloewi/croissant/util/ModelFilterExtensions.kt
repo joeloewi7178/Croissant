@@ -1,5 +1,5 @@
 /*
- *    Copyright 2023. joeloewi
+ *    Copyright 2024. joeloewi
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,18 +14,10 @@
  *    limitations under the License.
  */
 
-package com.joeloewi.croissant.domain.usecase
+package com.joeloewi.croissant.util
 
-import com.joeloewi.croissant.domain.repository.ArcaLiveAppRepository
-import javax.inject.Inject
+import android.os.Build
 
-sealed class ArcaLiveAppUseCase {
-    class GetArticle @Inject constructor(
-        private val arcaLiveAppRepository: ArcaLiveAppRepository
-    ) : ArcaLiveAppUseCase() {
-        suspend operator fun invoke(
-            slug: String,
-            articleId: Long
-        ) = arcaLiveAppRepository.getArticle(slug, articleId)
-    }
-}
+//Nexus 5x occurs errors when use these functions;
+//launch in app review, launch in app update, start oss licenses activity
+fun isDeviceNexus5X(): Boolean = "Nexus 5X".uppercase() == Build.MODEL.uppercase()

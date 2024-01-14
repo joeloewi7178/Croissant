@@ -1,55 +1,136 @@
 package com.joeloewi.croissant.viewmodel
 
-import android.os.Handler
 import android.webkit.CookieManager
-import android.webkit.ValueCallback
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.webkit.CookieManagerCompat
+import androidx.webkit.WebViewFeature
+import com.joeloewi.croissant.domain.usecase.SystemUseCase
+import com.joeloewi.croissant.state.ILCE
 import com.joeloewi.croissant.state.LCE
+import com.joeloewi.croissant.state.foldAsILCE
+import com.joeloewi.croissant.state.foldAsLce
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.android.asCoroutineDispatcher
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginHoYoLABViewModel @Inject constructor(
-    private val applicationHandler: Handler
+    private val removeAllCookiesUseCase: SystemUseCase.RemoveAllCookies,
 ) : ViewModel() {
-    private val _currentCookie = MutableStateFlow("")
+    private val _cookieManager = CookieManager.getInstance()
+    private val _hoyolabUrl = "https://m.hoyolab.com"
+    private val _checkCookieManuallyChannel = Channel<Boolean>(Channel.BUFFERED)
+    private val _checkCookieManually = _checkCookieManuallyChannel.receiveAsFlow().shareIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed()
+    )
+    private val _cookieNames = listOf("ltoken_v2", "ltmid_v2")
+    private val _mutex = Mutex()
 
-    val removeAllCookies = callbackFlow<LCE<Boolean>> {
-        var valueCallback: ValueCallback<Boolean>? = ValueCallback<Boolean> { hasRemoved ->
-            CookieManager.getInstance().flush()
-            trySend(LCE.Content(hasRemoved))
-        }
-
-        CookieManager.getInstance().runCatching {
-            withContext(applicationHandler.asCoroutineDispatcher(name = "applicationHandlerDispatcher")) {
-                removeAllCookies(valueCallback)
-            }
-        }.onFailure { cause ->
-            close(cause)
-        }
-
-        awaitClose { valueCallback = null }
+    val hoyolabUrl = "https://m.hoyolab.com"
+    val removeAllCookies = flow {
+        emit(removeAllCookiesUseCase().foldAsLce())
     }.catch { }.flowOn(Dispatchers.IO).stateIn(
         scope = viewModelScope,
-        started = SharingStarted.Lazily,
+        started = SharingStarted.Eagerly,
         initialValue = LCE.Loading
     )
+    val manuallyCheckedCookie = _checkCookieManually.filter { it }.flatMapLatest {
+        flow {
+            emit(ILCE.Loading)
 
-    val currentCookie = _currentCookie.asStateFlow()
+            emit(runCatching {
+                with(getCurrentCookie(_cookieManager, _hoyolabUrl)) {
+                    checkCurrentCookieIsValid(
+                        cookie = this,
+                        names = _cookieNames
+                    ) to this
+                }
+            }.foldAsILCE())
+        }
+    }.catch { }.flowOn(Dispatchers.IO)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(),
+            initialValue = ILCE.Idle
+        )
+    val automaticallyCheckedCookie = _checkCookieManually.filter { !it }.map {
+        getCurrentCookie(_cookieManager, _hoyolabUrl)
+    }.filter { cookie ->
+        checkCurrentCookieIsValid(
+            cookie,
+            _cookieNames
+        )
+    }
+        .catch { }
+        .flowOn(Dispatchers.IO)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(),
+            initialValue = ""
+        )
 
-    fun setCurrentCookie(currentCookie: String) {
-        _currentCookie.value = currentCookie
+    private fun checkCurrentCookieIsValid(
+        cookie: String,
+        names: List<String>
+    ): Boolean = names.map { cookie.contains(it) }.all { it }
+
+    private fun getCurrentCookie(
+        cookieManager: CookieManager,
+        url: String
+    ): String {
+        cookieManager.flush()
+
+        return if (WebViewFeature.isFeatureSupported(WebViewFeature.GET_COOKIE_INFO)) {
+            val headers = hashMapOf<String, String>()
+
+            CookieManagerCompat.getCookieInfo(
+                cookieManager,
+                url
+            ).forEach { cookie ->
+                cookie.split("; ").forEach {
+                    val keyAndValue = it.split("=")
+
+                    val key = keyAndValue[0]
+                    val value = keyAndValue.getOrElse(1) { "" }
+
+                    headers[key] = value
+                }
+            }
+
+            headers.toList().joinToString("; ") {
+                if (it.second.isEmpty()) {
+                    it.first
+                } else {
+                    "${it.first}=${it.second}"
+                }
+            }
+        } else {
+            cookieManager.getCookie(_hoyolabUrl) ?: ""
+        }
+    }
+
+    fun onCheckCookie(checkManually: Boolean) {
+        viewModelScope.launch(Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
+            _mutex.withLock {
+                _checkCookieManuallyChannel.send(checkManually)
+            }
+        }
     }
 }

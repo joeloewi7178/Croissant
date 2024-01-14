@@ -8,4 +8,6 @@ interface SystemDataSource {
     suspend fun isDeviceRooted(): Boolean
 
     suspend fun isUnusedAppRestrictionEnabled(): Result<Boolean>
+
+    suspend fun removeAllCookies(): Result<Boolean>
 }

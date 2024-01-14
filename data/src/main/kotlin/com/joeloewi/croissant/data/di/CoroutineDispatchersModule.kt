@@ -5,12 +5,15 @@
 
 package com.joeloewi.croissant.data.di
 
+import android.os.Handler
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.android.asCoroutineDispatcher
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -31,4 +34,12 @@ object CoroutineDispatchersModule {
     @MainImmediateDispatcher
     @Provides
     fun providesMainImmediateDispatcher(): CoroutineDispatcher = Dispatchers.Main.immediate
+
+    @ApplicationHandlerDispatcher
+    @Singleton
+    @Provides
+    fun provideApplicationHandlerDispatcher(
+        applicationHandler: Handler
+    ): CoroutineDispatcher =
+        applicationHandler.asCoroutineDispatcher("applicationHandlerDispatcher")
 }

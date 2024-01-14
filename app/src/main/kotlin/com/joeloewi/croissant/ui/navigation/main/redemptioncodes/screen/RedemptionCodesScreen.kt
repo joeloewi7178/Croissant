@@ -341,12 +341,11 @@ private fun RedemptionCodeListItem(
                         style = textStyle.copy(color = textColor),
                         onClick = { offset ->
                             item.second.getUrlAnnotations(offset, offset).firstOrNull()?.let {
-                                context.startActivity(
-                                    Intent(
-                                        Intent.ACTION_VIEW,
-                                        Uri.parse(it.item.url)
-                                    )
-                                )
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(it.item.url))
+
+                                if (intent.resolveActivity(context.packageManager) != null) {
+                                    context.startActivity(intent)
+                                }
                             }
                         }
                     )

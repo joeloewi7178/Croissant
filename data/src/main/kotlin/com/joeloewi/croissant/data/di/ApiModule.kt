@@ -67,6 +67,8 @@ object ApiModule {
             }
             return@run this
         }
+        .followRedirects(true)
+        .followSslRedirects(true)
         .retryOnConnectionFailure(true)
         .build()
 
