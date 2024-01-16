@@ -5,7 +5,9 @@ import android.app.Dialog
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.http.SslError
+import android.os.Build
 import android.os.Message
+import android.view.View
 import android.view.ViewGroup
 import android.webkit.*
 import androidx.compose.foundation.layout.*
@@ -251,6 +253,9 @@ fun LoginHoYoLABContent(
                     navigator = webViewNavigator,
                     onCreated = { webView ->
                         with(webView) {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO
+                            }
                             settings.apply {
                                 javaScriptEnabled = true
                                 domStorageEnabled = true
@@ -354,6 +359,9 @@ fun LoginHoYoLABContent(
                                 resultMsg: Message?
                             ): Boolean {
                                 val popUpWebView = WebView(activity).apply {
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                        importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO
+                                    }
                                     settings.apply {
                                         javaScriptEnabled = true
                                         domStorageEnabled = true

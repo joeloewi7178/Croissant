@@ -17,7 +17,10 @@
 package com.joeloewi.croissant.util
 
 import android.os.Build
+import com.google.firebase.Firebase
+import com.google.firebase.crashlytics.crashlytics
 
 //Nexus 5x occurs errors when use these functions;
 //launch in app review, launch in app update, start oss licenses activity
-fun isDeviceNexus5X(): Boolean = "Nexus 5X".uppercase() == Build.MODEL.uppercase()
+fun isDeviceNexus5X(): Boolean =
+    "Nexus 5X".uppercase() == Build.MODEL.also { Firebase.crashlytics.log(it) }.uppercase()
