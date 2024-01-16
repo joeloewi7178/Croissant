@@ -1,7 +1,6 @@
 package com.joeloewi.croissant.worker
 
 import android.content.Context
-import android.net.ConnectivityManager
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
@@ -42,8 +41,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
     private val insertWorkerExecutionLogUseCase: WorkerExecutionLogUseCase.Insert,
     private val insertSuccessLogUseCase: SuccessLogUseCase.Insert,
     private val insertFailureLogUseCase: FailureLogUseCase.Insert,
-    private val notificationGenerator: NotificationGenerator,
-    private val connectivityManager: ConnectivityManager
+    private val notificationGenerator: NotificationGenerator
 ) : CoroutineWorker(
     appContext = context,
     params = params
