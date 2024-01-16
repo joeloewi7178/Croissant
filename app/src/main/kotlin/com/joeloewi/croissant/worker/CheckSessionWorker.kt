@@ -20,6 +20,7 @@ import com.joeloewi.croissant.domain.usecase.HoYoLABUseCase
 import com.joeloewi.croissant.domain.usecase.SuccessLogUseCase
 import com.joeloewi.croissant.domain.usecase.WorkerExecutionLogUseCase
 import com.joeloewi.croissant.util.NotificationGenerator
+import com.joeloewi.croissant.util.withBoundNetwork
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
@@ -44,82 +45,84 @@ class CheckSessionWorker @AssistedInject constructor(
     private val _attendanceId = inputData.getLong(ATTENDANCE_ID, Long.MIN_VALUE)
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
-        _attendanceId.runCatching {
-            takeIf { it != Long.MIN_VALUE }!!
-        }.mapCatching { attendanceId ->
-            val attendance = runCatching { getOneAttendanceUseCase(attendanceId) }.getOrNull()
+        withBoundNetwork {
+            _attendanceId.runCatching {
+                takeIf { it != Long.MIN_VALUE }!!
+            }.mapCatching { attendanceId ->
+                val attendance = runCatching { getOneAttendanceUseCase(attendanceId) }.getOrNull()
 
-            if (attendance == null) {
-                WorkManager.getInstance(context).cancelWorkById(id)
-                return@withContext Result.failure()
-            } else {
-                attendance
-            }
-        }.mapCatching { attendanceWithAllValues ->
-            getUserFullInfoHoYoLABUseCase(attendanceWithAllValues.attendance.cookie).getOrThrow()
-        }.fold(
-            onSuccess = {
-                val executionLogId = insertWorkerExecutionLogUseCase(
-                    WorkerExecutionLog(
-                        attendanceId = _attendanceId,
-                        state = WorkerExecutionLogState.SUCCESS,
-                        loggableWorker = LoggableWorker.CHECK_SESSION
+                if (attendance == null) {
+                    WorkManager.getInstance(context).cancelWorkById(id)
+                    return@withBoundNetwork Result.failure()
+                } else {
+                    attendance
+                }
+            }.mapCatching { attendanceWithAllValues ->
+                getUserFullInfoHoYoLABUseCase(attendanceWithAllValues.attendance.cookie).getOrThrow()
+            }.fold(
+                onSuccess = {
+                    val executionLogId = insertWorkerExecutionLogUseCase(
+                        WorkerExecutionLog(
+                            attendanceId = _attendanceId,
+                            state = WorkerExecutionLogState.SUCCESS,
+                            loggableWorker = LoggableWorker.CHECK_SESSION
+                        )
                     )
-                )
 
-                insertSuccessLogUseCase(
-                    SuccessLog(
-                        executionLogId = executionLogId,
-                        retCode = it.retCode,
-                        message = it.message
+                    insertSuccessLogUseCase(
+                        SuccessLog(
+                            executionLogId = executionLogId,
+                            retCode = it.retCode,
+                            message = it.message
+                        )
                     )
-                )
 
-                Result.success()
-            },
-            onFailure = { cause ->
-                when (cause) {
-                    is HoYoLABUnsuccessfulResponseException -> {
-                        if (HoYoLABRetCode.findByCode(cause.retCode) == HoYoLABRetCode.LoginFailed) {
-                            with(notificationGenerator) {
-                                safeNotify(
-                                    UUID.randomUUID().toString(),
-                                    0,
-                                    createCheckSessionNotification(_attendanceId)
-                                )
+                    Result.success()
+                },
+                onFailure = { cause ->
+                    when (cause) {
+                        is HoYoLABUnsuccessfulResponseException -> {
+                            if (HoYoLABRetCode.findByCode(cause.retCode) == HoYoLABRetCode.LoginFailed) {
+                                with(notificationGenerator) {
+                                    safeNotify(
+                                        UUID.randomUUID().toString(),
+                                        0,
+                                        createCheckSessionNotification(_attendanceId)
+                                    )
+                                }
                             }
+                        }
+
+                        is CancellationException -> {
+                            throw cause
                         }
                     }
 
-                    is CancellationException -> {
-                        throw cause
+                    Firebase.crashlytics.apply {
+                        log(this@CheckSessionWorker.javaClass.simpleName)
+                        recordException(cause)
                     }
-                }
 
-                Firebase.crashlytics.apply {
-                    log(this@CheckSessionWorker.javaClass.simpleName)
-                    recordException(cause)
-                }
-
-                val executionLogId = insertWorkerExecutionLogUseCase(
-                    WorkerExecutionLog(
-                        attendanceId = _attendanceId,
-                        state = WorkerExecutionLogState.FAILURE,
-                        loggableWorker = LoggableWorker.CHECK_SESSION
+                    val executionLogId = insertWorkerExecutionLogUseCase(
+                        WorkerExecutionLog(
+                            attendanceId = _attendanceId,
+                            state = WorkerExecutionLogState.FAILURE,
+                            loggableWorker = LoggableWorker.CHECK_SESSION
+                        )
                     )
-                )
 
-                insertFailureLogUseCase(
-                    FailureLog(
-                        executionLogId = executionLogId,
-                        failureMessage = cause.message ?: "",
-                        failureStackTrace = cause.stackTraceToString()
+                    insertFailureLogUseCase(
+                        FailureLog(
+                            executionLogId = executionLogId,
+                            failureMessage = cause.message ?: "",
+                            failureStackTrace = cause.stackTraceToString()
+                        )
                     )
-                )
 
-                Result.failure()
-            }
-        )
+                    Result.failure()
+                }
+            )
+        }
     }
 
     companion object {
