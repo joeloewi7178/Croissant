@@ -94,7 +94,7 @@
     <string name="not_update_due_to_battery_optimization">Widget will not be updated while battery optimization is enabled for croissant</string>
     <string name="device_rooting_detected">Device rooting dectected. App wiil be closed.</string>
     <string name="change_setting">Change setting</string>
-    <string name="experimental_sns_login_feature">Login via SNS account may occurs some errors. Facebook login is not supported.</string>
+    <string name="experimental_sns_login_feature">Facebook login is not supported.</string>
     <string name="websites">Websites</string>
     <string name="contacts">Contacts</string>
     <string name="email">Email</string>
