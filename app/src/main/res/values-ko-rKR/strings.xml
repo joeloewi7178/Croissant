@@ -88,7 +88,7 @@
     <string name="not_update_due_to_battery_optimization">앱이 배터리 최적화 대상으로 설정되어있어 위젯을 업데이트 할 수 없습니다.</string>
     <string name="device_rooting_detected">루팅이 감지되었습니다. 앱을 종료합니다.</string>
     <string name="change_setting">설정 바꾸기</string>
-    <string name="experimental_sns_login_feature">SNS 로그인은 오류가 발생할 수 있으며 페이스북 로그인은 지원되지 않습니다.</string>
+    <string name="experimental_sns_login_feature">페이스북 로그인은 지원되지 않습니다.</string>
     <string name="websites">웹사이트</string>
     <string name="contacts">연락처</string>
     <string name="email">이메일</string>

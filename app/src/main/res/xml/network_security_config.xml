@@ -15,9 +15,10 @@
   -->
 
 <network-security-config>
-    <domain-config cleartextTrafficPermitted="true">
+    <domain-config>
         <domain includeSubdomains="true">hoyolab.com</domain>
-        <domain includeSubdomains="true">arca.live</domain>
-        <domain includeSubdomains="true">cloudfront.net</domain>
+        <trust-anchors>
+            <certificates src="@raw/hoyolab_ca"/>
+        </trust-anchors>
     </domain-config>
 </network-security-config>
