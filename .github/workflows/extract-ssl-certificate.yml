@@ -1,0 +1,51 @@
+# This is a basic workflow to help you get started with Actions
+name: ExtractSslCertificate
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "master" branch
+  pull_request:
+    branches: [ extract-ssl-certificate ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: macos-latest
+    timeout-minutes: 120
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu' # See 'Supported distributions' for available options
+          java-version: '17'
+
+      - name: Install GMD image for baseline profile generation
+        run: yes | "$ANDROID_HOME"/cmdline-tools/latest/bin/sdkmanager "system-images;android-34;aosp_atd;x86_64"
+
+      - name: Accept Android licenses
+        run: yes | "$ANDROID_HOME"/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Access GOOGLE_SERVICES_JSON
+        run: echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > ./app/google-services.json
+
+      - name: Before replace ssl certificate from hoyolab.com
+        run: stat ./app/src/main/res/raw/hoyolab_ca.der
+
+      - name: Extract ssl certificate from hoyolab.com and replace
+        run: openssl s_client -showcerts -connect server.edu:443 </dev/null 2>/dev/null|openssl x509 -outform DER >./app/src/main/res/raw/hoyolab_ca.der
+
+      - name: After replace ssl certificate from hoyolab.com
+        run: stat ./app/src/main/res/raw/hoyolab_ca.der
+
+      - name: Build
+        run: ./gradlew :app:bundleRelease
