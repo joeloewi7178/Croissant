@@ -47,5 +47,5 @@ jobs:
       - name: After replace ssl certificate from hoyolab.com
         run: stat ./app/src/main/res/raw/hoyolab_ca.der
 
-      - name: Build
-        run: ./gradlew :app:bundleRelease
+      - name: Print ssl certificate from hoyolab.com
+        run: cat ./app/src/main/res/raw/hoyolab_ca.der
