@@ -27,13 +27,17 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import okhttp3.ConnectionSpec
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
+import okhttp3.dnsoverhttps.DnsOverHttps
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
 import retrofit2.create
 import java.io.IOException
+import java.net.InetAddress
 import java.net.Proxy
 import java.net.ProxySelector
 import java.net.SocketAddress
@@ -70,7 +74,27 @@ object ApiModule {
         .followRedirects(true)
         .followSslRedirects(true)
         .retryOnConnectionFailure(true)
+        .connectionSpecs(listOf(ConnectionSpec.COMPATIBLE_TLS, ConnectionSpec.CLEARTEXT))
         .build()
+        .run {
+            newBuilder()
+                .dns(
+                    DnsOverHttps.Builder()
+                        .client(this)
+                        .url("https://1.1.1.1/dns-query".toHttpUrl())
+                        .bootstrapDnsHosts(
+                            *runCatching {
+                                arrayOf(
+                                    InetAddress.getByName("1.1.1.1"),
+                                    InetAddress.getByName("1.0.0.1")
+                                )
+                            }.getOrDefault(emptyArray())
+                        )
+                        .includeIPv6(false)
+                        .build()
+                )
+                .build()
+        }
 
     @Singleton
     @Provides
