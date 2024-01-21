@@ -15,7 +15,7 @@
   -->
 
 <network-security-config>
-    <domain-config>
+    <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">hoyolab.com</domain>
         <trust-anchors>
             <certificates src="@raw/hoyolab_ca" />
