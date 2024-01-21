@@ -98,7 +98,7 @@ class RedemptionCodesViewModel @Inject constructor(
                             repeat(9) {
                                 select("p:last-child").remove()
                             }
-                        }.select("p:nth-child(n+46)").html().replace("https://oo.pe/", "")
+                        }.select("p:nth-child(n+47)").html().replace("https://oo.pe/", "")
                     }
                 }
 

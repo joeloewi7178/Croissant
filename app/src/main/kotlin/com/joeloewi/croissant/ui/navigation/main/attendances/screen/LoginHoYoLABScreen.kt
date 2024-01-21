@@ -38,6 +38,8 @@ import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.withResumed
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import com.google.accompanist.web.*
@@ -156,7 +158,15 @@ fun LoginHoYoLABContent(
             Column {
                 TopAppBar(
                     navigationIcon = {
-                        IconButton(onClick = onNavigateUp) {
+                        IconButton(onClick = {
+                            with(lifecycleOwner) {
+                                lifecycleScope.launch(CoroutineExceptionHandler { _, _ -> }) {
+                                    lifecycle.withResumed {
+                                        onNavigateUp()
+                                    }
+                                }
+                            }
+                        }) {
                             Icon(
                                 imageVector = Icons.Default.Close,
                                 contentDescription = Icons.Default.Close.name

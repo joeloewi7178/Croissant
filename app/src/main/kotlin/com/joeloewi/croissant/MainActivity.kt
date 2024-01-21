@@ -111,7 +111,7 @@ class MainActivity : AppCompatActivity() {
 
         enableEdgeToEdge()
 
-        lifecycleScope.launch {
+        lifecycleScope.launch(CoroutineExceptionHandler { _, _ -> }) {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 _mainActivityViewModel.darkThemeEnabled.onEach { darkThemeEnabled ->
                     if (darkThemeEnabled) {

@@ -124,7 +124,16 @@ fun Spanned.toAnnotatedString(): AnnotatedString = buildAnnotatedString {
                 ), start, end
             )
 
-            is URLSpan -> addUrlAnnotation(UrlAnnotation(span.url), start, end)
+            is URLSpan -> {
+                addUrlAnnotation(UrlAnnotation(span.url), start, end)
+                addStyle(
+                    SpanStyle(
+                        color = Color(0xFF548AF7),
+                        textDecoration = TextDecoration.Underline
+                    ), start, end
+                )
+            }
+
             is UnderlineSpan -> addStyle(
                 SpanStyle(textDecoration = TextDecoration.Underline),
                 start,
