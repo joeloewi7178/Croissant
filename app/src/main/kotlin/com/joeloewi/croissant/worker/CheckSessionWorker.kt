@@ -2,9 +2,13 @@ package com.joeloewi.croissant.worker
 
 import android.content.Context
 import androidx.hilt.work.HiltWorker
+import androidx.work.Constraints
 import androidx.work.CoroutineWorker
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import androidx.work.workDataOf
 import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics
 import com.joeloewi.croissant.domain.common.HoYoLABRetCode
@@ -27,6 +31,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 
 @HiltWorker
 class CheckSessionWorker @AssistedInject constructor(
@@ -127,5 +132,20 @@ class CheckSessionWorker @AssistedInject constructor(
 
     companion object {
         const val ATTENDANCE_ID = "attendanceId"
+
+        fun buildPeriodicWork(
+            repeatInterval: Long = 6,
+            repeatIntervalTimeUnit: TimeUnit = TimeUnit.HOURS,
+            constraints: Constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build(),
+            attendanceId: Long
+        ) = PeriodicWorkRequestBuilder<CheckSessionWorker>(
+            repeatInterval,
+            repeatIntervalTimeUnit
+        )
+            .setInputData(workDataOf(ATTENDANCE_ID to attendanceId))
+            .setConstraints(constraints)
+            .build()
     }
 }

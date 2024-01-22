@@ -12,7 +12,7 @@ fun dateTimeFormatterPerHourFormat(
 ): DateTimeFormatter =
     when (hourFormat) {
         HourFormat.TwelveHour -> {
-            DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(Locale.getDefault())
+            DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM).withLocale(Locale.getDefault())
         }
 
         HourFormat.TwentyFourHour -> {
@@ -20,6 +20,8 @@ fun dateTimeFormatterPerHourFormat(
                 .appendValue(ChronoField.HOUR_OF_DAY, 1, 2, SignStyle.NEVER)
                 .appendLiteral(':')
                 .appendValue(ChronoField.MINUTE_OF_HOUR, 2)
+                .appendLiteral(':')
+                .appendValue(ChronoField.SECOND_OF_MINUTE, 2)
                 .toFormatter(Locale.getDefault())
         }
     }

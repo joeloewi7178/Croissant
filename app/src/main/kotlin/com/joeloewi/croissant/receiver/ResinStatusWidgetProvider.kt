@@ -6,12 +6,8 @@ import android.content.Context
 import android.os.PowerManager
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
-import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
-import androidx.work.workDataOf
 import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics
 import com.joeloewi.croissant.domain.usecase.ResinStatusWidgetUseCase
@@ -72,16 +68,7 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
                             invoke(appWidgetId)
                         }.mapCatching {
                             val oneTimeWorkRequest =
-                                OneTimeWorkRequest.Builder(RefreshResinStatusWorker::class.java)
-                                    .setInputData(
-                                        workDataOf(RefreshResinStatusWorker.APP_WIDGET_ID to appWidgetId)
-                                    )
-                                    .setConstraints(
-                                        Constraints.Builder()
-                                            .setRequiredNetworkType(NetworkType.CONNECTED)
-                                            .build()
-                                    )
-                                    .build()
+                                RefreshResinStatusWorker.buildOneTimeWork(appWidgetId = appWidgetId)
 
                             workManager.enqueueUniqueWork(
                                 it.resinStatusWidget.id.toString(),

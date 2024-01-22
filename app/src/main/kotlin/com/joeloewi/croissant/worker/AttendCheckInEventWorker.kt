@@ -2,9 +2,14 @@ package com.joeloewi.croissant.worker
 
 import android.content.Context
 import androidx.hilt.work.HiltWorker
+import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkerParameters
+import androidx.work.workDataOf
 import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics
 import com.joeloewi.croissant.domain.common.HoYoLABGame
@@ -235,5 +240,16 @@ class AttendCheckInEventWorker @AssistedInject constructor(
 
     companion object {
         const val ATTENDANCE_ID = "attendanceId"
+
+        fun buildOneTimeWork(
+            attendanceId: Long,
+            constraints: Constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+        ) = OneTimeWorkRequestBuilder<AttendCheckInEventWorker>()
+            .setInputData(workDataOf(ATTENDANCE_ID to attendanceId))
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .setConstraints(constraints)
+            .build()
     }
 }

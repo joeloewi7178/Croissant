@@ -4,8 +4,13 @@ import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.os.PowerManager
 import androidx.hilt.work.HiltWorker
+import androidx.work.Constraints
 import androidx.work.CoroutineWorker
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkerParameters
+import androidx.work.workDataOf
 import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics
 import com.joeloewi.croissant.domain.common.HoYoLABGame
@@ -23,6 +28,7 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.util.concurrent.TimeUnit
 
 @HiltWorker
 class RefreshResinStatusWorker @AssistedInject constructor(
@@ -145,5 +151,30 @@ class RefreshResinStatusWorker @AssistedInject constructor(
 
     companion object {
         const val APP_WIDGET_ID = "appWidgetId"
+
+        fun buildPeriodicWork(
+            repeatInterval: Long,
+            repeatIntervalTimeUnit: TimeUnit,
+            constraints: Constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build(),
+            appWidgetId: Int
+        ) = PeriodicWorkRequestBuilder<RefreshResinStatusWorker>(
+            repeatInterval,
+            repeatIntervalTimeUnit
+        )
+            .setInputData(workDataOf(APP_WIDGET_ID to appWidgetId))
+            .setConstraints(constraints)
+            .build()
+
+        fun buildOneTimeWork(
+            constraints: Constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build(),
+            appWidgetId: Int
+        ) = OneTimeWorkRequestBuilder<RefreshResinStatusWorker>()
+            .setInputData(workDataOf(APP_WIDGET_ID to appWidgetId))
+            .setConstraints(constraints)
+            .build()
     }
 }

@@ -106,7 +106,6 @@ dependencies {
     //accompanist
     implementation(libs.accompanist.permissions)
     implementation(libs.accompanist.pager)
-    implementation(libs.accompanist.placeholder)
     implementation(libs.accompanist.systemuicontroller)
     implementation(libs.accompanist.webview)
     implementation(libs.accompanist.pager.indicators)
@@ -155,4 +154,6 @@ dependencies {
 
     //open source license activity
     implementation(libs.gms.play.services.oss.licenses)
+
+    implementation(libs.fornewid.placeholder.material3)
 }

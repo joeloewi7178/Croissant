@@ -60,6 +60,7 @@ gmsOssLicensesPlugin = "0.10.6"
 gmsPlayServicesOssLicenses = "17.0.1"
 androidxBaselineProfile = "1.2.2"
 androidTools = "31.2.1"
+fornewidPlaceholderMaterial3 = "1.0.1"
 
 [libraries]
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
@@ -157,6 +158,7 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 tts = { group = "nl.marc-apps", name = "tts", version.ref = "tts" }
 gms-play-services-oss-licenses = { group = "com.google.android.gms", name = "play-services-oss-licenses", version.ref = "gmsPlayServicesOssLicenses" }
 gms-oss-licenses-plugin = { group = "com.google.android.gms", name = "oss-licenses-plugin", version.ref = "gmsOssLicensesPlugin" }
+fornewid-placeholder-material3 = { group = "io.github.fornewid", name = "placeholder-material3", version.ref = "fornewidPlaceholderMaterial3" }
 
 android-tools-common = { group = "com.android.tools", name = "common", version.ref = "androidTools" }
 firebase-crashlytics-gradlePlugin = { group = "com.google.firebase", name = "firebase-crashlytics-gradle", version.ref = "firebaseCrashlyticsPlugin" }

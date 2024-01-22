@@ -29,6 +29,7 @@ class AlarmSchedulerImpl @Inject constructor(
         val target = now.withHour(attendance.hourOfDay)
             .withMinute(attendance.minute)
             .withSecond(30)
+            .withNano(0)
         val canExecuteToday = now.isBefore(target)
         val targetTimeMillis = target.run {
             if (!scheduleForTomorrow) {
@@ -41,7 +42,6 @@ class AlarmSchedulerImpl @Inject constructor(
         }.toInstant().toEpochMilli()
 
         with(alarmManager) {
-            cancel(alarmPendingIntent)
             if (canScheduleExactAlarmsCompat()) {
                 AlarmManagerCompat.setExactAndAllowWhileIdle(
                     this,

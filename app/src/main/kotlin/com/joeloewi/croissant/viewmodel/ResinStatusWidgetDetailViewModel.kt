@@ -4,13 +4,9 @@ import android.appwidget.AppWidgetManager
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.NetworkType
-import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
 import androidx.work.await
-import androidx.work.workDataOf
 import com.joeloewi.croissant.domain.usecase.ResinStatusWidgetUseCase
 import com.joeloewi.croissant.state.ILCE
 import com.joeloewi.croissant.state.foldAsILCE
@@ -66,21 +62,15 @@ class ResinStatusWidgetDetailViewModel @Inject constructor(
                 }.mapCatching {
                     val resinStatusWidget = it.resinStatusWidget
 
-                    val periodicWorkRequest = PeriodicWorkRequest.Builder(
-                        RefreshResinStatusWorker::class.java,
-                        _interval.value,
-                        TimeUnit.MINUTES
-                    ).setInputData(
-                        workDataOf(RefreshResinStatusWorker.APP_WIDGET_ID to _appWidgetId)
-                    ).setConstraints(
-                        Constraints.Builder()
-                            .setRequiredNetworkType(NetworkType.CONNECTED)
-                            .build()
-                    ).build()
+                    val periodicWorkRequest = RefreshResinStatusWorker.buildPeriodicWork(
+                        repeatInterval = _interval.value,
+                        repeatIntervalTimeUnit = TimeUnit.MINUTES,
+                        appWidgetId = _appWidgetId
+                    )
 
                     workManager.enqueueUniquePeriodicWork(
                         resinStatusWidget.refreshGenshinResinStatusWorkerName.toString(),
-                        ExistingPeriodicWorkPolicy.UPDATE,
+                        ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
                         periodicWorkRequest
                     ).await()
 
