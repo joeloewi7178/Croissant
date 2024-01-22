@@ -1,9 +1,12 @@
 package com.joeloewi.croissant.viewmodel
 
+import androidx.core.os.bundleOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import androidx.work.WorkManager
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.analytics
 import com.joeloewi.croissant.domain.entity.Attendance
 import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
 import com.joeloewi.croissant.util.AlarmScheduler
@@ -23,6 +26,8 @@ class AttendancesViewModel @Inject constructor(
 
     fun deleteAttendance(attendance: Attendance) {
         viewModelScope.launch(Dispatchers.IO) {
+            Firebase.analytics.logEvent("delete_attendance", bundleOf())
+
             runCatching {
                 listOf(
                     attendance.checkSessionWorkerName,

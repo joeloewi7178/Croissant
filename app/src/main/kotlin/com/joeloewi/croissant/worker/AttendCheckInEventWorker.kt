@@ -1,6 +1,7 @@
 package com.joeloewi.croissant.worker
 
 import android.content.Context
+import androidx.core.os.bundleOf
 import androidx.hilt.work.HiltWorker
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
@@ -11,6 +12,7 @@ import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.google.firebase.Firebase
+import com.google.firebase.analytics.analytics
 import com.google.firebase.crashlytics.crashlytics
 import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.domain.common.HoYoLABRetCode
@@ -93,6 +95,8 @@ class AttendCheckInEventWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         setForeground(notificationGenerator.createForegroundInfo(_attendanceId.toInt()))
+
+        Firebase.analytics.logEvent("attend_check_in_event", bundleOf())
 
         withBoundNetwork {
             _attendanceId.runCatching {

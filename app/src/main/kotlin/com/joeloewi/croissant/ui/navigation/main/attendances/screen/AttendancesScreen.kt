@@ -66,6 +66,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.os.bundleOf
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -75,6 +76,8 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.analytics
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.domain.entity.Attendance
 import com.joeloewi.croissant.domain.entity.relational.AttendanceWithGames
@@ -253,6 +256,8 @@ fun AttendanceWithGamesItem(
                 attendanceWithGames = item,
                 onClickOneTimeAttend = remember {
                     { attendance ->
+                        Firebase.analytics.logEvent("instant_attend_click", bundleOf())
+
                         val oneTimeWork = AttendCheckInEventWorker.buildOneTimeWork(
                             attendanceId = attendance.id
                         )

@@ -1,11 +1,14 @@
 package com.joeloewi.croissant.viewmodel
 
 import androidx.compose.runtime.mutableStateListOf
+import androidx.core.os.bundleOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.WorkManager
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.analytics
 import com.joeloewi.croissant.domain.common.LoggableWorker
 import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
 import com.joeloewi.croissant.domain.entity.Game
@@ -236,6 +239,8 @@ class AttendanceDetailViewModel @Inject constructor(
 
     fun deleteAttendance() {
         viewModelScope.launch(Dispatchers.IO) {
+            Firebase.analytics.logEvent("delete_attendance", bundleOf())
+
             _deleteAttendanceState.value = ILCE.Loading
             _deleteAttendanceState.value = runCatching {
                 val attendance = getOneAttendanceUseCase(attendanceId).attendance
