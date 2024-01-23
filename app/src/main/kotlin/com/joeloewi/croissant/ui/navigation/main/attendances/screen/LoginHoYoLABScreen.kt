@@ -36,10 +36,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.withResumed
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import com.google.accompanist.web.*
@@ -161,7 +161,7 @@ fun LoginHoYoLABContent(
                         IconButton(onClick = {
                             with(lifecycleOwner) {
                                 lifecycleScope.launch(CoroutineExceptionHandler { _, _ -> }) {
-                                    lifecycle.withResumed {
+                                    if (lifecycle.currentState == Lifecycle.State.RESUMED) {
                                         onNavigateUp()
                                     }
                                 }
