@@ -1,7 +1,7 @@
 package com.joeloewi.croissant.util
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -23,8 +23,8 @@ fun ViewModelStoreOwner?.navigationIconButton(
         {
             IconButton(onClick = currentOnClick) {
                 Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = Icons.Default.ArrowBack.name,
+                    imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                    contentDescription = Icons.AutoMirrored.Default.ArrowBack.name,
                     tint = tint
                 )
             }

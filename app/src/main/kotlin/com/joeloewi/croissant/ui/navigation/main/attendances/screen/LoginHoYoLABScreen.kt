@@ -462,7 +462,7 @@ fun LoginHoYoLABContent(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    CircularProgressIndicator()
+
                 }
             }
         }
