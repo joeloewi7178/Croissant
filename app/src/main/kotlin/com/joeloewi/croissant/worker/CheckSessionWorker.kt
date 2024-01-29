@@ -1,10 +1,6 @@
 package com.joeloewi.croissant.worker
 
 import android.content.Context
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
-import android.os.Build
-import androidx.core.content.getSystemService
 import androidx.hilt.work.HiltWorker
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
@@ -26,6 +22,7 @@ import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
 import com.joeloewi.croissant.domain.usecase.FailureLogUseCase
 import com.joeloewi.croissant.domain.usecase.HoYoLABUseCase
 import com.joeloewi.croissant.domain.usecase.SuccessLogUseCase
+import com.joeloewi.croissant.domain.usecase.SystemUseCase
 import com.joeloewi.croissant.domain.usecase.WorkerExecutionLogUseCase
 import com.joeloewi.croissant.util.NotificationGenerator
 import dagger.assisted.Assisted
@@ -33,9 +30,11 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.IOException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+import javax.net.ssl.SSLHandshakeException
 
 @HiltWorker
 class CheckSessionWorker @AssistedInject constructor(
@@ -46,7 +45,9 @@ class CheckSessionWorker @AssistedInject constructor(
     private val insertWorkerExecutionLogUseCase: WorkerExecutionLogUseCase.Insert,
     private val insertSuccessLogUseCase: SuccessLogUseCase.Insert,
     private val insertFailureLogUseCase: FailureLogUseCase.Insert,
-    private val notificationGenerator: NotificationGenerator
+    private val notificationGenerator: NotificationGenerator,
+    private val isNetworkAvailable: SystemUseCase.IsNetworkAvailable,
+    private val isNetworkVpn: SystemUseCase.IsNetworkVpn
 ) : CoroutineWorker(
     appContext = context,
     params = params
@@ -54,6 +55,18 @@ class CheckSessionWorker @AssistedInject constructor(
     private val _attendanceId = inputData.getLong(ATTENDANCE_ID, Long.MIN_VALUE)
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
+        Firebase.crashlytics.log(this@CheckSessionWorker.javaClass.simpleName)
+
+        if (!isNetworkAvailable()) {
+            Firebase.crashlytics.log("isVpn=${isNetworkVpn()}")
+
+            return@withContext if (runAttemptCount < 3) {
+                Result.retry()
+            } else {
+                Result.failure()
+            }
+        }
+
         _attendanceId.runCatching {
             takeIf { it != Long.MIN_VALUE }!!
         }.mapCatching { attendanceId ->
@@ -101,38 +114,12 @@ class CheckSessionWorker @AssistedInject constructor(
                         }
                     }
 
-                    is IOException -> {
-                        Firebase.crashlytics.log(this@CheckSessionWorker.javaClass.simpleName)
-                        return@fold if (runAttemptCount < 3) {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                applicationContext.getSystemService<ConnectivityManager>()?.run {
-                                    Firebase.crashlytics.log(
-                                        "isVpn=${
-                                            getNetworkCapabilities(activeNetwork)?.hasTransport(
-                                                NetworkCapabilities.TRANSPORT_VPN
-                                            )
-                                        }"
-                                    )
-                                }
-                            }
-
-                            Result.retry()
-                        } else {
-                            Firebase.crashlytics.recordException(cause)
-
-                            Result.failure()
-                        }
-                    }
-
                     is CancellationException -> {
                         throw cause
                     }
                 }
 
-                Firebase.crashlytics.apply {
-                    log(this@CheckSessionWorker.javaClass.simpleName)
-                    recordException(cause)
-                }
+                Firebase.crashlytics.recordException(cause)
 
                 val executionLogId = insertWorkerExecutionLogUseCase(
                     WorkerExecutionLog(

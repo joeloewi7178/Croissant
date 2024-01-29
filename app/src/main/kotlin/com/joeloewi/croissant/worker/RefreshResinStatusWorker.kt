@@ -2,6 +2,7 @@ package com.joeloewi.croissant.worker
 
 import android.appwidget.AppWidgetManager
 import android.content.Context
+import android.os.Build
 import android.os.PowerManager
 import androidx.hilt.work.HiltWorker
 import androidx.work.Constraints
@@ -17,6 +18,7 @@ import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.domain.entity.DataSwitch
 import com.joeloewi.croissant.domain.usecase.HoYoLABUseCase
 import com.joeloewi.croissant.domain.usecase.ResinStatusWidgetUseCase
+import com.joeloewi.croissant.domain.usecase.SystemUseCase
 import com.joeloewi.croissant.util.ResinStatus
 import com.joeloewi.croissant.util.createContentRemoteViews
 import com.joeloewi.croissant.util.createErrorDueToPowerSaveModeRemoteViews
@@ -27,6 +29,7 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 @HiltWorker
@@ -37,7 +40,9 @@ class RefreshResinStatusWorker @AssistedInject constructor(
     private val getGameRecordCardHoYoLABUseCase: HoYoLABUseCase.GetGameRecordCard,
     private val getOneByAppWidgetIdResinStatusWidgetUseCase: ResinStatusWidgetUseCase.GetOneByAppWidgetId,
     private val getGenshinDailyNoteHoYoLABUseCase: HoYoLABUseCase.GetGenshinDailyNote,
-    private val changeDataSwitchHoYoLABUseCase: HoYoLABUseCase.ChangeDataSwitch
+    private val changeDataSwitchHoYoLABUseCase: HoYoLABUseCase.ChangeDataSwitch,
+    private val isNetworkAvailable: SystemUseCase.IsNetworkAvailable,
+    private val isNetworkVpn: SystemUseCase.IsNetworkVpn
 ) : CoroutineWorker(
     appContext = context,
     params = params
@@ -47,7 +52,19 @@ class RefreshResinStatusWorker @AssistedInject constructor(
     private val _appWidgetManager by lazy { AppWidgetManager.getInstance(context) }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
+        Firebase.crashlytics.log(this@RefreshResinStatusWorker.javaClass.simpleName)
+
         runCatching {
+            if (!isNetworkAvailable()) {
+                Firebase.crashlytics.log("isVpn=${isNetworkVpn()}")
+
+                return@withContext if (runAttemptCount < 3) {
+                    Result.retry()
+                } else {
+                    Result.failure()
+                }
+            }
+
             if (powerManager.isInteractive) {
                 //loading view
                 _appWidgetManager.updateAppWidget(
@@ -118,16 +135,16 @@ class RefreshResinStatusWorker @AssistedInject constructor(
                 Result.success()
             },
             onFailure = { cause ->
-                if (cause is CancellationException) {
-                    throw cause
-                }
                 //hoyoverse api rarely throws timeout error
                 //even though this worker has constraints on connection
 
-                Firebase.crashlytics.apply {
-                    log(this@RefreshResinStatusWorker.javaClass.simpleName)
-                    recordException(cause)
+                when (cause) {
+                    is CancellationException -> {
+                        throw cause
+                    }
                 }
+
+                Firebase.crashlytics.recordException(cause)
 
                 val remoteViews = if (powerManager.isPowerSaveMode) {
                     createErrorDueToPowerSaveModeRemoteViews(context, _appWidgetId)

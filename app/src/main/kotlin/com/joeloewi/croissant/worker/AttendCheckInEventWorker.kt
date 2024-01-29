@@ -26,6 +26,7 @@ import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
 import com.joeloewi.croissant.domain.usecase.CheckInUseCase
 import com.joeloewi.croissant.domain.usecase.FailureLogUseCase
 import com.joeloewi.croissant.domain.usecase.SuccessLogUseCase
+import com.joeloewi.croissant.domain.usecase.SystemUseCase
 import com.joeloewi.croissant.domain.usecase.WorkerExecutionLogUseCase
 import com.joeloewi.croissant.util.NotificationGenerator
 import dagger.assisted.Assisted
@@ -33,7 +34,9 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.net.SocketTimeoutException
 import java.util.UUID
+import javax.net.ssl.SSLHandshakeException
 
 @HiltWorker
 class AttendCheckInEventWorker @AssistedInject constructor(
@@ -47,7 +50,9 @@ class AttendCheckInEventWorker @AssistedInject constructor(
     private val insertWorkerExecutionLogUseCase: WorkerExecutionLogUseCase.Insert,
     private val insertSuccessLogUseCase: SuccessLogUseCase.Insert,
     private val insertFailureLogUseCase: FailureLogUseCase.Insert,
-    private val notificationGenerator: NotificationGenerator
+    private val notificationGenerator: NotificationGenerator,
+    private val isNetworkAvailable: SystemUseCase.IsNetworkAvailable,
+    private val isNetworkVpn: SystemUseCase.IsNetworkVpn
 ) : CoroutineWorker(
     appContext = context,
     params = params
@@ -95,7 +100,13 @@ class AttendCheckInEventWorker @AssistedInject constructor(
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         setForeground(notificationGenerator.createForegroundInfo(_attendanceId.toInt()))
 
+        Firebase.crashlytics.log(this@AttendCheckInEventWorker.javaClass.simpleName)
         Firebase.analytics.logEvent("attend_check_in_event", bundleOf())
+
+        if (!isNetworkAvailable() && runAttemptCount < 3) {
+            Firebase.crashlytics.log("isVpn=${isNetworkVpn()}")
+            return@withContext Result.retry()
+        }
 
         _attendanceId.runCatching {
             takeIf { it != Long.MIN_VALUE }!!
@@ -169,10 +180,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                             }
 
                             else -> {
-                                Firebase.crashlytics.apply {
-                                    log(this@AttendCheckInEventWorker.javaClass.simpleName)
-                                    recordException(cause)
-                                }
+                                Firebase.crashlytics.recordException(cause)
                             }
                         }
 
@@ -197,10 +205,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                         } else {
 
                         }*/
-                        Firebase.crashlytics.apply {
-                            log(this@AttendCheckInEventWorker.javaClass.simpleName)
-                            recordException(cause)
-                        }
+                        Firebase.crashlytics.recordException(cause)
 
                         notificationGenerator.createUnsuccessfulAttendanceNotification(
                             nickname = attendanceWithGames.attendance.nickname,
@@ -227,10 +232,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                     throw cause
                 }
 
-                Firebase.crashlytics.apply {
-                    log(this@AttendCheckInEventWorker.javaClass.simpleName)
-                    recordException(cause)
-                }
+                Firebase.crashlytics.recordException(cause)
 
                 addFailureLog(_attendanceId, cause)
 
