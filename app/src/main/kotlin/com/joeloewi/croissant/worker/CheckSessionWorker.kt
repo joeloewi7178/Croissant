@@ -1,6 +1,10 @@
 package com.joeloewi.croissant.worker
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.os.Build
+import androidx.core.content.getSystemService
 import androidx.hilt.work.HiltWorker
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
@@ -24,12 +28,12 @@ import com.joeloewi.croissant.domain.usecase.HoYoLABUseCase
 import com.joeloewi.croissant.domain.usecase.SuccessLogUseCase
 import com.joeloewi.croissant.domain.usecase.WorkerExecutionLogUseCase
 import com.joeloewi.croissant.util.NotificationGenerator
-import com.joeloewi.croissant.util.withBoundNetwork
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.IOException
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
@@ -50,84 +54,105 @@ class CheckSessionWorker @AssistedInject constructor(
     private val _attendanceId = inputData.getLong(ATTENDANCE_ID, Long.MIN_VALUE)
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
-        withBoundNetwork {
-            _attendanceId.runCatching {
-                takeIf { it != Long.MIN_VALUE }!!
-            }.mapCatching { attendanceId ->
-                val attendance = runCatching { getOneAttendanceUseCase(attendanceId) }.getOrNull()
+        _attendanceId.runCatching {
+            takeIf { it != Long.MIN_VALUE }!!
+        }.mapCatching { attendanceId ->
+            val attendance = runCatching { getOneAttendanceUseCase(attendanceId) }.getOrNull()
 
-                if (attendance == null) {
-                    WorkManager.getInstance(context).cancelWorkById(id)
-                    return@withBoundNetwork Result.failure()
-                } else {
-                    attendance
-                }
-            }.mapCatching { attendanceWithAllValues ->
-                getUserFullInfoHoYoLABUseCase(attendanceWithAllValues.attendance.cookie).getOrThrow()
-            }.fold(
-                onSuccess = {
-                    val executionLogId = insertWorkerExecutionLogUseCase(
-                        WorkerExecutionLog(
-                            attendanceId = _attendanceId,
-                            state = WorkerExecutionLogState.SUCCESS,
-                            loggableWorker = LoggableWorker.CHECK_SESSION
-                        )
+            if (attendance == null) {
+                WorkManager.getInstance(context).cancelWorkById(id)
+                return@withContext Result.failure()
+            } else {
+                attendance
+            }
+        }.mapCatching { attendanceWithAllValues ->
+            getUserFullInfoHoYoLABUseCase(attendanceWithAllValues.attendance.cookie).getOrThrow()
+        }.fold(
+            onSuccess = {
+                val executionLogId = insertWorkerExecutionLogUseCase(
+                    WorkerExecutionLog(
+                        attendanceId = _attendanceId,
+                        state = WorkerExecutionLogState.SUCCESS,
+                        loggableWorker = LoggableWorker.CHECK_SESSION
                     )
+                )
 
-                    insertSuccessLogUseCase(
-                        SuccessLog(
-                            executionLogId = executionLogId,
-                            retCode = it.retCode,
-                            message = it.message
-                        )
+                insertSuccessLogUseCase(
+                    SuccessLog(
+                        executionLogId = executionLogId,
+                        retCode = it.retCode,
+                        message = it.message
                     )
+                )
 
-                    Result.success()
-                },
-                onFailure = { cause ->
-                    when (cause) {
-                        is HoYoLABUnsuccessfulResponseException -> {
-                            if (HoYoLABRetCode.findByCode(cause.retCode) == HoYoLABRetCode.LoginFailed) {
-                                with(notificationGenerator) {
-                                    safeNotify(
-                                        UUID.randomUUID().toString(),
-                                        0,
-                                        createCheckSessionNotification(_attendanceId)
+                Result.success()
+            },
+            onFailure = { cause ->
+                when (cause) {
+                    is HoYoLABUnsuccessfulResponseException -> {
+                        if (HoYoLABRetCode.findByCode(cause.retCode) == HoYoLABRetCode.LoginFailed) {
+                            with(notificationGenerator) {
+                                safeNotify(
+                                    UUID.randomUUID().toString(),
+                                    0,
+                                    createCheckSessionNotification(_attendanceId)
+                                )
+                            }
+                        }
+                    }
+
+                    is IOException -> {
+                        Firebase.crashlytics.log(this@CheckSessionWorker.javaClass.simpleName)
+                        return@fold if (runAttemptCount < 3) {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                applicationContext.getSystemService<ConnectivityManager>()?.run {
+                                    Firebase.crashlytics.log(
+                                        "isVpn=${
+                                            getNetworkCapabilities(activeNetwork)?.hasTransport(
+                                                NetworkCapabilities.TRANSPORT_VPN
+                                            )
+                                        }"
                                     )
                                 }
                             }
-                        }
 
-                        is CancellationException -> {
-                            throw cause
+                            Result.retry()
+                        } else {
+                            Firebase.crashlytics.recordException(cause)
+
+                            Result.failure()
                         }
                     }
 
-                    Firebase.crashlytics.apply {
-                        log(this@CheckSessionWorker.javaClass.simpleName)
-                        recordException(cause)
+                    is CancellationException -> {
+                        throw cause
                     }
-
-                    val executionLogId = insertWorkerExecutionLogUseCase(
-                        WorkerExecutionLog(
-                            attendanceId = _attendanceId,
-                            state = WorkerExecutionLogState.FAILURE,
-                            loggableWorker = LoggableWorker.CHECK_SESSION
-                        )
-                    )
-
-                    insertFailureLogUseCase(
-                        FailureLog(
-                            executionLogId = executionLogId,
-                            failureMessage = cause.message ?: "",
-                            failureStackTrace = cause.stackTraceToString()
-                        )
-                    )
-
-                    Result.failure()
                 }
-            )
-        }
+
+                Firebase.crashlytics.apply {
+                    log(this@CheckSessionWorker.javaClass.simpleName)
+                    recordException(cause)
+                }
+
+                val executionLogId = insertWorkerExecutionLogUseCase(
+                    WorkerExecutionLog(
+                        attendanceId = _attendanceId,
+                        state = WorkerExecutionLogState.FAILURE,
+                        loggableWorker = LoggableWorker.CHECK_SESSION
+                    )
+                )
+
+                insertFailureLogUseCase(
+                    FailureLog(
+                        executionLogId = executionLogId,
+                        failureMessage = cause.message ?: "",
+                        failureStackTrace = cause.stackTraceToString()
+                    )
+                )
+
+                Result.failure()
+            }
+        )
     }
 
     companion object {

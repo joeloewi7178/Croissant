@@ -1,8 +1,3 @@
-/*
- * Copyright (c) 2023. Mobidays
- * DO NOT LEAK OUTSIDE
- */
-
 package com.joeloewi.croissant.data.di
 
 import dagger.Module

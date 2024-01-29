@@ -28,7 +28,6 @@ import com.joeloewi.croissant.domain.usecase.FailureLogUseCase
 import com.joeloewi.croissant.domain.usecase.SuccessLogUseCase
 import com.joeloewi.croissant.domain.usecase.WorkerExecutionLogUseCase
 import com.joeloewi.croissant.util.NotificationGenerator
-import com.joeloewi.croissant.util.withBoundNetwork
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
@@ -98,148 +97,146 @@ class AttendCheckInEventWorker @AssistedInject constructor(
 
         Firebase.analytics.logEvent("attend_check_in_event", bundleOf())
 
-        withBoundNetwork {
-            _attendanceId.runCatching {
-                takeIf { it != Long.MIN_VALUE }!!
-            }.mapCatching { attendanceId ->
-                //check session is valid
-                val attendanceWithGames = getOneAttendanceUseCase(attendanceId)
-                val cookie = attendanceWithGames.attendance.cookie
+        _attendanceId.runCatching {
+            takeIf { it != Long.MIN_VALUE }!!
+        }.mapCatching { attendanceId ->
+            //check session is valid
+            val attendanceWithGames = getOneAttendanceUseCase(attendanceId)
+            val cookie = attendanceWithGames.attendance.cookie
 
-                //attend check in events
-                attendanceWithGames.games.forEach { game ->
-                    try {
-                        when (game.type) {
-                            HoYoLABGame.HonkaiImpact3rd -> {
-                                attendCheckInHonkaiImpact3rdUseCase(cookie = cookie)
-                            }
+            //attend check in events
+            attendanceWithGames.games.forEach { game ->
+                try {
+                    when (game.type) {
+                        HoYoLABGame.HonkaiImpact3rd -> {
+                            attendCheckInHonkaiImpact3rdUseCase(cookie = cookie)
+                        }
 
-                            HoYoLABGame.GenshinImpact -> {
-                                attendCheckInGenshinImpactUseCase(cookie = cookie)
-                            }
+                        HoYoLABGame.GenshinImpact -> {
+                            attendCheckInGenshinImpactUseCase(cookie = cookie)
+                        }
 
-                            HoYoLABGame.TearsOfThemis -> {
-                                attendCheckInTearsOfThemisUseCase(cookie = cookie)
-                            }
+                        HoYoLABGame.TearsOfThemis -> {
+                            attendCheckInTearsOfThemisUseCase(cookie = cookie)
+                        }
 
-                            HoYoLABGame.HonkaiStarRail -> {
-                                attendCheckInHonkaiStarRail(cookie = cookie)
-                            }
+                        HoYoLABGame.HonkaiStarRail -> {
+                            attendCheckInHonkaiStarRail(cookie = cookie)
+                        }
 
-                            HoYoLABGame.Unknown -> {
-                                throw Exception()
-                            }
-                        }.getOrThrow().also { response ->
-                            notificationGenerator.createSuccessfulAttendanceNotification(
-                                nickname = attendanceWithGames.attendance.nickname,
-                                hoYoLABGame = game.type,
-                                region = game.region,
-                                message = response.message,
-                                retCode = response.retCode
-                            ).let { notification ->
-                                notificationGenerator.safeNotify(
-                                    UUID.randomUUID().toString(),
-                                    game.type.gameId,
-                                    notification
-                                )
-                            }
-
-                            val executionLogId = insertWorkerExecutionLogUseCase(
-                                WorkerExecutionLog(
-                                    attendanceId = attendanceId,
-                                    state = WorkerExecutionLogState.SUCCESS,
-                                    loggableWorker = LoggableWorker.ATTEND_CHECK_IN_EVENT
-                                )
-                            )
-
-                            insertSuccessLogUseCase(
-                                SuccessLog(
-                                    executionLogId = executionLogId,
-                                    gameName = game.type,
-                                    retCode = response.retCode,
-                                    message = response.message
-                                )
+                        HoYoLABGame.Unknown -> {
+                            throw Exception()
+                        }
+                    }.getOrThrow().also { response ->
+                        notificationGenerator.createSuccessfulAttendanceNotification(
+                            nickname = attendanceWithGames.attendance.nickname,
+                            hoYoLABGame = game.type,
+                            region = game.region,
+                            message = response.message,
+                            retCode = response.retCode
+                        ).let { notification ->
+                            notificationGenerator.safeNotify(
+                                UUID.randomUUID().toString(),
+                                game.type.gameId,
+                                notification
                             )
                         }
-                    } catch (cause: CancellationException) {
-                        throw cause
-                    } catch (cause: Throwable) {
-                        if (cause is HoYoLABUnsuccessfulResponseException) {
-                            when (HoYoLABRetCode.findByCode(cause.retCode)) {
-                                HoYoLABRetCode.AlreadyCheckedIn, HoYoLABRetCode.CharacterNotExists -> {
-                                    //do not log to crashlytics
-                                }
 
-                                else -> {
-                                    Firebase.crashlytics.apply {
-                                        log(this@AttendCheckInEventWorker.javaClass.simpleName)
-                                        recordException(cause)
-                                    }
-                                }
+                        val executionLogId = insertWorkerExecutionLogUseCase(
+                            WorkerExecutionLog(
+                                attendanceId = attendanceId,
+                                state = WorkerExecutionLogState.SUCCESS,
+                                loggableWorker = LoggableWorker.ATTEND_CHECK_IN_EVENT
+                            )
+                        )
+
+                        insertSuccessLogUseCase(
+                            SuccessLog(
+                                executionLogId = executionLogId,
+                                gameName = game.type,
+                                retCode = response.retCode,
+                                message = response.message
+                            )
+                        )
+                    }
+                } catch (cause: CancellationException) {
+                    throw cause
+                } catch (cause: Throwable) {
+                    if (cause is HoYoLABUnsuccessfulResponseException) {
+                        when (HoYoLABRetCode.findByCode(cause.retCode)) {
+                            HoYoLABRetCode.AlreadyCheckedIn, HoYoLABRetCode.CharacterNotExists -> {
+                                //do not log to crashlytics
                             }
 
-                            createUnsuccessfulAttendanceNotification(
-                                nickname = attendanceWithGames.attendance.nickname,
-                                hoYoLABGame = game.type,
-                                region = game.region,
-                                hoYoLABUnsuccessfulResponseException = cause
-                            ).let { notification ->
-                                notificationGenerator.safeNotify(
-                                    UUID.randomUUID().toString(),
-                                    game.type.gameId,
-                                    notification
-                                )
+                            else -> {
+                                Firebase.crashlytics.apply {
+                                    log(this@AttendCheckInEventWorker.javaClass.simpleName)
+                                    recordException(cause)
+                                }
                             }
+                        }
+
+                        createUnsuccessfulAttendanceNotification(
+                            nickname = attendanceWithGames.attendance.nickname,
+                            hoYoLABGame = game.type,
+                            region = game.region,
+                            hoYoLABUnsuccessfulResponseException = cause
+                        ).let { notification ->
+                            notificationGenerator.safeNotify(
+                                UUID.randomUUID().toString(),
+                                game.type.gameId,
+                                notification
+                            )
+                        }
+                    } else {
+                        //if result is unsuccessful with unknown error
+                        //retry for three times
+
+                        /*if (runAttemptCount > 3) {
+                            addFailureLog(attendanceId, cause)
                         } else {
-                            //if result is unsuccessful with unknown error
-                            //retry for three times
 
-                            /*if (runAttemptCount > 3) {
-                                addFailureLog(attendanceId, cause)
-                            } else {
-
-                            }*/
-                            Firebase.crashlytics.apply {
-                                log(this@AttendCheckInEventWorker.javaClass.simpleName)
-                                recordException(cause)
-                            }
-
-                            notificationGenerator.createUnsuccessfulAttendanceNotification(
-                                nickname = attendanceWithGames.attendance.nickname,
-                                hoYoLABGame = game.type,
-                                attendanceId = _attendanceId
-                            ).let { notification ->
-                                notificationGenerator.safeNotify(
-                                    UUID.randomUUID().toString(),
-                                    game.type.gameId,
-                                    notification
-                                )
-                            }
+                        }*/
+                        Firebase.crashlytics.apply {
+                            log(this@AttendCheckInEventWorker.javaClass.simpleName)
+                            recordException(cause)
                         }
 
-                        addFailureLog(attendanceId, cause)
+                        notificationGenerator.createUnsuccessfulAttendanceNotification(
+                            nickname = attendanceWithGames.attendance.nickname,
+                            hoYoLABGame = game.type,
+                            attendanceId = _attendanceId
+                        ).let { notification ->
+                            notificationGenerator.safeNotify(
+                                UUID.randomUUID().toString(),
+                                game.type.gameId,
+                                notification
+                            )
+                        }
                     }
+
+                    addFailureLog(attendanceId, cause)
                 }
-            }.fold(
-                onSuccess = {
-                    Result.success()
-                },
-                onFailure = { cause ->
-                    if (cause is CancellationException) {
-                        throw cause
-                    }
-
-                    Firebase.crashlytics.apply {
-                        log(this@AttendCheckInEventWorker.javaClass.simpleName)
-                        recordException(cause)
-                    }
-
-                    addFailureLog(_attendanceId, cause)
-
-                    Result.failure()
+            }
+        }.fold(
+            onSuccess = {
+                Result.success()
+            },
+            onFailure = { cause ->
+                if (cause is CancellationException) {
+                    throw cause
                 }
-            )
-        }
+
+                Firebase.crashlytics.apply {
+                    log(this@AttendCheckInEventWorker.javaClass.simpleName)
+                    recordException(cause)
+                }
+
+                addFailureLog(_attendanceId, cause)
+
+                Result.failure()
+            }
+        )
     }
 
     companion object {

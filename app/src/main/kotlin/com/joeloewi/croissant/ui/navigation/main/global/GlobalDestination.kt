@@ -19,11 +19,6 @@ sealed class GlobalDestination {
             ) { "{$it}" }
         }"
 
-    data object EmptyScreen : GlobalDestination() {
-        override val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>> = listOf()
-        override val plainRoute: String = "EmptyScreen"
-    }
-
     data object FirstLaunchScreen : GlobalDestination() {
         override val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>> = listOf()
         override val plainRoute = "firstLaunchScreen"
