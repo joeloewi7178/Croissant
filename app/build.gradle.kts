@@ -20,8 +20,8 @@ android {
 
     defaultConfig {
         applicationId = "com.joeloewi.croissant"
-        versionCode = 54
-        versionName = "1.2.5"
+        versionCode = 55
+        versionName = "1.2.6"
         targetSdk = 34
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -106,7 +106,6 @@ dependencies {
     //accompanist
     implementation(libs.accompanist.permissions)
     implementation(libs.accompanist.pager)
-    implementation(libs.accompanist.placeholder)
     implementation(libs.accompanist.systemuicontroller)
     implementation(libs.accompanist.webview)
     implementation(libs.accompanist.pager.indicators)
@@ -155,4 +154,6 @@ dependencies {
 
     //open source license activity
     implementation(libs.gms.play.services.oss.licenses)
+
+    implementation(libs.fornewid.placeholder.material3)
 }

@@ -1,8 +1,3 @@
-/*
- * Copyright (c) 2023. Mobidays
- * DO NOT LEAK OUTSIDE
- */
-
 package com.joeloewi.croissant.util.impl
 
 import android.os.Handler

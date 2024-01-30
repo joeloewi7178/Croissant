@@ -27,6 +27,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import okhttp3.ConnectionSpec
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -70,7 +71,27 @@ object ApiModule {
         .followRedirects(true)
         .followSslRedirects(true)
         .retryOnConnectionFailure(true)
+        .connectionSpecs(listOf(ConnectionSpec.COMPATIBLE_TLS, ConnectionSpec.CLEARTEXT))
         .build()
+    /*.run {
+        newBuilder()
+            .dns(
+                DnsOverHttps.Builder()
+                    .client(this)
+                    .url("https://1.1.1.1/dns-query".toHttpUrl())
+                    .bootstrapDnsHosts(
+                        *runCatching {
+                            arrayOf(
+                                InetAddress.getByName("1.1.1.1"),
+                                InetAddress.getByName("1.0.0.1")
+                            )
+                        }.getOrDefault(emptyArray())
+                    )
+                    .includeIPv6(false)
+                    .build()
+            )
+            .build()
+    }*/
 
     @Singleton
     @Provides

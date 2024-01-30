@@ -3,12 +3,8 @@ package com.joeloewi.croissant.viewmodel
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.NetworkType
-import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
-import androidx.work.workDataOf
 import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.domain.entity.Attendance
 import com.joeloewi.croissant.domain.entity.Game
@@ -37,7 +33,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.ZoneId
 import java.time.ZonedDateTime
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
@@ -146,22 +141,13 @@ class CreateAttendanceViewModel @Inject constructor(
                     scheduleForTomorrow = false
                 )
 
-                val periodicCheckSessionWork = PeriodicWorkRequest.Builder(
-                    CheckSessionWorker::class.java,
-                    6L,
-                    TimeUnit.HOURS
+                val periodicCheckSessionWork = CheckSessionWorker.buildPeriodicWork(
+                    attendanceId = attendance.id
                 )
-                    .setInputData(workDataOf(CheckSessionWorker.ATTENDANCE_ID to attendance.id))
-                    .setConstraints(
-                        Constraints.Builder()
-                            .setRequiredNetworkType(NetworkType.CONNECTED)
-                            .build()
-                    )
-                    .build()
 
                 workManager.enqueueUniquePeriodicWork(
                     attendance.checkSessionWorkerName.toString(),
-                    ExistingPeriodicWorkPolicy.UPDATE,
+                    ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
                     periodicCheckSessionWork
                 )
 

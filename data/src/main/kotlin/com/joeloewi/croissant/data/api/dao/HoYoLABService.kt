@@ -26,14 +26,12 @@ import com.joeloewi.croissant.data.common.generateDS
 import com.skydoves.sandwich.ApiResponse
 import retrofit2.Call
 import retrofit2.http.*
-import java.time.Instant
 
 interface HoYoLABService {
 
     @GET("community/painter/wapi/user/full")
     fun getUserFullInfo(
-        @Header("Cookie") cookie: String,
-        @Query("t") currentMillis: Long = Instant.now().toEpochMilli()
+        @Header("Cookie") cookie: String
     ): Call<ApiResponse<UserFullInfoResponse>>
 
     @GET("game_record/card/wapi/getGameRecordCard")

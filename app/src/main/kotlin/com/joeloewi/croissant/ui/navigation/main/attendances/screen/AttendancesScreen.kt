@@ -66,23 +66,18 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.os.bundleOf
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
-import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
-import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import androidx.work.workDataOf
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.google.accompanist.placeholder.PlaceholderHighlight
-import com.google.accompanist.placeholder.fade
-import com.google.accompanist.placeholder.placeholder
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.analytics
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.domain.entity.Attendance
 import com.joeloewi.croissant.domain.entity.relational.AttendanceWithGames
@@ -98,6 +93,9 @@ import com.joeloewi.croissant.util.isEmpty
 import com.joeloewi.croissant.util.requestReview
 import com.joeloewi.croissant.viewmodel.AttendancesViewModel
 import com.joeloewi.croissant.worker.AttendCheckInEventWorker
+import io.github.fornewid.placeholder.foundation.PlaceholderHighlight
+import io.github.fornewid.placeholder.foundation.fade
+import io.github.fornewid.placeholder.foundation.placeholder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
@@ -258,15 +256,11 @@ fun AttendanceWithGamesItem(
                 attendanceWithGames = item,
                 onClickOneTimeAttend = remember {
                     { attendance ->
-                        val oneTimeWork = OneTimeWorkRequestBuilder<AttendCheckInEventWorker>()
-                            .setInputData(workDataOf(AttendCheckInEventWorker.ATTENDANCE_ID to attendance.id))
-                            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-                            .setConstraints(
-                                Constraints.Builder()
-                                    .setRequiredNetworkType(NetworkType.CONNECTED)
-                                    .build()
-                            )
-                            .build()
+                        Firebase.analytics.logEvent("instant_attend_click", bundleOf())
+
+                        val oneTimeWork = AttendCheckInEventWorker.buildOneTimeWork(
+                            attendanceId = attendance.id
+                        )
 
                         WorkManager.getInstance(context).beginUniqueWork(
                             attendance.oneTimeAttendCheckInEventWorkerName.toString(),
@@ -398,6 +392,8 @@ private fun DismissContent(
                         ZonedDateTime.now(ZoneId.of(timezoneId))
                             .withHour(hourOfDay)
                             .withMinute(minute)
+                            .withSecond(30)
+                            .withNano(0)
                     }.format(
                         dateTimeFormatterPerHourFormat(hourFormat)
                     )

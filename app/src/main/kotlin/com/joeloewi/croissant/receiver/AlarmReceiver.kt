@@ -7,13 +7,8 @@ import android.content.Context
 import android.content.Intent
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
-import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
-import androidx.work.workDataOf
 import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics
 import com.joeloewi.croissant.BuildConfig
@@ -77,15 +72,9 @@ class AlarmReceiver : BroadcastReceiver() {
                     val attendanceId = p1.getLongExtra(ATTENDANCE_ID, Long.MIN_VALUE)
                     val attendanceWithGames = getOneAttendanceUseCase(attendanceId)
                     val attendance = attendanceWithGames.attendance
-                    val oneTimeWork = OneTimeWorkRequestBuilder<AttendCheckInEventWorker>()
-                        .setInputData(workDataOf(AttendCheckInEventWorker.ATTENDANCE_ID to attendance.id))
-                        .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-                        .setConstraints(
-                            Constraints.Builder()
-                                .setRequiredNetworkType(NetworkType.CONNECTED)
-                                .build()
-                        )
-                        .build()
+                    val oneTimeWork = AttendCheckInEventWorker.buildOneTimeWork(
+                        attendanceId = attendance.id
+                    )
 
                     workManager.beginUniqueWork(
                         attendance.oneTimeAttendCheckInEventWorkerName.toString(),

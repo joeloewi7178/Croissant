@@ -36,9 +36,6 @@ import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.google.accompanist.placeholder.PlaceholderHighlight
-import com.google.accompanist.placeholder.fade
-import com.google.accompanist.placeholder.placeholder
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
 import com.joeloewi.croissant.domain.entity.relational.WorkerExecutionLogWithState
@@ -48,6 +45,9 @@ import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.collectAsLazyPagingItemsWithLifecycle
 import com.joeloewi.croissant.util.navigationIconButton
 import com.joeloewi.croissant.viewmodel.AttendanceLogsDayViewModel
+import io.github.fornewid.placeholder.foundation.PlaceholderHighlight
+import io.github.fornewid.placeholder.foundation.fade
+import io.github.fornewid.placeholder.foundation.placeholder
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter

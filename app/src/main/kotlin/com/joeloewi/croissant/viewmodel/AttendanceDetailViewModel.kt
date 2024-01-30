@@ -1,15 +1,14 @@
 package com.joeloewi.croissant.viewmodel
 
 import androidx.compose.runtime.mutableStateListOf
+import androidx.core.os.bundleOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.NetworkType
-import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
-import androidx.work.workDataOf
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.analytics
 import com.joeloewi.croissant.domain.common.LoggableWorker
 import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
 import com.joeloewi.croissant.domain.entity.Game
@@ -37,7 +36,6 @@ import kotlinx.coroutines.withContext
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
@@ -167,22 +165,13 @@ class AttendanceDetailViewModel @Inject constructor(
 
                 workManager.cancelUniqueWork(attendance.attendCheckInEventWorkerName.toString())
 
-                val periodicCheckSessionWork = PeriodicWorkRequest.Builder(
-                    CheckSessionWorker::class.java,
-                    6L,
-                    TimeUnit.HOURS
+                val periodicCheckSessionWork = CheckSessionWorker.buildPeriodicWork(
+                    attendanceId = attendance.id
                 )
-                    .setInputData(workDataOf(CheckSessionWorker.ATTENDANCE_ID to attendance.id))
-                    .setConstraints(
-                        Constraints.Builder()
-                            .setRequiredNetworkType(NetworkType.CONNECTED)
-                            .build()
-                    )
-                    .build()
 
                 workManager.enqueueUniquePeriodicWork(
                     attendance.checkSessionWorkerName.toString(),
-                    ExistingPeriodicWorkPolicy.UPDATE,
+                    ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
                     periodicCheckSessionWork
                 )
 
@@ -250,6 +239,8 @@ class AttendanceDetailViewModel @Inject constructor(
 
     fun deleteAttendance() {
         viewModelScope.launch(Dispatchers.IO) {
+            Firebase.analytics.logEvent("delete_attendance", bundleOf())
+
             _deleteAttendanceState.value = ILCE.Loading
             _deleteAttendanceState.value = runCatching {
                 val attendance = getOneAttendanceUseCase(attendanceId).attendance

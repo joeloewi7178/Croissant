@@ -36,8 +36,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import com.google.accompanist.web.*
@@ -156,7 +158,15 @@ fun LoginHoYoLABContent(
             Column {
                 TopAppBar(
                     navigationIcon = {
-                        IconButton(onClick = onNavigateUp) {
+                        IconButton(onClick = {
+                            with(lifecycleOwner) {
+                                lifecycleScope.launch(CoroutineExceptionHandler { _, _ -> }) {
+                                    if (lifecycle.currentState == Lifecycle.State.RESUMED) {
+                                        onNavigateUp()
+                                    }
+                                }
+                            }
+                        }) {
                             Icon(
                                 imageVector = Icons.Default.Close,
                                 contentDescription = Icons.Default.Close.name
@@ -452,7 +462,7 @@ fun LoginHoYoLABContent(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    CircularProgressIndicator()
+
                 }
             }
         }

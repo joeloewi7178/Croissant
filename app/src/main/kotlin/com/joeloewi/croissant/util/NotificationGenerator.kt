@@ -200,11 +200,7 @@ class NotificationGenerator(
         .setContentTitle(context.getString(R.string.attendance_foreground_notification_title))
         .setContentText(context.getString(R.string.wait_for_a_moment))
         .setSmallIcon(R.drawable.ic_baseline_bakery_dining_24)
-        .apply {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                foregroundServiceBehavior = Notification.FOREGROUND_SERVICE_IMMEDIATE
-            }
-        }
+        .setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
         .build()
         .run {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {

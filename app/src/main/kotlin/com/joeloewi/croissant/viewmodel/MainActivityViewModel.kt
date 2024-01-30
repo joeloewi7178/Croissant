@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.take
 import javax.inject.Inject
 
 @FlowPreview
@@ -32,7 +33,7 @@ class MainActivityViewModel @Inject constructor(
     is24HourFormatImmediate: Boolean,
     getSettingsUseCase: SettingsUseCase.GetSettings,
     is24HourFormat: SystemUseCase.Is24HourFormat,
-    isDeviceRooted: SystemUseCase.IsDeviceRooted
+    isDeviceRooted: SystemUseCase.IsDeviceRooted,
 ) : ViewModel() {
     private val _settings = getSettingsUseCase()
 
@@ -72,4 +73,10 @@ class MainActivityViewModel @Inject constructor(
         started = SharingStarted.Lazily,
         initialValue = false
     )
+    val isFirstLaunch =
+        _settings.map { it.isFirstLaunch }.take(1).catch { }.flowOn(Dispatchers.IO).stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(),
+            initialValue = false
+        )
 }

@@ -28,4 +28,16 @@ sealed class SystemUseCase {
     ) : SystemUseCase() {
         suspend operator fun invoke() = systemRepository.removeAllCookies()
     }
+
+    class IsNetworkAvailable @Inject constructor(
+        private val systemRepository: SystemRepository
+    ) : SystemUseCase() {
+        suspend operator fun invoke() = systemRepository.isNetworkAvailable()
+    }
+
+    class IsNetworkVpn @Inject constructor(
+        private val systemRepository: SystemRepository
+    ) : SystemUseCase() {
+        suspend operator fun invoke() = systemRepository.isNetworkVpn()
+    }
 }

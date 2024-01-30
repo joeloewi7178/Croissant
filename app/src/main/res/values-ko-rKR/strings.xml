@@ -115,4 +115,5 @@
     <string name="disable_app_hibernation">앱 최대 절전모드 비활성화</string>
     <string name="disable_app_hibernation_description">앱을 오랫동안 실행하지 않아 출석이 안 될 수도 있는 문제를 방지합니다.</string>
     <string name="select_time">시간 설정</string>
+    <string name="execution_notice">작업을 정확하게 실행하기 위해, 지정된 시간보다 30초 늦게 실행됩니다. 예를 들어, 12시 34분에 작업을 예약하면 실제로는 12시 34분 30초에 실행됩니다.</string>
 </resources>

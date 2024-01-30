@@ -36,6 +36,7 @@ dependencies {
     implementation(libs.retrofit.converter.scalars)
     implementation(platform(libs.okhttp3.bom))
     implementation(libs.okhttp3.logging.interceptor)
+    implementation(libs.okhttp3.dnsoverhttps)
 
     //moshi
     implementation(libs.moshi)

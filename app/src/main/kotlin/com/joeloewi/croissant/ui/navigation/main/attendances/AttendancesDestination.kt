@@ -43,39 +43,30 @@ sealed class AttendancesDestination {
 
     data object AttendanceDetailScreen : AttendancesDestination() {
         const val ATTENDANCE_ID = "attendanceId"
-        const val FROM_DEEPLINK = "fromDeeplink"
 
         override val arguments: List<Pair<String, (NavArgumentBuilder.() -> Unit)>> = listOf(
             ATTENDANCE_ID to {
                 type = NavType.LongType
-
-            },
-            FROM_DEEPLINK to {
-                type = NavType.BoolType
-                defaultValue = false
             }
         )
 
         override val plainRoute: String = "attendanceDetailScreen"
 
         override val route: String
-            get() = "${plainRoute}/{${ATTENDANCE_ID}}?${FROM_DEEPLINK}={${FROM_DEEPLINK}}"
+            get() = "${plainRoute}/{${ATTENDANCE_ID}}"
 
         fun generateRoute(
-            attendanceId: Long,
-            fromDeeplink: Boolean = false
-        ) = "${plainRoute}/$attendanceId?${FROM_DEEPLINK}={$fromDeeplink}"
+            attendanceId: Long
+        ) = "${plainRoute}/$attendanceId"
 
         fun generateDeepLinkUri(
             context: Context,
-            attendanceId: Long,
-            fromDeeplink: Boolean = true
+            attendanceId: Long
         ): Uri = Uri.Builder()
             .scheme(context.getString(R.string.deep_link_scheme))
             .authority(context.packageName)
             .appendEncodedPath(plainRoute)
             .appendPath("$attendanceId")
-            .appendQueryParameter(FROM_DEEPLINK, "$fromDeeplink")
             .build()
     }
 

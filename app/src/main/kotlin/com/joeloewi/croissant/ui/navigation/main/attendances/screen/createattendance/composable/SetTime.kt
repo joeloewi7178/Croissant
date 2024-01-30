@@ -15,23 +15,26 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Card
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
-import androidx.lifecycle.flowWithLifecycle
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.util.LocalHourFormat
@@ -41,6 +44,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.isActive
@@ -131,6 +137,31 @@ fun SetTime(
                     minute = minute
                 )
             }
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Row(
+                    modifier = Modifier.padding(DefaultDp),
+                ) {
+                    Icon(
+                        modifier = Modifier.padding(DefaultDp),
+                        imageVector = Icons.Default.Star,
+                        contentDescription = Icons.Default.Star.name
+                    )
+                    Text(
+                        modifier = Modifier.padding(DefaultDp),
+                        text = buildAnnotatedString {
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append(stringResource(id = R.string.note))
+                                append(": ")
+                            }
+                            append(stringResource(R.string.execution_notice))
+                        },
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
         }
     }
 }
@@ -156,8 +187,25 @@ private fun FirstExecutionTime(
     hourOfDay: () -> Int,
     minute: () -> Int
 ) {
-    val lifecycleOwner = LocalLifecycleOwner.current
-    var canExecuteToday by remember { mutableStateOf(false) }
+    val canExecuteToday by remember {
+        combine(
+            flow {
+                while (currentCoroutineContext().isActive) {
+                    emit(ZonedDateTime.now())
+                    delay(1000)
+                }
+            },
+            snapshotFlow(hourOfDay),
+            snapshotFlow(minute)
+        ) { current, hourOfDay, minute ->
+            val target = current.withHour(hourOfDay)
+                .withMinute(minute)
+                .withSecond(30)
+                .withNano(0)
+
+            current.isBefore(target)
+        }.catch {}.distinctUntilChanged().flowOn(Dispatchers.IO).conflate()
+    }.collectAsStateWithLifecycle(initialValue = false)
     val today = stringResource(id = R.string.today)
     val tomorrow = stringResource(id = R.string.tomorrow)
     val todayOrTomorrow by remember(canExecuteToday) {
@@ -180,6 +228,8 @@ private fun FirstExecutionTime(
             ZonedDateTime.now()
                 .withHour(hourOfDay())
                 .withMinute(minute())
+                .withSecond(30)
+                .withNano(0)
                 .format(
                     dateTimeFormatterPerHourFormat(hourFormat)
                 )
@@ -188,18 +238,6 @@ private fun FirstExecutionTime(
     val firstExecutionTime by remember(todayOrTomorrow, formattedTime) {
         derivedStateOf {
             "$todayOrTomorrow $formattedTime"
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        flow {
-            while (currentCoroutineContext().isActive) {
-                emit(ZonedDateTime.now())
-                delay(1000)
-            }
-        }.catch {}.flowWithLifecycle(lifecycleOwner.lifecycle).flowOn(Dispatchers.IO).collect {
-            canExecuteToday =
-                (it.hour < hourOfDay()) || (it.hour == hourOfDay() && it.minute < minute())
         }
     }
 
