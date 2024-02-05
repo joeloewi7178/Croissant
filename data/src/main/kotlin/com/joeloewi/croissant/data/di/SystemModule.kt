@@ -1,6 +1,7 @@
 package com.joeloewi.croissant.data.di
 
 import android.app.AlarmManager
+import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.net.ConnectivityManager
 import android.os.Handler
@@ -50,4 +51,9 @@ object SystemModule {
     fun provideConnectivityManager(
         @ApplicationContext context: Context
     ): ConnectivityManager = context.getSystemService()!!
+
+    @Provides
+    fun provideAppWidgetManager(
+        @ApplicationContext context: Context
+    ): AppWidgetManager = context.getSystemService()!!
 }

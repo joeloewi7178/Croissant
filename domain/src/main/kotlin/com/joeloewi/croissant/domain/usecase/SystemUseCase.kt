@@ -29,10 +29,10 @@ sealed class SystemUseCase {
         suspend operator fun invoke() = systemRepository.removeAllCookies()
     }
 
-    class IsNetworkAvailable @Inject constructor(
+    class CanPerformDnsLookup @Inject constructor(
         private val systemRepository: SystemRepository
     ) : SystemUseCase() {
-        suspend operator fun invoke() = systemRepository.isNetworkAvailable()
+        suspend operator fun invoke() = systemRepository.canPerformDnsLookup()
     }
 
     class IsNetworkVpn @Inject constructor(

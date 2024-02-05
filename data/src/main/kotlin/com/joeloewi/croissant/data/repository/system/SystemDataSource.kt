@@ -11,7 +11,7 @@ interface SystemDataSource {
 
     suspend fun removeAllCookies(): Result<Boolean>
 
-    suspend fun isNetworkAvailable(): Boolean
+    suspend fun canPerformDnsLookup(): Boolean
 
     suspend fun isNetworkVpn(): Boolean
 }

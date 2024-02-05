@@ -88,7 +88,7 @@ class SystemDataSourceImpl @Inject constructor(
         }
     }
 
-    override suspend fun isNetworkAvailable(): Boolean = withContext(Dispatchers.IO) {
+    override suspend fun canPerformDnsLookup(): Boolean = withContext(Dispatchers.IO) {
         runCatching {
             val networkConnected = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 val activeNetwork = connectivityManager.activeNetwork ?: return@withContext false
@@ -101,11 +101,11 @@ class SystemDataSourceImpl @Inject constructor(
                 connectivityManager.activeNetworkInfo?.isConnected == true
             }
 
-            val isDnsResolvable = runCatching {
+            val isDnsLookupSuccessful = runCatching {
                 !InetAddress.getByName("hoyolab.com").hostAddress.isNullOrEmpty()
             }.getOrDefault(false)
 
-            networkConnected && isDnsResolvable
+            networkConnected && isDnsLookupSuccessful
         }.getOrDefault(false)
     }
 

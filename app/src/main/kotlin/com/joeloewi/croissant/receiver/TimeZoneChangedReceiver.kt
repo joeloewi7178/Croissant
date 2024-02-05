@@ -30,9 +30,9 @@ class TimeZoneChangedReceiver @Inject constructor(
     lateinit var notificationGenerator: NotificationGenerator
 
     override fun onReceive(context: Context, intent: Intent) {
-        _processLifecycleScope.launch(_coroutineContext) {
-            when (intent.action) {
-                Intent.ACTION_TIMEZONE_CHANGED -> {
+        when (intent.action) {
+            Intent.ACTION_TIMEZONE_CHANGED -> {
+                _processLifecycleScope.launch(_coroutineContext) {
                     with(notificationGenerator) {
                         safeNotify(
                             UUID.randomUUID().toString(),
@@ -41,10 +41,10 @@ class TimeZoneChangedReceiver @Inject constructor(
                         )
                     }
                 }
+            }
 
-                else -> {
+            else -> {
 
-                }
             }
         }
     }
