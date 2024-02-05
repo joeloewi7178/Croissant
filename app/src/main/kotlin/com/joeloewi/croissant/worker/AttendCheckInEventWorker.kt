@@ -34,9 +34,7 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.net.SocketTimeoutException
 import java.util.UUID
-import javax.net.ssl.SSLHandshakeException
 
 @HiltWorker
 class AttendCheckInEventWorker @AssistedInject constructor(
@@ -51,13 +49,13 @@ class AttendCheckInEventWorker @AssistedInject constructor(
     private val insertSuccessLogUseCase: SuccessLogUseCase.Insert,
     private val insertFailureLogUseCase: FailureLogUseCase.Insert,
     private val notificationGenerator: NotificationGenerator,
-    private val isNetworkAvailable: SystemUseCase.IsNetworkAvailable,
+    private val canPerformDnsLookup: SystemUseCase.CanPerformDnsLookup,
     private val isNetworkVpn: SystemUseCase.IsNetworkVpn
 ) : CoroutineWorker(
     appContext = context,
     params = params
 ) {
-    private val _attendanceId = inputData.getLong(ATTENDANCE_ID, Long.MIN_VALUE)
+    private val _attendanceId by lazy { inputData.getLong(ATTENDANCE_ID, Long.MIN_VALUE) }
 
     override suspend fun getForegroundInfo(): ForegroundInfo =
         notificationGenerator.createForegroundInfo(_attendanceId.toInt())
@@ -103,7 +101,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
         Firebase.crashlytics.log(this@AttendCheckInEventWorker.javaClass.simpleName)
         Firebase.analytics.logEvent("attend_check_in_event", bundleOf())
 
-        if (!isNetworkAvailable() && runAttemptCount < 3) {
+        if (!canPerformDnsLookup() && runAttemptCount < 3) {
             Firebase.crashlytics.log("isVpn=${isNetworkVpn()}")
             return@withContext Result.retry()
         }
@@ -236,7 +234,8 @@ class AttendCheckInEventWorker @AssistedInject constructor(
 
                 addFailureLog(_attendanceId, cause)
 
-                Result.failure()
+                //let chained works do their jobs
+                Result.success()
             }
         )
     }

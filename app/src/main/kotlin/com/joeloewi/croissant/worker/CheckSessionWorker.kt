@@ -30,11 +30,8 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.net.SocketTimeoutException
-import java.net.UnknownHostException
 import java.util.UUID
 import java.util.concurrent.TimeUnit
-import javax.net.ssl.SSLHandshakeException
 
 @HiltWorker
 class CheckSessionWorker @AssistedInject constructor(
@@ -46,7 +43,7 @@ class CheckSessionWorker @AssistedInject constructor(
     private val insertSuccessLogUseCase: SuccessLogUseCase.Insert,
     private val insertFailureLogUseCase: FailureLogUseCase.Insert,
     private val notificationGenerator: NotificationGenerator,
-    private val isNetworkAvailable: SystemUseCase.IsNetworkAvailable,
+    private val canPerformDnsLookup: SystemUseCase.CanPerformDnsLookup,
     private val isNetworkVpn: SystemUseCase.IsNetworkVpn
 ) : CoroutineWorker(
     appContext = context,
@@ -57,14 +54,9 @@ class CheckSessionWorker @AssistedInject constructor(
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         Firebase.crashlytics.log(this@CheckSessionWorker.javaClass.simpleName)
 
-        if (!isNetworkAvailable()) {
+        if (!canPerformDnsLookup() && runAttemptCount < 3) {
             Firebase.crashlytics.log("isVpn=${isNetworkVpn()}")
-
-            return@withContext if (runAttemptCount < 3) {
-                Result.retry()
-            } else {
-                Result.failure()
-            }
+            return@withContext Result.retry()
         }
 
         _attendanceId.runCatching {
@@ -74,7 +66,9 @@ class CheckSessionWorker @AssistedInject constructor(
 
             if (attendance == null) {
                 WorkManager.getInstance(context).cancelWorkById(id)
-                return@withContext Result.failure()
+
+                //let chained works do their jobs
+                return@withContext Result.success()
             } else {
                 attendance
             }
@@ -137,7 +131,8 @@ class CheckSessionWorker @AssistedInject constructor(
                     )
                 )
 
-                Result.failure()
+                //let chained works do their jobs
+                Result.success()
             }
         )
     }

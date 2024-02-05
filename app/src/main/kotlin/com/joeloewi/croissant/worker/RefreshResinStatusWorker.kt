@@ -2,7 +2,6 @@ package com.joeloewi.croissant.worker
 
 import android.appwidget.AppWidgetManager
 import android.content.Context
-import android.os.Build
 import android.os.PowerManager
 import androidx.hilt.work.HiltWorker
 import androidx.work.Constraints
@@ -29,7 +28,6 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 @HiltWorker
@@ -37,37 +35,36 @@ class RefreshResinStatusWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted private val params: WorkerParameters,
     private val powerManager: PowerManager,
+    private val appWidgetManager: AppWidgetManager,
     private val getGameRecordCardHoYoLABUseCase: HoYoLABUseCase.GetGameRecordCard,
     private val getOneByAppWidgetIdResinStatusWidgetUseCase: ResinStatusWidgetUseCase.GetOneByAppWidgetId,
     private val getGenshinDailyNoteHoYoLABUseCase: HoYoLABUseCase.GetGenshinDailyNote,
     private val changeDataSwitchHoYoLABUseCase: HoYoLABUseCase.ChangeDataSwitch,
-    private val isNetworkAvailable: SystemUseCase.IsNetworkAvailable,
+    private val canPerformDnsLookup: SystemUseCase.CanPerformDnsLookup,
     private val isNetworkVpn: SystemUseCase.IsNetworkVpn
 ) : CoroutineWorker(
     appContext = context,
     params = params
 ) {
-    private val _appWidgetId =
-        inputData.getInt(APP_WIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
-    private val _appWidgetManager by lazy { AppWidgetManager.getInstance(context) }
+    private val _appWidgetId by lazy {
+        inputData.getInt(
+            APP_WIDGET_ID,
+            AppWidgetManager.INVALID_APPWIDGET_ID
+        )
+    }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         Firebase.crashlytics.log(this@RefreshResinStatusWorker.javaClass.simpleName)
 
         runCatching {
-            if (!isNetworkAvailable()) {
+            if (!canPerformDnsLookup() && runAttemptCount < 3) {
                 Firebase.crashlytics.log("isVpn=${isNetworkVpn()}")
-
-                return@withContext if (runAttemptCount < 3) {
-                    Result.retry()
-                } else {
-                    Result.failure()
-                }
+                return@withContext Result.retry()
             }
 
             if (powerManager.isInteractive) {
                 //loading view
-                _appWidgetManager.updateAppWidget(
+                appWidgetManager.updateAppWidget(
                     _appWidgetId,
                     createLoadingRemoteViews(context)
                 )
@@ -125,7 +122,7 @@ class RefreshResinStatusWorker @AssistedInject constructor(
                     )
                 }
 
-                _appWidgetManager.updateAppWidget(
+                appWidgetManager.updateAppWidget(
                     _appWidgetId,
                     createContentRemoteViews(context, _appWidgetId, resinStatuses)
                 )
@@ -153,12 +150,13 @@ class RefreshResinStatusWorker @AssistedInject constructor(
                     createUnknownErrorRemoteViews(context, _appWidgetId)
                 }
 
-                _appWidgetManager?.updateAppWidget(
+                appWidgetManager.updateAppWidget(
                     _appWidgetId,
                     remoteViews
                 )
 
-                Result.failure()
+                //let chained works do their jobs
+                Result.success()
             }
         )
     }
