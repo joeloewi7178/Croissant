@@ -17,7 +17,6 @@ import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.domain.entity.DataSwitch
 import com.joeloewi.croissant.domain.usecase.HoYoLABUseCase
 import com.joeloewi.croissant.domain.usecase.ResinStatusWidgetUseCase
-import com.joeloewi.croissant.domain.usecase.SystemUseCase
 import com.joeloewi.croissant.util.ResinStatus
 import com.joeloewi.croissant.util.createContentRemoteViews
 import com.joeloewi.croissant.util.createErrorDueToPowerSaveModeRemoteViews
@@ -39,9 +38,7 @@ class RefreshResinStatusWorker @AssistedInject constructor(
     private val getGameRecordCardHoYoLABUseCase: HoYoLABUseCase.GetGameRecordCard,
     private val getOneByAppWidgetIdResinStatusWidgetUseCase: ResinStatusWidgetUseCase.GetOneByAppWidgetId,
     private val getGenshinDailyNoteHoYoLABUseCase: HoYoLABUseCase.GetGenshinDailyNote,
-    private val changeDataSwitchHoYoLABUseCase: HoYoLABUseCase.ChangeDataSwitch,
-    private val canPerformDnsLookup: SystemUseCase.CanPerformDnsLookup,
-    private val isNetworkVpn: SystemUseCase.IsNetworkVpn
+    private val changeDataSwitchHoYoLABUseCase: HoYoLABUseCase.ChangeDataSwitch
 ) : CoroutineWorker(
     appContext = context,
     params = params
@@ -57,11 +54,6 @@ class RefreshResinStatusWorker @AssistedInject constructor(
         Firebase.crashlytics.log(this@RefreshResinStatusWorker.javaClass.simpleName)
 
         runCatching {
-            if (!canPerformDnsLookup() && runAttemptCount < 3) {
-                Firebase.crashlytics.log("isVpn=${isNetworkVpn()}")
-                return@withContext Result.retry()
-            }
-
             if (powerManager.isInteractive) {
                 //loading view
                 appWidgetManager.updateAppWidget(

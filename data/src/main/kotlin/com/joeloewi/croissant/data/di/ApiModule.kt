@@ -27,7 +27,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import okhttp3.ConnectionSpec
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -40,7 +39,6 @@ import java.net.ProxySelector
 import java.net.SocketAddress
 import java.net.URI
 import java.util.concurrent.Executor
-import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 @Module

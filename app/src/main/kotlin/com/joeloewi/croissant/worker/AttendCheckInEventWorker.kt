@@ -101,11 +101,6 @@ class AttendCheckInEventWorker @AssistedInject constructor(
         Firebase.crashlytics.log(this@AttendCheckInEventWorker.javaClass.simpleName)
         Firebase.analytics.logEvent("attend_check_in_event", bundleOf())
 
-        if (!canPerformDnsLookup() && runAttemptCount < 3) {
-            Firebase.crashlytics.log("isVpn=${isNetworkVpn()}")
-            return@withContext Result.retry()
-        }
-
         _attendanceId.runCatching {
             takeIf { it != Long.MIN_VALUE }!!
         }.mapCatching { attendanceId ->

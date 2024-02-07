@@ -5,8 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
-import android.os.Build
 import android.os.Handler
 import android.text.format.DateFormat
 import android.webkit.CookieManager
@@ -25,7 +23,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
-import java.net.InetAddress
 import javax.inject.Inject
 import kotlin.coroutines.resume
 
@@ -86,25 +83,5 @@ class SystemDataSourceImpl @Inject constructor(
                 }
             }
         }
-    }
-
-    override suspend fun canPerformDnsLookup(): Boolean = withContext(Dispatchers.IO) {
-        runCatching {
-            !InetAddress.getByName("hoyolab.com").isReachable(10000)
-        }.getOrDefault(false)
-    }
-
-    override suspend fun isNetworkVpn(): Boolean = withContext(Dispatchers.IO) {
-        runCatching {
-            with(connectivityManager) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    getNetworkCapabilities(activeNetwork)?.hasTransport(
-                        NetworkCapabilities.TRANSPORT_VPN
-                    )
-                } else {
-                    activeNetworkInfo?.type == ConnectivityManager.TYPE_VPN
-                } ?: false
-            }
-        }.getOrDefault(false)
     }
 }
