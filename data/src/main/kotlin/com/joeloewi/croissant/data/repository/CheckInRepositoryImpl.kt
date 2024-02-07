@@ -17,8 +17,7 @@
 package com.joeloewi.croissant.data.repository
 
 import com.joeloewi.croissant.data.repository.remote.CheckInDataSource
-import com.joeloewi.croissant.domain.common.HoYoLABRetCode
-import com.joeloewi.croissant.domain.common.exception.HoYoLABUnsuccessfulResponseException
+import com.joeloewi.croissant.data.util.throwIfNotOk
 import com.joeloewi.croissant.domain.entity.BaseResponse
 import com.joeloewi.croissant.domain.repository.CheckInRepository
 import com.skydoves.sandwich.getOrThrow
@@ -33,14 +32,7 @@ class CheckInRepositoryImpl @Inject constructor(
     override suspend fun attend(actId: String, cookie: String): Result<BaseResponse> =
         withContext(Dispatchers.IO) {
             checkInDataSource.runCatching {
-                attend(actId, cookie).getOrThrow().also { response ->
-                    if (HoYoLABRetCode.findByCode(response.retCode) != HoYoLABRetCode.OK) {
-                        throw HoYoLABUnsuccessfulResponseException(
-                            responseMessage = response.message,
-                            retCode = response.retCode
-                        )
-                    }
-                }
+                attend(actId, cookie).getOrThrow().throwIfNotOk()
             }
         }
 
@@ -48,14 +40,7 @@ class CheckInRepositoryImpl @Inject constructor(
         cookie: String
     ): Result<BaseResponse> = withContext(Dispatchers.IO) {
         checkInDataSource.runCatching {
-            attendCheckInGenshinImpact(cookie).getOrThrow().also { response ->
-                if (HoYoLABRetCode.findByCode(response.retCode) != HoYoLABRetCode.OK) {
-                    throw HoYoLABUnsuccessfulResponseException(
-                        responseMessage = response.message,
-                        retCode = response.retCode
-                    )
-                }
-            }
+            attendCheckInGenshinImpact(cookie).getOrThrow().throwIfNotOk()
         }
     }
 
@@ -63,14 +48,7 @@ class CheckInRepositoryImpl @Inject constructor(
         cookie: String
     ): Result<BaseResponse> = withContext(Dispatchers.IO) {
         checkInDataSource.runCatching {
-            attendCheckInHonkaiImpact3rd(cookie).getOrThrow().also { response ->
-                if (HoYoLABRetCode.findByCode(response.retCode) != HoYoLABRetCode.OK) {
-                    throw HoYoLABUnsuccessfulResponseException(
-                        responseMessage = response.message,
-                        retCode = response.retCode
-                    )
-                }
-            }
+            attendCheckInHonkaiImpact3rd(cookie).getOrThrow().throwIfNotOk()
         }
     }
 }

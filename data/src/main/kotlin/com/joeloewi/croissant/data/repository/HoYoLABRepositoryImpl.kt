@@ -20,8 +20,7 @@ import com.joeloewi.croissant.data.mapper.GameRecordCardDataMapper
 import com.joeloewi.croissant.data.mapper.GenshinDailyNoteDataMapper
 import com.joeloewi.croissant.data.mapper.UserFullInfoMapper
 import com.joeloewi.croissant.data.repository.remote.HoYoLABDataSource
-import com.joeloewi.croissant.domain.common.HoYoLABRetCode
-import com.joeloewi.croissant.domain.common.exception.HoYoLABUnsuccessfulResponseException
+import com.joeloewi.croissant.data.util.throwIfNotOk
 import com.joeloewi.croissant.domain.entity.BaseResponse
 import com.joeloewi.croissant.domain.entity.GameRecordCardData
 import com.joeloewi.croissant.domain.entity.GenshinDailyNoteData
@@ -42,14 +41,7 @@ class HoYoLABRepositoryImpl @Inject constructor(
     override suspend fun getUserFullInfo(cookie: String): Result<UserFullInfo> =
         withContext(Dispatchers.IO) {
             hoYoLABDataSource.runCatching {
-                getUserFullInfo(cookie).getOrThrow().also { response ->
-                    if (HoYoLABRetCode.findByCode(response.retCode) != HoYoLABRetCode.OK) {
-                        throw HoYoLABUnsuccessfulResponseException(
-                            responseMessage = response.message,
-                            retCode = response.retCode
-                        )
-                    }
-                }
+                getUserFullInfo(cookie).getOrThrow().throwIfNotOk()
             }.mapCatching {
                 userFullInfoMapper.toDomain(it)
             }
@@ -61,14 +53,7 @@ class HoYoLABRepositoryImpl @Inject constructor(
     ): Result<GameRecordCardData?> =
         withContext(Dispatchers.IO) {
             hoYoLABDataSource.runCatching {
-                getGameRecordCard(cookie, uid).getOrThrow().also { response ->
-                    if (HoYoLABRetCode.findByCode(response.retCode) != HoYoLABRetCode.OK) {
-                        throw HoYoLABUnsuccessfulResponseException(
-                            responseMessage = response.message,
-                            retCode = response.retCode
-                        )
-                    }
-                }.data!!
+                getGameRecordCard(cookie, uid).getOrThrow().throwIfNotOk().data!!
             }.mapCatching {
                 gameRecordCardDataMapper.toDomain(it)
             }
@@ -82,14 +67,7 @@ class HoYoLABRepositoryImpl @Inject constructor(
         hoYoLABDataSource.runCatching {
             getGenshinDailyNote(
                 cookie = cookie, roleId = roleId, server = server
-            ).getOrThrow().also { response ->
-                if (HoYoLABRetCode.findByCode(response.retCode) != HoYoLABRetCode.OK) {
-                    throw HoYoLABUnsuccessfulResponseException(
-                        responseMessage = response.message,
-                        retCode = response.retCode
-                    )
-                }
-            }.data!!
+            ).getOrThrow().throwIfNotOk().data!!
         }.mapCatching {
             genshinDailyNoteDataMapper.toDomain(it)
         }
@@ -103,14 +81,7 @@ class HoYoLABRepositoryImpl @Inject constructor(
     ): Result<BaseResponse> =
         withContext(Dispatchers.IO) {
             hoYoLABDataSource.runCatching {
-                changeDataSwitch(cookie, switchId, isPublic, gameId).getOrThrow().also { response ->
-                    if (HoYoLABRetCode.findByCode(response.retCode) != HoYoLABRetCode.OK) {
-                        throw HoYoLABUnsuccessfulResponseException(
-                            responseMessage = response.message,
-                            retCode = response.retCode
-                        )
-                    }
-                }
+                changeDataSwitch(cookie, switchId, isPublic, gameId).getOrThrow().throwIfNotOk()
             }
         }
 }
