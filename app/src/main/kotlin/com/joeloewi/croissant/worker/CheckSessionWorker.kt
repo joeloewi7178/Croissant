@@ -22,7 +22,6 @@ import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
 import com.joeloewi.croissant.domain.usecase.FailureLogUseCase
 import com.joeloewi.croissant.domain.usecase.HoYoLABUseCase
 import com.joeloewi.croissant.domain.usecase.SuccessLogUseCase
-import com.joeloewi.croissant.domain.usecase.SystemUseCase
 import com.joeloewi.croissant.domain.usecase.WorkerExecutionLogUseCase
 import com.joeloewi.croissant.util.NotificationGenerator
 import dagger.assisted.Assisted
@@ -42,9 +41,7 @@ class CheckSessionWorker @AssistedInject constructor(
     private val insertWorkerExecutionLogUseCase: WorkerExecutionLogUseCase.Insert,
     private val insertSuccessLogUseCase: SuccessLogUseCase.Insert,
     private val insertFailureLogUseCase: FailureLogUseCase.Insert,
-    private val notificationGenerator: NotificationGenerator,
-    private val canPerformDnsLookup: SystemUseCase.CanPerformDnsLookup,
-    private val isNetworkVpn: SystemUseCase.IsNetworkVpn
+    private val notificationGenerator: NotificationGenerator
 ) : CoroutineWorker(
     appContext = context,
     params = params

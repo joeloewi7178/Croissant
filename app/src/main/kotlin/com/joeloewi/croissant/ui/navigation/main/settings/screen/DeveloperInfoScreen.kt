@@ -17,8 +17,8 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -176,8 +176,8 @@ private fun DeveloperInfoContent(
                     },
                     trailingContent = {
                         Icon(
-                            imageVector = Icons.Default.OpenInNew,
-                            contentDescription = Icons.Default.OpenInNew.name
+                            imageVector = Icons.AutoMirrored.Default.OpenInNew,
+                            contentDescription = Icons.AutoMirrored.Default.OpenInNew.name
                         )
                     },
                     overlineContent = {
@@ -230,8 +230,8 @@ private fun DeveloperInfoContent(
                     },
                     trailingContent = {
                         Icon(
-                            imageVector = Icons.Default.OpenInNew,
-                            contentDescription = Icons.Default.OpenInNew.name
+                            imageVector = Icons.AutoMirrored.Default.OpenInNew,
+                            contentDescription = Icons.AutoMirrored.Default.OpenInNew.name
                         )
                     },
                     overlineContent = {

@@ -21,7 +21,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
@@ -193,8 +193,8 @@ fun SelectGames(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = Icons.Default.ArrowForward,
-                            contentDescription = Icons.Default.ArrowForward.name
+                            imageVector = Icons.AutoMirrored.Default.ArrowForward,
+                            contentDescription = Icons.AutoMirrored.Default.ArrowForward.name
                         )
                         Text(text = stringResource(id = R.string.next_step))
                     }
