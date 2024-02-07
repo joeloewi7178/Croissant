@@ -54,11 +54,6 @@ class CheckSessionWorker @AssistedInject constructor(
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         Firebase.crashlytics.log(this@CheckSessionWorker.javaClass.simpleName)
 
-        if (!canPerformDnsLookup() && runAttemptCount < 3) {
-            Firebase.crashlytics.log("isVpn=${isNetworkVpn()}")
-            return@withContext Result.retry()
-        }
-
         _attendanceId.runCatching {
             takeIf { it != Long.MIN_VALUE }!!
         }.mapCatching { attendanceId ->
