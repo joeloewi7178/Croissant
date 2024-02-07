@@ -50,9 +50,6 @@ object ApiModule {
     @Singleton
     @Provides
     fun provideOkHttpClient(): OkHttpClient = OkHttpClient.Builder()
-        .connectTimeout(1, TimeUnit.MINUTES)
-        .readTimeout(1, TimeUnit.MINUTES)
-        .writeTimeout(1, TimeUnit.MINUTES)
         .proxySelector(object : ProxySelector() {
             override fun select(p0: URI?): MutableList<Proxy> = runCatching {
                 getDefault().select(p0)
@@ -71,27 +68,7 @@ object ApiModule {
         .followRedirects(true)
         .followSslRedirects(true)
         .retryOnConnectionFailure(true)
-        .connectionSpecs(listOf(ConnectionSpec.COMPATIBLE_TLS, ConnectionSpec.CLEARTEXT))
         .build()
-    /*.run {
-        newBuilder()
-            .dns(
-                DnsOverHttps.Builder()
-                    .client(this)
-                    .url("https://1.1.1.1/dns-query".toHttpUrl())
-                    .bootstrapDnsHosts(
-                        *runCatching {
-                            arrayOf(
-                                InetAddress.getByName("1.1.1.1"),
-                                InetAddress.getByName("1.0.0.1")
-                            )
-                        }.getOrDefault(emptyArray())
-                    )
-                    .includeIPv6(false)
-                    .build()
-            )
-            .build()
-    }*/
 
     @Singleton
     @Provides
