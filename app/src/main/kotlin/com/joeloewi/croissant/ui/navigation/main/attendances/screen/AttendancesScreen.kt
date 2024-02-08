@@ -62,7 +62,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -247,9 +246,7 @@ fun AttendanceWithGamesItem(
         }
     ) {
         DismissContent(
-            elevation = animateDpAsState(
-                HalfDp, label = ""
-            ).value,
+            dismissDirection = { swipeToDismissState.dismissDirection },
             attendanceWithGames = item,
             onClickOneTimeAttend = remember {
                 { attendance ->
@@ -319,20 +316,24 @@ private fun SwipeToDismissBackground(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun DismissContent(
-    elevation: Dp,
+    dismissDirection: () -> SwipeToDismissBoxValue,
     attendanceWithGames: () -> StableWrapper<AttendanceWithGames>,
     onClickAttendance: (Attendance) -> Unit,
     onClickOneTimeAttend: (Attendance) -> Unit
 ) {
     ListItem(
         modifier = Modifier
-            .shadow(elevation = elevation)
             .composed {
-                remember {
-                    clickable { onClickAttendance(attendanceWithGames().value.attendance) }
+                val elevation by animateDpAsState(
+                    if (dismissDirection() != SwipeToDismissBoxValue.Settled) HalfDp else 0.dp,
+                    label = ""
+                )
+
+                remember(elevation, attendanceWithGames().value.attendance.id) {
+                    shadow(elevation).clickable { onClickAttendance(attendanceWithGames().value.attendance) }
                 }
             },
         supportingContent = {
