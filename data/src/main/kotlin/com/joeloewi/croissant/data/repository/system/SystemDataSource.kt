@@ -10,8 +10,4 @@ interface SystemDataSource {
     suspend fun isUnusedAppRestrictionEnabled(): Result<Boolean>
 
     suspend fun removeAllCookies(): Result<Boolean>
-
-    suspend fun isNetworkAvailable(): Boolean
-
-    suspend fun isNetworkVpn(): Boolean
 }

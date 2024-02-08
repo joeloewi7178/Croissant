@@ -21,6 +21,7 @@ import com.joeloewi.croissant.data.api.dao.GenshinImpactCheckInService
 import com.joeloewi.croissant.data.api.model.response.AttendanceResponse
 import com.joeloewi.croissant.data.repository.remote.CheckInDataSource
 import com.joeloewi.croissant.data.util.executeAndAwait
+import com.joeloewi.croissant.data.util.runAndRetryWithExponentialBackOff
 import com.skydoves.sandwich.ApiResponse
 import javax.inject.Inject
 
@@ -30,15 +31,19 @@ class CheckInDataSourceImpl @Inject constructor(
 ) : CheckInDataSource {
 
     override suspend fun attend(actId: String, cookie: String): ApiResponse<AttendanceResponse> =
-        checkInService.attendCommon(actId = actId, cookie = cookie).executeAndAwait()
+        runAndRetryWithExponentialBackOff {
+            checkInService.attendCommon(actId = actId, cookie = cookie).executeAndAwait()
+        }
 
     override suspend fun attendCheckInGenshinImpact(
         cookie: String
-    ): ApiResponse<AttendanceResponse> =
+    ): ApiResponse<AttendanceResponse> = runAndRetryWithExponentialBackOff {
         genshinImpactCheckInService.attend(cookie = cookie).executeAndAwait()
+    }
 
     override suspend fun attendCheckInHonkaiImpact3rd(
         cookie: String
-    ): ApiResponse<AttendanceResponse> =
+    ): ApiResponse<AttendanceResponse> = runAndRetryWithExponentialBackOff {
         checkInService.attendCheckInHonkaiImpact3rd(cookie = cookie).executeAndAwait()
+    }
 }

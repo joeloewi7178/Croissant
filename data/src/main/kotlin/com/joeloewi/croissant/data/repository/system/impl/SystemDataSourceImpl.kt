@@ -5,8 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
-import android.os.Build
 import android.os.Handler
 import android.text.format.DateFormat
 import android.webkit.CookieManager
@@ -25,7 +23,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
-import java.net.InetAddress
 import javax.inject.Inject
 import kotlin.coroutines.resume
 
@@ -86,40 +83,5 @@ class SystemDataSourceImpl @Inject constructor(
                 }
             }
         }
-    }
-
-    override suspend fun isNetworkAvailable(): Boolean = withContext(Dispatchers.IO) {
-        runCatching {
-            val networkConnected = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                val activeNetwork = connectivityManager.activeNetwork ?: return@withContext false
-                val capabilities = connectivityManager.getNetworkCapabilities(activeNetwork)
-                    ?: return@withContext false
-
-                capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
-                        capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-            } else {
-                connectivityManager.activeNetworkInfo?.isConnected == true
-            }
-
-            val isDnsResolvable = runCatching {
-                !InetAddress.getByName("hoyolab.com").hostAddress.isNullOrEmpty()
-            }.getOrDefault(false)
-
-            networkConnected && isDnsResolvable
-        }.getOrDefault(false)
-    }
-
-    override suspend fun isNetworkVpn(): Boolean = withContext(Dispatchers.IO) {
-        runCatching {
-            with(connectivityManager) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    getNetworkCapabilities(activeNetwork)?.hasTransport(
-                        NetworkCapabilities.TRANSPORT_VPN
-                    )
-                } else {
-                    activeNetworkInfo?.type == ConnectivityManager.TYPE_VPN
-                } ?: false
-            }
-        }.getOrDefault(false)
     }
 }

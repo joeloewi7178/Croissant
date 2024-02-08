@@ -17,8 +17,4 @@ class SystemRepositoryImpl @Inject constructor(
         systemDataSource.isUnusedAppRestrictionEnabled()
 
     override suspend fun removeAllCookies(): Result<Boolean> = systemDataSource.removeAllCookies()
-
-    override suspend fun isNetworkAvailable(): Boolean = systemDataSource.isNetworkAvailable()
-
-    override suspend fun isNetworkVpn(): Boolean = systemDataSource.isNetworkVpn()
 }

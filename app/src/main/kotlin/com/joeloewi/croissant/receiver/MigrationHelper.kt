@@ -14,9 +14,6 @@ import com.joeloewi.croissant.domain.usecase.ResinStatusWidgetUseCase
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -46,20 +43,18 @@ class MigrationHelper : BroadcastReceiver() {
     lateinit var workManager: WorkManager
 
     override fun onReceive(p0: Context, p1: Intent) {
-        _processLifecycleScope.launch(_coroutineContext) {
-            when (p1.action) {
-                Intent.ACTION_MY_PACKAGE_REPLACED -> {
+        when (p1.action) {
+            Intent.ACTION_MY_PACKAGE_REPLACED -> {
+                _processLifecycleScope.launch(_coroutineContext) {
                     //because work manager's job can be deferred, cancel check in event worker
                     //instead of work manager, use alarm manager
-                    getAllOneShotAttendanceUseCase().map { attendance ->
-                        async(SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
-                            workManager.cancelUniqueWork(attendance.attendCheckInEventWorkerName.toString())
-                        }
-                    }.awaitAll()
+                    getAllOneShotAttendanceUseCase().forEach { attendance ->
+                        workManager.cancelUniqueWork(attendance.attendCheckInEventWorkerName.toString())
+                    }
                 }
-
-                else -> {}
             }
+
+            else -> {}
         }
     }
 }

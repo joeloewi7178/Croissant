@@ -22,7 +22,6 @@ import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
 import com.joeloewi.croissant.domain.usecase.FailureLogUseCase
 import com.joeloewi.croissant.domain.usecase.HoYoLABUseCase
 import com.joeloewi.croissant.domain.usecase.SuccessLogUseCase
-import com.joeloewi.croissant.domain.usecase.SystemUseCase
 import com.joeloewi.croissant.domain.usecase.WorkerExecutionLogUseCase
 import com.joeloewi.croissant.util.NotificationGenerator
 import dagger.assisted.Assisted
@@ -30,11 +29,8 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.net.SocketTimeoutException
-import java.net.UnknownHostException
 import java.util.UUID
 import java.util.concurrent.TimeUnit
-import javax.net.ssl.SSLHandshakeException
 
 @HiltWorker
 class CheckSessionWorker @AssistedInject constructor(
@@ -45,9 +41,7 @@ class CheckSessionWorker @AssistedInject constructor(
     private val insertWorkerExecutionLogUseCase: WorkerExecutionLogUseCase.Insert,
     private val insertSuccessLogUseCase: SuccessLogUseCase.Insert,
     private val insertFailureLogUseCase: FailureLogUseCase.Insert,
-    private val notificationGenerator: NotificationGenerator,
-    private val isNetworkAvailable: SystemUseCase.IsNetworkAvailable,
-    private val isNetworkVpn: SystemUseCase.IsNetworkVpn
+    private val notificationGenerator: NotificationGenerator
 ) : CoroutineWorker(
     appContext = context,
     params = params
@@ -57,16 +51,6 @@ class CheckSessionWorker @AssistedInject constructor(
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         Firebase.crashlytics.log(this@CheckSessionWorker.javaClass.simpleName)
 
-        if (!isNetworkAvailable()) {
-            Firebase.crashlytics.log("isVpn=${isNetworkVpn()}")
-
-            return@withContext if (runAttemptCount < 3) {
-                Result.retry()
-            } else {
-                Result.failure()
-            }
-        }
-
         _attendanceId.runCatching {
             takeIf { it != Long.MIN_VALUE }!!
         }.mapCatching { attendanceId ->
@@ -74,7 +58,9 @@ class CheckSessionWorker @AssistedInject constructor(
 
             if (attendance == null) {
                 WorkManager.getInstance(context).cancelWorkById(id)
-                return@withContext Result.failure()
+
+                //let chained works do their jobs
+                return@withContext Result.success()
             } else {
                 attendance
             }
@@ -137,7 +123,8 @@ class CheckSessionWorker @AssistedInject constructor(
                     )
                 )
 
-                Result.failure()
+                //let chained works do their jobs
+                Result.success()
             }
         )
     }

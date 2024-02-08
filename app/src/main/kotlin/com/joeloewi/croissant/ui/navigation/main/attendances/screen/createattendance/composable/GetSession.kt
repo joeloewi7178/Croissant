@@ -20,7 +20,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Login
+import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilledTonalButton
@@ -77,8 +77,8 @@ fun GetSession(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Login,
-                        contentDescription = Icons.Default.Login.name
+                        imageVector = Icons.AutoMirrored.Default.Login,
+                        contentDescription = Icons.AutoMirrored.Default.Login.name
                     )
                     Text(
                         text = stringResource(id = R.string.go_to_hoyolab),

@@ -27,6 +27,7 @@ import com.joeloewi.croissant.data.common.HeaderInformation
 import com.joeloewi.croissant.data.common.generateDS
 import com.joeloewi.croissant.data.repository.remote.HoYoLABDataSource
 import com.joeloewi.croissant.data.util.executeAndAwait
+import com.joeloewi.croissant.data.util.runAndRetryWithExponentialBackOff
 import com.skydoves.sandwich.ApiResponse
 import javax.inject.Inject
 
@@ -34,13 +35,16 @@ class HoYoLABDataSourceImpl @Inject constructor(
     private val hoYoLABService: HoYoLABService,
 ) : HoYoLABDataSource {
     override suspend fun getUserFullInfo(cookie: String): ApiResponse<UserFullInfoResponse> =
-        hoYoLABService.getUserFullInfo(cookie).executeAndAwait()
+        runAndRetryWithExponentialBackOff {
+            hoYoLABService.getUserFullInfo(cookie).executeAndAwait()
+        }
 
     override suspend fun getGameRecordCard(
         cookie: String,
         uid: Long
-    ): ApiResponse<GameRecordCardResponse> =
+    ): ApiResponse<GameRecordCardResponse> = runAndRetryWithExponentialBackOff {
         hoYoLABService.getGameRecordCard(cookie, uid).executeAndAwait()
+    }
 
     override suspend fun getGenshinDailyNote(
         ds: String,
@@ -64,14 +68,16 @@ class HoYoLABDataSourceImpl @Inject constructor(
             }
         }
 
-        return hoYoLABService.getGenshinDailyNote(
-            generateDS(headerInformation),
-            cookie,
-            xRpcAppVersion = headerInformation.xRpcAppVersion,
-            xRpcClientType = headerInformation.xRpcClientType,
-            roleId,
-            server
-        ).executeAndAwait()
+        return runAndRetryWithExponentialBackOff {
+            hoYoLABService.getGenshinDailyNote(
+                generateDS(headerInformation),
+                cookie,
+                xRpcAppVersion = headerInformation.xRpcAppVersion,
+                xRpcClientType = headerInformation.xRpcClientType,
+                roleId,
+                server
+            ).executeAndAwait()
+        }
     }
 
     override suspend fun changeDataSwitch(
@@ -79,9 +85,11 @@ class HoYoLABDataSourceImpl @Inject constructor(
         switchId: Int,
         isPublic: Boolean,
         gameId: Int
-    ): ApiResponse<ChangeDataSwitchResponse> = hoYoLABService.changeDataSwitch(
-        cookie, DataSwitchRequest(
-            switchId, isPublic, gameId
-        )
-    ).executeAndAwait()
+    ): ApiResponse<ChangeDataSwitchResponse> = runAndRetryWithExponentialBackOff {
+        hoYoLABService.changeDataSwitch(
+            cookie, DataSwitchRequest(
+                switchId, isPublic, gameId
+            )
+        ).executeAndAwait()
+    }
 }

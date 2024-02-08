@@ -18,9 +18,6 @@ import com.joeloewi.croissant.worker.AttendCheckInEventWorker
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -53,22 +50,22 @@ class AlarmReceiver : BroadcastReceiver() {
     lateinit var alarmScheduler: AlarmScheduler
 
     override fun onReceive(p0: Context, p1: Intent) {
-        _processLifecycleScope.launch(_coroutineContext) {
-            when (p1.action) {
-                Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED, AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED -> {
-                    getAllOneShotAttendanceUseCase().map { attendance ->
-                        async(SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
-                            attendance.runCatching {
-                                alarmScheduler.scheduleCheckInAlarm(
-                                    attendance = attendance,
-                                    scheduleForTomorrow = false
-                                )
-                            }
+        when (p1.action) {
+            Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED, AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED -> {
+                _processLifecycleScope.launch(_coroutineContext) {
+                    getAllOneShotAttendanceUseCase().forEach { attendance ->
+                        attendance.runCatching {
+                            alarmScheduler.scheduleCheckInAlarm(
+                                attendance = attendance,
+                                scheduleForTomorrow = false
+                            )
                         }
-                    }.awaitAll()
+                    }
                 }
+            }
 
-                RECEIVE_ATTEND_CHECK_IN_ALARM -> {
+            RECEIVE_ATTEND_CHECK_IN_ALARM -> {
+                _processLifecycleScope.launch(_coroutineContext) {
                     val attendanceId = p1.getLongExtra(ATTENDANCE_ID, Long.MIN_VALUE)
                     val attendanceWithGames = getOneAttendanceUseCase(attendanceId)
                     val attendance = attendanceWithGames.attendance
@@ -87,10 +84,10 @@ class AlarmReceiver : BroadcastReceiver() {
                         scheduleForTomorrow = true
                     )
                 }
+            }
 
-                else -> {
+            else -> {
 
-                }
             }
         }
     }

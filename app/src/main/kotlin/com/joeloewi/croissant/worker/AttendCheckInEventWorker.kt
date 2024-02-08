@@ -26,7 +26,6 @@ import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
 import com.joeloewi.croissant.domain.usecase.CheckInUseCase
 import com.joeloewi.croissant.domain.usecase.FailureLogUseCase
 import com.joeloewi.croissant.domain.usecase.SuccessLogUseCase
-import com.joeloewi.croissant.domain.usecase.SystemUseCase
 import com.joeloewi.croissant.domain.usecase.WorkerExecutionLogUseCase
 import com.joeloewi.croissant.util.NotificationGenerator
 import dagger.assisted.Assisted
@@ -34,9 +33,7 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.net.SocketTimeoutException
 import java.util.UUID
-import javax.net.ssl.SSLHandshakeException
 
 @HiltWorker
 class AttendCheckInEventWorker @AssistedInject constructor(
@@ -50,14 +47,12 @@ class AttendCheckInEventWorker @AssistedInject constructor(
     private val insertWorkerExecutionLogUseCase: WorkerExecutionLogUseCase.Insert,
     private val insertSuccessLogUseCase: SuccessLogUseCase.Insert,
     private val insertFailureLogUseCase: FailureLogUseCase.Insert,
-    private val notificationGenerator: NotificationGenerator,
-    private val isNetworkAvailable: SystemUseCase.IsNetworkAvailable,
-    private val isNetworkVpn: SystemUseCase.IsNetworkVpn
+    private val notificationGenerator: NotificationGenerator
 ) : CoroutineWorker(
     appContext = context,
     params = params
 ) {
-    private val _attendanceId = inputData.getLong(ATTENDANCE_ID, Long.MIN_VALUE)
+    private val _attendanceId by lazy { inputData.getLong(ATTENDANCE_ID, Long.MIN_VALUE) }
 
     override suspend fun getForegroundInfo(): ForegroundInfo =
         notificationGenerator.createForegroundInfo(_attendanceId.toInt())
@@ -102,11 +97,6 @@ class AttendCheckInEventWorker @AssistedInject constructor(
 
         Firebase.crashlytics.log(this@AttendCheckInEventWorker.javaClass.simpleName)
         Firebase.analytics.logEvent("attend_check_in_event", bundleOf())
-
-        if (!isNetworkAvailable() && runAttemptCount < 3) {
-            Firebase.crashlytics.log("isVpn=${isNetworkVpn()}")
-            return@withContext Result.retry()
-        }
 
         _attendanceId.runCatching {
             takeIf { it != Long.MIN_VALUE }!!
@@ -236,7 +226,8 @@ class AttendCheckInEventWorker @AssistedInject constructor(
 
                 addFailureLog(_attendanceId, cause)
 
-                Result.failure()
+                //let chained works do their jobs
+                Result.success()
             }
         )
     }

@@ -25,12 +25,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Pending
 import androidx.compose.material.icons.filled.PlayCircle
-import androidx.compose.material3.DismissDirection
-import androidx.compose.material3.DismissValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -40,10 +37,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SwipeToDismiss
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberDismissState
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -225,93 +223,72 @@ fun AttendanceWithGamesItem(
     onDeleteAttendance: (Attendance) -> Unit,
     onClickAttendance: (Attendance) -> Unit
 ) {
-    val dismissState = rememberDismissState()
+    val swipeToDismissState = rememberSwipeToDismissBoxState()
     val context = LocalContext.current
     val activity = LocalActivity.current
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
-        snapshotFlow { dismissState.currentValue }.catch { }.collectLatest {
-            if (it == DismissValue.DismissedToStart) {
+        snapshotFlow { swipeToDismissState.currentValue }.catch { }.collectLatest {
+            if (it == SwipeToDismissBoxValue.EndToStart) {
                 onDeleteAttendance(item().value.attendance)
             }
         }
     }
 
-    SwipeToDismiss(
-        state = dismissState,
+    SwipeToDismissBox(
         modifier = modifier,
-        directions = setOf(DismissDirection.EndToStart),
-        background = {
+        state = swipeToDismissState,
+        enableDismissFromStartToEnd = false,
+        backgroundContent = {
             SwipeToDismissBackground(
-                direction = dismissState.dismissDirection,
-                targetValue = { dismissState.targetValue }
-            )
-        },
-        dismissContent = {
-            DismissContent(
-                elevation = animateDpAsState(
-                    if (dismissState.dismissDirection != null) HalfDp else 0.dp, label = ""
-                ).value,
-                attendanceWithGames = item,
-                onClickOneTimeAttend = remember {
-                    { attendance ->
-                        Firebase.analytics.logEvent("instant_attend_click", bundleOf())
-
-                        val oneTimeWork = AttendCheckInEventWorker.buildOneTimeWork(
-                            attendanceId = attendance.id
-                        )
-
-                        WorkManager.getInstance(context).beginUniqueWork(
-                            attendance.oneTimeAttendCheckInEventWorkerName.toString(),
-                            ExistingWorkPolicy.APPEND_OR_REPLACE,
-                            oneTimeWork
-                        ).enqueue()
-
-                        coroutineScope.launch {
-                            requestReview(
-                                activity = activity,
-                                logMessage = "ImmediateAttendance"
-                            )
-                        }
-                    }
-                },
-                onClickAttendance = remember { onClickAttendance }
+                targetValue = { swipeToDismissState.targetValue }
             )
         }
-    )
+    ) {
+        DismissContent(
+            elevation = animateDpAsState(
+                HalfDp, label = ""
+            ).value,
+            attendanceWithGames = item,
+            onClickOneTimeAttend = remember {
+                { attendance ->
+                    Firebase.analytics.logEvent("instant_attend_click", bundleOf())
+
+                    val oneTimeWork = AttendCheckInEventWorker.buildOneTimeWork(
+                        attendanceId = attendance.id
+                    )
+
+                    WorkManager.getInstance(context).beginUniqueWork(
+                        attendance.oneTimeAttendCheckInEventWorkerName.toString(),
+                        ExistingWorkPolicy.APPEND_OR_REPLACE,
+                        oneTimeWork
+                    ).enqueue()
+
+                    coroutineScope.launch {
+                        requestReview(
+                            activity = activity,
+                            logMessage = "ImmediateAttendance"
+                        )
+                    }
+                }
+            },
+            onClickAttendance = remember { onClickAttendance }
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SwipeToDismissBackground(
-    direction: DismissDirection?,
-    targetValue: () -> DismissValue
+    targetValue: () -> SwipeToDismissBoxValue
 ) {
-    val alignment by remember(direction) {
-        derivedStateOf {
-            when (direction) {
-                DismissDirection.StartToEnd -> Alignment.CenterStart
-                DismissDirection.EndToStart -> Alignment.CenterEnd
-                null -> Alignment.TopStart
-            }
-        }
-    }
-    val icon by remember(direction) {
-        derivedStateOf {
-            when (direction) {
-                DismissDirection.StartToEnd -> Icons.Default.Done
-                DismissDirection.EndToStart -> Icons.Default.Delete
-                null -> Icons.Default.Pending
-            }
-        }
-    }
     val scale by animateFloatAsState(
-        if (targetValue() == DismissValue.Default) 0.75f else 1f, label = ""
+        if (targetValue() == SwipeToDismissBoxValue.Settled) 0.75f else 1f, label = ""
     )
     val backgroundColor by animateColorAsState(
         when (targetValue()) {
-            DismissValue.DismissedToStart -> MaterialTheme.colorScheme.errorContainer
+            SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.errorContainer
             else -> {
                 MaterialTheme.colorScheme.surfaceColorAtElevation(HalfDp)
             }
@@ -319,7 +296,7 @@ private fun SwipeToDismissBackground(
     )
     val iconColor by animateColorAsState(
         when (targetValue()) {
-            DismissValue.DismissedToStart -> MaterialTheme.colorScheme.onErrorContainer
+            SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.onErrorContainer
             else -> {
                 MaterialTheme.colorScheme.onSurface
             }
@@ -331,10 +308,10 @@ private fun SwipeToDismissBackground(
             .fillMaxSize()
             .background(backgroundColor)
             .padding(horizontal = DoubleDp),
-        contentAlignment = alignment
+        contentAlignment = Alignment.CenterEnd
     ) {
         Icon(
-            imageVector = icon,
+            imageVector = Icons.Default.Delete,
             contentDescription = null,
             modifier = Modifier.scale(scale),
             tint = iconColor
