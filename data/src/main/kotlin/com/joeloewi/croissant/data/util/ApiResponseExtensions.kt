@@ -10,45 +10,62 @@ suspend fun <T : Any> runAndRetryWithExponentialBackOff(
     initialDelay: Int = 500,
     retryFactor: Float = 2f,
     maxAttempts: Int = 5,
-    maxDelayMillis: Long = 5000,
+    maxDelayMillis: Long = 3000,
     task: suspend () -> ApiResponse<T>,
+): ApiResponse<T> = retryTask(
+    attempt = 1,
+    initialDelay = initialDelay,
+    retryFactor = retryFactor,
+    maxAttempts = maxAttempts,
+    maxDelayMillis = maxDelayMillis,
+    task = task
+)
+
+private tailrec suspend fun <T : Any> retryTask(
+    attempt: Int = 1,
+    initialDelay: Int,
+    retryFactor: Float,
+    maxAttempts: Int,
+    maxDelayMillis: Long,
+    task: suspend () -> ApiResponse<T>
 ): ApiResponse<T> {
-    var unsuccessfulAttempts = 0
-    var apiResponse: ApiResponse<T>
+    val isRetrying = attempt > 1
 
-    while (true) {
-        if (unsuccessfulAttempts > 1) {
-            val fullJitterExponentialBackOffDelay = Random.nextLong(
-                0,
-                min(
-                    maxDelayMillis,
-                    (initialDelay * retryFactor.pow(unsuccessfulAttempts)).toLong()
-                )
+    if (isRetrying) {
+        val fullJitterExponentialBackOffDelay = Random.nextLong(
+            0,
+            min(
+                maxDelayMillis,
+                (initialDelay * retryFactor.pow(attempt - 1)).toLong()
             )
+        )
 
-            delay(fullJitterExponentialBackOffDelay)
-        }
+        delay(fullJitterExponentialBackOffDelay)
+    }
 
-        apiResponse = task()
-        when (apiResponse) {
-            is ApiResponse.Success -> break
-            is ApiResponse.Failure -> {
-                when (apiResponse) {
-                    is ApiResponse.Failure.Error -> {
-                        break
-                    }
+    return when (val apiResponse = task()) {
+        is ApiResponse.Success -> apiResponse
+        is ApiResponse.Failure -> {
+            when (apiResponse) {
+                is ApiResponse.Failure.Error -> {
+                    apiResponse
+                }
 
-                    is ApiResponse.Failure.Exception -> {
-                        if (unsuccessfulAttempts <= maxAttempts) {
-                            unsuccessfulAttempts += 1
-                        } else {
-                            break
-                        }
+                is ApiResponse.Failure.Exception -> {
+                    if (attempt < maxAttempts) {
+                        retryTask(
+                            attempt = attempt + 1,
+                            initialDelay = initialDelay,
+                            retryFactor = retryFactor,
+                            maxAttempts = maxAttempts,
+                            maxDelayMillis = maxDelayMillis,
+                            task = task
+                        )
+                    } else {
+                        apiResponse
                     }
                 }
             }
         }
     }
-
-    return apiResponse
 }
