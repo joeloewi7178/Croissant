@@ -43,9 +43,6 @@ jobs:
       - name: Access GOOGLE_SERVICES_JSON
         run: echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > ./app/google-services.json
 
-      - name: Extract ssl certificate from hoyolab.com and replace
-        run: openssl s_client -showcerts -connect www.hoyolab.com:443 </dev/null 2>/dev/null|openssl x509 -outform DER >./app/src/main/res/raw/hoyolab_ca.der
-
       - name: Generate jks file from base64
         uses: timheuer/base64-to-file@v1.2
         with:

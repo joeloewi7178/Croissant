@@ -233,7 +233,7 @@ fun LoginHoYoLABContent(
                         is LoadingState.Loading -> {
                             LinearProgressIndicator(
                                 modifier = Modifier.fillMaxWidth(),
-                                progress = progress
+                                progress = { progress }
                             )
                         }
 
