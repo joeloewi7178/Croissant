@@ -97,34 +97,39 @@ class CheckSessionWorker @AssistedInject constructor(
                                     createCheckSessionNotification(_attendanceId)
                                 )
                             }
+                        } else {
+                            Firebase.crashlytics.recordException(cause)
                         }
+
+                        val executionLogId = insertWorkerExecutionLogUseCase(
+                            WorkerExecutionLog(
+                                attendanceId = _attendanceId,
+                                state = WorkerExecutionLogState.FAILURE,
+                                loggableWorker = LoggableWorker.CHECK_SESSION
+                            )
+                        )
+
+                        insertFailureLogUseCase(
+                            FailureLog(
+                                executionLogId = executionLogId,
+                                failureMessage = cause.message ?: "",
+                                failureStackTrace = cause.stackTraceToString()
+                            )
+                        )
+
+                        //let chained works do their jobs
+                        Result.success()
                     }
 
                     is CancellationException -> {
                         throw cause
                     }
+
+                    else -> {
+                        Firebase.crashlytics.log("runAttemptCount: $runAttemptCount")
+                        Result.retry()
+                    }
                 }
-
-                Firebase.crashlytics.recordException(cause)
-
-                val executionLogId = insertWorkerExecutionLogUseCase(
-                    WorkerExecutionLog(
-                        attendanceId = _attendanceId,
-                        state = WorkerExecutionLogState.FAILURE,
-                        loggableWorker = LoggableWorker.CHECK_SESSION
-                    )
-                )
-
-                insertFailureLogUseCase(
-                    FailureLog(
-                        executionLogId = executionLogId,
-                        failureMessage = cause.message ?: "",
-                        failureStackTrace = cause.stackTraceToString()
-                    )
-                )
-
-                //let chained works do their jobs
-                Result.success()
             }
         )
     }
