@@ -21,6 +21,7 @@ data class SuccessLogEntity(
     val id: Long = 0,
     @ColumnInfo(index = true)
     val executionLogId: Long = 0,
+    @ColumnInfo(index = true)
     val gameName: HoYoLABGame = HoYoLABGame.Unknown,
     val retCode: Int = 0,
     val message: String = ""

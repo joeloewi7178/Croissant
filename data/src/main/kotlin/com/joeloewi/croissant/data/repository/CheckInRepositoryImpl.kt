@@ -21,8 +21,6 @@ import com.joeloewi.croissant.data.util.throwIfNotOk
 import com.joeloewi.croissant.domain.entity.BaseResponse
 import com.joeloewi.croissant.domain.repository.CheckInRepository
 import com.skydoves.sandwich.getOrThrow
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class CheckInRepositoryImpl @Inject constructor(
@@ -30,25 +28,19 @@ class CheckInRepositoryImpl @Inject constructor(
 ) : CheckInRepository {
 
     override suspend fun attend(actId: String, cookie: String): Result<BaseResponse> =
-        withContext(Dispatchers.IO) {
-            checkInDataSource.runCatching {
-                attend(actId, cookie).getOrThrow().throwIfNotOk()
-            }
+        checkInDataSource.runCatching {
+            attend(actId, cookie).getOrThrow().throwIfNotOk()
         }
 
     override suspend fun attendCheckInGenshinImpact(
         cookie: String
-    ): Result<BaseResponse> = withContext(Dispatchers.IO) {
-        checkInDataSource.runCatching {
-            attendCheckInGenshinImpact(cookie).getOrThrow().throwIfNotOk()
-        }
+    ): Result<BaseResponse> = checkInDataSource.runCatching {
+        attendCheckInGenshinImpact(cookie).getOrThrow().throwIfNotOk()
     }
 
     override suspend fun attendCheckInHonkaiImpact3rd(
         cookie: String
-    ): Result<BaseResponse> = withContext(Dispatchers.IO) {
-        checkInDataSource.runCatching {
-            attendCheckInHonkaiImpact3rd(cookie).getOrThrow().throwIfNotOk()
-        }
+    ): Result<BaseResponse> = checkInDataSource.runCatching {
+        attendCheckInHonkaiImpact3rd(cookie).getOrThrow().throwIfNotOk()
     }
 }

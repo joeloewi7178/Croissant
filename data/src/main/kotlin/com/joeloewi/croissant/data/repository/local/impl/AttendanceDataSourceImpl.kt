@@ -26,8 +26,11 @@ import com.joeloewi.croissant.data.mapper.AttendanceWithGamesMapper
 import com.joeloewi.croissant.data.repository.local.AttendanceDataSource
 import com.joeloewi.croissant.domain.entity.Attendance
 import com.joeloewi.croissant.domain.entity.relational.AttendanceWithGames
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class AttendanceDataSourceImpl @Inject constructor(
@@ -36,23 +39,30 @@ class AttendanceDataSourceImpl @Inject constructor(
     private val attendanceWithGamesMapper: AttendanceWithGamesMapper,
 ) : AttendanceDataSource {
 
-    override suspend fun insert(attendance: Attendance): Long =
+    override suspend fun insert(attendance: Attendance): Long = withContext(Dispatchers.IO) {
         attendanceDao.insert(attendanceMapper.toData(attendance))
+    }
 
-    override suspend fun update(vararg attendances: Attendance): Int =
+    override suspend fun update(vararg attendances: Attendance): Int = withContext(Dispatchers.IO) {
         attendanceDao.update(*attendances.map { attendanceMapper.toData(it) }.toTypedArray())
+    }
 
-    override suspend fun delete(vararg attendances: Attendance): Int =
+    override suspend fun delete(vararg attendances: Attendance): Int = withContext(Dispatchers.IO) {
         attendanceDao.delete(*attendances.map { attendanceMapper.toData(it) }.toTypedArray())
+    }
 
-    override suspend fun getOneByUid(uid: Long): Attendance =
+    override suspend fun getOneByUid(uid: Long): Attendance = withContext(Dispatchers.IO) {
         attendanceMapper.toDomain(attendanceDao.getOneByUid(uid))
+    }
 
-    override suspend fun getOne(id: Long): AttendanceWithGames =
+    override suspend fun getOne(id: Long): AttendanceWithGames = withContext(Dispatchers.IO) {
         attendanceWithGamesMapper.toDomain(attendanceDao.getOne(id))
+    }
 
     override suspend fun getByIds(vararg ids: Long): List<AttendanceWithGames> =
-        attendanceDao.getByIds(*ids).map { attendanceWithGamesMapper.toDomain(it) }
+        withContext(Dispatchers.IO) {
+            attendanceDao.getByIds(*ids).map { attendanceWithGamesMapper.toDomain(it) }
+        }
 
     override fun getAllPaged(): Flow<PagingData<AttendanceWithGames>> =
         Pager(
@@ -64,7 +74,9 @@ class AttendanceDataSourceImpl @Inject constructor(
             }
         ).flow
             .map { pagingData -> pagingData.map { attendanceWithGamesMapper.toDomain(it) } }
+            .flowOn(Dispatchers.IO)
 
-    override suspend fun getAllOneShot(): List<Attendance> =
+    override suspend fun getAllOneShot(): List<Attendance> = withContext(Dispatchers.IO) {
         attendanceDao.getAllOneShot().map { attendanceMapper.toDomain(it) }
+    }
 }

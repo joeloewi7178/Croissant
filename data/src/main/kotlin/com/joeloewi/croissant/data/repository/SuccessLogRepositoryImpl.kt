@@ -19,15 +19,11 @@ package com.joeloewi.croissant.data.repository
 import com.joeloewi.croissant.data.repository.local.SuccessLogDataSource
 import com.joeloewi.croissant.domain.entity.SuccessLog
 import com.joeloewi.croissant.domain.repository.SuccessLogRepository
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class SuccessLogRepositoryImpl @Inject constructor(
     private val successLogDataSource: SuccessLogDataSource
 ) : SuccessLogRepository {
     override suspend fun insert(successLog: SuccessLog): Long =
-        withContext(Dispatchers.IO) {
-            successLogDataSource.insert(successLog)
-        }
+        successLogDataSource.insert(successLog)
 }

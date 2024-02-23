@@ -20,6 +20,8 @@ import com.joeloewi.croissant.data.database.dao.GameDao
 import com.joeloewi.croissant.data.mapper.GameMapper
 import com.joeloewi.croissant.data.repository.local.GameDataSource
 import com.joeloewi.croissant.domain.entity.Game
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class GameDataSourceImpl @Inject constructor(
@@ -27,12 +29,15 @@ class GameDataSourceImpl @Inject constructor(
     private val gameMapper: GameMapper,
 ) : GameDataSource {
 
-    override suspend fun insert(vararg games: Game): List<Long> =
+    override suspend fun insert(vararg games: Game): List<Long> = withContext(Dispatchers.IO) {
         gameDao.insert(*games.map { gameMapper.toData(it) }.toTypedArray())
+    }
 
-    override suspend fun update(vararg games: Game): Int =
+    override suspend fun update(vararg games: Game): Int = withContext(Dispatchers.IO) {
         gameDao.update(*games.map { gameMapper.toData(it) }.toTypedArray())
+    }
 
-    override suspend fun delete(vararg games: Game): Int =
+    override suspend fun delete(vararg games: Game): Int = withContext(Dispatchers.IO) {
         gameDao.delete(*games.map { gameMapper.toData(it) }.toTypedArray())
+    }
 }

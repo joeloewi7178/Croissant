@@ -19,15 +19,11 @@ package com.joeloewi.croissant.data.repository
 import com.joeloewi.croissant.data.repository.local.FailureLogDataSource
 import com.joeloewi.croissant.domain.entity.FailureLog
 import com.joeloewi.croissant.domain.repository.FailureLogRepository
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class FailureLogRepositoryImpl @Inject constructor(
     private val failureLogDataSource: FailureLogDataSource
 ) : FailureLogRepository {
     override suspend fun insert(failureLog: FailureLog): Long =
-        withContext(Dispatchers.IO) {
-            failureLogDataSource.insert(failureLog)
-        }
+        failureLogDataSource.insert(failureLog)
 }

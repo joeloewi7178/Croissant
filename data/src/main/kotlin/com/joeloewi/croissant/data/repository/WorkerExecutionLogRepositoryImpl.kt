@@ -17,18 +17,14 @@
 package com.joeloewi.croissant.data.repository
 
 import androidx.paging.PagingData
-import androidx.paging.map
 import com.joeloewi.croissant.data.repository.local.WorkerExecutionLogDataSource
+import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.domain.common.LoggableWorker
 import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
 import com.joeloewi.croissant.domain.entity.WorkerExecutionLog
 import com.joeloewi.croissant.domain.entity.relational.WorkerExecutionLogWithState
 import com.joeloewi.croissant.domain.repository.WorkerExecutionLogRepository
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class WorkerExecutionLogRepositoryImpl @Inject constructor(
@@ -36,19 +32,13 @@ class WorkerExecutionLogRepositoryImpl @Inject constructor(
 ) : WorkerExecutionLogRepository {
 
     override suspend fun insert(workerExecutionLog: WorkerExecutionLog): Long =
-        withContext(Dispatchers.IO) {
-            workerExecutionLogDataSource.insert(workerExecutionLog)
-        }
+        workerExecutionLogDataSource.insert(workerExecutionLog)
 
     override suspend fun delete(vararg workerExecutionLogs: WorkerExecutionLog): Int =
-        withContext(Dispatchers.IO) {
-            workerExecutionLogDataSource.delete(*workerExecutionLogs)
-        }
+        workerExecutionLogDataSource.delete(*workerExecutionLogs)
 
     override suspend fun deleteAll(attendanceId: Long, loggableWorker: LoggableWorker): Int =
-        withContext(Dispatchers.IO) {
-            workerExecutionLogDataSource.deleteAll(attendanceId, loggableWorker)
-        }
+        workerExecutionLogDataSource.deleteAll(attendanceId, loggableWorker)
 
     override fun getByDatePaged(
         attendanceId: Long,
@@ -56,10 +46,6 @@ class WorkerExecutionLogRepositoryImpl @Inject constructor(
         localDate: String
     ): Flow<PagingData<WorkerExecutionLogWithState>> =
         workerExecutionLogDataSource.getByDatePaged(attendanceId, loggableWorker, localDate)
-            .map { pagingData ->
-                pagingData.map { it }
-            }
-            .flowOn(Dispatchers.IO)
 
     override fun getCountByState(
         attendanceId: Long,
@@ -67,5 +53,10 @@ class WorkerExecutionLogRepositoryImpl @Inject constructor(
         state: WorkerExecutionLogState
     ): Flow<Long> =
         workerExecutionLogDataSource.getCountByState(attendanceId, loggableWorker, state)
-            .flowOn(Dispatchers.IO)
+
+    override suspend fun hasExecutedAtLeastOnce(
+        attendanceId: Long,
+        gameName: HoYoLABGame,
+        date: String
+    ): Boolean = workerExecutionLogDataSource.hasExecutedAtLeastOnce(attendanceId, gameName, date)
 }

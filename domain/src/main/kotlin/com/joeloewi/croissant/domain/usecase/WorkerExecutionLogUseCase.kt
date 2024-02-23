@@ -16,6 +16,7 @@
 
 package com.joeloewi.croissant.domain.usecase
 
+import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.domain.common.LoggableWorker
 import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
 import com.joeloewi.croissant.domain.entity.WorkerExecutionLog
@@ -59,5 +60,16 @@ sealed class WorkerExecutionLogUseCase {
             loggableWorker: LoggableWorker,
             state: WorkerExecutionLogState
         ) = workerExecutionLogRepository.getCountByState(attendanceId, loggableWorker, state)
+    }
+
+    class HasExecutedAtLeastOnce @Inject constructor(
+        private val workerExecutionLogRepository: WorkerExecutionLogRepository
+    ) : WorkerExecutionLogUseCase() {
+
+        suspend operator fun invoke(
+            attendanceId: Long,
+            gameName: HoYoLABGame,
+            date: String
+        ) = workerExecutionLogRepository.hasExecutedAtLeastOnce(attendanceId, gameName, date)
     }
 }

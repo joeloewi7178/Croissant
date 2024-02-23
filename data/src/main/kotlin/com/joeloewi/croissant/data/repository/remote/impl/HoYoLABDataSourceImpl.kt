@@ -26,24 +26,29 @@ import com.joeloewi.croissant.data.common.GenshinImpactServer
 import com.joeloewi.croissant.data.common.HeaderInformation
 import com.joeloewi.croissant.data.common.generateDS
 import com.joeloewi.croissant.data.repository.remote.HoYoLABDataSource
-import com.joeloewi.croissant.data.util.executeAndAwait
 import com.joeloewi.croissant.data.util.runAndRetryWithExponentialBackOff
 import com.skydoves.sandwich.ApiResponse
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class HoYoLABDataSourceImpl @Inject constructor(
     private val hoYoLABService: HoYoLABService,
 ) : HoYoLABDataSource {
     override suspend fun getUserFullInfo(cookie: String): ApiResponse<UserFullInfoResponse> =
-        runAndRetryWithExponentialBackOff {
-            hoYoLABService.getUserFullInfo(cookie).executeAndAwait()
+        withContext(Dispatchers.IO) {
+            runAndRetryWithExponentialBackOff {
+                hoYoLABService.getUserFullInfo(cookie)
+            }
         }
 
     override suspend fun getGameRecordCard(
         cookie: String,
         uid: Long
-    ): ApiResponse<GameRecordCardResponse> = runAndRetryWithExponentialBackOff {
-        hoYoLABService.getGameRecordCard(cookie, uid).executeAndAwait()
+    ): ApiResponse<GameRecordCardResponse> = withContext(Dispatchers.IO) {
+        runAndRetryWithExponentialBackOff {
+            hoYoLABService.getGameRecordCard(cookie, uid)
+        }
     }
 
     override suspend fun getGenshinDailyNote(
@@ -53,7 +58,7 @@ class HoYoLABDataSourceImpl @Inject constructor(
         xRpcClientType: String,
         roleId: Long,
         server: String
-    ): ApiResponse<GenshinDailyNoteResponse> {
+    ): ApiResponse<GenshinDailyNoteResponse> = withContext(Dispatchers.IO) {
         val headerInformation = when (GenshinImpactServer.findByRegion(server)) {
             GenshinImpactServer.CNServer -> {
                 HeaderInformation.CN
@@ -68,7 +73,7 @@ class HoYoLABDataSourceImpl @Inject constructor(
             }
         }
 
-        return runAndRetryWithExponentialBackOff {
+        runAndRetryWithExponentialBackOff {
             hoYoLABService.getGenshinDailyNote(
                 generateDS(headerInformation),
                 cookie,
@@ -76,7 +81,7 @@ class HoYoLABDataSourceImpl @Inject constructor(
                 xRpcClientType = headerInformation.xRpcClientType,
                 roleId,
                 server
-            ).executeAndAwait()
+            )
         }
     }
 
@@ -85,11 +90,13 @@ class HoYoLABDataSourceImpl @Inject constructor(
         switchId: Int,
         isPublic: Boolean,
         gameId: Int
-    ): ApiResponse<ChangeDataSwitchResponse> = runAndRetryWithExponentialBackOff {
-        hoYoLABService.changeDataSwitch(
-            cookie, DataSwitchRequest(
-                switchId, isPublic, gameId
+    ): ApiResponse<ChangeDataSwitchResponse> = withContext(Dispatchers.IO) {
+        runAndRetryWithExponentialBackOff {
+            hoYoLABService.changeDataSwitch(
+                cookie, DataSwitchRequest(
+                    switchId, isPublic, gameId
+                )
             )
-        ).executeAndAwait()
+        }
     }
 }

@@ -70,7 +70,8 @@ class AlarmReceiver : BroadcastReceiver() {
                     val attendanceWithGames = getOneAttendanceUseCase(attendanceId)
                     val attendance = attendanceWithGames.attendance
                     val oneTimeWork = AttendCheckInEventWorker.buildOneTimeWork(
-                        attendanceId = attendance.id
+                        attendanceId = attendance.id,
+                        isInstantCheckIn = false
                     )
 
                     workManager.beginUniqueWork(

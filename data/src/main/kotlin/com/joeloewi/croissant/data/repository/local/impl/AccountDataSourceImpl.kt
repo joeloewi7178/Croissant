@@ -20,6 +20,8 @@ import com.joeloewi.croissant.data.database.dao.AccountDao
 import com.joeloewi.croissant.data.mapper.AccountMapper
 import com.joeloewi.croissant.data.repository.local.AccountDataSource
 import com.joeloewi.croissant.domain.entity.Account
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class AccountDataSourceImpl @Inject constructor(
@@ -28,5 +30,7 @@ class AccountDataSourceImpl @Inject constructor(
 ) : AccountDataSource {
 
     override suspend fun insert(vararg accounts: Account): List<Long> =
-        accountDao.insert(*accounts.map { accountMapper.toData(it) }.toTypedArray())
+        withContext(Dispatchers.IO) {
+            accountDao.insert(*accounts.map { accountMapper.toData(it) }.toTypedArray())
+        }
 }

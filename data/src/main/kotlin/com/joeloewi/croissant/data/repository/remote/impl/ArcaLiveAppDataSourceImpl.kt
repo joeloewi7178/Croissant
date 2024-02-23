@@ -19,19 +19,22 @@ package com.joeloewi.croissant.data.repository.remote.impl
 import com.joeloewi.croissant.data.api.dao.ArcaLiveAppService
 import com.joeloewi.croissant.data.api.model.response.ArticleResponse
 import com.joeloewi.croissant.data.repository.remote.ArcaLiveAppDataSource
-import com.joeloewi.croissant.data.util.executeAndAwait
 import com.joeloewi.croissant.data.util.runAndRetryWithExponentialBackOff
 import com.skydoves.sandwich.ApiResponse
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class ArcaLiveAppDataSourceImpl @Inject constructor(
     private val arcaLiveAppService: ArcaLiveAppService,
 ) : ArcaLiveAppDataSource {
     override suspend fun getArticle(slug: String, articleId: Long): ApiResponse<ArticleResponse> =
-        runAndRetryWithExponentialBackOff {
-            arcaLiveAppService.getArticle(
-                slug = slug,
-                articleId = articleId
-            ).executeAndAwait()
+        withContext(Dispatchers.IO) {
+            runAndRetryWithExponentialBackOff {
+                arcaLiveAppService.getArticle(
+                    slug = slug,
+                    articleId = articleId
+                )
+            }
         }
 }

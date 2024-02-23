@@ -21,8 +21,10 @@ import com.joeloewi.croissant.data.datastore.settingsDataStore
 import com.joeloewi.croissant.data.mapper.SettingsMapper
 import com.joeloewi.croissant.data.repository.local.SettingsDataSource
 import com.joeloewi.croissant.domain.entity.Settings
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class SettingsDataSourceImpl @Inject constructor(
@@ -33,23 +35,29 @@ class SettingsDataSourceImpl @Inject constructor(
         application.settingsDataStore.data.map { settingsMapper.toDomain(it) }
 
     override suspend fun setDarkThemeEnabled(darkThemeEnabled: Boolean): Settings =
-        application.settingsDataStore.updateData {
-            it.toBuilder().setDarkThemeEnabled(darkThemeEnabled).build()
-        }.let {
-            settingsMapper.toDomain(it)
+        withContext(Dispatchers.IO) {
+            application.settingsDataStore.updateData {
+                it.toBuilder().setDarkThemeEnabled(darkThemeEnabled).build()
+            }.let {
+                settingsMapper.toDomain(it)
+            }
         }
 
     override suspend fun setIsFirstLaunch(isFirstLaunch: Boolean): Settings =
-        application.settingsDataStore.updateData {
-            it.toBuilder().setIsFirstLaunch(isFirstLaunch).build()
-        }.let {
-            settingsMapper.toDomain(it)
+        withContext(Dispatchers.IO) {
+            application.settingsDataStore.updateData {
+                it.toBuilder().setIsFirstLaunch(isFirstLaunch).build()
+            }.let {
+                settingsMapper.toDomain(it)
+            }
         }
 
     override suspend fun setNotifyMigrateToAlarmManager(notifyMigrateToAlarmManager: Boolean): Settings =
-        application.settingsDataStore.updateData {
-            it.toBuilder().setNotifyMigrateToAlarmManager(notifyMigrateToAlarmManager).build()
-        }.let {
-            settingsMapper.toDomain(it)
+        withContext(Dispatchers.IO) {
+            application.settingsDataStore.updateData {
+                it.toBuilder().setNotifyMigrateToAlarmManager(notifyMigrateToAlarmManager).build()
+            }.let {
+                settingsMapper.toDomain(it)
+            }
         }
 }

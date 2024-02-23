@@ -23,10 +23,10 @@ import com.joeloewi.croissant.domain.entity.FailureLog
 class FailureLogMapper : Mapper<FailureLog, FailureLogEntity> {
 
     override fun toData(domainEntity: FailureLog): FailureLogEntity = with(domainEntity) {
-        FailureLogEntity(id, executionLogId, failureMessage, failureStackTrace)
+        FailureLogEntity(id, executionLogId, gameName, failureMessage, failureStackTrace)
     }
 
     override fun toDomain(dataEntity: FailureLogEntity): FailureLog = with(dataEntity) {
-        FailureLog(id, executionLogId, failureMessage, failureStackTrace)
+        FailureLog(id, executionLogId, gameName, failureMessage, failureStackTrace)
     }
 }

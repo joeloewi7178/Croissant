@@ -22,6 +22,8 @@ import com.joeloewi.croissant.data.mapper.ResinStatusWithAccountsMapper
 import com.joeloewi.croissant.data.repository.local.ResinStatusWidgetDataSource
 import com.joeloewi.croissant.domain.entity.ResinStatusWidget
 import com.joeloewi.croissant.domain.entity.relational.ResinStatusWidgetWithAccounts
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class ResinStatusWidgetDataSourceImpl @Inject constructor(
@@ -31,28 +33,42 @@ class ResinStatusWidgetDataSourceImpl @Inject constructor(
 ) : ResinStatusWidgetDataSource {
 
     override suspend fun getAll(): List<ResinStatusWidget> =
-        resinStatusWidgetDao.getAll().map { resinStatusWidgetMapper.toDomain(it) }
+        withContext(Dispatchers.IO) {
+            resinStatusWidgetDao.getAll().map { resinStatusWidgetMapper.toDomain(it) }
+        }
 
     override suspend fun insert(resinStatusWidget: ResinStatusWidget): Long =
-        resinStatusWidgetDao.insert(resinStatusWidgetMapper.toData(resinStatusWidget))
+        withContext(Dispatchers.IO) {
+            resinStatusWidgetDao.insert(resinStatusWidgetMapper.toData(resinStatusWidget))
+        }
 
     override suspend fun delete(vararg resinStatusWidgets: ResinStatusWidget): Int =
-        resinStatusWidgetDao.delete(*resinStatusWidgets.map { resinStatusWidgetMapper.toData(it) }
-            .toTypedArray())
+        withContext(Dispatchers.IO) {
+            resinStatusWidgetDao.delete(*resinStatusWidgets.map { resinStatusWidgetMapper.toData(it) }
+                .toTypedArray())
+        }
 
     override suspend fun update(resinStatusWidget: ResinStatusWidget): Int =
-        resinStatusWidgetDao.update(resinStatusWidgetMapper.toData(resinStatusWidget))
+        withContext(Dispatchers.IO) {
+            resinStatusWidgetDao.update(resinStatusWidgetMapper.toData(resinStatusWidget))
+        }
 
     override suspend fun getOne(id: Long): ResinStatusWidgetWithAccounts =
-        resinStatusWidgetWithAccountsMapper.toDomain(resinStatusWidgetDao.getOne(id))
+        withContext(Dispatchers.IO) {
+            resinStatusWidgetWithAccountsMapper.toDomain(resinStatusWidgetDao.getOne(id))
+        }
 
     override suspend fun deleteByAppWidgetId(vararg appWidgetIds: Int): Int =
-        resinStatusWidgetDao.deleteByAppWidgetId(*appWidgetIds)
+        withContext(Dispatchers.IO) {
+            resinStatusWidgetDao.deleteByAppWidgetId(*appWidgetIds)
+        }
 
     override suspend fun getOneByAppWidgetId(appWidgetId: Int): ResinStatusWidgetWithAccounts =
-        resinStatusWidgetWithAccountsMapper.toDomain(
-            resinStatusWidgetDao.getOneByAppWidgetId(
-                appWidgetId
+        withContext(Dispatchers.IO) {
+            resinStatusWidgetWithAccountsMapper.toDomain(
+                resinStatusWidgetDao.getOneByAppWidgetId(
+                    appWidgetId
+                )
             )
-        )
+        }
 }

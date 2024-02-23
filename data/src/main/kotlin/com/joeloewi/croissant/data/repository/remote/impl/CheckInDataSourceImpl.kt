@@ -20,9 +20,10 @@ import com.joeloewi.croissant.data.api.dao.CheckInService
 import com.joeloewi.croissant.data.api.dao.GenshinImpactCheckInService
 import com.joeloewi.croissant.data.api.model.response.AttendanceResponse
 import com.joeloewi.croissant.data.repository.remote.CheckInDataSource
-import com.joeloewi.croissant.data.util.executeAndAwait
 import com.joeloewi.croissant.data.util.runAndRetryWithExponentialBackOff
 import com.skydoves.sandwich.ApiResponse
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class CheckInDataSourceImpl @Inject constructor(
@@ -31,19 +32,25 @@ class CheckInDataSourceImpl @Inject constructor(
 ) : CheckInDataSource {
 
     override suspend fun attend(actId: String, cookie: String): ApiResponse<AttendanceResponse> =
-        runAndRetryWithExponentialBackOff {
-            checkInService.attendCommon(actId = actId, cookie = cookie).executeAndAwait()
+        withContext(Dispatchers.IO) {
+            runAndRetryWithExponentialBackOff {
+                checkInService.attendCommon(actId = actId, cookie = cookie)
+            }
         }
 
     override suspend fun attendCheckInGenshinImpact(
         cookie: String
-    ): ApiResponse<AttendanceResponse> = runAndRetryWithExponentialBackOff {
-        genshinImpactCheckInService.attend(cookie = cookie).executeAndAwait()
+    ): ApiResponse<AttendanceResponse> = withContext(Dispatchers.IO) {
+        runAndRetryWithExponentialBackOff {
+            genshinImpactCheckInService.attend(cookie = cookie)
+        }
     }
 
     override suspend fun attendCheckInHonkaiImpact3rd(
         cookie: String
-    ): ApiResponse<AttendanceResponse> = runAndRetryWithExponentialBackOff {
-        checkInService.attendCheckInHonkaiImpact3rd(cookie = cookie).executeAndAwait()
+    ): ApiResponse<AttendanceResponse> = withContext(Dispatchers.IO) {
+        runAndRetryWithExponentialBackOff {
+            checkInService.attendCheckInHonkaiImpact3rd(cookie = cookie)
+        }
     }
 }

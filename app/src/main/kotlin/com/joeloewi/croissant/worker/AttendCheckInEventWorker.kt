@@ -33,6 +33,7 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
 import java.util.UUID
 
 @HiltWorker
@@ -45,14 +46,19 @@ class AttendCheckInEventWorker @AssistedInject constructor(
     private val attendCheckInTearsOfThemisUseCase: CheckInUseCase.AttendCheckInTearsOfThemis,
     private val attendCheckInHonkaiStarRail: CheckInUseCase.AttendCheckInHonkaiStarRail,
     private val insertWorkerExecutionLogUseCase: WorkerExecutionLogUseCase.Insert,
+    private val hasExecutedAtLeastOnce: WorkerExecutionLogUseCase.HasExecutedAtLeastOnce,
     private val insertSuccessLogUseCase: SuccessLogUseCase.Insert,
     private val insertFailureLogUseCase: FailureLogUseCase.Insert,
-    private val notificationGenerator: NotificationGenerator
+    private val notificationGenerator: NotificationGenerator,
 ) : CoroutineWorker(
     appContext = context,
     params = params
 ) {
     private val _attendanceId by lazy { inputData.getLong(ATTENDANCE_ID, Long.MIN_VALUE) }
+    private val _triggeredDate by lazy {
+        inputData.getString(TRIGGERED_DATE) ?: LocalDate.now().toString()
+    }
+    private val _isInstantCheckIn by lazy { inputData.getBoolean(IS_INSTANT_CHECK_IN, false) }
 
     override suspend fun getForegroundInfo(): ForegroundInfo =
         notificationGenerator.createForegroundInfo(_attendanceId.toInt())
@@ -73,6 +79,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
 
     private suspend fun addFailureLog(
         attendanceId: Long,
+        gameName: HoYoLABGame = HoYoLABGame.Unknown,
         cause: Throwable
     ) {
         val executionLogId = insertWorkerExecutionLogUseCase(
@@ -86,6 +93,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
         insertFailureLogUseCase(
             FailureLog(
                 executionLogId = executionLogId,
+                gameName = gameName,
                 failureMessage = cause.message ?: "",
                 failureStackTrace = cause.stackTraceToString()
             )
@@ -106,7 +114,17 @@ class AttendCheckInEventWorker @AssistedInject constructor(
             val cookie = attendanceWithGames.attendance.cookie
 
             //attend check in events
-            attendanceWithGames.games.forEach { game ->
+            attendanceWithGames.games.filter { game ->
+                if (_isInstantCheckIn) {
+                    true
+                } else {
+                    !hasExecutedAtLeastOnce(
+                        attendanceId = _attendanceId,
+                        gameName = game.type,
+                        date = _triggeredDate
+                    )
+                }
+            }.forEach { game ->
                 try {
                     when (game.type) {
                         HoYoLABGame.HonkaiImpact3rd -> {
@@ -174,6 +192,8 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                             }
                         }
 
+                        addFailureLog(attendanceId, game.type, cause)
+
                         createUnsuccessfulAttendanceNotification(
                             nickname = attendanceWithGames.attendance.nickname,
                             hoYoLABGame = game.type,
@@ -187,30 +207,24 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                             )
                         }
                     } else {
-                        //if result is unsuccessful with unknown error
-                        //retry for three times
+                        if (_isInstantCheckIn) {
+                            Firebase.crashlytics.recordException(cause)
 
-                        /*if (runAttemptCount > 3) {
-                            addFailureLog(attendanceId, cause)
+                            notificationGenerator.createUnsuccessfulAttendanceNotification(
+                                nickname = attendanceWithGames.attendance.nickname,
+                                hoYoLABGame = game.type,
+                                attendanceId = _attendanceId
+                            ).let { notification ->
+                                notificationGenerator.safeNotify(
+                                    UUID.randomUUID().toString(),
+                                    game.type.gameId,
+                                    notification
+                                )
+                            }
                         } else {
-
-                        }*/
-                        Firebase.crashlytics.recordException(cause)
-
-                        notificationGenerator.createUnsuccessfulAttendanceNotification(
-                            nickname = attendanceWithGames.attendance.nickname,
-                            hoYoLABGame = game.type,
-                            attendanceId = _attendanceId
-                        ).let { notification ->
-                            notificationGenerator.safeNotify(
-                                UUID.randomUUID().toString(),
-                                game.type.gameId,
-                                notification
-                            )
+                            return@withContext Result.retry()
                         }
                     }
-
-                    addFailureLog(attendanceId, cause)
                 }
             }
         }.fold(
@@ -222,10 +236,6 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                     throw cause
                 }
 
-                Firebase.crashlytics.recordException(cause)
-
-                addFailureLog(_attendanceId, cause)
-
                 //let chained works do their jobs
                 Result.success()
             }
@@ -234,14 +244,24 @@ class AttendCheckInEventWorker @AssistedInject constructor(
 
     companion object {
         const val ATTENDANCE_ID = "attendanceId"
+        const val TRIGGERED_DATE = "triggeredDate"
+        const val IS_INSTANT_CHECK_IN = "isInstantCheckIn"
 
         fun buildOneTimeWork(
             attendanceId: Long,
+            triggeredDate: LocalDate = LocalDate.now(),
+            isInstantCheckIn: Boolean,
             constraints: Constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
         ) = OneTimeWorkRequestBuilder<AttendCheckInEventWorker>()
-            .setInputData(workDataOf(ATTENDANCE_ID to attendanceId))
+            .setInputData(
+                workDataOf(
+                    ATTENDANCE_ID to attendanceId,
+                    TRIGGERED_DATE to triggeredDate.toString(),
+                    IS_INSTANT_CHECK_IN to isInstantCheckIn
+                )
+            )
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .setConstraints(constraints)
             .build()

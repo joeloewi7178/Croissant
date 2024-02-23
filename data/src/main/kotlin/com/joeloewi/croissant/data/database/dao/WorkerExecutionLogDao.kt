@@ -22,7 +22,11 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.RawQuery
 import androidx.room.Transaction
+import androidx.sqlite.db.SupportSQLiteQuery
+import com.joeloewi.croissant.data.entity.local.FailureLogEntity
+import com.joeloewi.croissant.data.entity.local.SuccessLogEntity
 import com.joeloewi.croissant.data.entity.local.WorkerExecutionLogEntity
 import com.joeloewi.croissant.data.entity.local.relational.WorkerExecutionLogWithStateEntity
 import com.joeloewi.croissant.domain.common.LoggableWorker
@@ -70,7 +74,6 @@ interface WorkerExecutionLogDao {
         localDate: String,
     ): PagingSource<Int, WorkerExecutionLogWithStateEntity>
 
-    @Transaction
     @Query(
         """
             SELECT COUNT(*) 
@@ -86,4 +89,11 @@ interface WorkerExecutionLogDao {
         loggableWorker: LoggableWorker,
         state: WorkerExecutionLogState
     ): Flow<Long>
+
+    @RawQuery(
+        observedEntities = [WorkerExecutionLogEntity::class, FailureLogEntity::class, SuccessLogEntity::class]
+    )
+    suspend fun getCountByDate(
+        query: SupportSQLiteQuery
+    ): Long
 }

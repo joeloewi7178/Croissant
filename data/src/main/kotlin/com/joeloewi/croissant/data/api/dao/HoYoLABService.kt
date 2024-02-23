@@ -24,35 +24,34 @@ import com.joeloewi.croissant.data.api.model.response.UserFullInfoResponse
 import com.joeloewi.croissant.data.common.HeaderInformation
 import com.joeloewi.croissant.data.common.generateDS
 import com.skydoves.sandwich.ApiResponse
-import retrofit2.Call
 import retrofit2.http.*
 
 interface HoYoLABService {
 
     @GET("community/painter/wapi/user/full")
-    fun getUserFullInfo(
+    suspend fun getUserFullInfo(
         @Header("Cookie") cookie: String
-    ): Call<ApiResponse<UserFullInfoResponse>>
+    ): ApiResponse<UserFullInfoResponse>
 
     @GET("game_record/card/wapi/getGameRecordCard")
-    fun getGameRecordCard(
+    suspend fun getGameRecordCard(
         @Header("Cookie") cookie: String,
         @Query("uid") uid: Long
-    ): Call<ApiResponse<GameRecordCardResponse>>
+    ): ApiResponse<GameRecordCardResponse>
 
     @POST("game_record/card/wapi/changeDataSwitch")
-    fun changeDataSwitch(
+    suspend fun changeDataSwitch(
         @Header("Cookie") cookie: String,
         @Body dataSwitchRequest: DataSwitchRequest
-    ): Call<ApiResponse<ChangeDataSwitchResponse>>
+    ): ApiResponse<ChangeDataSwitchResponse>
 
     @GET("game_record/genshin/api/dailyNote")
-    fun getGenshinDailyNote(
+    suspend fun getGenshinDailyNote(
         @Header("DS") ds: String = generateDS(headerInformation = HeaderInformation.OS),
         @Header("Cookie") cookie: String,
         @Header("x-rpc-app_version") xRpcAppVersion: String = HeaderInformation.OS.xRpcAppVersion,
         @Header("x-rpc-client_type") xRpcClientType: String = HeaderInformation.OS.xRpcClientType,
         @Query("role_id") roleId: Long,
         @Query("server") server: String,
-    ): Call<ApiResponse<GenshinDailyNoteResponse>>
+    ): ApiResponse<GenshinDailyNoteResponse>
 }
