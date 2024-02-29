@@ -5,8 +5,9 @@ plugins {
     alias(libs.plugins.croissant.android.hilt)
     alias(libs.plugins.croissant.android.application.firebase)
     id("kotlin-parcelize")
-    id("com.google.android.gms.oss-licenses-plugin")
+    id(libs.plugins.gms.oss.licenses.plugin.get().pluginId)
     alias(libs.plugins.androidx.baselineprofile)
+    id(libs.plugins.kotlinx.atomicfu.get().pluginId)
 }
 
 kotlin {
@@ -156,4 +157,6 @@ dependencies {
     implementation(libs.gms.play.services.oss.licenses)
 
     implementation(libs.fornewid.placeholder.material3)
+
+    implementation(libs.kotlinx.atomicfu)
 }

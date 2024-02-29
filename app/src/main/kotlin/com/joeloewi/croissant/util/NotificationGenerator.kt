@@ -191,6 +191,21 @@ class NotificationGenerator(
         }
         .build()
 
+    fun createAttendanceRetryScheduledNotification(
+        nickname: String
+    ): Notification = NotificationCompat
+        .Builder(context, _attendanceNotificationChannel.id)
+        .setContentTitle(
+            context.getString(
+                R.string.attendance_of_nickname,
+                nickname
+            )
+        )
+        .setContentText(context.getString(R.string.attendance_retry))
+        .setAutoCancel(true)
+        .setSmallIcon(R.drawable.ic_baseline_bakery_dining_24)
+        .build()
+
     @SuppressLint("InlinedApi")
     fun createForegroundInfo(notificationId: Int): ForegroundInfo = NotificationCompat
         .Builder(

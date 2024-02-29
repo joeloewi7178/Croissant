@@ -10,6 +10,7 @@ import android.os.Message
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.*
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -212,19 +213,25 @@ fun LoginHoYoLABContent(
                         }
                     },
                     title = {
-                        Column {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .animateContentSize()
+                        ) {
                             Text(
                                 text = webViewState.pageTitle ?: "Title",
                                 style = MaterialTheme.typography.titleMedium,
                                 overflow = TextOverflow.Ellipsis,
                                 maxLines = 1
                             )
-                            Text(
-                                text = webViewState.lastLoadedUrl ?: "",
-                                style = MaterialTheme.typography.bodyMedium,
-                                overflow = TextOverflow.Ellipsis,
-                                maxLines = 1
-                            )
+                            if (!webViewState.lastLoadedUrl.isNullOrEmpty()) {
+                                Text(
+                                    text = webViewState.lastLoadedUrl ?: "",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    overflow = TextOverflow.Ellipsis,
+                                    maxLines = 1
+                                )
+                            }
                         }
                     }
                 )

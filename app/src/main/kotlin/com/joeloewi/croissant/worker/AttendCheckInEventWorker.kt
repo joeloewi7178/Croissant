@@ -115,7 +115,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
 
             //attend check in events
             attendanceWithGames.games.filter { game ->
-                if (_isInstantCheckIn) {
+                if (_isInstantCheckIn || runAttemptCount == 0) {
                     true
                 } else {
                     !hasExecutedAtLeastOnce(
@@ -207,23 +207,17 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                             )
                         }
                     } else {
-                        if (_isInstantCheckIn) {
-                            Firebase.crashlytics.recordException(cause)
-
-                            notificationGenerator.createUnsuccessfulAttendanceNotification(
-                                nickname = attendanceWithGames.attendance.nickname,
-                                hoYoLABGame = game.type,
-                                attendanceId = _attendanceId
-                            ).let { notification ->
-                                notificationGenerator.safeNotify(
-                                    UUID.randomUUID().toString(),
-                                    game.type.gameId,
-                                    notification
-                                )
-                            }
-                        } else {
-                            return@withContext Result.retry()
+                        notificationGenerator.createAttendanceRetryScheduledNotification(
+                            nickname = attendanceWithGames.attendance.nickname
+                        ).let { notification ->
+                            notificationGenerator.safeNotify(
+                                UUID.randomUUID().toString(),
+                                game.type.gameId,
+                                notification
+                            )
                         }
+                        Firebase.crashlytics.log("runAttemptCount: $runAttemptCount")
+                        return@withContext Result.retry()
                     }
                 }
             }

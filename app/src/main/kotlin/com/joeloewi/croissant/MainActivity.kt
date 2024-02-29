@@ -54,10 +54,9 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import androidx.core.os.bundleOf
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -105,10 +104,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -124,15 +121,22 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
 
         lifecycleScope.launch(CoroutineExceptionHandler { _, _ -> }) {
-            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                _mainActivityViewModel.darkThemeEnabled.onEach { darkThemeEnabled ->
-                    if (darkThemeEnabled) {
-                        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-                    } else {
-                        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+            _mainActivityViewModel.darkThemeEnabled.flowWithLifecycle(lifecycle)
+                .flowOn(Dispatchers.IO).collect {
+                    when (it) {
+                        is LCE.Content -> {
+                            if (it.content) {
+                                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+                            } else {
+                                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+                            }
+                        }
+
+                        else -> {
+
+                        }
                     }
-                }.collect()
-            }
+                }
         }
 
         lifecycleScope.launch(Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {

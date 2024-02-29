@@ -10,9 +10,12 @@ import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics
 import com.joeloewi.croissant.domain.usecase.SettingsUseCase
 import com.joeloewi.croissant.domain.usecase.SystemUseCase
+import com.joeloewi.croissant.state.LCE
+import com.joeloewi.croissant.state.foldAsLce
 import com.joeloewi.croissant.util.HourFormat
 import com.joeloewi.croissant.util.isDeviceNexus5X
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,6 +25,7 @@ import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import javax.inject.Inject
@@ -36,6 +40,7 @@ class MainActivityViewModel @Inject constructor(
     isDeviceRooted: SystemUseCase.IsDeviceRooted,
 ) : ViewModel() {
     private val _settings = getSettingsUseCase()
+    private val _isLoading = atomic(true)
 
     val hourFormat = is24HourFormat().map {
         HourFormat.fromSystemHourFormat(it)
@@ -61,10 +66,14 @@ class MainActivityViewModel @Inject constructor(
             started = SharingStarted.Lazily,
             initialValue = AppUpdateResult.NotAvailable
         )
-    val darkThemeEnabled = _settings.map { it.darkThemeEnabled }.stateIn(
+    val darkThemeEnabled = _settings.map {
+        runCatching { it.darkThemeEnabled }.foldAsLce()
+    }.catch {
+        emit(LCE.Error(it))
+    }.onEach { }.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(),
-        initialValue = false
+        started = SharingStarted.Eagerly,
+        initialValue = LCE.Loading
     )
     val isDeviceRooted = flow {
         emit(isDeviceRooted())
@@ -79,4 +88,10 @@ class MainActivityViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(),
             initialValue = false
         )
+    val isLoading: Boolean
+        get() = _isLoading.value
+
+    fun onApplyNightModeCompleted() {
+        _isLoading.compareAndSet(expect = true, update = false)
+    }
 }

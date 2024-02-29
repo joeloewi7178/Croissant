@@ -6,7 +6,8 @@ buildscript {
     }
 
     dependencies {
-        classpath(libs.gms.oss.licenses.plugin)
+        classpath(libs.gms.oss.licenses.gradlePlugin)
+        classpath(libs.kotlinx.atomicfu.gradlePlugin)
     }
 }
 

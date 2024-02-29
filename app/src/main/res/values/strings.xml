@@ -121,4 +121,5 @@
     <string name="disable_app_hibernation_description">Prevent problems that can happen when system treat this app as unused app</string>
     <string name="select_time">Select time</string>
     <string name="execution_notice">To ensure accuracy, the scheduled task will be executed 30 seconds after the specified time. For example, if you schedule a task for 12:34 PM, it will actually be executed at 12:34:30 PM.</string>
+    <string name="attendance_retry">Attendance failed due to unknown error. Retry has scheduled.</string>
 </resources>

@@ -3,7 +3,6 @@ package com.joeloewi.croissant.di
 import android.content.Context
 import android.os.Build
 import android.text.format.DateFormat
-import androidx.work.RunnableScheduler
 import androidx.work.WorkManager
 import coil.ImageLoader
 import coil.decode.GifDecoder
@@ -18,7 +17,6 @@ import com.joeloewi.croissant.util.AlarmScheduler
 import com.joeloewi.croissant.util.NotificationGenerator
 import com.joeloewi.croissant.util.TextToSpeechFactory
 import com.joeloewi.croissant.util.impl.AlarmSchedulerImpl
-import com.joeloewi.croissant.util.impl.RunnableSchedulerImpl
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -88,11 +86,6 @@ object UtilModule {
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class UtilModuleForBind {
-    @Singleton
-    @Binds
-    abstract fun bindRunnableScheduler(
-        runnableSchedulerImpl: RunnableSchedulerImpl
-    ): RunnableScheduler
 
     @Singleton
     @Binds

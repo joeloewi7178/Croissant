@@ -61,6 +61,7 @@ gmsPlayServicesOssLicenses = "17.0.1"
 androidxBaselineProfile = "1.2.3"
 androidTools = "31.2.2"
 fornewidPlaceholderMaterial3 = "1.0.1"
+kotlinxAtomicfu = "0.23.2"
 
 [libraries]
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
@@ -157,14 +158,16 @@ jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 tts = { group = "nl.marc-apps", name = "tts", version.ref = "tts" }
 gms-play-services-oss-licenses = { group = "com.google.android.gms", name = "play-services-oss-licenses", version.ref = "gmsPlayServicesOssLicenses" }
-gms-oss-licenses-plugin = { group = "com.google.android.gms", name = "oss-licenses-plugin", version.ref = "gmsOssLicensesPlugin" }
 fornewid-placeholder-material3 = { group = "io.github.fornewid", name = "placeholder-material3", version.ref = "fornewidPlaceholderMaterial3" }
+kotlinx-atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "kotlinxAtomicfu" }
 
 android-tools-common = { group = "com.android.tools", name = "common", version.ref = "androidTools" }
 firebase-crashlytics-gradlePlugin = { group = "com.google.firebase", name = "firebase-crashlytics-gradle", version.ref = "firebaseCrashlyticsPlugin" }
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
 kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "kspPlugin" }
+kotlinx-atomicfu-gradlePlugin = { group = "org.jetbrains.kotlinx", name = "atomicfu-gradle-plugin", version.ref = "kotlinxAtomicfu" }
+gms-oss-licenses-gradlePlugin = { group = "com.google.android.gms", name = "oss-licenses-plugin", version.ref = "gmsOssLicensesPlugin" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
@@ -178,6 +181,8 @@ firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "
 ksp = { id = "com.google.devtools.ksp", version.ref = "kspPlugin" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 androidx-baselineprofile = { id = "androidx.baselineprofile", version.ref = "androidxBaselineProfile" }
+kotlinx-atomicfu = { id = "kotlinx-atomicfu", version.ref = "kotlinxAtomicfu" }
+gms-oss-licenses-plugin = { id = "com.google.android.gms.oss-licenses-plugin", version.ref = "gmsOssLicensesPlugin" }
 
 #plugins from this project
 croissant-android-application-compose = { id = "croissant.android.application.compose", version = "unspecified" }
