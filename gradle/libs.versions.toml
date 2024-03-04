@@ -60,7 +60,7 @@ gmsOssLicensesPlugin = "0.10.6"
 gmsPlayServicesOssLicenses = "17.0.1"
 androidxBaselineProfile = "1.2.3"
 androidTools = "31.3.0"
-fornewidPlaceholderMaterial3 = "1.0.1"
+fornewidPlaceholderMaterial3 = "1.1.2"
 kotlinxAtomicfu = "0.23.2"
 
 [libraries]
