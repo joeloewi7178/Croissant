@@ -58,7 +58,6 @@ class AttendCheckInEventWorker @AssistedInject constructor(
     private val _triggeredDate by lazy {
         inputData.getString(TRIGGERED_DATE) ?: LocalDate.now().toString()
     }
-    private val _isInstantCheckIn by lazy { inputData.getBoolean(IS_INSTANT_CHECK_IN, false) }
 
     override suspend fun getForegroundInfo(): ForegroundInfo =
         notificationGenerator.createForegroundInfo(_attendanceId.toInt())
@@ -115,7 +114,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
 
             //attend check in events
             attendanceWithGames.games.filter { game ->
-                if (_isInstantCheckIn || runAttemptCount == 0) {
+                if (runAttemptCount == 0) {
                     true
                 } else {
                     !hasExecutedAtLeastOnce(
@@ -239,12 +238,10 @@ class AttendCheckInEventWorker @AssistedInject constructor(
     companion object {
         const val ATTENDANCE_ID = "attendanceId"
         const val TRIGGERED_DATE = "triggeredDate"
-        const val IS_INSTANT_CHECK_IN = "isInstantCheckIn"
 
         fun buildOneTimeWork(
             attendanceId: Long,
             triggeredDate: LocalDate = LocalDate.now(),
-            isInstantCheckIn: Boolean,
             constraints: Constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
@@ -252,8 +249,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
             .setInputData(
                 workDataOf(
                     ATTENDANCE_ID to attendanceId,
-                    TRIGGERED_DATE to triggeredDate.toString(),
-                    IS_INSTANT_CHECK_IN to isInstantCheckIn
+                    TRIGGERED_DATE to triggeredDate.toString()
                 )
             )
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)

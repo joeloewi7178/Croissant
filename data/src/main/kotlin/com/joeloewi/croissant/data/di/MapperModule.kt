@@ -16,7 +16,24 @@
 
 package com.joeloewi.croissant.data.di
 
-import com.joeloewi.croissant.data.mapper.*
+import com.joeloewi.croissant.data.mapper.AccountMapper
+import com.joeloewi.croissant.data.mapper.AttendanceMapper
+import com.joeloewi.croissant.data.mapper.AttendanceWithGamesMapper
+import com.joeloewi.croissant.data.mapper.DataSwitchMapper
+import com.joeloewi.croissant.data.mapper.FailureLogMapper
+import com.joeloewi.croissant.data.mapper.GameMapper
+import com.joeloewi.croissant.data.mapper.GameRecordCardDataMapper
+import com.joeloewi.croissant.data.mapper.GameRecordMapper
+import com.joeloewi.croissant.data.mapper.GenshinDailyNoteDataMapper
+import com.joeloewi.croissant.data.mapper.ResinStatusWidgetMapper
+import com.joeloewi.croissant.data.mapper.ResinStatusWithAccountsMapper
+import com.joeloewi.croissant.data.mapper.SettingsMapper
+import com.joeloewi.croissant.data.mapper.SuccessLogMapper
+import com.joeloewi.croissant.data.mapper.UserFullInfoDataMapper
+import com.joeloewi.croissant.data.mapper.UserFullInfoMapper
+import com.joeloewi.croissant.data.mapper.UserInfoMapper
+import com.joeloewi.croissant.data.mapper.WorkerExecutionLogMapper
+import com.joeloewi.croissant.data.mapper.WorkerExecutionLogWithStateMapper
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

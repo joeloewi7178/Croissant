@@ -252,10 +252,8 @@ fun AttendanceWithGamesItem(
                 { attendance ->
                     Firebase.analytics.logEvent("instant_attend_click", bundleOf())
 
-                    val oneTimeWork = AttendCheckInEventWorker.buildOneTimeWork(
-                        attendanceId = attendance.id,
-                        isInstantCheckIn = true
-                    )
+                    val oneTimeWork =
+                        AttendCheckInEventWorker.buildOneTimeWork(attendanceId = attendance.id)
 
                     WorkManager.getInstance(context).beginUniqueWork(
                         attendance.oneTimeAttendCheckInEventWorkerName.toString(),

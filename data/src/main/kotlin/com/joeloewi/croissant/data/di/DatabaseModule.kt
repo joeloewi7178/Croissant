@@ -19,7 +19,15 @@ package com.joeloewi.croissant.data.di
 import android.content.Context
 import androidx.room.Room
 import com.joeloewi.croissant.data.database.CroissantDatabase
-import com.joeloewi.croissant.data.database.dao.*
+import com.joeloewi.croissant.data.database.dao.AccountDao
+import com.joeloewi.croissant.data.database.dao.AttendanceDao
+import com.joeloewi.croissant.data.database.dao.FailureLogDao
+import com.joeloewi.croissant.data.database.dao.GameDao
+import com.joeloewi.croissant.data.database.dao.ResinStatusWidgetDao
+import com.joeloewi.croissant.data.database.dao.ResultCountDao
+import com.joeloewi.croissant.data.database.dao.ResultRangeDao
+import com.joeloewi.croissant.data.database.dao.SuccessLogDao
+import com.joeloewi.croissant.data.database.dao.WorkerExecutionLogDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

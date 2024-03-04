@@ -24,7 +24,11 @@ import com.joeloewi.croissant.data.api.model.response.UserFullInfoResponse
 import com.joeloewi.croissant.data.common.HeaderInformation
 import com.joeloewi.croissant.data.common.generateDS
 import com.skydoves.sandwich.ApiResponse
-import retrofit2.http.*
+import retrofit2.http.Body
+import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.POST
+import retrofit2.http.Query
 
 interface HoYoLABService {
 

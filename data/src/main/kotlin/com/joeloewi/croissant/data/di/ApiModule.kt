@@ -17,8 +17,15 @@
 package com.joeloewi.croissant.data.di
 
 import com.joeloewi.croissant.data.BuildConfig
-import com.joeloewi.croissant.data.api.dao.*
-import com.joeloewi.croissant.data.api.model.response.*
+import com.joeloewi.croissant.data.api.dao.ArcaLiveAppService
+import com.joeloewi.croissant.data.api.dao.CheckInService
+import com.joeloewi.croissant.data.api.dao.GenshinImpactCheckInService
+import com.joeloewi.croissant.data.api.dao.HoYoLABService
+import com.joeloewi.croissant.data.api.model.response.AttendanceResponse
+import com.joeloewi.croissant.data.api.model.response.ChangeDataSwitchResponse
+import com.joeloewi.croissant.data.api.model.response.GameRecordCardResponse
+import com.joeloewi.croissant.data.api.model.response.GenshinDailyNoteResponse
+import com.joeloewi.croissant.data.api.model.response.UserFullInfoResponse
 import com.joeloewi.croissant.domain.entity.BaseResponse
 import com.skydoves.sandwich.retrofit.adapters.ApiResponseCallAdapterFactory
 import com.squareup.moshi.Moshi
