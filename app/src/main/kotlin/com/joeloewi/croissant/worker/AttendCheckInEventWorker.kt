@@ -14,6 +14,7 @@ import androidx.work.workDataOf
 import com.google.firebase.Firebase
 import com.google.firebase.analytics.analytics
 import com.google.firebase.crashlytics.crashlytics
+import com.joeloewi.croissant.R
 import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.domain.common.HoYoLABRetCode
 import com.joeloewi.croissant.domain.common.LoggableWorker
@@ -33,7 +34,7 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.time.LocalDate
+import java.time.Instant
 import java.util.UUID
 
 @HiltWorker
@@ -55,8 +56,8 @@ class AttendCheckInEventWorker @AssistedInject constructor(
     params = params
 ) {
     private val _attendanceId by lazy { inputData.getLong(ATTENDANCE_ID, Long.MIN_VALUE) }
-    private val _triggeredDate by lazy {
-        inputData.getString(TRIGGERED_DATE) ?: LocalDate.now().toString()
+    private val _firstTriggeredTimestamp by lazy {
+        inputData.getLong(FIRST_TRIGGERED_TIMESTAMP, Instant.now().toEpochMilli())
     }
 
     override suspend fun getForegroundInfo(): ForegroundInfo =
@@ -120,7 +121,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                     !hasExecutedAtLeastOnce(
                         attendanceId = _attendanceId,
                         gameName = game.type,
-                        date = _triggeredDate
+                        timestamp = _firstTriggeredTimestamp
                     )
                 }
             }.forEach { game ->
@@ -186,6 +187,21 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                                 //do not log to crashlytics
                             }
 
+                            HoYoLABRetCode.TooManyRequests, HoYoLABRetCode.TooManyRequestsGenshinImpact -> {
+                                notificationGenerator.createAttendanceRetryScheduledNotification(
+                                    nickname = attendanceWithGames.attendance.nickname,
+                                    contentText = context.getString(R.string.attendance_retry_too_many_requests_error)
+                                ).let { notification ->
+                                    notificationGenerator.safeNotify(
+                                        UUID.randomUUID().toString(),
+                                        game.type.gameId,
+                                        notification
+                                    )
+                                }
+                                Firebase.crashlytics.log("runAttemptCount: $runAttemptCount")
+                                return@withContext Result.retry()
+                            }
+
                             else -> {
                                 Firebase.crashlytics.recordException(cause)
                             }
@@ -222,6 +238,10 @@ class AttendCheckInEventWorker @AssistedInject constructor(
             }
         }.fold(
             onSuccess = {
+                runAttemptCount.takeIf { count -> count > 0 }?.let {
+                    Firebase.crashlytics.log("success after run attempts: $it")
+                }
+
                 Result.success()
             },
             onFailure = { cause ->
@@ -237,11 +257,11 @@ class AttendCheckInEventWorker @AssistedInject constructor(
 
     companion object {
         const val ATTENDANCE_ID = "attendanceId"
-        const val TRIGGERED_DATE = "triggeredDate"
+        const val FIRST_TRIGGERED_TIMESTAMP = "triggeredTimestamp"
 
         fun buildOneTimeWork(
             attendanceId: Long,
-            triggeredDate: LocalDate = LocalDate.now(),
+            triggeredTimestamp: Long = Instant.now().toEpochMilli(),
             constraints: Constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
@@ -249,7 +269,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
             .setInputData(
                 workDataOf(
                     ATTENDANCE_ID to attendanceId,
-                    TRIGGERED_DATE to triggeredDate.toString()
+                    FIRST_TRIGGERED_TIMESTAMP to triggeredTimestamp
                 )
             )
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)

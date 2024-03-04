@@ -93,7 +93,7 @@ class WorkerExecutionLogDataSourceImpl @Inject constructor(
     override suspend fun hasExecutedAtLeastOnce(
         attendanceId: Long,
         gameName: HoYoLABGame,
-        date: String
+        timestamp: Long
     ): Boolean = withContext(Dispatchers.IO) {
         val query = """
             SELECT
@@ -120,7 +120,7 @@ class WorkerExecutionLogDataSourceImpl @Inject constructor(
                     ON log.id = state.executionLogId
                 )
             WHERE attendanceId = $attendanceId
-            AND DATE(createdAt / 1000, 'unixepoch', 'localtime') = '${date}'
+            AND createdAt >= $timestamp
             AND gameName = '${gameName.name}'
         """.trimIndent()
 

@@ -69,7 +69,7 @@ sealed class WorkerExecutionLogUseCase {
         suspend operator fun invoke(
             attendanceId: Long,
             gameName: HoYoLABGame,
-            date: String
-        ) = workerExecutionLogRepository.hasExecutedAtLeastOnce(attendanceId, gameName, date)
+            timestamp: Long
+        ) = workerExecutionLogRepository.hasExecutedAtLeastOnce(attendanceId, gameName, timestamp)
     }
 }

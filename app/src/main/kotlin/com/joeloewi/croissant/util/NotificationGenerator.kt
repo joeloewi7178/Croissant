@@ -192,7 +192,8 @@ class NotificationGenerator(
         .build()
 
     fun createAttendanceRetryScheduledNotification(
-        nickname: String
+        nickname: String,
+        contentText: String = context.getString(R.string.attendance_retry_unknown_error)
     ): Notification = NotificationCompat
         .Builder(context, _attendanceNotificationChannel.id)
         .setContentTitle(
@@ -201,7 +202,7 @@ class NotificationGenerator(
                 nickname
             )
         )
-        .setContentText(context.getString(R.string.attendance_retry))
+        .setContentText(contentText)
         .setAutoCancel(true)
         .setSmallIcon(R.drawable.ic_baseline_bakery_dining_24)
         .build()
@@ -216,6 +217,8 @@ class NotificationGenerator(
         .setContentText(context.getString(R.string.wait_for_a_moment))
         .setSmallIcon(R.drawable.ic_baseline_bakery_dining_24)
         .setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
+        .setCategory(NotificationCompat.CATEGORY_SERVICE)
+        .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
         .build()
         .run {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {

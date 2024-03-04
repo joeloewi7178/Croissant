@@ -47,6 +47,6 @@ interface WorkerExecutionLogDataSource {
     suspend fun hasExecutedAtLeastOnce(
         attendanceId: Long,
         gameName: HoYoLABGame,
-        date: String
+        timestamp: Long
     ): Boolean
 }

@@ -7,6 +7,8 @@ enum class HoYoLABRetCode(
     OK(retCode = 0),
     AlreadyCheckedIn(retCode = -5003),
     CharacterNotExists(retCode = -10002),
+    TooManyRequests(retCode = -500004),
+    TooManyRequestsGenshinImpact(retCode = -1004),
     Unknown;
 
     companion object {

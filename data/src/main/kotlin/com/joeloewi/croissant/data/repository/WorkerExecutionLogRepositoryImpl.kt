@@ -57,6 +57,7 @@ class WorkerExecutionLogRepositoryImpl @Inject constructor(
     override suspend fun hasExecutedAtLeastOnce(
         attendanceId: Long,
         gameName: HoYoLABGame,
-        date: String
-    ): Boolean = workerExecutionLogDataSource.hasExecutedAtLeastOnce(attendanceId, gameName, date)
+        timestamp: Long
+    ): Boolean =
+        workerExecutionLogDataSource.hasExecutedAtLeastOnce(attendanceId, gameName, timestamp)
 }
