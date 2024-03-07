@@ -144,7 +144,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                         }
 
                         HoYoLABGame.Unknown -> {
-                            throw Exception()
+                            kotlin.Result.failure(UnknownHoYoLABGameException())
                         }
                     }.getOrThrow().also { response ->
                         notificationGenerator.createSuccessfulAttendanceNotification(
@@ -181,58 +181,66 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                 } catch (cause: CancellationException) {
                     throw cause
                 } catch (cause: Throwable) {
-                    if (cause is HoYoLABUnsuccessfulResponseException) {
-                        when (HoYoLABRetCode.findByCode(cause.retCode)) {
-                            HoYoLABRetCode.AlreadyCheckedIn, HoYoLABRetCode.CharacterNotExists -> {
-                                //do not log to crashlytics
-                            }
-
-                            HoYoLABRetCode.TooManyRequests, HoYoLABRetCode.TooManyRequestsGenshinImpact -> {
-                                notificationGenerator.createAttendanceRetryScheduledNotification(
-                                    nickname = attendanceWithGames.attendance.nickname,
-                                    contentText = context.getString(R.string.attendance_retry_too_many_requests_error)
-                                ).let { notification ->
-                                    notificationGenerator.safeNotify(
-                                        UUID.randomUUID().toString(),
-                                        game.type.gameId,
-                                        notification
-                                    )
+                    when (cause) {
+                        is HoYoLABUnsuccessfulResponseException -> {
+                            when (HoYoLABRetCode.findByCode(cause.retCode)) {
+                                HoYoLABRetCode.AlreadyCheckedIn, HoYoLABRetCode.CharacterNotExists -> {
+                                    //do not log to crashlytics
                                 }
-                                Firebase.crashlytics.log("runAttemptCount: $runAttemptCount")
-                                return@withContext Result.retry()
+
+                                HoYoLABRetCode.TooManyRequests, HoYoLABRetCode.TooManyRequestsGenshinImpact -> {
+                                    notificationGenerator.createAttendanceRetryScheduledNotification(
+                                        nickname = attendanceWithGames.attendance.nickname,
+                                        contentText = context.getString(R.string.attendance_retry_too_many_requests_error)
+                                    ).let { notification ->
+                                        notificationGenerator.safeNotify(
+                                            UUID.randomUUID().toString(),
+                                            game.type.gameId,
+                                            notification
+                                        )
+                                    }
+                                    Firebase.crashlytics.log("runAttemptCount: $runAttemptCount")
+                                    return@withContext Result.retry()
+                                }
+
+                                else -> {
+                                    Firebase.crashlytics.recordException(cause)
+                                }
                             }
 
-                            else -> {
-                                Firebase.crashlytics.recordException(cause)
+                            addFailureLog(attendanceId, game.type, cause)
+
+                            createUnsuccessfulAttendanceNotification(
+                                nickname = attendanceWithGames.attendance.nickname,
+                                hoYoLABGame = game.type,
+                                region = game.region,
+                                hoYoLABUnsuccessfulResponseException = cause
+                            ).let { notification ->
+                                notificationGenerator.safeNotify(
+                                    UUID.randomUUID().toString(),
+                                    game.type.gameId,
+                                    notification
+                                )
                             }
                         }
 
-                        addFailureLog(attendanceId, game.type, cause)
+                        is UnknownHoYoLABGameException -> {
 
-                        createUnsuccessfulAttendanceNotification(
-                            nickname = attendanceWithGames.attendance.nickname,
-                            hoYoLABGame = game.type,
-                            region = game.region,
-                            hoYoLABUnsuccessfulResponseException = cause
-                        ).let { notification ->
-                            notificationGenerator.safeNotify(
-                                UUID.randomUUID().toString(),
-                                game.type.gameId,
-                                notification
-                            )
                         }
-                    } else {
-                        notificationGenerator.createAttendanceRetryScheduledNotification(
-                            nickname = attendanceWithGames.attendance.nickname
-                        ).let { notification ->
-                            notificationGenerator.safeNotify(
-                                UUID.randomUUID().toString(),
-                                game.type.gameId,
-                                notification
-                            )
+
+                        else -> {
+                            notificationGenerator.createAttendanceRetryScheduledNotification(
+                                nickname = attendanceWithGames.attendance.nickname
+                            ).let { notification ->
+                                notificationGenerator.safeNotify(
+                                    UUID.randomUUID().toString(),
+                                    game.type.gameId,
+                                    notification
+                                )
+                            }
+                            Firebase.crashlytics.log("runAttemptCount: $runAttemptCount")
+                            return@withContext Result.retry()
                         }
-                        Firebase.crashlytics.log("runAttemptCount: $runAttemptCount")
-                        return@withContext Result.retry()
                     }
                 }
             }
@@ -254,6 +262,8 @@ class AttendCheckInEventWorker @AssistedInject constructor(
             }
         )
     }
+
+    class UnknownHoYoLABGameException : Exception()
 
     companion object {
         const val ATTENDANCE_ID = "attendanceId"
