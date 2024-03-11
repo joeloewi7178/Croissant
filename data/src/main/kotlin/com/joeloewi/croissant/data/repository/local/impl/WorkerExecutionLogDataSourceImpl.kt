@@ -20,7 +20,6 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
-import androidx.sqlite.db.SimpleSQLiteQuery
 import com.joeloewi.croissant.data.database.dao.WorkerExecutionLogDao
 import com.joeloewi.croissant.data.mapper.WorkerExecutionLogMapper
 import com.joeloewi.croissant.data.mapper.WorkerExecutionLogWithStateMapper
@@ -28,7 +27,6 @@ import com.joeloewi.croissant.data.repository.local.WorkerExecutionLogDataSource
 import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.domain.common.LoggableWorker
 import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
-import com.joeloewi.croissant.domain.entity.ResultCount
 import com.joeloewi.croissant.domain.entity.WorkerExecutionLog
 import com.joeloewi.croissant.domain.entity.relational.WorkerExecutionLogWithState
 import kotlinx.coroutines.Dispatchers
@@ -95,40 +93,6 @@ class WorkerExecutionLogDataSourceImpl @Inject constructor(
         gameName: HoYoLABGame,
         timestamp: Long
     ): Boolean = withContext(Dispatchers.IO) {
-        val query = """
-            SELECT
-                COUNT(*)
-            FROM 
-                (
-                    SELECT *
-                    FROM WorkerExecutionLogEntity as log
-                    LEFT OUTER JOIN
-                    (
-                        SELECT *
-                        FROM (
-                            SELECT
-                                executionLogId, 
-                                gameName
-                            FROM FailureLogEntity
-                            UNION
-                            SELECT
-                                executionLogId, 
-                                gameName
-                            FROM SuccessLogEntity
-                        )
-                    ) AS state
-                    ON log.id = state.executionLogId
-                )
-            WHERE attendanceId = $attendanceId
-            AND createdAt >= $timestamp
-            AND gameName = '${gameName.name}'
-        """.trimIndent()
-
-        workerExecutionLogDao.getCountByDate(
-            SimpleSQLiteQuery(
-                query,
-                arrayOf<ResultCount>()
-            )
-        ) > 0
+        workerExecutionLogDao.getCountByDate(attendanceId, timestamp, gameName) > 0
     }
 }

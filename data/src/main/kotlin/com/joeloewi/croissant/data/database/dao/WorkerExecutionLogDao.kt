@@ -22,13 +22,10 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.RawQuery
 import androidx.room.Transaction
-import androidx.sqlite.db.SupportSQLiteQuery
-import com.joeloewi.croissant.data.entity.local.FailureLogEntity
-import com.joeloewi.croissant.data.entity.local.SuccessLogEntity
 import com.joeloewi.croissant.data.entity.local.WorkerExecutionLogEntity
 import com.joeloewi.croissant.data.entity.local.relational.WorkerExecutionLogWithStateEntity
+import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.domain.common.LoggableWorker
 import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
 import kotlinx.coroutines.flow.Flow
@@ -90,10 +87,39 @@ interface WorkerExecutionLogDao {
         state: WorkerExecutionLogState
     ): Flow<Long>
 
-    @RawQuery(
-        observedEntities = [WorkerExecutionLogEntity::class, FailureLogEntity::class, SuccessLogEntity::class]
+    @Query(
+        """
+            SELECT
+                COUNT(*)
+            FROM 
+                (
+                    SELECT *
+                    FROM WorkerExecutionLogEntity as log
+                    LEFT OUTER JOIN
+                    (
+                        SELECT *
+                        FROM (
+                            SELECT
+                                executionLogId, 
+                                gameName
+                            FROM FailureLogEntity
+                            UNION
+                            SELECT
+                                executionLogId, 
+                                gameName
+                            FROM SuccessLogEntity
+                        )
+                    ) AS state
+                    ON log.id = state.executionLogId
+                )
+            WHERE attendanceId = :attendanceId
+            AND createdAt >= :timestamp
+            AND gameName = :gameName
+        """
     )
     suspend fun getCountByDate(
-        query: SupportSQLiteQuery
+        attendanceId: Long,
+        timestamp: Long,
+        gameName: HoYoLABGame
     ): Long
 }
