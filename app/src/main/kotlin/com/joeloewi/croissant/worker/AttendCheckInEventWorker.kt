@@ -35,6 +35,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.util.UUID
 
 @HiltWorker
@@ -105,6 +107,14 @@ class AttendCheckInEventWorker @AssistedInject constructor(
 
         Firebase.crashlytics.log(this@AttendCheckInEventWorker.javaClass.simpleName)
         Firebase.analytics.logEvent("attend_check_in_event", bundleOf())
+
+        if (ZonedDateTime.ofInstant(
+                Instant.ofEpochMilli(_firstTriggeredTimestamp),
+                ZoneId.systemDefault()
+            ).toLocalDate().isBefore(ZonedDateTime.now().toLocalDate())
+        ) {
+            return@withContext Result.success()
+        }
 
         _attendanceId.runCatching {
             takeIf { it != Long.MIN_VALUE }!!
