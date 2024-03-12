@@ -19,10 +19,7 @@ package com.joeloewi.croissant.data.repository
 import com.joeloewi.croissant.data.repository.local.SettingsDataSource
 import com.joeloewi.croissant.domain.entity.Settings
 import com.joeloewi.croissant.domain.repository.SettingsRepository
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class SettingsRepositoryImpl @Inject constructor(
@@ -30,20 +27,14 @@ class SettingsRepositoryImpl @Inject constructor(
 ) : SettingsRepository {
 
     override fun getSettings(): Flow<Settings> =
-        settingsDataSource.getSettings().flowOn(Dispatchers.IO)
+        settingsDataSource.getSettings()
 
     override suspend fun setDarkThemeEnabled(darkThemeEnabled: Boolean): Settings =
-        withContext(Dispatchers.IO) {
-            settingsDataSource.setDarkThemeEnabled(darkThemeEnabled)
-        }
+        settingsDataSource.setDarkThemeEnabled(darkThemeEnabled)
 
     override suspend fun setIsFirstLaunch(isFirstLaunch: Boolean): Settings =
-        withContext(Dispatchers.IO) {
-            settingsDataSource.setIsFirstLaunch(isFirstLaunch)
-        }
+        settingsDataSource.setIsFirstLaunch(isFirstLaunch)
 
     override suspend fun setNotifyMigrateToAlarmManager(notifyMigrateToAlarmManager: Boolean): Settings =
-        withContext(Dispatchers.IO) {
-            settingsDataSource.setNotifyMigrateToAlarmManager(notifyMigrateToAlarmManager)
-        }
+        settingsDataSource.setNotifyMigrateToAlarmManager(notifyMigrateToAlarmManager)
 }

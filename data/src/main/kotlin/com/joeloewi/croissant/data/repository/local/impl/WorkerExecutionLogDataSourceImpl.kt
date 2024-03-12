@@ -24,12 +24,16 @@ import com.joeloewi.croissant.data.database.dao.WorkerExecutionLogDao
 import com.joeloewi.croissant.data.mapper.WorkerExecutionLogMapper
 import com.joeloewi.croissant.data.mapper.WorkerExecutionLogWithStateMapper
 import com.joeloewi.croissant.data.repository.local.WorkerExecutionLogDataSource
+import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.domain.common.LoggableWorker
 import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
 import com.joeloewi.croissant.domain.entity.WorkerExecutionLog
 import com.joeloewi.croissant.domain.entity.relational.WorkerExecutionLogWithState
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class WorkerExecutionLogDataSourceImpl @Inject constructor(
@@ -39,19 +43,25 @@ class WorkerExecutionLogDataSourceImpl @Inject constructor(
 ) : WorkerExecutionLogDataSource {
 
     override suspend fun insert(workerExecutionLog: WorkerExecutionLog): Long =
-        workerExecutionLogDao.insert(workerExecutionLogMapper.toData(workerExecutionLog))
+        withContext(Dispatchers.IO) {
+            workerExecutionLogDao.insert(workerExecutionLogMapper.toData(workerExecutionLog))
+        }
 
     override suspend fun delete(vararg workerExecutionLogs: WorkerExecutionLog): Int =
-        workerExecutionLogDao.delete(*workerExecutionLogs.map {
-            workerExecutionLogMapper.toData(
-                it
-            )
-        }.toTypedArray())
+        withContext(Dispatchers.IO) {
+            workerExecutionLogDao.delete(*workerExecutionLogs.map {
+                workerExecutionLogMapper.toData(
+                    it
+                )
+            }.toTypedArray())
+        }
 
     override suspend fun deleteAll(
         attendanceId: Long,
         loggableWorker: LoggableWorker
-    ): Int = workerExecutionLogDao.deleteAll(attendanceId, loggableWorker)
+    ): Int = withContext(Dispatchers.IO) {
+        workerExecutionLogDao.deleteAll(attendanceId, loggableWorker)
+    }
 
     override fun getByDatePaged(
         attendanceId: Long,
@@ -69,10 +79,20 @@ class WorkerExecutionLogDataSourceImpl @Inject constructor(
             }
         ).flow
             .map { pagingData -> pagingData.map { workerExecutionLogWithStateMapper.toDomain(it) } }
+            .flowOn(Dispatchers.IO)
 
     override fun getCountByState(
         attendanceId: Long,
         loggableWorker: LoggableWorker,
         state: WorkerExecutionLogState
     ): Flow<Long> = workerExecutionLogDao.getCountByState(attendanceId, loggableWorker, state)
+        .flowOn(Dispatchers.IO)
+
+    override suspend fun hasExecutedAtLeastOnce(
+        attendanceId: Long,
+        gameName: HoYoLABGame,
+        timestamp: Long
+    ): Boolean = withContext(Dispatchers.IO) {
+        workerExecutionLogDao.getCountByDate(attendanceId, timestamp, gameName) > 0
+    }
 }

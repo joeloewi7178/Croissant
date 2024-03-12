@@ -29,7 +29,6 @@ class WorkManagerInitializer : Initializer<WorkManager> {
         val initializerEntryPoint: InitializerEntryPoint by context.entryPoints()
         val hiltWorkerFactory = initializerEntryPoint.hiltWorkerFactory()
         val executor = initializerEntryPoint.executor()
-        val runnableScheduler = initializerEntryPoint.runnableScheduler()
 
         WorkManager.initialize(
             context,
@@ -37,7 +36,6 @@ class WorkManagerInitializer : Initializer<WorkManager> {
                 .setWorkerFactory(hiltWorkerFactory)
                 .setExecutor(executor)
                 .setTaskExecutor(executor)
-                .setRunnableScheduler(runnableScheduler)
                 .build()
         )
 

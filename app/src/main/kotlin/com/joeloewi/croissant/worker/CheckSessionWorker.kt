@@ -67,7 +67,7 @@ class CheckSessionWorker @AssistedInject constructor(
         }.mapCatching { attendanceWithAllValues ->
             getUserFullInfoHoYoLABUseCase(attendanceWithAllValues.attendance.cookie).getOrThrow()
         }.fold(
-            onSuccess = {
+            onSuccess = { userFullInfo ->
                 val executionLogId = insertWorkerExecutionLogUseCase(
                     WorkerExecutionLog(
                         attendanceId = _attendanceId,
@@ -79,10 +79,14 @@ class CheckSessionWorker @AssistedInject constructor(
                 insertSuccessLogUseCase(
                     SuccessLog(
                         executionLogId = executionLogId,
-                        retCode = it.retCode,
-                        message = it.message
+                        retCode = userFullInfo.retCode,
+                        message = userFullInfo.message
                     )
                 )
+
+                runAttemptCount.takeIf { count -> count > 0 }?.let {
+                    Firebase.crashlytics.log("success after run attempts: $it")
+                }
 
                 Result.success()
             },

@@ -17,6 +17,7 @@
 package com.joeloewi.croissant.domain.repository
 
 import androidx.paging.PagingData
+import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.domain.common.LoggableWorker
 import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
 import com.joeloewi.croissant.domain.entity.WorkerExecutionLog
@@ -42,4 +43,10 @@ interface WorkerExecutionLogRepository {
         loggableWorker: LoggableWorker,
         state: WorkerExecutionLogState
     ): Flow<Long>
+
+    suspend fun hasExecutedAtLeastOnce(
+        attendanceId: Long,
+        gameName: HoYoLABGame,
+        timestamp: Long
+    ): Boolean
 }

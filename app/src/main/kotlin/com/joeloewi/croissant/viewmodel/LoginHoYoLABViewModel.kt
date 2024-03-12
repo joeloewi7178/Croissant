@@ -27,6 +27,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import okhttp3.Cookie
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import javax.inject.Inject
 
 @HiltViewModel
@@ -98,27 +100,15 @@ class LoginHoYoLABViewModel @Inject constructor(
         cookieManager.flush()
 
         return if (WebViewFeature.isFeatureSupported(WebViewFeature.GET_COOKIE_INFO)) {
-            val headers = hashMapOf<String, String>()
-
-            CookieManagerCompat.getCookieInfo(
+            val cookies = CookieManagerCompat.getCookieInfo(
                 cookieManager,
                 url
-            ).forEach { cookie ->
-                cookie.split("; ").forEach {
-                    val keyAndValue = it.split("=")
+            ).map { Cookie.parse(_hoyolabUrl.toHttpUrl(), it) }
 
-                    val key = keyAndValue[0]
-                    val value = keyAndValue.getOrElse(1) { "" }
-
-                    headers[key] = value
-                }
-            }
-
-            headers.toList().joinToString("; ") {
-                if (it.second.isEmpty()) {
-                    it.first
-                } else {
-                    "${it.first}=${it.second}"
+            buildString {
+                cookies.filterNotNull().forEachIndexed { index, cookie ->
+                    if (index > 0) append("; ")
+                    append(cookie.name).append('=').append(cookie.value)
                 }
             }
         } else {

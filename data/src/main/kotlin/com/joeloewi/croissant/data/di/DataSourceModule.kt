@@ -16,10 +16,32 @@
 
 package com.joeloewi.croissant.data.di
 
-import com.joeloewi.croissant.data.repository.local.*
-import com.joeloewi.croissant.data.repository.local.impl.*
-import com.joeloewi.croissant.data.repository.remote.*
-import com.joeloewi.croissant.data.repository.remote.impl.*
+import com.joeloewi.croissant.data.repository.local.AccountDataSource
+import com.joeloewi.croissant.data.repository.local.AttendanceDataSource
+import com.joeloewi.croissant.data.repository.local.FailureLogDataSource
+import com.joeloewi.croissant.data.repository.local.GameDataSource
+import com.joeloewi.croissant.data.repository.local.ResinStatusWidgetDataSource
+import com.joeloewi.croissant.data.repository.local.ResultCountDataSource
+import com.joeloewi.croissant.data.repository.local.ResultRangeDataSource
+import com.joeloewi.croissant.data.repository.local.SettingsDataSource
+import com.joeloewi.croissant.data.repository.local.SuccessLogDataSource
+import com.joeloewi.croissant.data.repository.local.WorkerExecutionLogDataSource
+import com.joeloewi.croissant.data.repository.local.impl.AccountDataSourceImpl
+import com.joeloewi.croissant.data.repository.local.impl.AttendanceDataSourceImpl
+import com.joeloewi.croissant.data.repository.local.impl.FailureLogDataSourceImpl
+import com.joeloewi.croissant.data.repository.local.impl.GameDataSourceImpl
+import com.joeloewi.croissant.data.repository.local.impl.ResinStatusWidgetDataSourceImpl
+import com.joeloewi.croissant.data.repository.local.impl.ResultCountDataSourceImpl
+import com.joeloewi.croissant.data.repository.local.impl.ResultRangeDataSourceImpl
+import com.joeloewi.croissant.data.repository.local.impl.SettingsDataSourceImpl
+import com.joeloewi.croissant.data.repository.local.impl.SuccessLogDataSourceImpl
+import com.joeloewi.croissant.data.repository.local.impl.WorkerExecutionLogDataSourceImpl
+import com.joeloewi.croissant.data.repository.remote.ArcaLiveAppDataSource
+import com.joeloewi.croissant.data.repository.remote.CheckInDataSource
+import com.joeloewi.croissant.data.repository.remote.HoYoLABDataSource
+import com.joeloewi.croissant.data.repository.remote.impl.ArcaLiveAppDataSourceImpl
+import com.joeloewi.croissant.data.repository.remote.impl.CheckInDataSourceImpl
+import com.joeloewi.croissant.data.repository.remote.impl.HoYoLABDataSourceImpl
 import com.joeloewi.croissant.data.repository.system.SystemDataSource
 import com.joeloewi.croissant.data.repository.system.impl.SystemDataSourceImpl
 import dagger.Binds

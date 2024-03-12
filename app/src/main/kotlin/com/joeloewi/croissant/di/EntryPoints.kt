@@ -18,7 +18,6 @@ package com.joeloewi.croissant.di
 
 import android.content.Context
 import androidx.hilt.work.HiltWorkerFactory
-import androidx.work.RunnableScheduler
 import coil.ImageLoader
 import com.joeloewi.croissant.data.di.DefaultDispatcherExecutor
 import com.joeloewi.croissant.util.NotificationGenerator
@@ -37,7 +36,6 @@ interface InitializerEntryPoint {
 
     @DefaultDispatcherExecutor
     fun executor(): Executor
-    fun runnableScheduler(): RunnableScheduler
     fun notificationGenerator(): NotificationGenerator
 }
 

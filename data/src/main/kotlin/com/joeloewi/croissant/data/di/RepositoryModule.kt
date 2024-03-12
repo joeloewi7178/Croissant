@@ -16,8 +16,34 @@
 
 package com.joeloewi.croissant.data.di
 
-import com.joeloewi.croissant.data.repository.*
-import com.joeloewi.croissant.domain.repository.*
+import com.joeloewi.croissant.data.repository.AccountRepositoryImpl
+import com.joeloewi.croissant.data.repository.ArcaLiveAppRepositoryImpl
+import com.joeloewi.croissant.data.repository.AttendanceRepositoryImpl
+import com.joeloewi.croissant.data.repository.CheckInRepositoryImpl
+import com.joeloewi.croissant.data.repository.FailureLogRepositoryImpl
+import com.joeloewi.croissant.data.repository.GameRepositoryImpl
+import com.joeloewi.croissant.data.repository.HoYoLABRepositoryImpl
+import com.joeloewi.croissant.data.repository.ResinStatusWidgetRepositoryImpl
+import com.joeloewi.croissant.data.repository.ResultCountRepositoryImpl
+import com.joeloewi.croissant.data.repository.ResultRangeRepositoryImpl
+import com.joeloewi.croissant.data.repository.SettingsRepositoryImpl
+import com.joeloewi.croissant.data.repository.SuccessLogRepositoryImpl
+import com.joeloewi.croissant.data.repository.SystemRepositoryImpl
+import com.joeloewi.croissant.data.repository.WorkerExecutionLogRepositoryImpl
+import com.joeloewi.croissant.domain.repository.AccountRepository
+import com.joeloewi.croissant.domain.repository.ArcaLiveAppRepository
+import com.joeloewi.croissant.domain.repository.AttendanceRepository
+import com.joeloewi.croissant.domain.repository.CheckInRepository
+import com.joeloewi.croissant.domain.repository.FailureLogRepository
+import com.joeloewi.croissant.domain.repository.GameRepository
+import com.joeloewi.croissant.domain.repository.HoYoLABRepository
+import com.joeloewi.croissant.domain.repository.ResinStatusWidgetRepository
+import com.joeloewi.croissant.domain.repository.ResultCountRepository
+import com.joeloewi.croissant.domain.repository.ResultRangeRepository
+import com.joeloewi.croissant.domain.repository.SettingsRepository
+import com.joeloewi.croissant.domain.repository.SuccessLogRepository
+import com.joeloewi.croissant.domain.repository.SystemRepository
+import com.joeloewi.croissant.domain.repository.WorkerExecutionLogRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

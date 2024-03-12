@@ -27,8 +27,6 @@ import com.joeloewi.croissant.domain.entity.GenshinDailyNoteData
 import com.joeloewi.croissant.domain.entity.UserFullInfo
 import com.joeloewi.croissant.domain.repository.HoYoLABRepository
 import com.skydoves.sandwich.getOrThrow
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class HoYoLABRepositoryImpl @Inject constructor(
@@ -39,38 +37,32 @@ class HoYoLABRepositoryImpl @Inject constructor(
 ) : HoYoLABRepository {
 
     override suspend fun getUserFullInfo(cookie: String): Result<UserFullInfo> =
-        withContext(Dispatchers.IO) {
-            hoYoLABDataSource.runCatching {
-                getUserFullInfo(cookie).getOrThrow().throwIfNotOk()
-            }.mapCatching {
-                userFullInfoMapper.toDomain(it)
-            }
+        hoYoLABDataSource.runCatching {
+            getUserFullInfo(cookie).getOrThrow().throwIfNotOk()
+        }.mapCatching {
+            userFullInfoMapper.toDomain(it)
         }
 
     override suspend fun getGameRecordCard(
         cookie: String,
         uid: Long
     ): Result<GameRecordCardData?> =
-        withContext(Dispatchers.IO) {
-            hoYoLABDataSource.runCatching {
-                getGameRecordCard(cookie, uid).getOrThrow().throwIfNotOk().data!!
-            }.mapCatching {
-                gameRecordCardDataMapper.toDomain(it)
-            }
+        hoYoLABDataSource.runCatching {
+            getGameRecordCard(cookie, uid).getOrThrow().throwIfNotOk().data!!
+        }.mapCatching {
+            gameRecordCardDataMapper.toDomain(it)
         }
 
     override suspend fun getGenshinDailyNote(
         cookie: String,
         roleId: Long,
         server: String
-    ): Result<GenshinDailyNoteData?> = withContext(Dispatchers.IO) {
-        hoYoLABDataSource.runCatching {
-            getGenshinDailyNote(
-                cookie = cookie, roleId = roleId, server = server
-            ).getOrThrow().throwIfNotOk().data!!
-        }.mapCatching {
-            genshinDailyNoteDataMapper.toDomain(it)
-        }
+    ): Result<GenshinDailyNoteData?> = hoYoLABDataSource.runCatching {
+        getGenshinDailyNote(
+            cookie = cookie, roleId = roleId, server = server
+        ).getOrThrow().throwIfNotOk().data!!
+    }.mapCatching {
+        genshinDailyNoteDataMapper.toDomain(it)
     }
 
     override suspend fun changeDataSwitch(
@@ -78,10 +70,7 @@ class HoYoLABRepositoryImpl @Inject constructor(
         switchId: Int,
         isPublic: Boolean,
         gameId: Int
-    ): Result<BaseResponse> =
-        withContext(Dispatchers.IO) {
-            hoYoLABDataSource.runCatching {
-                changeDataSwitch(cookie, switchId, isPublic, gameId).getOrThrow().throwIfNotOk()
-            }
-        }
+    ): Result<BaseResponse> = hoYoLABDataSource.runCatching {
+        changeDataSwitch(cookie, switchId, isPublic, gameId).getOrThrow().throwIfNotOk()
+    }
 }

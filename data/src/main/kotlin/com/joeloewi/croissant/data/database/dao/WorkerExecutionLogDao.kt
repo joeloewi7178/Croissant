@@ -25,6 +25,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import com.joeloewi.croissant.data.entity.local.WorkerExecutionLogEntity
 import com.joeloewi.croissant.data.entity.local.relational.WorkerExecutionLogWithStateEntity
+import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.domain.common.LoggableWorker
 import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
 import kotlinx.coroutines.flow.Flow
@@ -70,7 +71,6 @@ interface WorkerExecutionLogDao {
         localDate: String,
     ): PagingSource<Int, WorkerExecutionLogWithStateEntity>
 
-    @Transaction
     @Query(
         """
             SELECT COUNT(*) 
@@ -86,4 +86,40 @@ interface WorkerExecutionLogDao {
         loggableWorker: LoggableWorker,
         state: WorkerExecutionLogState
     ): Flow<Long>
+
+    @Query(
+        """
+            SELECT
+                COUNT(*)
+            FROM 
+                (
+                    SELECT *
+                    FROM WorkerExecutionLogEntity as log
+                    LEFT OUTER JOIN
+                    (
+                        SELECT *
+                        FROM (
+                            SELECT
+                                executionLogId, 
+                                gameName
+                            FROM FailureLogEntity
+                            UNION
+                            SELECT
+                                executionLogId, 
+                                gameName
+                            FROM SuccessLogEntity
+                        )
+                    ) AS state
+                    ON log.id = state.executionLogId
+                )
+            WHERE attendanceId = :attendanceId
+            AND createdAt >= :timestamp
+            AND gameName = :gameName
+        """
+    )
+    suspend fun getCountByDate(
+        attendanceId: Long,
+        timestamp: Long,
+        gameName: HoYoLABGame
+    ): Long
 }

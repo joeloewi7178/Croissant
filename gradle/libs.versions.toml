@@ -1,35 +1,35 @@
 [versions]
 accompanist = "0.34.0"
 androidDesugarJdkLibs = "2.0.4"
-androidGradlePlugin = "8.2.2"
+androidGradlePlugin = "8.3.0"
 androidxActivity = "1.8.2"
 androidxAppCompat = "1.6.1"
 androidxCompose = "1.3.1"
-androidxComposeCompiler = "1.5.9"
+androidxComposeCompiler = "1.5.10"
 androidxComposeMaterial3 = "1.0.1"
 androidxCore = "1.12.0"
 androidxCoreSplashscreen = "1.0.1"
 androidxDataStore = "1.0.0"
 androidxEspresso = "3.5.1"
-androidxHiltNavigationCompose = "1.1.0"
+androidxHiltNavigationCompose = "1.2.0"
 androidxLifecycle = "2.7.0"
 androidxNavigation = "2.7.7"
 androidxSavedState = "1.2.1"
 androidxStartup = "1.1.1"
 androidxTest = "1.4.0"
 androidxTestExt = "1.1.5"
-androidxTestUiAutomater = "2.2.0"
+androidxTestUiAutomater = "2.3.0"
 androidxTracing = "1.1.0"
 androidxUiAutomator = "2.2.0"
 androidxWork = "2.9.0"
 androidxWebkit = "1.10.0"
-androidxComposeBom = "2024.02.00"
+androidxComposeBom = "2024.02.02"
 androidxPagingCommon = "3.2.1"
 androidxPagingCompose = "3.2.1"
 androidMaterial = "1.11.0"
-coil = "2.5.0"
-hilt = "2.50"
-hiltExt = "1.1.0"
+coil = "2.6.0"
+hilt = "2.51"
+hiltExt = "1.2.0"
 kotlin = "1.9.22"
 kotlinxCoroutines = "1.8.0"
 kotlinxCollectionsImmutable = "0.3.7"
@@ -47,20 +47,21 @@ androidPlayAppUpdateKtx = "2.1.0"
 androidPlayReviewKtx = "2.0.1"
 firebaseCrashlyticsPlugin = "2.9.9"
 gmsGoogleServicesGradlePlugin = "4.4.1"
-firebaseBom = "32.7.2"
+firebaseBom = "32.7.4"
 leakcanaryAndroid = "2.13"
 okhttp3Bom = "4.12.0"
 inject = "1"
 sandwich = "2.0.5"
 jsoup = "1.17.2"
 junit = "4.13.2"
-kspPlugin = "1.9.22-1.0.17"
-tts = "2.3.2"
+kspPlugin = "1.9.22-1.0.18"
+tts = "2.5.0"
 gmsOssLicensesPlugin = "0.10.6"
 gmsPlayServicesOssLicenses = "17.0.1"
 androidxBaselineProfile = "1.2.3"
-androidTools = "31.2.2"
-fornewidPlaceholderMaterial3 = "1.0.1"
+androidTools = "31.3.0"
+fornewidPlaceholderMaterial3 = "1.1.2"
+kotlinxAtomicfu = "0.23.2"
 
 [libraries]
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
@@ -157,14 +158,16 @@ jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 tts = { group = "nl.marc-apps", name = "tts", version.ref = "tts" }
 gms-play-services-oss-licenses = { group = "com.google.android.gms", name = "play-services-oss-licenses", version.ref = "gmsPlayServicesOssLicenses" }
-gms-oss-licenses-plugin = { group = "com.google.android.gms", name = "oss-licenses-plugin", version.ref = "gmsOssLicensesPlugin" }
 fornewid-placeholder-material3 = { group = "io.github.fornewid", name = "placeholder-material3", version.ref = "fornewidPlaceholderMaterial3" }
+kotlinx-atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "kotlinxAtomicfu" }
 
 android-tools-common = { group = "com.android.tools", name = "common", version.ref = "androidTools" }
 firebase-crashlytics-gradlePlugin = { group = "com.google.firebase", name = "firebase-crashlytics-gradle", version.ref = "firebaseCrashlyticsPlugin" }
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
 kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "kspPlugin" }
+kotlinx-atomicfu-gradlePlugin = { group = "org.jetbrains.kotlinx", name = "atomicfu-gradle-plugin", version.ref = "kotlinxAtomicfu" }
+gms-oss-licenses-gradlePlugin = { group = "com.google.android.gms", name = "oss-licenses-plugin", version.ref = "gmsOssLicensesPlugin" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
@@ -178,6 +181,8 @@ firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "
 ksp = { id = "com.google.devtools.ksp", version.ref = "kspPlugin" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 androidx-baselineprofile = { id = "androidx.baselineprofile", version.ref = "androidxBaselineProfile" }
+kotlinx-atomicfu = { id = "kotlinx-atomicfu", version.ref = "kotlinxAtomicfu" }
+gms-oss-licenses-plugin = { id = "com.google.android.gms.oss-licenses-plugin", version.ref = "gmsOssLicensesPlugin" }
 
 #plugins from this project
 croissant-android-application-compose = { id = "croissant.android.application.compose", version = "unspecified" }

@@ -21,7 +21,7 @@ import com.joeloewi.croissant.domain.common.HoYoLABGame
 data class SuccessLog(
     val id: Long = 0,
     val executionLogId: Long = 0,
-    val gameName: HoYoLABGame = com.joeloewi.croissant.domain.common.HoYoLABGame.Unknown,
+    val gameName: HoYoLABGame = HoYoLABGame.Unknown,
     val retCode: Int = 0,
     val message: String = ""
 )

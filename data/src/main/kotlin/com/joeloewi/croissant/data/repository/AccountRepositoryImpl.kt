@@ -19,15 +19,11 @@ package com.joeloewi.croissant.data.repository
 import com.joeloewi.croissant.data.repository.local.AccountDataSource
 import com.joeloewi.croissant.domain.entity.Account
 import com.joeloewi.croissant.domain.repository.AccountRepository
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class AccountRepositoryImpl @Inject constructor(
     private val accountDataSource: AccountDataSource
 ) : AccountRepository {
     override suspend fun insert(vararg accounts: Account): List<Long> =
-        withContext(Dispatchers.IO) {
-            accountDataSource.insert(*accounts)
-        }
+        accountDataSource.insert(*accounts)
 }

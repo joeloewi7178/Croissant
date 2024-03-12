@@ -18,7 +18,6 @@ package com.joeloewi.croissant.data.api.dao
 
 import com.joeloewi.croissant.data.api.model.response.AttendanceResponse
 import com.skydoves.sandwich.ApiResponse
-import retrofit2.Call
 import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Query
@@ -27,16 +26,16 @@ import java.util.Locale
 interface CheckInService {
 
     @POST("event/luna/os/sign")
-    fun attendCommon(
+    suspend fun attendCommon(
         @Query("act_id") actId: String,
         @Query("lang") language: String = Locale.getDefault().toLanguageTag().lowercase(),
         @Header("Cookie") cookie: String
-    ): Call<ApiResponse<AttendanceResponse>>
+    ): ApiResponse<AttendanceResponse>
 
     @POST("event/mani/sign")
-    fun attendCheckInHonkaiImpact3rd(
+    suspend fun attendCheckInHonkaiImpact3rd(
         @Query("act_id") actId: String = "e202110291205111",
         @Query("lang") language: String = Locale.getDefault().toLanguageTag().lowercase(),
         @Header("Cookie") cookie: String
-    ): Call<ApiResponse<AttendanceResponse>>
+    ): ApiResponse<AttendanceResponse>
 }

@@ -20,6 +20,8 @@ import com.joeloewi.croissant.data.database.dao.SuccessLogDao
 import com.joeloewi.croissant.data.mapper.SuccessLogMapper
 import com.joeloewi.croissant.data.repository.local.SuccessLogDataSource
 import com.joeloewi.croissant.domain.entity.SuccessLog
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class SuccessLogDataSourceImpl @Inject constructor(
@@ -27,6 +29,7 @@ class SuccessLogDataSourceImpl @Inject constructor(
     private val successLogMapper: SuccessLogMapper,
 ) : SuccessLogDataSource {
 
-    override suspend fun insert(successLog: SuccessLog): Long =
+    override suspend fun insert(successLog: SuccessLog): Long = withContext(Dispatchers.IO) {
         successLogDao.insert(successLogMapper.toData(successLog))
+    }
 }

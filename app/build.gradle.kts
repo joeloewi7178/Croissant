@@ -5,8 +5,9 @@ plugins {
     alias(libs.plugins.croissant.android.hilt)
     alias(libs.plugins.croissant.android.application.firebase)
     id("kotlin-parcelize")
-    id("com.google.android.gms.oss-licenses-plugin")
+    id(libs.plugins.gms.oss.licenses.plugin.get().pluginId)
     alias(libs.plugins.androidx.baselineprofile)
+    id(libs.plugins.kotlinx.atomicfu.get().pluginId)
 }
 
 kotlin {
@@ -20,8 +21,8 @@ android {
 
     defaultConfig {
         applicationId = "com.joeloewi.croissant"
-        versionCode = 58
-        versionName = "1.2.8"
+        versionCode = 59
+        versionName = "1.3.0"
         targetSdk = 34
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -156,4 +157,6 @@ dependencies {
     implementation(libs.gms.play.services.oss.licenses)
 
     implementation(libs.fornewid.placeholder.material3)
+
+    implementation(libs.kotlinx.atomicfu)
 }

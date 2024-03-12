@@ -4,6 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
+import com.joeloewi.croissant.domain.common.HoYoLABGame
 
 @Entity(
     foreignKeys = [
@@ -20,6 +21,8 @@ data class FailureLogEntity(
     val id: Long = 0,
     @ColumnInfo(index = true)
     val executionLogId: Long = 0,
+    @ColumnInfo(index = true, defaultValue = "Unknown")
+    val gameName: HoYoLABGame = HoYoLABGame.Unknown,
     val failureMessage: String = "",
     val failureStackTrace: String = "",
 )

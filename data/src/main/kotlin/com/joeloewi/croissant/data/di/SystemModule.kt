@@ -3,7 +3,6 @@ package com.joeloewi.croissant.data.di
 import android.app.AlarmManager
 import android.appwidget.AppWidgetManager
 import android.content.Context
-import android.net.ConnectivityManager
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.PowerManager
@@ -46,11 +45,6 @@ object SystemModule {
     fun provideRootChecker(
         @ApplicationContext context: Context
     ): RootChecker = RootChecker(context)
-
-    @Provides
-    fun provideConnectivityManager(
-        @ApplicationContext context: Context
-    ): ConnectivityManager = context.getSystemService()!!
 
     @Provides
     fun provideAppWidgetManager(

@@ -14,6 +14,7 @@ import androidx.work.workDataOf
 import com.google.firebase.Firebase
 import com.google.firebase.analytics.analytics
 import com.google.firebase.crashlytics.crashlytics
+import com.joeloewi.croissant.R
 import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.domain.common.HoYoLABRetCode
 import com.joeloewi.croissant.domain.common.LoggableWorker
@@ -33,6 +34,9 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.util.UUID
 
 @HiltWorker
@@ -45,14 +49,18 @@ class AttendCheckInEventWorker @AssistedInject constructor(
     private val attendCheckInTearsOfThemisUseCase: CheckInUseCase.AttendCheckInTearsOfThemis,
     private val attendCheckInHonkaiStarRail: CheckInUseCase.AttendCheckInHonkaiStarRail,
     private val insertWorkerExecutionLogUseCase: WorkerExecutionLogUseCase.Insert,
+    private val hasExecutedAtLeastOnce: WorkerExecutionLogUseCase.HasExecutedAtLeastOnce,
     private val insertSuccessLogUseCase: SuccessLogUseCase.Insert,
     private val insertFailureLogUseCase: FailureLogUseCase.Insert,
-    private val notificationGenerator: NotificationGenerator
+    private val notificationGenerator: NotificationGenerator,
 ) : CoroutineWorker(
     appContext = context,
     params = params
 ) {
     private val _attendanceId by lazy { inputData.getLong(ATTENDANCE_ID, Long.MIN_VALUE) }
+    private val _firstTriggeredTimestamp by lazy {
+        inputData.getLong(FIRST_TRIGGERED_TIMESTAMP, Instant.now().toEpochMilli())
+    }
 
     override suspend fun getForegroundInfo(): ForegroundInfo =
         notificationGenerator.createForegroundInfo(_attendanceId.toInt())
@@ -73,6 +81,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
 
     private suspend fun addFailureLog(
         attendanceId: Long,
+        gameName: HoYoLABGame = HoYoLABGame.Unknown,
         cause: Throwable
     ) {
         val executionLogId = insertWorkerExecutionLogUseCase(
@@ -86,6 +95,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
         insertFailureLogUseCase(
             FailureLog(
                 executionLogId = executionLogId,
+                gameName = gameName,
                 failureMessage = cause.message ?: "",
                 failureStackTrace = cause.stackTraceToString()
             )
@@ -98,16 +108,42 @@ class AttendCheckInEventWorker @AssistedInject constructor(
         Firebase.crashlytics.log(this@AttendCheckInEventWorker.javaClass.simpleName)
         Firebase.analytics.logEvent("attend_check_in_event", bundleOf())
 
-        _attendanceId.runCatching {
-            takeIf { it != Long.MIN_VALUE }!!
-        }.mapCatching { attendanceId ->
-            //check session is valid
-            val attendanceWithGames = getOneAttendanceUseCase(attendanceId)
+        if (ZonedDateTime.ofInstant(
+                Instant.ofEpochMilli(_firstTriggeredTimestamp),
+                ZoneId.systemDefault()
+            ).toLocalDate().isBefore(ZonedDateTime.now().toLocalDate())
+        ) {
+            //date has changed while retrying, since retry has backoff
+            //do not retry
+            return@withContext Result.success()
+        }
+
+        if (_attendanceId == Long.MIN_VALUE) {
+            //wrong value for attendance id
+            //do not retry
+            return@withContext Result.success()
+        }
+
+        runCatching {
+            val attendanceWithGames = getOneAttendanceUseCase(_attendanceId)
             val cookie = attendanceWithGames.attendance.cookie
 
             //attend check in events
-            attendanceWithGames.games.forEach { game ->
-                try {
+            attendanceWithGames.games.filter { game ->
+                if (runAttemptCount == 0) {
+                    //do check-in for all registered games at first attempt
+                    true
+                } else {
+                    //from second attempt, filter games that have to be retried
+                    //games that does not have success or failure logs
+                    !hasExecutedAtLeastOnce(
+                        attendanceId = _attendanceId,
+                        gameName = game.type,
+                        timestamp = _firstTriggeredTimestamp
+                    )
+                }
+            }.map { game ->
+                runCatching {
                     when (game.type) {
                         HoYoLABGame.HonkaiImpact3rd -> {
                             attendCheckInHonkaiImpact3rdUseCase(cookie = cookie)
@@ -126,7 +162,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                         }
 
                         HoYoLABGame.Unknown -> {
-                            throw Exception()
+                            kotlin.Result.failure(UnknownHoYoLABGameException())
                         }
                     }.getOrThrow().also { response ->
                         notificationGenerator.createSuccessfulAttendanceNotification(
@@ -145,7 +181,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
 
                         val executionLogId = insertWorkerExecutionLogUseCase(
                             WorkerExecutionLog(
-                                attendanceId = attendanceId,
+                                attendanceId = _attendanceId,
                                 state = WorkerExecutionLogState.SUCCESS,
                                 loggableWorker = LoggableWorker.ATTEND_CHECK_IN_EVENT
                             )
@@ -160,61 +196,105 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                             )
                         )
                     }
-                } catch (cause: CancellationException) {
-                    throw cause
-                } catch (cause: Throwable) {
-                    if (cause is HoYoLABUnsuccessfulResponseException) {
-                        when (HoYoLABRetCode.findByCode(cause.retCode)) {
-                            HoYoLABRetCode.AlreadyCheckedIn, HoYoLABRetCode.CharacterNotExists -> {
-                                //do not log to crashlytics
+                }.fold(
+                    onSuccess = {
+                        Result.success()
+                    },
+                    onFailure = { cause ->
+                        when (cause) {
+                            is HoYoLABUnsuccessfulResponseException -> {
+                                when (val retCode = HoYoLABRetCode.findByCode(cause.retCode)) {
+                                    HoYoLABRetCode.TooManyRequests, HoYoLABRetCode.TooManyRequestsGenshinImpact -> {
+                                        //do not make log, not to skip this game when retry
+
+                                        notificationGenerator.createAttendanceRetryScheduledNotification(
+                                            nickname = attendanceWithGames.attendance.nickname,
+                                            contentText = context.getString(R.string.attendance_retry_too_many_requests_error)
+                                        ).let { notification ->
+                                            notificationGenerator.safeNotify(
+                                                UUID.randomUUID().toString(),
+                                                game.type.gameId,
+                                                notification
+                                            )
+                                        }
+
+                                        //good to retry
+                                        Result.retry()
+                                    }
+
+                                    else -> {
+                                        addFailureLog(_attendanceId, game.type, cause)
+
+                                        createUnsuccessfulAttendanceNotification(
+                                            nickname = attendanceWithGames.attendance.nickname,
+                                            hoYoLABGame = game.type,
+                                            region = game.region,
+                                            hoYoLABUnsuccessfulResponseException = cause
+                                        ).let { notification ->
+                                            notificationGenerator.safeNotify(
+                                                UUID.randomUUID().toString(),
+                                                game.type.gameId,
+                                                notification
+                                            )
+                                        }
+
+                                        if (!listOf(
+                                                HoYoLABRetCode.AlreadyCheckedIn,
+                                                HoYoLABRetCode.CharacterNotExists,
+                                                HoYoLABRetCode.LoginFailed
+                                            ).contains(retCode)
+                                        ) {
+                                            //we don't know which error was occurred
+                                            //record this error for monitoring
+                                            Firebase.crashlytics.recordException(cause)
+                                        }
+
+                                        //no need to retry
+                                        Result.success()
+                                    }
+                                }
+                            }
+
+                            is UnknownHoYoLABGameException -> {
+                                //can't retry, we don't know which api is required for this game
+                                Result.success()
+                            }
+
+                            is CancellationException -> {
+                                throw cause
                             }
 
                             else -> {
-                                Firebase.crashlytics.recordException(cause)
+                                //do not make log, not to pass this game when retry
+                                notificationGenerator.createAttendanceRetryScheduledNotification(
+                                    nickname = attendanceWithGames.attendance.nickname
+                                ).let { notification ->
+                                    notificationGenerator.safeNotify(
+                                        UUID.randomUUID().toString(),
+                                        game.type.gameId,
+                                        notification
+                                    )
+                                }
+
+                                //these errors are not hoyolab server's errors, but networks errors, generally
+                                //do retry
+                                Firebase.crashlytics.log("runAttemptCount: $runAttemptCount")
+                                Result.retry()
                             }
                         }
-
-                        createUnsuccessfulAttendanceNotification(
-                            nickname = attendanceWithGames.attendance.nickname,
-                            hoYoLABGame = game.type,
-                            region = game.region,
-                            hoYoLABUnsuccessfulResponseException = cause
-                        ).let { notification ->
-                            notificationGenerator.safeNotify(
-                                UUID.randomUUID().toString(),
-                                game.type.gameId,
-                                notification
-                            )
-                        }
-                    } else {
-                        //if result is unsuccessful with unknown error
-                        //retry for three times
-
-                        /*if (runAttemptCount > 3) {
-                            addFailureLog(attendanceId, cause)
-                        } else {
-
-                        }*/
-                        Firebase.crashlytics.recordException(cause)
-
-                        notificationGenerator.createUnsuccessfulAttendanceNotification(
-                            nickname = attendanceWithGames.attendance.nickname,
-                            hoYoLABGame = game.type,
-                            attendanceId = _attendanceId
-                        ).let { notification ->
-                            notificationGenerator.safeNotify(
-                                UUID.randomUUID().toString(),
-                                game.type.gameId,
-                                notification
-                            )
-                        }
                     }
-
-                    addFailureLog(attendanceId, cause)
-                }
+                )
             }
         }.fold(
-            onSuccess = {
+            onSuccess = { results ->
+                if (results.contains(Result.retry())) {
+                    return@withContext Result.retry()
+                }
+
+                runAttemptCount.takeIf { count -> count > 0 }?.let {
+                    Firebase.crashlytics.log("success after run attempts: $it")
+                }
+
                 Result.success()
             },
             onFailure = { cause ->
@@ -222,26 +302,31 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                     throw cause
                 }
 
-                Firebase.crashlytics.recordException(cause)
-
-                addFailureLog(_attendanceId, cause)
-
                 //let chained works do their jobs
                 Result.success()
             }
         )
     }
 
+    class UnknownHoYoLABGameException : Exception()
+
     companion object {
         const val ATTENDANCE_ID = "attendanceId"
+        const val FIRST_TRIGGERED_TIMESTAMP = "triggeredTimestamp"
 
         fun buildOneTimeWork(
             attendanceId: Long,
+            triggeredTimestamp: Long = Instant.now().toEpochMilli(),
             constraints: Constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
         ) = OneTimeWorkRequestBuilder<AttendCheckInEventWorker>()
-            .setInputData(workDataOf(ATTENDANCE_ID to attendanceId))
+            .setInputData(
+                workDataOf(
+                    ATTENDANCE_ID to attendanceId,
+                    FIRST_TRIGGERED_TIMESTAMP to triggeredTimestamp
+                )
+            )
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .setConstraints(constraints)
             .build()

@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.net.ConnectivityManager
 import android.os.Handler
 import android.text.format.DateFormat
 import android.webkit.CookieManager
@@ -30,8 +29,7 @@ class SystemDataSourceImpl @Inject constructor(
     @ApplicationContext private val context: Context,
     @ApplicationHandlerDispatcher private val coroutineDispatcher: CoroutineDispatcher,
     private val applicationHandler: Handler,
-    private val rootChecker: RootChecker,
-    private val connectivityManager: ConnectivityManager
+    private val rootChecker: RootChecker
 ) : SystemDataSource {
 
     override fun is24HourFormat(): Flow<Boolean> = callbackFlow {
@@ -48,7 +46,9 @@ class SystemDataSourceImpl @Inject constructor(
         awaitClose { context.unregisterReceiver(broadcastReceiver) }
     }.flowOn(Dispatchers.IO)
 
-    override suspend fun isDeviceRooted(): Boolean = rootChecker.isDeviceRooted()
+    override suspend fun isDeviceRooted(): Boolean = withContext(Dispatchers.IO) {
+        rootChecker.isDeviceRooted()
+    }
 
     override suspend fun isUnusedAppRestrictionEnabled(): Result<Boolean> =
         withContext(Dispatchers.IO) {
