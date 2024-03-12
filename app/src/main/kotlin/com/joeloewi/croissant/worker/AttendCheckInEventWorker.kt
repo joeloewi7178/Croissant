@@ -284,13 +284,13 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                         }
                     }
                 )
-            }.also {
-                if (it.contains(Result.retry())) {
-                    return@withContext Result.retry()
-                }
             }
         }.fold(
-            onSuccess = {
+            onSuccess = { results ->
+                if (results.contains(Result.retry())) {
+                    return@withContext Result.retry()
+                }
+
                 runAttemptCount.takeIf { count -> count > 0 }?.let {
                     Firebase.crashlytics.log("success after run attempts: $it")
                 }
