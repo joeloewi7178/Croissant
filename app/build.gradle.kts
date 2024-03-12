@@ -21,8 +21,8 @@ android {
 
     defaultConfig {
         applicationId = "com.joeloewi.croissant"
-        versionCode = 58
-        versionName = "1.2.8"
+        versionCode = 59
+        versionName = "1.3.0"
         targetSdk = 34
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
