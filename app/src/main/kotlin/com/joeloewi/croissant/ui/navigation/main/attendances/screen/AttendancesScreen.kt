@@ -45,9 +45,9 @@ import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
@@ -58,6 +58,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
@@ -65,12 +66,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.flowWithLifecycle
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import androidx.work.ExistingWorkPolicy
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import androidx.work.WorkQuery
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.firebase.Firebase
@@ -252,12 +255,14 @@ fun AttendanceWithGamesItem(
                 { attendance ->
                     Firebase.analytics.logEvent("instant_attend_click", bundleOf())
 
-                    val oneTimeWork =
-                        AttendCheckInEventWorker.buildOneTimeWork(attendanceId = attendance.id)
+                    val oneTimeWork = AttendCheckInEventWorker.buildOneTimeWork(
+                        attendanceId = attendance.id,
+                        isInstantAttendance = true
+                    )
 
                     WorkManager.getInstance(context).beginUniqueWork(
                         attendance.oneTimeAttendCheckInEventWorkerName.toString(),
-                        ExistingWorkPolicy.APPEND_OR_REPLACE,
+                        ExistingWorkPolicy.REPLACE,
                         oneTimeWork
                     ).enqueue()
 
@@ -401,14 +406,24 @@ private fun DismissContent(
         },
         trailingContent = {
             val context = LocalContext.current
+            val lifecycleOwner = LocalLifecycleOwner.current
             val workerName =
                 attendanceWithGames().value.attendance.oneTimeAttendCheckInEventWorkerName.toString()
-            val isRunning by remember(context, workerName) {
+            val isRunningFlow = remember(context, workerName) {
                 WorkManager.getInstance(context)
-                    .getWorkInfosForUniqueWorkFlow(workerName)
-                    .map { list -> list.any { it.state == WorkInfo.State.RUNNING } }
+                    .getWorkInfosFlow(
+                        WorkQuery.Builder
+                            .fromUniqueWorkNames(listOf(workerName))
+                            .addStates(listOf(WorkInfo.State.RUNNING))
+                            .build()
+                    )
+                    .catch { }
+                    .map { it.isNotEmpty() }
                     .flowOn(Dispatchers.IO)
-            }.collectAsState(initial = false)
+            }
+            val isRunning by produceState(initialValue = false) {
+                isRunningFlow.flowWithLifecycle(lifecycleOwner.lifecycle).collect { value = it }
+            }
 
             IconButton(
                 enabled = !isRunning,
