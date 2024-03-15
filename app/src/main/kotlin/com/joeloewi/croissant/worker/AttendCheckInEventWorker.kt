@@ -259,11 +259,11 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                                             )
                                         }
 
-                                        if (!listOf(
+                                        if (retCode !in listOf(
                                                 HoYoLABRetCode.AlreadyCheckedIn,
                                                 HoYoLABRetCode.CharacterNotExists,
                                                 HoYoLABRetCode.LoginFailed
-                                            ).contains(retCode)
+                                            )
                                         ) {
                                             //we don't know which error was occurred
                                             //record this error for monitoring
