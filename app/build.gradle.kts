@@ -111,7 +111,6 @@ dependencies {
     implementation(libs.accompanist.webview)
     implementation(libs.accompanist.pager.indicators)
     implementation(libs.accompanist.swiperefresh)
-    implementation(libs.accompanist.themeadapter.material3)
     implementation(libs.accompanist.navigation.material)
 
     //work
