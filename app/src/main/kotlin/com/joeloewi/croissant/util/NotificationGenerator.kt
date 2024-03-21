@@ -8,7 +8,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.net.Uri
-import android.os.Build
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -216,21 +215,15 @@ class NotificationGenerator(
         .setContentTitle(context.getString(R.string.attendance_foreground_notification_title))
         .setContentText(context.getString(R.string.wait_for_a_moment))
         .setSmallIcon(R.drawable.ic_baseline_bakery_dining_24)
-        .setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
+        .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
         .setCategory(NotificationCompat.CATEGORY_SERVICE)
         .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
         .build()
         .run {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                return@run ForegroundInfo(
-                    notificationId,
-                    this,
-                    ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE
-                )
-            }
-            return@run ForegroundInfo(
+            ForegroundInfo(
                 notificationId,
-                this
+                this,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE
             )
         }
 

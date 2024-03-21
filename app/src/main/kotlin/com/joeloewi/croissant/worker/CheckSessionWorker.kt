@@ -85,7 +85,7 @@ class CheckSessionWorker @AssistedInject constructor(
                 )
 
                 runAttemptCount.takeIf { count -> count > 0 }?.let {
-                    Firebase.crashlytics.log("success after run attempts: $it")
+                    Firebase.crashlytics.log("succeed after run attempts: $it")
                 }
 
                 Result.success()
