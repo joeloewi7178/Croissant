@@ -132,7 +132,7 @@ retrofit-bom = { group = "com.squareup.retrofit2", name = "retrofit-bom", versio
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit" }
 retrofit-converter-moshi = { group = "com.squareup.retrofit2", name = "converter-moshi" }
 retrofit-converter-scalars = { group = "com.squareup.retrofit2", name = "converter-scalars" }
-retrofit-response-type-keeper = { group = "com.squareup.retrofit2", name = "response-type-keeper", version = "retrofit" }
+retrofit-response-type-keeper = { group = "com.squareup.retrofit2", name = "response-type-keeper", version.ref = "retrofit" }
 okhttp3-dnsoverhttps = { group = "com.squareup.okhttp3", name = "okhttp-dnsoverhttps" }
 okhttp3-bom = { group = "com.squareup.okhttp3", name = "okhttp-bom", version.ref = "okhttp3Bom" }
 okhttp3-logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor" }
