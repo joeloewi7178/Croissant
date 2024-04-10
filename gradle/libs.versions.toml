@@ -59,7 +59,7 @@ tts = "2.5.0"
 gmsOssLicensesPlugin = "0.10.6"
 gmsPlayServicesOssLicenses = "17.0.1"
 androidxBaselineProfile = "1.2.3"
-androidTools = "31.3.1"
+androidTools = "31.3.2"
 fornewidPlaceholderMaterial3 = "1.1.2"
 kotlinxAtomicfu = "0.23.2"
 
