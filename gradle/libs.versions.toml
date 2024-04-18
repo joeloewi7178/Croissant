@@ -61,7 +61,7 @@ gmsPlayServicesOssLicenses = "17.0.1"
 androidxBaselineProfile = "1.2.4"
 androidTools = "31.3.2"
 fornewidPlaceholderMaterial3 = "1.1.2"
-kotlinxAtomicfu = "0.23.2"
+kotlinxAtomicfu = "0.24.0"
 
 [libraries]
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
