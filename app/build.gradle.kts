@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         applicationId = "com.joeloewi.croissant"
-        versionCode = 59
+        versionCode = 60
         versionName = "1.3.0"
         targetSdk = 34
 
@@ -68,9 +68,9 @@ baselineProfile {
 }
 
 dependencies {
-    implementation(project(":data"))
-    implementation(project(":domain"))
-    baselineProfile(project(":baselineprofile"))
+    implementation(projects.data)
+    implementation(projects.domain)
+    baselineProfile(projects.baselineprofile)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.android.material)
@@ -111,7 +111,6 @@ dependencies {
     implementation(libs.accompanist.webview)
     implementation(libs.accompanist.pager.indicators)
     implementation(libs.accompanist.swiperefresh)
-    implementation(libs.accompanist.themeadapter.material3)
     implementation(libs.accompanist.navigation.material)
 
     //work

@@ -21,7 +21,7 @@ suspend fun <T : Any> runAndRetryWithExponentialBackOff(
     task = task
 )
 
-private tailrec suspend fun <T : Any> retryTask(
+internal tailrec suspend fun <T : Any> retryTask(
     attempt: Int = 1,
     initialDelay: Int,
     retryFactor: Float,
@@ -46,25 +46,17 @@ private tailrec suspend fun <T : Any> retryTask(
     return when (val apiResponse = task()) {
         is ApiResponse.Success -> apiResponse
         is ApiResponse.Failure -> {
-            when (apiResponse) {
-                is ApiResponse.Failure.Error -> {
-                    apiResponse
-                }
-
-                is ApiResponse.Failure.Exception -> {
-                    if (attempt < maxAttempts) {
-                        retryTask(
-                            attempt = attempt + 1,
-                            initialDelay = initialDelay,
-                            retryFactor = retryFactor,
-                            maxAttempts = maxAttempts,
-                            maxDelayMillis = maxDelayMillis,
-                            task = task
-                        )
-                    } else {
-                        apiResponse
-                    }
-                }
+            if (attempt < maxAttempts) {
+                retryTask(
+                    attempt = attempt + 1,
+                    initialDelay = initialDelay,
+                    retryFactor = retryFactor,
+                    maxAttempts = maxAttempts,
+                    maxDelayMillis = maxDelayMillis,
+                    task = task
+                )
+            } else {
+                apiResponse
             }
         }
     }

@@ -21,7 +21,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":domain"))
+    implementation(projects.domain)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -31,9 +31,12 @@ dependencies {
     androidTestImplementation(libs.androidx.test.espresso.core)
 
     //retrofit2
+    implementation(platform(libs.retrofit.bom))
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.moshi)
     implementation(libs.retrofit.converter.scalars)
+    ksp(libs.retrofit.response.type.keeper)
+
     implementation(platform(libs.okhttp3.bom))
     implementation(libs.okhttp3.logging.interceptor)
     implementation(libs.okhttp3.dnsoverhttps)
