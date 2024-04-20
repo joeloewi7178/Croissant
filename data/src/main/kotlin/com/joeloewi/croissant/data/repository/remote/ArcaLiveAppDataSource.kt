@@ -16,12 +16,9 @@
 
 package com.joeloewi.croissant.data.repository.remote
 
-import com.joeloewi.croissant.data.api.model.response.ArticleResponse
+import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.skydoves.sandwich.ApiResponse
 
 interface ArcaLiveAppDataSource {
-    suspend fun getArticle(
-        slug: String,
-        articleId: Long
-    ): ApiResponse<ArticleResponse>
+    suspend fun getRedeemCode(game: HoYoLABGame): ApiResponse<String>
 }

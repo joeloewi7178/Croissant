@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         applicationId = "com.joeloewi.croissant"
-        versionCode = 60
+        versionCode = 61
         versionName = "1.3.0"
         targetSdk = 34
 
@@ -133,9 +133,6 @@ dependencies {
 
     //paging
     implementation(libs.androidx.paging.compose)
-
-    //html parsing
-    implementation(libs.jsoup)
 
     //in-app update
     implementation(libs.android.play.app.update.ktx)

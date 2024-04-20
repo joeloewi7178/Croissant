@@ -62,6 +62,9 @@ dependencies {
     implementation(libs.androidx.startup)
 
     implementation(libs.androidx.lifecycle.process)
+
+    //html parsing
+    implementation(libs.jsoup)
 }
 
 protobuf {

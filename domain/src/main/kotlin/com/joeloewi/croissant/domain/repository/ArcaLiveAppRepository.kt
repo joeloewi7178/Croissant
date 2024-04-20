@@ -1,8 +1,7 @@
 package com.joeloewi.croissant.domain.repository
 
+import com.joeloewi.croissant.domain.common.HoYoLABGame
+
 interface ArcaLiveAppRepository {
-    suspend fun getArticle(
-        slug: String,
-        articleId: Long
-    ): Result<String>
+    suspend fun getRedeemCode(game: HoYoLABGame): Result<String>
 }

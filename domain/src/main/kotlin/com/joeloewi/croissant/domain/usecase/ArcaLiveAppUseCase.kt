@@ -16,16 +16,17 @@
 
 package com.joeloewi.croissant.domain.usecase
 
+import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.domain.repository.ArcaLiveAppRepository
 import javax.inject.Inject
 
 sealed class ArcaLiveAppUseCase {
-    class GetArticle @Inject constructor(
+    class GetRedeemCode @Inject constructor(
         private val arcaLiveAppRepository: ArcaLiveAppRepository
     ) : ArcaLiveAppUseCase() {
+
         suspend operator fun invoke(
-            slug: String,
-            articleId: Long
-        ) = arcaLiveAppRepository.getArticle(slug, articleId)
+            game: HoYoLABGame
+        ) = arcaLiveAppRepository.getRedeemCode(game)
     }
 }
