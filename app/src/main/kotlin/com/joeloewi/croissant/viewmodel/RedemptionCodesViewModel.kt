@@ -20,13 +20,11 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.jsoup.Jsoup
 import javax.inject.Inject
 
 @HiltViewModel
 class RedemptionCodesViewModel @Inject constructor(
-    private val getArticleArcaLiveAppUseCase: ArcaLiveAppUseCase.GetArticle
+    private val getRedeemCodeUseCase: ArcaLiveAppUseCase.GetRedeemCode
 ) : ViewModel() {
     private val _hoYoLABGameRedemptionCodesState =
         MutableStateFlow<LCE<ImmutableList<Pair<HoYoLABGame, AnnotatedString>>>>(LCE.Loading)
@@ -42,71 +40,17 @@ class RedemptionCodesViewModel @Inject constructor(
         _hoYoLABGameRedemptionCodesState.value = LCE.Loading
         viewModelScope.launch(Dispatchers.IO) {
             _hoYoLABGameRedemptionCodesState.value = HoYoLABGame.entries.filter {
-                !listOf(HoYoLABGame.Unknown, HoYoLABGame.TearsOfThemis).contains(it)
+                it !in listOf(HoYoLABGame.Unknown, HoYoLABGame.TearsOfThemis)
             }.runCatching {
                 map {
                     async(SupervisorJob() + Dispatchers.IO) {
                         it to HtmlCompat.fromHtml(
-                            getRedemptionCodesFromHtml(it).getOrThrow(),
+                            getRedeemCodeUseCase(it).getOrThrow(),
                             HtmlCompat.FROM_HTML_MODE_COMPACT
                         ).toAnnotatedString()
                     }
-                }
-            }.mapCatching {
-                it.awaitAll().toImmutableList()
+                }.awaitAll().toImmutableList()
             }.foldAsLce()
         }
     }
-
-    private suspend fun getRedemptionCodesFromHtml(hoYoLABGame: HoYoLABGame): Result<String> =
-        withContext(Dispatchers.IO) {
-            //Jsoup's nth-child works differently than expected
-            when (hoYoLABGame) {
-                HoYoLABGame.HonkaiImpact3rd -> {
-                    getArticleArcaLiveAppUseCase(
-                        slug = "hk3rd",
-                        articleId = 85815048
-                    ).mapCatching { content ->
-                        Jsoup.parse(content).apply {
-                            select("*:has(> img)").remove()
-                            repeat(5) {
-                                select("body > p:last-child").remove()
-                            }
-                        }.html()
-                    }
-                }
-
-                HoYoLABGame.GenshinImpact -> {
-                    getArticleArcaLiveAppUseCase(
-                        slug = "genshin",
-                        articleId = 95519559
-                    ).mapCatching { content ->
-                        Jsoup.parse(content).apply {
-                            select("img").remove()
-                        }.select("table:first-of-type").apply {
-                            select("tr:last-child").remove()
-                        }.html().replace("https://oo.pe/", "")
-                    }
-                }
-
-                HoYoLABGame.HonkaiStarRail -> {
-                    getArticleArcaLiveAppUseCase(
-                        slug = "hkstarrail",
-                        articleId = 69911111
-                    ).mapCatching { content ->
-                        Jsoup.parse(content).apply {
-                            repeat(9) {
-                                select("p:last-child").remove()
-                            }
-                        }.select("p:nth-child(n+47)").html().replace("https://oo.pe/", "")
-                    }
-                }
-
-                else -> {
-                    runCatching {
-                        ""
-                    }
-                }
-            }
-        }
 }

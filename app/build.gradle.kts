@@ -134,9 +134,6 @@ dependencies {
     //paging
     implementation(libs.androidx.paging.compose)
 
-    //html parsing
-    implementation(libs.jsoup)
-
     //in-app update
     implementation(libs.android.play.app.update.ktx)
 

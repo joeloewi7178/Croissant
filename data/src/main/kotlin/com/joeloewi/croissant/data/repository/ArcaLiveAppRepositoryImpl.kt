@@ -17,6 +17,7 @@
 package com.joeloewi.croissant.data.repository
 
 import com.joeloewi.croissant.data.repository.remote.ArcaLiveAppDataSource
+import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.domain.repository.ArcaLiveAppRepository
 import com.skydoves.sandwich.getOrThrow
 import javax.inject.Inject
@@ -24,10 +25,7 @@ import javax.inject.Inject
 class ArcaLiveAppRepositoryImpl @Inject constructor(
     private val arcaLiveAppDataSource: ArcaLiveAppDataSource
 ) : ArcaLiveAppRepository {
-    override suspend fun getArticle(slug: String, articleId: Long): Result<String> =
-        arcaLiveAppDataSource.runCatching {
-            getArticle(slug, articleId).getOrThrow()
-        }.mapCatching { articleResponse ->
-            articleResponse.content
-        }
+    override suspend fun getRedeemCode(
+        game: HoYoLABGame
+    ): Result<String> = arcaLiveAppDataSource.runCatching { getRedeemCode(game).getOrThrow() }
 }
