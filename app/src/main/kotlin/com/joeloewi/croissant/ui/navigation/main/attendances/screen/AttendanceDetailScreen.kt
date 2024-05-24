@@ -176,25 +176,23 @@ private fun AttendanceDetailContent(
     }
 
     LaunchedEffect(snackbarHostState) {
-        withContext(Dispatchers.IO) {
-            snapshotFlow(newCookie).catch { }.collect {
-                if (it.isNotEmpty()) {
-                    onRefreshCookie(it)
-                    snackbarHostState.showSnackbar(pressSaveButton)
-                }
+        snapshotFlow(newCookie).catch { }.collect {
+            if (it.isNotEmpty()) {
+                onRefreshCookie(it)
+                snackbarHostState.showSnackbar(pressSaveButton)
             }
         }
     }
 
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
-            combine(
-                snapshotFlow(attendCheckInEventWorkerSuccessLogCount),
-                snapshotFlow(attendCheckInEventWorkerFailureLogCount)
-            ) { successCount, failureCount ->
-                successCount > 0 || failureCount > 0
-            }.catch { }.collect { hasExecutedAtLeastOnce ->
-                if (hasExecutedAtLeastOnce) {
+        combine(
+            snapshotFlow(attendCheckInEventWorkerSuccessLogCount),
+            snapshotFlow(attendCheckInEventWorkerFailureLogCount)
+        ) { successCount, failureCount ->
+            successCount > 0 || failureCount > 0
+        }.catch { }.collect { hasExecutedAtLeastOnce ->
+            if (hasExecutedAtLeastOnce) {
+                withContext(Dispatchers.Default) {
                     requestReview(
                         activity = activity,
                         logMessage = "ExecutedAtLeastOnce"

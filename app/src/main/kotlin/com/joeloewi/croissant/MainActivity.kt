@@ -378,7 +378,7 @@ fun CroissantNavHost(
             if (it !is CancellationException) {
                 emit(runCatching { throw it }.foldAsLce<String>())
             }
-        }.flowOn(Dispatchers.IO)
+        }
     }.collectAsStateWithLifecycle(initialValue = LCE.Loading)
 
     when (val cached = calculatedStartDestination) {

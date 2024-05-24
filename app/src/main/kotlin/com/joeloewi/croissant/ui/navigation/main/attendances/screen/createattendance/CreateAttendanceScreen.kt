@@ -117,20 +117,18 @@ fun CreateAttendanceContent(
     }
 
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
-            snapshotFlow(insertAttendanceState).catch { }.collect {
-                when (it) {
-                    is ILCE.Content -> {
-                        withContext(Dispatchers.Main) {
-                            if (it.content.isNotEmpty()) {
-                                onNavigateUp()
-                            }
+        snapshotFlow(insertAttendanceState).catch { }.collect {
+            when (it) {
+                is ILCE.Content -> {
+                    withContext(Dispatchers.Main) {
+                        if (it.content.isNotEmpty()) {
+                            onNavigateUp()
                         }
                     }
+                }
 
-                    else -> {
+                else -> {
 
-                    }
                 }
             }
         }

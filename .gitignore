@@ -174,3 +174,4 @@ buildSrc/.gradle
 /build
 /captures
 .cxx
+/.kotlin/

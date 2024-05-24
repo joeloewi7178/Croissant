@@ -72,9 +72,7 @@ import io.github.fornewid.placeholder.foundation.PlaceholderHighlight
 import io.github.fornewid.placeholder.foundation.fade
 import io.github.fornewid.placeholder.foundation.placeholder
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -104,62 +102,58 @@ fun SelectGames(
     }
 
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
-            snapshotFlow(connectedGames).catch { }.collect {
-                when (it) {
-                    is LCE.Content -> {
-                        if (
-                            it.content.any {
-                                supportedGames.find { game -> game.gameId == it.gameId } == null
-                            }
-                        ) {
-                            snackbarHostState.apply {
-                                currentSnackbarData?.dismiss()
-                                showSnackbar(message = containsNotSupportedGame)
-                            }
+        snapshotFlow(connectedGames).catch { }.collect {
+            when (it) {
+                is LCE.Content -> {
+                    if (
+                        it.content.any {
+                            supportedGames.find { game -> game.gameId == it.gameId } == null
+                        }
+                    ) {
+                        snackbarHostState.apply {
+                            currentSnackbarData?.dismiss()
+                            showSnackbar(message = containsNotSupportedGame)
                         }
                     }
+                }
 
-                    is LCE.Error -> {
-                        it.error.message?.let {
-                            snackbarHostState.apply {
-                                currentSnackbarData?.dismiss()
-                                showSnackbar(it)
-                            }
+                is LCE.Error -> {
+                    it.error.message?.let {
+                        snackbarHostState.apply {
+                            currentSnackbarData?.dismiss()
+                            showSnackbar(it)
                         }
                     }
+                }
 
-                    LCE.Loading -> {
+                LCE.Loading -> {
 
-                    }
                 }
             }
         }
     }
 
     LaunchedEffect(checkedGames().isEmpty()) {
-        withContext(Dispatchers.IO) {
-            snapshotFlow(connectedGames).catch { }.collect {
-                when (it) {
-                    is LCE.Content -> {
-                        val isEmpty = checkedGames().isEmpty()
+        snapshotFlow(connectedGames).catch { }.collect {
+            when (it) {
+                is LCE.Content -> {
+                    val isEmpty = checkedGames().isEmpty()
 
-                        if (isEmpty) {
-                            snackbarHostState.apply {
-                                currentSnackbarData?.dismiss()
-                                showSnackbar(
-                                    message = chooseAtLeastOneGame,
-                                    duration = SnackbarDuration.Indefinite
-                                )
-                            }
-                        } else {
-                            snackbarHostState.currentSnackbarData?.dismiss()
+                    if (isEmpty) {
+                        snackbarHostState.apply {
+                            currentSnackbarData?.dismiss()
+                            showSnackbar(
+                                message = chooseAtLeastOneGame,
+                                duration = SnackbarDuration.Indefinite
+                            )
                         }
+                    } else {
+                        snackbarHostState.currentSnackbarData?.dismiss()
                     }
+                }
 
-                    else -> {
+                else -> {
 
-                    }
                 }
             }
         }

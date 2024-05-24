@@ -40,7 +40,6 @@ import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.util.LocalHourFormat
 import com.joeloewi.croissant.util.TimeAndTimePicker
 import com.joeloewi.croissant.util.dateTimeFormatterPerHourFormat
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
@@ -48,7 +47,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.isActive
 import java.time.ZonedDateTime
 
@@ -204,7 +202,7 @@ private fun FirstExecutionTime(
                 .withNano(0)
 
             current.isBefore(target)
-        }.catch {}.distinctUntilChanged().flowOn(Dispatchers.IO).conflate()
+        }.catch {}.distinctUntilChanged().conflate()
     }.collectAsStateWithLifecycle(initialValue = false)
     val today = stringResource(id = R.string.today)
     val tomorrow = stringResource(id = R.string.tomorrow)

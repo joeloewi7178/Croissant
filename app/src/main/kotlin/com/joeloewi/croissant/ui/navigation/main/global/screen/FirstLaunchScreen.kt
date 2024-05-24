@@ -71,10 +71,8 @@ import com.joeloewi.croissant.util.CroissantPermission
 import com.joeloewi.croissant.util.SpecialPermission
 import com.joeloewi.croissant.util.rememberSpecialPermissionState
 import com.joeloewi.croissant.viewmodel.FirstLaunchViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOn
 
 @Composable
 fun FirstLaunchScreen(
@@ -121,7 +119,7 @@ private fun FirstLaunchContent(
             snapshotFlow { scheduleExactAlarmPermissionState.status == PermissionStatus.Granted }
         ) { allNormalPermissionsGranted, isScheduleExactAlarmPermitted ->
             allNormalPermissionsGranted && isScheduleExactAlarmPermitted
-        }.catch { }.flowOn(Dispatchers.IO).collect {
+        }.catch { }.collect {
             if (it) {
                 onFirstLaunchChange(false)
                 onNavigateToAttendances()

@@ -71,9 +71,7 @@ import com.joeloewi.croissant.util.navigationIconButton
 import com.joeloewi.croissant.util.useNavRail
 import com.joeloewi.croissant.viewmodel.AttendanceLogsCalendarViewModel
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.Year
 import java.time.YearMonth
@@ -128,25 +126,23 @@ private fun AttendanceLogsCalendarContent(
     var showDeleteConfirmationDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
-            snapshotFlow(deleteAllState).catch { }.collect {
-                when (it) {
-                    is ILCE.Content -> {
-                        val rowCount = it.content
+        snapshotFlow(deleteAllState).catch { }.collect {
+            when (it) {
+                is ILCE.Content -> {
+                    val rowCount = it.content
 
-                        if (rowCount > 0) {
-                            snackbarHostState.showSnackbar(
-                                context.getString(
-                                    R.string.logs_deleted,
-                                    rowCount
-                                )
+                    if (rowCount > 0) {
+                        snackbarHostState.showSnackbar(
+                            context.getString(
+                                R.string.logs_deleted,
+                                rowCount
                             )
-                        }
+                        )
                     }
+                }
 
-                    else -> {
+                else -> {
 
-                    }
                 }
             }
         }

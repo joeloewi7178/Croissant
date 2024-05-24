@@ -102,6 +102,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
@@ -267,10 +268,12 @@ fun AttendanceWithGamesItem(
                     ).enqueue()
 
                     coroutineScope.launch {
-                        requestReview(
-                            activity = activity,
-                            logMessage = "ImmediateAttendance"
-                        )
+                        withContext(Dispatchers.Default) {
+                            requestReview(
+                                activity = activity,
+                                logMessage = "ImmediateAttendance"
+                            )
+                        }
                     }
                 }
             },

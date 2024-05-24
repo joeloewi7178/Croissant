@@ -40,9 +40,7 @@ import com.joeloewi.croissant.util.ProgressDialog
 import com.joeloewi.croissant.viewmodel.ResinStatusWidgetDetailViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.withContext
 
 @Composable
 fun ResinStatusWidgetDetailScreen(
@@ -74,18 +72,16 @@ fun ResinStatusWidgetDetailContent(
     val activity = LocalActivity.current
 
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
-            snapshotFlow { updateResinStatusWidgetState() }.catch { }.collect {
-                when (it) {
-                    is ILCE.Content -> {
-                        if (it.content != 0) {
-                            activity.finish()
-                        }
+        snapshotFlow { updateResinStatusWidgetState() }.catch { }.collect {
+            when (it) {
+                is ILCE.Content -> {
+                    if (it.content != 0) {
+                        activity.finish()
                     }
+                }
 
-                    else -> {
+                else -> {
 
-                    }
                 }
             }
         }

@@ -57,9 +57,7 @@ import com.joeloewi.croissant.util.ProgressDialog
 import com.joeloewi.croissant.viewmodel.CreateResinStatusWidgetViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.withContext
 
 @Composable
 fun CreateResinStatusWidgetScreen(
@@ -111,43 +109,39 @@ fun CreateResinStatusWidgetContent(
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
-            snapshotFlow(insertResinStatusWidgetState).catch { }.collect {
-                when (it) {
-                    is ILCE.Content -> {
-                        if (it.content.isNotEmpty()) {
-                            val resultValue = Intent().apply {
-                                putExtra(
-                                    AppWidgetManager.EXTRA_APPWIDGET_ID,
-                                    appWidgetId()
-                                )
-                            }
-                            with(activity) {
-                                setResult(Activity.RESULT_OK, resultValue)
-                                finish()
-                            }
+        snapshotFlow(insertResinStatusWidgetState).catch { }.collect {
+            when (it) {
+                is ILCE.Content -> {
+                    if (it.content.isNotEmpty()) {
+                        val resultValue = Intent().apply {
+                            putExtra(
+                                AppWidgetManager.EXTRA_APPWIDGET_ID,
+                                appWidgetId()
+                            )
+                        }
+                        with(activity) {
+                            setResult(Activity.RESULT_OK, resultValue)
+                            finish()
                         }
                     }
+                }
 
-                    else -> {
+                else -> {
 
-                    }
                 }
             }
         }
     }
 
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
-            snapshotFlow(getInfoUserState).catch { }.collect {
-                when (it) {
-                    is ILCE.Error -> {
-                        snackbarHostState.showSnackbar(context.getString(R.string.error_occurred))
-                    }
+        snapshotFlow(getInfoUserState).catch { }.collect {
+            when (it) {
+                is ILCE.Error -> {
+                    snackbarHostState.showSnackbar(context.getString(R.string.error_occurred))
+                }
 
-                    else -> {
+                else -> {
 
-                    }
                 }
             }
         }

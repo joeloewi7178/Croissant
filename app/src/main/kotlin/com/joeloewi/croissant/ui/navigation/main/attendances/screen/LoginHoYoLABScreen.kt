@@ -86,7 +86,6 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -148,7 +147,6 @@ fun LoginHoYoLABContent(
     LaunchedEffect(Unit) {
         snapshotFlow(automaticallyCheckedCookie).catch { }
             .flowWithLifecycle(lifecycleOwner.lifecycle)
-            .flowOn(Dispatchers.IO)
             .filter { it.isNotEmpty() }
             .collect {
                 withContext(Dispatchers.Main.immediate) {
@@ -160,7 +158,6 @@ fun LoginHoYoLABContent(
     LaunchedEffect(Unit) {
         snapshotFlow(manuallyCheckedCookie).catch { }
             .flowWithLifecycle(lifecycleOwner.lifecycle)
-            .flowOn(Dispatchers.IO)
             .collect {
                 when (it) {
                     is ILCE.Content -> {

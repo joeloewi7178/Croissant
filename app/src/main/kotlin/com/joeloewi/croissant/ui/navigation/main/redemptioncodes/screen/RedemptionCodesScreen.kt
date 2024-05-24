@@ -85,9 +85,7 @@ import io.github.fornewid.placeholder.foundation.PlaceholderHighlight
 import io.github.fornewid.placeholder.foundation.fade
 import io.github.fornewid.placeholder.foundation.placeholder
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flowOn
 
 @Composable
 fun RedemptionCodesScreen(
@@ -117,7 +115,7 @@ private fun RedemptionCodesContent(
     val pullToRefreshState = rememberPullToRefreshState()
 
     LaunchedEffect(Unit) {
-        snapshotFlow { pullToRefreshState.isRefreshing }.flowOn(Dispatchers.IO).catch { }
+        snapshotFlow { pullToRefreshState.isRefreshing }.catch { }
             .collect { isRefreshing ->
                 if (isRefreshing) {
                     onRefresh()
@@ -126,7 +124,7 @@ private fun RedemptionCodesContent(
     }
 
     LaunchedEffect(pullToRefreshState) {
-        snapshotFlow { hoYoLABGameRedemptionCodesState() }.flowOn(Dispatchers.IO).catch { }
+        snapshotFlow { hoYoLABGameRedemptionCodesState() }.catch { }
             .collect {
                 when (it) {
                     LCE.Loading -> {
