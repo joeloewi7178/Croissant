@@ -1,6 +1,5 @@
 package com.joeloewi.croissant.ui.navigation.main.attendances.screen
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,8 +24,6 @@ import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Save
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,17 +35,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -59,7 +51,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -67,13 +58,9 @@ import com.joeloewi.croissant.R
 import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.domain.common.LoggableWorker
 import com.joeloewi.croissant.domain.entity.Game
-import com.joeloewi.croissant.domain.entity.relational.AttendanceWithGames
-import com.joeloewi.croissant.state.ILCE
-import com.joeloewi.croissant.state.LCE
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.LocalActivity
-import com.joeloewi.croissant.util.ProgressDialog
 import com.joeloewi.croissant.util.TimeAndTimePicker
 import com.joeloewi.croissant.util.gameNameStringResId
 import com.joeloewi.croissant.util.navigationIconButton
@@ -81,9 +68,9 @@ import com.joeloewi.croissant.util.requestReview
 import com.joeloewi.croissant.viewmodel.AttendanceDetailViewModel
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.withContext
+import org.orbitmvi.orbit.compose.collectAsState
+import org.orbitmvi.orbit.compose.collectSideEffect
 
 @Composable
 fun AttendanceDetailScreen(
@@ -93,41 +80,34 @@ fun AttendanceDetailScreen(
     onClickRefreshSession: () -> Unit,
     onClickLogSummary: (Long, LoggableWorker) -> Unit
 ) {
-    val uid by attendanceDetailViewModel.uid.collectAsStateWithLifecycle()
-    val nickname by attendanceDetailViewModel.nickname.collectAsStateWithLifecycle()
-    val checkedGames = remember { attendanceDetailViewModel.checkedGames }
-    val checkSessionWorkerSuccessLogCount by attendanceDetailViewModel.checkSessionWorkerSuccessLogCount.collectAsStateWithLifecycle()
-    val checkSessionWorkerFailureLogCount by attendanceDetailViewModel.checkSessionWorkerFailureLogCount.collectAsStateWithLifecycle()
-    val attendCheckInEventWorkerSuccessLogCount by attendanceDetailViewModel.attendCheckInEventWorkerSuccessLogCount.collectAsStateWithLifecycle()
-    val attendCheckInEventWorkerFailureLogCount by attendanceDetailViewModel.attendCheckInEventWorkerFailureLogCount.collectAsStateWithLifecycle()
-    val updateAttendanceState by attendanceDetailViewModel.updateAttendanceState.collectAsStateWithLifecycle()
-    val hourOfDay by attendanceDetailViewModel.hourOfDay.collectAsStateWithLifecycle()
-    val minute by attendanceDetailViewModel.minute.collectAsStateWithLifecycle()
-    val attendanceWithGames by attendanceDetailViewModel.attendanceWithGamesState.collectAsStateWithLifecycle()
-    val deleteAttendanceState by attendanceDetailViewModel.deleteAttendanceState.collectAsStateWithLifecycle()
+    val state by attendanceDetailViewModel.collectAsState()
+
+    attendanceDetailViewModel.collectSideEffect {
+        when (it) {
+            is AttendanceDetailViewModel.AttendanceDetailSideEffect.Dialog -> {
+
+            }
+
+            is AttendanceDetailViewModel.AttendanceDetailSideEffect.NavigateToLog -> onClickLogSummary(
+                it.attendanceId,
+                it.loggableWorker
+            )
+
+            AttendanceDetailViewModel.AttendanceDetailSideEffect.NavigateUp -> onNavigateUp()
+        }
+    }
 
     AttendanceDetailContent(
-        uid = { uid },
-        nickname = nickname,
-        checkedGames = { checkedGames },
-        checkSessionWorkerSuccessLogCount = { checkSessionWorkerSuccessLogCount },
-        checkSessionWorkerFailureLogCount = { checkSessionWorkerFailureLogCount },
-        attendCheckInEventWorkerSuccessLogCount = { attendCheckInEventWorkerSuccessLogCount },
-        attendCheckInEventWorkerFailureLogCount = { attendCheckInEventWorkerFailureLogCount },
-        updateAttendanceState = { updateAttendanceState },
-        hourOfDay = { hourOfDay },
-        minute = { minute },
-        attendanceWithGames = { attendanceWithGames },
-        newCookie = newCookie,
-        deleteAttendanceState = { deleteAttendanceState },
+        state = state,
         onNavigateUp = onNavigateUp,
         onClickRefreshSession = onClickRefreshSession,
-        onClickLogSummary = { onClickLogSummary(attendanceDetailViewModel.attendanceId, it) },
+        onClickLogSummary = attendanceDetailViewModel::onClickLogSummary,
         onHourOfDayChange = attendanceDetailViewModel::setHourOfDay,
         onMinuteChange = attendanceDetailViewModel::setMinute,
         onRefreshCookie = attendanceDetailViewModel::setCookie,
         onClickSave = attendanceDetailViewModel::updateAttendance,
-        onConfirmDelete = attendanceDetailViewModel::deleteAttendance
+        onConfirmDelete = attendanceDetailViewModel::deleteAttendance,
+        onShowConfirmDeleteDialogChange = attendanceDetailViewModel::onShowConfirmDeleteDialogChange
     )
 }
 
@@ -137,19 +117,7 @@ fun AttendanceDetailScreen(
 )
 @Composable
 private fun AttendanceDetailContent(
-    uid: () -> Long,
-    nickname: String,
-    checkedGames: () -> SnapshotStateList<Game>,
-    checkSessionWorkerSuccessLogCount: () -> Long,
-    checkSessionWorkerFailureLogCount: () -> Long,
-    attendCheckInEventWorkerSuccessLogCount: () -> Long,
-    attendCheckInEventWorkerFailureLogCount: () -> Long,
-    updateAttendanceState: () -> ILCE<Unit>,
-    hourOfDay: () -> Int,
-    minute: () -> Int,
-    attendanceWithGames: () -> LCE<AttendanceWithGames>,
-    newCookie: () -> String,
-    deleteAttendanceState: () -> ILCE<Unit>,
+    state: AttendanceDetailViewModel.AttendanceDetailState,
     onNavigateUp: () -> Unit,
     onClickRefreshSession: () -> Unit,
     onClickLogSummary: (LoggableWorker) -> Unit,
@@ -158,6 +126,7 @@ private fun AttendanceDetailContent(
     onRefreshCookie: (String) -> Unit,
     onClickSave: () -> Unit,
     onConfirmDelete: () -> Unit,
+    onShowConfirmDeleteDialogChange: (Boolean) -> Unit
 ) {
     val viewModelStoreOwner = LocalViewModelStoreOwner.current
     val activity = LocalActivity.current
@@ -165,44 +134,32 @@ private fun AttendanceDetailContent(
     val pressSaveButton = stringResource(id = R.string.press_save_button_to_commit)
     val list by rememberUpdatedState(
         newValue = persistentListOf(
-            stringResource(id = R.string.uid) to uid().toString(),
-            stringResource(id = R.string.nickname) to nickname,
+            stringResource(id = R.string.uid) to state.uid.toString(),
+            stringResource(id = R.string.nickname) to state.nickname,
         )
     )
-    var showConfirmDeleteDialog by remember { mutableStateOf(false) }
 
-    BackHandler {
-        onNavigateUp()
-    }
-
-    LaunchedEffect(snackbarHostState) {
+    /*LaunchedEffect(snackbarHostState) {
         snapshotFlow(newCookie).catch { }.collect {
             if (it.isNotEmpty()) {
                 onRefreshCookie(it)
                 snackbarHostState.showSnackbar(pressSaveButton)
             }
         }
-    }
+    }*/
 
-    LaunchedEffect(Unit) {
-        combine(
-            snapshotFlow(attendCheckInEventWorkerSuccessLogCount),
-            snapshotFlow(attendCheckInEventWorkerFailureLogCount)
-        ) { successCount, failureCount ->
-            successCount > 0 || failureCount > 0
-        }.catch { }.collect { hasExecutedAtLeastOnce ->
-            if (hasExecutedAtLeastOnce) {
-                withContext(Dispatchers.Default) {
-                    requestReview(
-                        activity = activity,
-                        logMessage = "ExecutedAtLeastOnce"
-                    )
-                }
+    LaunchedEffect(state.hasExecutedAtLeastOnce()) {
+        if (state.hasExecutedAtLeastOnce()) {
+            withContext(Dispatchers.Default) {
+                requestReview(
+                    activity = activity,
+                    logMessage = "ExecutedAtLeastOnce"
+                )
             }
         }
     }
 
-    LaunchedEffect(Unit) {
+    /*LaunchedEffect(Unit) {
         snapshotFlow(deleteAttendanceState).catch { }.collect {
             when (it) {
                 is ILCE.Content -> {
@@ -238,14 +195,14 @@ private fun AttendanceDetailContent(
                 }
             }
         }
-    }
+    }*/
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = stringResource(id = R.string.attendance_of_nickname, nickname)
+                        text = stringResource(id = R.string.attendance_of_nickname, state.nickname)
                     )
                 },
                 navigationIcon = viewModelStoreOwner.navigationIconButton(
@@ -253,10 +210,8 @@ private fun AttendanceDetailContent(
                 ),
                 actions = {
                     IconButton(
-                        onClick = {
-                            showConfirmDeleteDialog = true
-                        },
-                        enabled = attendanceWithGames() is LCE.Content
+                        onClick = { onShowConfirmDeleteDialogChange(true) },
+                        enabled = !state.isContentLoading
                     ) {
                         Icon(
                             imageVector = Icons.Default.Delete,
@@ -266,7 +221,7 @@ private fun AttendanceDetailContent(
 
                     IconButton(
                         onClick = onClickSave,
-                        enabled = attendanceWithGames() is LCE.Content
+                        enabled = !state.isContentLoading
                     ) {
                         Icon(
                             imageVector = Icons.Default.Save,
@@ -349,10 +304,16 @@ private fun AttendanceDetailContent(
                             items = HoYoLABGame.entries.filter { it != HoYoLABGame.Unknown },
                             key = { it.name }
                         ) { item ->
+                            val game = Game(type = item)
+
                             ConnectedGameListItem(
                                 modifier = Modifier.animateItemPlacement(),
-                                hoYoLABGame = item,
-                                checkedGames = checkedGames,
+                                gameName = stringResource(id = item.gameNameStringResId()),
+                                gameIconUrl = item.gameIconUrl,
+                                checked = state.checkedGames.contains(game),
+                                onCheckedChange = {
+
+                                }
                             )
                         }
                     }
@@ -370,8 +331,8 @@ private fun AttendanceDetailContent(
             item("timePicker") {
                 TimeAndTimePicker(
                     modifier = Modifier.fillMaxWidth(),
-                    hourOfDay = hourOfDay,
-                    minute = minute,
+                    hourOfDay = state.hourOfDay,
+                    minute = state.minute,
                     onHourOfDayChange = onHourOfDayChange,
                     onMinuteChange = onMinuteChange
                 )
@@ -388,8 +349,8 @@ private fun AttendanceDetailContent(
             item(LoggableWorker.ATTEND_CHECK_IN_EVENT) {
                 LogSummaryRow(
                     title = stringResource(id = R.string.attendance),
-                    failureLogCount = attendCheckInEventWorkerFailureLogCount,
-                    successLogCount = attendCheckInEventWorkerSuccessLogCount,
+                    failureLogCount = state.attendCheckInEventWorkerFailureLogCount,
+                    successLogCount = state.attendCheckInEventWorkerSuccessLogCount,
                     onClickLogSummary = {
                         onClickLogSummary(LoggableWorker.ATTEND_CHECK_IN_EVENT)
                     }
@@ -399,8 +360,8 @@ private fun AttendanceDetailContent(
             item(LoggableWorker.CHECK_SESSION) {
                 LogSummaryRow(
                     title = stringResource(id = R.string.session_validation),
-                    failureLogCount = checkSessionWorkerFailureLogCount,
-                    successLogCount = checkSessionWorkerSuccessLogCount,
+                    failureLogCount = state.checkSessionWorkerFailureLogCount,
+                    successLogCount = state.checkSessionWorkerSuccessLogCount,
                     onClickLogSummary = {
                         onClickLogSummary(LoggableWorker.CHECK_SESSION)
                     }
@@ -408,15 +369,15 @@ private fun AttendanceDetailContent(
             }
         }
 
-        if (updateAttendanceState().isLoading) {
+        /*if (updateAttendanceState().isLoading) {
             ProgressDialog(
                 onDismissRequest = {}
             )
-        }
+        }*/
 
-        if (showConfirmDeleteDialog) {
+        /*if (showConfirmDeleteDialog) {
             AlertDialog(
-                onDismissRequest = { showConfirmDeleteDialog = false },
+                onDismissRequest = { onShowConfirmDeleteDialogChange(false) },
                 icon = {
                     Icon(
                         imageVector = Icons.Default.Warning,
@@ -435,38 +396,25 @@ private fun AttendanceDetailContent(
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showConfirmDeleteDialog = false }) {
+                    TextButton(onClick = { onShowConfirmDeleteDialogChange(false) }) {
                         Text(text = stringResource(id = R.string.dismiss))
                     }
                 }
             )
-        }
+        }*/
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConnectedGameListItem(
     modifier: Modifier,
-    hoYoLABGame: HoYoLABGame,
-    checkedGames: () -> SnapshotStateList<Game>
+    gameName: String,
+    gameIconUrl: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
 ) {
-    val game by rememberUpdatedState(
-        Game(
-            type = hoYoLABGame,
-        )
-    )
-
     Card(
-        onClick = {
-            val checked = checkedGames().contains(game)
-
-            if (!checked) {
-                checkedGames().add(game)
-            } else {
-                checkedGames().remove(game)
-            }
-        },
+        onClick = { onCheckedChange(checked) },
         modifier = modifier.size(120.dp)
     ) {
         Column(
@@ -482,13 +430,13 @@ fun ConnectedGameListItem(
             ) {
                 Text(
                     modifier = Modifier.weight(3f),
-                    text = stringResource(id = hoYoLABGame.gameNameStringResId()),
+                    text = gameName,
                     style = MaterialTheme.typography.labelMedium
                 )
 
                 Checkbox(
                     modifier = Modifier.weight(1f),
-                    checked = checkedGames().contains(game),
+                    checked = checked,
                     onCheckedChange = null
                 )
             }
@@ -498,7 +446,7 @@ fun ConnectedGameListItem(
                     .size(IconDp)
                     .clip(MaterialTheme.shapes.extraSmall),
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(hoYoLABGame.gameIconUrl)
+                    .data(gameIconUrl)
                     .build(),
                 contentDescription = null
             )
@@ -509,8 +457,8 @@ fun ConnectedGameListItem(
 @Composable
 fun LogSummaryRow(
     title: String,
-    failureLogCount: () -> Long,
-    successLogCount: () -> Long,
+    failureLogCount: Long,
+    successLogCount: Long,
     onClickLogSummary: () -> Unit,
 ) {
     Row(
@@ -549,7 +497,7 @@ fun LogSummaryRow(
                 )
 
                 Text(
-                    text = "${failureLogCount()}",
+                    text = "$failureLogCount",
                     color = MaterialTheme.colorScheme.error
                 )
 
@@ -558,7 +506,7 @@ fun LogSummaryRow(
                     contentDescription = Icons.Default.Done.name
                 )
 
-                Text(text = "${successLogCount()}")
+                Text(text = "$successLogCount")
             }
         }
 

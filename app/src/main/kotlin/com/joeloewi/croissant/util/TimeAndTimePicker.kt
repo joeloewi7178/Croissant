@@ -44,8 +44,8 @@ import java.time.format.FormatStyle
 @Composable
 fun TimeAndTimePicker(
     modifier: Modifier = Modifier,
-    hourOfDay: () -> Int,
-    minute: () -> Int,
+    hourOfDay: Int,
+    minute: Int,
     onHourOfDayChange: (Int) -> Unit,
     onMinuteChange: (Int) -> Unit
 ) {
@@ -58,7 +58,7 @@ fun TimeAndTimePicker(
     ) {
         val localTime by remember {
             derivedStateOf {
-                ZonedDateTime.now().withHour(hourOfDay()).withMinute(minute())
+                ZonedDateTime.now().withHour(hourOfDay).withMinute(minute)
                     .toLocalTime()
                     .format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT))
             }
@@ -70,8 +70,8 @@ fun TimeAndTimePicker(
     if (showTimePicker) {
         var showingPicker by remember { mutableStateOf(true) }
         val state = rememberTimePickerState(
-            initialHour = hourOfDay(),
-            initialMinute = minute()
+            initialHour = hourOfDay,
+            initialMinute = minute
         )
         TimePickerDialog(
             onCancel = { showTimePicker = false },

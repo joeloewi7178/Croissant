@@ -155,4 +155,8 @@ dependencies {
     implementation(libs.fornewid.placeholder.material3)
 
     implementation(libs.kotlinx.atomicfu)
+
+    //orbit
+    implementation(libs.orbit.viewmodel)
+    implementation(libs.orbit.compose)
 }

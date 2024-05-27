@@ -173,8 +173,8 @@ private fun TimePickerWithState(
 ) {
     TimeAndTimePicker(
         modifier = Modifier.fillMaxWidth(),
-        hourOfDay = hourOfDay,
-        minute = minute,
+        hourOfDay = hourOfDay(),
+        minute = minute(),
         onHourOfDayChange = onHourOfDayChange,
         onMinuteChange = onMinuteChange
     )

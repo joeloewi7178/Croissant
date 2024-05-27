@@ -1,10 +1,10 @@
 package com.joeloewi.croissant.viewmodel
 
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.core.os.bundleOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.WorkManager
 import com.google.firebase.Firebase
@@ -12,30 +12,24 @@ import com.google.firebase.analytics.analytics
 import com.joeloewi.croissant.domain.common.LoggableWorker
 import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
 import com.joeloewi.croissant.domain.entity.Game
-import com.joeloewi.croissant.domain.entity.relational.AttendanceWithGames
 import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
 import com.joeloewi.croissant.domain.usecase.GameUseCase
 import com.joeloewi.croissant.domain.usecase.WorkerExecutionLogUseCase
-import com.joeloewi.croissant.state.ILCE
-import com.joeloewi.croissant.state.LCE
-import com.joeloewi.croissant.state.foldAsILCE
-import com.joeloewi.croissant.state.foldAsLce
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.croissant.util.AlarmScheduler
 import com.joeloewi.croissant.worker.CheckSessionWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.orbitmvi.orbit.ContainerHost
+import org.orbitmvi.orbit.syntax.simple.intent
+import org.orbitmvi.orbit.syntax.simple.postSideEffect
+import org.orbitmvi.orbit.syntax.simple.reduce
+import org.orbitmvi.orbit.viewmodel.container
 import java.time.Instant
 import java.time.ZoneId
-import java.time.ZonedDateTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -49,217 +43,245 @@ class AttendanceDetailViewModel @Inject constructor(
     private val insertGameUseCase: GameUseCase.Insert,
     getCountByStateWorkerExecutionLogUseCase: WorkerExecutionLogUseCase.GetCountByState,
     savedStateHandle: SavedStateHandle
-) : ViewModel() {
+) : ViewModel(),
+    ContainerHost<AttendanceDetailViewModel.AttendanceDetailState, AttendanceDetailViewModel.AttendanceDetailSideEffect> {
     //parameter
     private val _attendanceIdKey = AttendancesDestination.AttendanceDetailScreen.ATTENDANCE_ID
-    val attendanceId = savedStateHandle.get<Long>(_attendanceIdKey) ?: Long.MIN_VALUE
-
-    private val _attendanceWithGamesState = MutableStateFlow<LCE<AttendanceWithGames>>(LCE.Loading)
-    private val _cookie = MutableStateFlow("")
-    private val _hourOfDay = MutableStateFlow(ZonedDateTime.now().hour)
-    private val _minute = MutableStateFlow(ZonedDateTime.now().minute)
-    private val _nickname = MutableStateFlow("")
-    private val _uid = MutableStateFlow(0L)
-    private val _updateAttendanceState = MutableStateFlow<ILCE<Unit>>(ILCE.Idle)
-    private val _deleteAttendanceState = MutableStateFlow<ILCE<Unit>>(ILCE.Idle)
-
-    val checkedGames = mutableStateListOf<Game>()
-    val attendanceWithGamesState = _attendanceWithGamesState.asStateFlow()
-    val hourOfDay = _hourOfDay.asStateFlow()
-    val minute = _minute.asStateFlow()
-    val nickname = _nickname.asStateFlow()
-    val uid = _uid.asStateFlow()
-
-    //log count
-    val checkSessionWorkerSuccessLogCount =
+    private val _attendanceId = savedStateHandle.get<Long>(_attendanceIdKey) ?: Long.MIN_VALUE
+    private val _checkSessionWorkerSuccessLogCount =
         getCountByStateWorkerExecutionLogUseCase(
-            attendanceId = attendanceId,
+            attendanceId = _attendanceId,
             loggableWorker = LoggableWorker.CHECK_SESSION,
             state = WorkerExecutionLogState.SUCCESS
-        ).catch { }.flowOn(Dispatchers.IO).stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(),
-            initialValue = 0L
-        )
-    val checkSessionWorkerFailureLogCount =
+        ).catch { }.flowOn(Dispatchers.IO)
+    private val _checkSessionWorkerFailureLogCount =
         getCountByStateWorkerExecutionLogUseCase(
-            attendanceId = attendanceId,
+            attendanceId = _attendanceId,
             loggableWorker = LoggableWorker.CHECK_SESSION,
             state = WorkerExecutionLogState.FAILURE
-        ).catch { }.flowOn(Dispatchers.IO).stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(),
-            initialValue = 0L
-        )
-    val attendCheckInEventWorkerSuccessLogCount =
+        ).catch { }.flowOn(Dispatchers.IO)
+    private val _attendCheckInEventWorkerSuccessLogCount =
         getCountByStateWorkerExecutionLogUseCase(
-            attendanceId = attendanceId,
+            attendanceId = _attendanceId,
             loggableWorker = LoggableWorker.ATTEND_CHECK_IN_EVENT,
             state = WorkerExecutionLogState.SUCCESS
-        ).catch { }.flowOn(Dispatchers.IO).stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(),
-            initialValue = 0L
-        )
-    val attendCheckInEventWorkerFailureLogCount =
+        ).catch { }.flowOn(Dispatchers.IO)
+    private val _attendCheckInEventWorkerFailureLogCount =
         getCountByStateWorkerExecutionLogUseCase(
-            attendanceId = attendanceId,
+            attendanceId = _attendanceId,
             loggableWorker = LoggableWorker.ATTEND_CHECK_IN_EVENT,
             state = WorkerExecutionLogState.FAILURE
-        ).catch { }.flowOn(Dispatchers.IO).stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(),
-            initialValue = 0L
-        )
-    val updateAttendanceState = _updateAttendanceState.asStateFlow()
-    val deleteAttendanceState = _deleteAttendanceState.asStateFlow()
+        ).catch { }.flowOn(Dispatchers.IO)
 
-    fun setCookie(cookie: String) {
-        _cookie.value = cookie
-    }
-
-    fun setHourOfDay(hourOfDay: Int) {
-        _hourOfDay.value = hourOfDay
-    }
-
-    fun setMinute(minute: Int) {
-        _minute.value = minute
-    }
-
-    init {
-        _attendanceWithGamesState.value = LCE.Loading
-        viewModelScope.launch(Dispatchers.IO) {
-            _attendanceWithGamesState.value = getOneAttendanceUseCase.runCatching {
-                invoke(attendanceId)
-            }.mapCatching { attendanceWithGames ->
-                attendanceWithGames.also {
-                    with(attendanceWithGames) {
-                        with(attendance) {
-                            _cookie.value = cookie
-                            _hourOfDay.value = hourOfDay
-                            _minute.value = minute
-                            _nickname.value = nickname
-                            _uid.value = uid
-                        }
-
-                        withContext(Dispatchers.Main) {
-                            checkedGames.addAll(games.map {
-                                Game(
-                                    type = it.type
-                                )
-                            })
-                        }
+    override val container =
+        container<AttendanceDetailState, AttendanceDetailSideEffect>(AttendanceDetailState()) {
+            intent {
+                val attendanceWithGames = getOneAttendanceUseCase(_attendanceId)
+                val games = withContext(Dispatchers.Main) {
+                    state.checkedGames.apply {
+                        addAll(attendanceWithGames.games.map {
+                            Game(
+                                type = it.type
+                            )
+                        })
                     }
                 }
-            }.foldAsLce()
+
+                reduce {
+                    state.copy(
+                        cookie = attendanceWithGames.attendance.cookie,
+                        hourOfDay = attendanceWithGames.attendance.hourOfDay,
+                        minute = attendanceWithGames.attendance.minute,
+                        nickname = attendanceWithGames.attendance.nickname,
+                        uid = attendanceWithGames.attendance.uid,
+                        checkedGames = games,
+                        isContentLoading = false
+                    )
+                }
+            }
+
+            intent {
+                _checkSessionWorkerSuccessLogCount.collect {
+                    reduce { state.copy(checkSessionWorkerSuccessLogCount = it) }
+                }
+            }
+
+            intent {
+                _checkSessionWorkerFailureLogCount.collect {
+                    reduce { state.copy(checkSessionWorkerFailureLogCount = it) }
+                }
+            }
+
+            intent {
+                _attendCheckInEventWorkerSuccessLogCount.collect {
+                    reduce { state.copy(attendCheckInEventWorkerSuccessLogCount = it) }
+                }
+            }
+
+            intent {
+                _attendCheckInEventWorkerFailureLogCount.collect {
+                    reduce { state.copy(attendCheckInEventWorkerFailureLogCount = it) }
+                }
+            }
         }
+
+    fun setCookie(cookie: String) = intent {
+        reduce { state.copy(cookie = cookie) }
+    }
+
+    fun setHourOfDay(hourOfDay: Int) = intent {
+        reduce { state.copy(hourOfDay = hourOfDay) }
+    }
+
+    fun setMinute(minute: Int) = intent {
+        reduce { state.copy(minute = minute) }
     }
 
     fun updateAttendance() {
-        _updateAttendanceState.value = ILCE.Loading
-        viewModelScope.launch(Dispatchers.IO) {
-            _updateAttendanceState.value = getOneAttendanceUseCase.runCatching {
-                invoke(attendanceId)
-            }.mapCatching { attendanceWithGames ->
-                val attendance = attendanceWithGames.attendance
+        intent {
+            postSideEffect(AttendanceDetailSideEffect.Dialog(shouldShow = true))
 
-                workManager.cancelUniqueWork(attendance.attendCheckInEventWorkerName.toString())
+            val attendanceWithGames = getOneAttendanceUseCase(_attendanceId)
+            val attendance = attendanceWithGames.attendance
 
-                val periodicCheckSessionWork = CheckSessionWorker.buildPeriodicWork(
-                    attendanceId = attendance.id
-                )
+            workManager.cancelUniqueWork(attendance.attendCheckInEventWorkerName.toString())
 
-                workManager.enqueueUniquePeriodicWork(
-                    attendance.checkSessionWorkerName.toString(),
-                    ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
-                    periodicCheckSessionWork
-                )
+            val periodicCheckSessionWork = CheckSessionWorker.buildPeriodicWork(
+                attendanceId = attendance.id
+            )
 
-                val newAttendance = attendance.copy(
-                    modifiedAt = Instant.now().toEpochMilli(),
-                    cookie = _cookie.value,
-                    nickname = _nickname.value,
-                    uid = _uid.value,
-                    hourOfDay = _hourOfDay.value,
-                    minute = _minute.value,
-                    timezoneId = ZoneId.systemDefault().id,
-                    checkSessionWorkerId = periodicCheckSessionWork.id
-                )
+            workManager.enqueueUniquePeriodicWork(
+                attendance.checkSessionWorkerName.toString(),
+                ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
+                periodicCheckSessionWork
+            )
 
-                alarmScheduler.scheduleCheckInAlarm(
-                    attendance = newAttendance,
-                    scheduleForTomorrow = false
-                )
+            val newAttendance = attendance.copy(
+                modifiedAt = Instant.now().toEpochMilli(),
+                cookie = state.cookie,
+                nickname = state.nickname,
+                uid = state.uid,
+                hourOfDay = state.hourOfDay,
+                minute = state.minute,
+                timezoneId = ZoneId.systemDefault().id,
+                checkSessionWorkerId = periodicCheckSessionWork.id
+            )
 
-                updateAttendanceUseCase(newAttendance)
+            alarmScheduler.scheduleCheckInAlarm(
+                attendance = newAttendance,
+                scheduleForTomorrow = false
+            )
 
-                val games = attendanceWithGames.games
-                val originalGames = arrayListOf<Game>()
-                val newGames = arrayListOf<Game>()
+            updateAttendanceUseCase(newAttendance)
 
-                if (checkedGames.isEmpty()) {
-                    deleteGameUseCase(*games.toTypedArray())
-                } else {
-                    games.forEach { game ->
-                        if (!checkedGames.contains(
-                                Game(
-                                    type = game.type
-                                )
+            val games = attendanceWithGames.games
+            val originalGames = arrayListOf<Game>()
+            val newGames = arrayListOf<Game>()
+
+            if (state.checkedGames.isEmpty()) {
+                deleteGameUseCase(*games.toTypedArray())
+            } else {
+                games.forEach { game ->
+                    if (!state.checkedGames.contains(
+                            Game(
+                                type = game.type
                             )
-                        ) {
-                            deleteGameUseCase(game)
-                        } else {
-                            originalGames.add(
-                                Game(
-                                    type = game.type
-                                )
+                        )
+                    ) {
+                        deleteGameUseCase(game)
+                    } else {
+                        originalGames.add(
+                            Game(
+                                type = game.type
                             )
-                        }
-                    }
-
-                    checkedGames.forEach { game ->
-                        if (!originalGames.any { it == game }) {
-                            newGames.add(
-                                Game(
-                                    attendanceId = attendance.id,
-                                    roleId = game.roleId,
-                                    type = game.type,
-                                    region = game.region
-                                )
-                            )
-                        }
+                        )
                     }
                 }
 
-                insertGameUseCase(*newGames.toTypedArray())
-                Unit
-            }.foldAsILCE()
+                state.checkedGames.forEach { game ->
+                    if (!originalGames.any { it == game }) {
+                        newGames.add(
+                            Game(
+                                attendanceId = attendance.id,
+                                roleId = game.roleId,
+                                type = game.type,
+                                region = game.region
+                            )
+                        )
+                    }
+                }
+            }
+
+            insertGameUseCase(*newGames.toTypedArray())
+            postSideEffect(AttendanceDetailSideEffect.Dialog(shouldShow = false))
+            postSideEffect(AttendanceDetailSideEffect.NavigateUp)
         }
     }
 
     fun deleteAttendance() {
-        viewModelScope.launch(Dispatchers.IO) {
+        intent {
+            postSideEffect(AttendanceDetailSideEffect.Dialog(shouldShow = true))
+
             Firebase.analytics.logEvent("delete_attendance", bundleOf())
 
-            _deleteAttendanceState.value = ILCE.Loading
-            _deleteAttendanceState.value = runCatching {
-                val attendance = getOneAttendanceUseCase(attendanceId).attendance
+            val attendance = getOneAttendanceUseCase(_attendanceId).attendance
 
-                listOf(
-                    attendance.checkSessionWorkerName,
-                    attendance.attendCheckInEventWorkerName,
-                    attendance.oneTimeAttendCheckInEventWorkerName
-                ).map { it.toString() }.map { uniqueWorkName ->
-                    workManager.cancelUniqueWork(uniqueWorkName)
-                }
+            listOf(
+                attendance.checkSessionWorkerName,
+                attendance.attendCheckInEventWorkerName,
+                attendance.oneTimeAttendCheckInEventWorkerName
+            ).map { it.toString() }.map { uniqueWorkName ->
+                workManager.cancelUniqueWork(uniqueWorkName)
+            }
 
-                workManager.cancelWorkById(attendance.checkSessionWorkerId)
+            workManager.cancelWorkById(attendance.checkSessionWorkerId)
 
-                alarmScheduler.cancelCheckInAlarm(attendance.id)
+            alarmScheduler.cancelCheckInAlarm(attendance.id)
 
-                deleteAttendanceUseCase(attendance)
-                Unit
-            }.foldAsILCE()
+            deleteAttendanceUseCase(attendance)
+            postSideEffect(AttendanceDetailSideEffect.Dialog(shouldShow = false))
+            postSideEffect(AttendanceDetailSideEffect.NavigateUp)
         }
+    }
+
+    fun onClickLogSummary(loggableWorker: LoggableWorker) {
+        intent {
+            postSideEffect(AttendanceDetailSideEffect.NavigateToLog(_attendanceId, loggableWorker))
+        }
+    }
+
+    fun onShowConfirmDeleteDialogChange(showConfirmDeleteDialog: Boolean) {
+        intent {
+
+        }
+    }
+
+    data class AttendanceDetailState(
+        val isContentLoading: Boolean = true,
+        val cookie: String = "",
+        val hourOfDay: Int = 0,
+        val minute: Int = 0,
+        val nickname: String = "",
+        val uid: Long = 0L,
+        val checkedGames: SnapshotStateList<Game> = mutableStateListOf(),
+        val checkSessionWorkerSuccessLogCount: Long = 0,
+        val checkSessionWorkerFailureLogCount: Long = 0,
+        val attendCheckInEventWorkerSuccessLogCount: Long = 0,
+        val attendCheckInEventWorkerFailureLogCount: Long = 0
+    ) {
+        fun hasExecutedAtLeastOnce() =
+            attendCheckInEventWorkerSuccessLogCount > 0 || attendCheckInEventWorkerFailureLogCount > 0
+    }
+
+    sealed class AttendanceDetailSideEffect {
+        data object NavigateUp : AttendanceDetailSideEffect()
+        data class Dialog(
+            val shouldShow: Boolean
+        ) : AttendanceDetailSideEffect()
+
+        data class NavigateToLog(
+            val attendanceId: Long,
+            val loggableWorker: LoggableWorker
+        ) : AttendanceDetailSideEffect()
     }
 }
