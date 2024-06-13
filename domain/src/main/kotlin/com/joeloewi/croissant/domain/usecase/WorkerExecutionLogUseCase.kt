@@ -16,7 +16,6 @@
 
 package com.joeloewi.croissant.domain.usecase
 
-import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.domain.common.LoggableWorker
 import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
 import com.joeloewi.croissant.domain.entity.WorkerExecutionLog

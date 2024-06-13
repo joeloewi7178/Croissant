@@ -64,6 +64,7 @@ fornewidPlaceholderMaterial3 = "2.0.0"
 kotlinxAtomicfu = "0.24.0"
 composePlugin = "1.6.10"
 orbit = "8.0.0"
+junitVersion = "1.1.5"
 
 [libraries]
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
@@ -165,6 +166,7 @@ fornewid-placeholder-material3 = { group = "io.github.fornewid", name = "placeho
 kotlinx-atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "kotlinxAtomicfu" }
 orbit-viewmodel = { group = "org.orbit-mvi", name = "orbit-viewmodel", version.ref = "orbit" }
 orbit-compose = { group = "org.orbit-mvi", name = "orbit-compose", version.ref = "orbit" }
+kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib" }
 
 android-tools-common = { group = "com.android.tools", name = "common", version.ref = "androidTools" }
 firebase-crashlytics-gradlePlugin = { group = "com.google.firebase", name = "firebase-crashlytics-gradle", version.ref = "firebaseCrashlyticsPlugin" }
@@ -174,6 +176,7 @@ ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devto
 kotlinx-atomicfu-gradlePlugin = { group = "org.jetbrains.kotlinx", name = "atomicfu-gradle-plugin", version.ref = "kotlinxAtomicfu" }
 gms-oss-licenses-gradlePlugin = { group = "com.google.android.gms", name = "oss-licenses-plugin", version.ref = "gmsOssLicensesPlugin" }
 compose-compiler-gradlePlugin = { group = "org.jetbrains.kotlin", name = "compose-compiler-gradle-plugin", version.ref = "kotlin" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }

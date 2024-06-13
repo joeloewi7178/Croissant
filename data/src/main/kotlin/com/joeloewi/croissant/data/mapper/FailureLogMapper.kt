@@ -16,17 +16,26 @@
 
 package com.joeloewi.croissant.data.mapper
 
-import com.joeloewi.croissant.data.entity.local.FailureLogEntity
+import com.joeloewi.croissant.core.database.model.FailureLogEntity
 import com.joeloewi.croissant.data.mapper.base.Mapper
 import com.joeloewi.croissant.domain.entity.FailureLog
 
-class FailureLogMapper : Mapper<FailureLog, FailureLogEntity> {
+class FailureLogMapper :
+    Mapper<FailureLog, com.joeloewi.croissant.core.database.model.FailureLogEntity> {
 
-    override fun toData(domainEntity: FailureLog): FailureLogEntity = with(domainEntity) {
-        FailureLogEntity(id, executionLogId, gameName, failureMessage, failureStackTrace)
-    }
+    override fun toData(domainEntity: FailureLog): com.joeloewi.croissant.core.database.model.FailureLogEntity =
+        with(domainEntity) {
+            com.joeloewi.croissant.core.database.model.FailureLogEntity(
+                id,
+                executionLogId,
+                gameName,
+                failureMessage,
+                failureStackTrace
+            )
+        }
 
-    override fun toDomain(dataEntity: FailureLogEntity): FailureLog = with(dataEntity) {
-        FailureLog(id, executionLogId, gameName, failureMessage, failureStackTrace)
-    }
+    override fun toDomain(dataEntity: com.joeloewi.croissant.core.database.model.FailureLogEntity): FailureLog =
+        with(dataEntity) {
+            FailureLog(id, executionLogId, gameName, failureMessage, failureStackTrace)
+        }
 }

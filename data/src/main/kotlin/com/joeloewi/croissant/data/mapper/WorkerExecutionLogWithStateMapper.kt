@@ -16,16 +16,16 @@
 
 package com.joeloewi.croissant.data.mapper
 
-import com.joeloewi.croissant.data.entity.local.relational.WorkerExecutionLogWithStateEntity
+import com.joeloewi.croissant.core.data.model.relational.WorkerExecutionLogWithState
+import com.joeloewi.croissant.core.database.model.relational.WorkerExecutionLogWithStateEntity
 import com.joeloewi.croissant.data.mapper.base.ReadOnlyMapper
-import com.joeloewi.croissant.domain.entity.relational.WorkerExecutionLogWithState
 
 class WorkerExecutionLogWithStateMapper(
     private val workerExecutionLogMapper: WorkerExecutionLogMapper,
     private val successLogMapper: SuccessLogMapper,
     private val failureLogMapper: FailureLogMapper
-) : ReadOnlyMapper<WorkerExecutionLogWithState, WorkerExecutionLogWithStateEntity> {
-    override fun toDomain(dataEntity: WorkerExecutionLogWithStateEntity): WorkerExecutionLogWithState =
+) : ReadOnlyMapper<com.joeloewi.croissant.core.data.model.relational.WorkerExecutionLogWithState, com.joeloewi.croissant.core.database.model.relational.WorkerExecutionLogWithStateEntity> {
+    override fun toDomain(dataEntity: com.joeloewi.croissant.core.database.model.relational.WorkerExecutionLogWithStateEntity): com.joeloewi.croissant.core.data.model.relational.WorkerExecutionLogWithState =
         with(dataEntity) {
             WorkerExecutionLogWithState(
                 workerExecutionLog = workerExecutionLogMapper.toDomain(workerExecutionLogEntity),

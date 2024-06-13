@@ -79,8 +79,8 @@ import coil.request.ImageRequest
 import com.google.firebase.Firebase
 import com.google.firebase.analytics.analytics
 import com.joeloewi.croissant.R
+import com.joeloewi.croissant.core.data.model.relational.AttendanceWithGames
 import com.joeloewi.croissant.domain.entity.Attendance
-import com.joeloewi.croissant.domain.entity.relational.AttendanceWithGames
 import com.joeloewi.croissant.state.StableWrapper
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
@@ -132,7 +132,7 @@ fun AttendancesScreen(
 @Composable
 private fun AttendancesContent(
     snackbarHostState: SnackbarHostState,
-    pagedAttendancesWithGames: LazyPagingItems<AttendanceWithGames>,
+    pagedAttendancesWithGames: LazyPagingItems<com.joeloewi.croissant.core.data.model.relational.AttendanceWithGames>,
     onCreateAttendanceClick: () -> Unit,
     onDeleteAttendance: (Attendance) -> Unit,
     onClickAttendance: (Attendance) -> Unit,
@@ -222,7 +222,7 @@ private fun AttendancesContent(
 @Composable
 fun AttendanceWithGamesItem(
     modifier: Modifier,
-    item: () -> StableWrapper<AttendanceWithGames>,
+    item: () -> StableWrapper<com.joeloewi.croissant.core.data.model.relational.AttendanceWithGames>,
     onDeleteAttendance: (Attendance) -> Unit,
     onClickAttendance: (Attendance) -> Unit
 ) {
@@ -327,7 +327,7 @@ private fun SwipeToDismissBackground(
 @Composable
 private fun DismissContent(
     dismissDirection: () -> SwipeToDismissBoxValue,
-    attendanceWithGames: () -> StableWrapper<AttendanceWithGames>,
+    attendanceWithGames: () -> StableWrapper<com.joeloewi.croissant.core.data.model.relational.AttendanceWithGames>,
     onClickAttendance: (Attendance) -> Unit,
     onClickOneTimeAttend: (Attendance) -> Unit
 ) {

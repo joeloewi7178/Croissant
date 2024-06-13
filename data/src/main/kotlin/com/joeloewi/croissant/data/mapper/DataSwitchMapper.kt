@@ -16,12 +16,14 @@
 
 package com.joeloewi.croissant.data.mapper
 
+import com.joeloewi.croissant.core.data.model.DataSwitch
 import com.joeloewi.croissant.data.entity.remote.DataSwitchEntity
 import com.joeloewi.croissant.data.mapper.base.ReadOnlyMapper
-import com.joeloewi.croissant.domain.entity.DataSwitch
 
-class DataSwitchMapper : ReadOnlyMapper<DataSwitch, DataSwitchEntity> {
-    override fun toDomain(dataEntity: DataSwitchEntity): DataSwitch = with(dataEntity) {
-        DataSwitch(switchId, isPublic, switchName)
-    }
+class DataSwitchMapper :
+    ReadOnlyMapper<com.joeloewi.croissant.core.data.model.DataSwitch, DataSwitchEntity> {
+    override fun toDomain(dataEntity: DataSwitchEntity): com.joeloewi.croissant.core.data.model.DataSwitch =
+        with(dataEntity) {
+            com.joeloewi.croissant.core.data.model.DataSwitch(switchId, isPublic, switchName)
+        }
 }

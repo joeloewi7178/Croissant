@@ -72,7 +72,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.state.LCE
 import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
 import com.joeloewi.croissant.ui.theme.DefaultDp

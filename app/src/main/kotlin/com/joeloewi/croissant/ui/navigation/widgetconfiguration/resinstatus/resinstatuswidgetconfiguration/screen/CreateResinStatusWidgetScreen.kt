@@ -48,7 +48,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.domain.entity.UserInfo
+import com.joeloewi.croissant.core.data.model.UserInfo
 import com.joeloewi.croissant.state.ILCE
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
@@ -91,10 +91,10 @@ fun CreateResinStatusWidgetScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateResinStatusWidgetContent(
-    getInfoUserState: () -> ILCE<UserInfo?>,
+    getInfoUserState: () -> ILCE<com.joeloewi.croissant.core.data.model.UserInfo?>,
     insertResinStatusWidgetState: () -> ILCE<List<Long>>,
     appWidgetId: () -> Int,
-    userInfos: SnapshotStateList<Pair<String, UserInfo>>,
+    userInfos: SnapshotStateList<Pair<String, com.joeloewi.croissant.core.data.model.UserInfo>>,
     selectableIntervals: ImmutableList<Long>,
     interval: () -> Long,
     newCookie: () -> String,
@@ -341,7 +341,7 @@ fun CreateResinStatusWidgetContent(
 
 @Composable
 fun UserInfoListItem(
-    item: () -> Pair<String, UserInfo>,
+    item: () -> Pair<String, com.joeloewi.croissant.core.data.model.UserInfo>,
 ) {
     val currentItem by rememberUpdatedState(newValue = item())
 

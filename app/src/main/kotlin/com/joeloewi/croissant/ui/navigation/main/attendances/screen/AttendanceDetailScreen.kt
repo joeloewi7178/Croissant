@@ -55,7 +55,6 @@ import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.domain.common.LoggableWorker
 import com.joeloewi.croissant.domain.entity.Game
 import com.joeloewi.croissant.ui.theme.DefaultDp

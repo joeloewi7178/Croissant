@@ -16,32 +16,32 @@
 
 package com.joeloewi.croissant.data.di
 
-import com.joeloewi.croissant.data.repository.local.AccountDataSource
-import com.joeloewi.croissant.data.repository.local.AttendanceDataSource
-import com.joeloewi.croissant.data.repository.local.FailureLogDataSource
-import com.joeloewi.croissant.data.repository.local.GameDataSource
-import com.joeloewi.croissant.data.repository.local.ResinStatusWidgetDataSource
-import com.joeloewi.croissant.data.repository.local.ResultCountDataSource
-import com.joeloewi.croissant.data.repository.local.ResultRangeDataSource
-import com.joeloewi.croissant.data.repository.local.SettingsDataSource
-import com.joeloewi.croissant.data.repository.local.SuccessLogDataSource
-import com.joeloewi.croissant.data.repository.local.WorkerExecutionLogDataSource
-import com.joeloewi.croissant.data.repository.local.impl.AccountDataSourceImpl
-import com.joeloewi.croissant.data.repository.local.impl.AttendanceDataSourceImpl
-import com.joeloewi.croissant.data.repository.local.impl.FailureLogDataSourceImpl
-import com.joeloewi.croissant.data.repository.local.impl.GameDataSourceImpl
-import com.joeloewi.croissant.data.repository.local.impl.ResinStatusWidgetDataSourceImpl
-import com.joeloewi.croissant.data.repository.local.impl.ResultCountDataSourceImpl
-import com.joeloewi.croissant.data.repository.local.impl.ResultRangeDataSourceImpl
-import com.joeloewi.croissant.data.repository.local.impl.SettingsDataSourceImpl
-import com.joeloewi.croissant.data.repository.local.impl.SuccessLogDataSourceImpl
-import com.joeloewi.croissant.data.repository.local.impl.WorkerExecutionLogDataSourceImpl
-import com.joeloewi.croissant.data.repository.remote.ArcaLiveAppDataSource
-import com.joeloewi.croissant.data.repository.remote.CheckInDataSource
-import com.joeloewi.croissant.data.repository.remote.HoYoLABDataSource
-import com.joeloewi.croissant.data.repository.remote.impl.ArcaLiveAppDataSourceImpl
-import com.joeloewi.croissant.data.repository.remote.impl.CheckInDataSourceImpl
-import com.joeloewi.croissant.data.repository.remote.impl.HoYoLABDataSourceImpl
+import com.joeloewi.croissant.core.database.AccountDataSource
+import com.joeloewi.croissant.core.database.AccountDataSourceImpl
+import com.joeloewi.croissant.core.database.AttendanceDataSource
+import com.joeloewi.croissant.core.database.AttendanceDataSourceImpl
+import com.joeloewi.croissant.core.database.FailureLogDataSource
+import com.joeloewi.croissant.core.database.FailureLogDataSourceImpl
+import com.joeloewi.croissant.core.database.GameDataSource
+import com.joeloewi.croissant.core.database.GameDataSourceImpl
+import com.joeloewi.croissant.core.database.ResinStatusWidgetDataSource
+import com.joeloewi.croissant.core.database.ResinStatusWidgetDataSourceImpl
+import com.joeloewi.croissant.core.database.ResultCountDataSource
+import com.joeloewi.croissant.core.database.ResultCountDataSourceImpl
+import com.joeloewi.croissant.core.database.ResultRangeDataSource
+import com.joeloewi.croissant.core.database.ResultRangeDataSourceImpl
+import com.joeloewi.croissant.core.database.SettingsDataSource
+import com.joeloewi.croissant.core.database.SettingsDataSourceImpl
+import com.joeloewi.croissant.core.database.SuccessLogDataSource
+import com.joeloewi.croissant.core.database.SuccessLogDataSourceImpl
+import com.joeloewi.croissant.core.database.WorkerExecutionLogDataSource
+import com.joeloewi.croissant.core.database.WorkerExecutionLogDataSourceImpl
+import com.joeloewi.croissant.core.network.ArcaLiveAppDataSource
+import com.joeloewi.croissant.core.network.CheckInDataSource
+import com.joeloewi.croissant.core.network.HoYoLABDataSource
+import com.joeloewi.croissant.core.network.impl.ArcaLiveAppDataSourceImpl
+import com.joeloewi.croissant.core.network.impl.CheckInDataSourceImpl
+import com.joeloewi.croissant.core.network.impl.HoYoLABDataSourceImpl
 import com.joeloewi.croissant.data.repository.system.SystemDataSource
 import com.joeloewi.croissant.data.repository.system.impl.SystemDataSourceImpl
 import dagger.Binds
@@ -54,43 +54,43 @@ import dagger.hilt.components.SingletonComponent
 interface DataSourceModule {
 
     @Binds
-    fun bindAccountDataSource(accountDataSourceImpl: AccountDataSourceImpl): AccountDataSource
+    fun bindAccountDataSource(accountDataSourceImpl: com.joeloewi.croissant.core.database.AccountDataSourceImpl): com.joeloewi.croissant.core.database.AccountDataSource
 
     @Binds
-    fun bindAttendanceDataSource(attendanceDataSourceImpl: AttendanceDataSourceImpl): AttendanceDataSource
+    fun bindAttendanceDataSource(attendanceDataSourceImpl: com.joeloewi.croissant.core.database.AttendanceDataSourceImpl): com.joeloewi.croissant.core.database.AttendanceDataSource
 
     @Binds
-    fun bindFailureLogDataSource(failureLogDataSourceImpl: FailureLogDataSourceImpl): FailureLogDataSource
+    fun bindFailureLogDataSource(failureLogDataSourceImpl: com.joeloewi.croissant.core.database.FailureLogDataSourceImpl): com.joeloewi.croissant.core.database.FailureLogDataSource
 
     @Binds
-    fun bindGameDataSource(gameDataSourceImpl: GameDataSourceImpl): GameDataSource
+    fun bindGameDataSource(gameDataSourceImpl: com.joeloewi.croissant.core.database.GameDataSourceImpl): com.joeloewi.croissant.core.database.GameDataSource
 
     @Binds
-    fun bindResinStatusWidgetDataSource(resinStatusWidgetDataSourceImpl: ResinStatusWidgetDataSourceImpl): ResinStatusWidgetDataSource
+    fun bindResinStatusWidgetDataSource(resinStatusWidgetDataSourceImpl: com.joeloewi.croissant.core.database.ResinStatusWidgetDataSourceImpl): com.joeloewi.croissant.core.database.ResinStatusWidgetDataSource
 
     @Binds
-    fun bindSuccessLogDataSource(successLogDataSourceImpl: SuccessLogDataSourceImpl): SuccessLogDataSource
+    fun bindSuccessLogDataSource(successLogDataSourceImpl: com.joeloewi.croissant.core.database.SuccessLogDataSourceImpl): com.joeloewi.croissant.core.database.SuccessLogDataSource
 
     @Binds
-    fun bindWorkerExecutionLogDataSource(workerExecutionLogDataSourceImpl: WorkerExecutionLogDataSourceImpl): WorkerExecutionLogDataSource
+    fun bindWorkerExecutionLogDataSource(workerExecutionLogDataSourceImpl: com.joeloewi.croissant.core.database.WorkerExecutionLogDataSourceImpl): com.joeloewi.croissant.core.database.WorkerExecutionLogDataSource
 
     @Binds
-    fun bindResultCountDataSource(resultCountDataSourceImpl: ResultCountDataSourceImpl): ResultCountDataSource
+    fun bindResultCountDataSource(resultCountDataSourceImpl: com.joeloewi.croissant.core.database.ResultCountDataSourceImpl): com.joeloewi.croissant.core.database.ResultCountDataSource
 
     @Binds
-    fun bindResultRangeDataSource(resultRangeDataSourceImpl: ResultRangeDataSourceImpl): ResultRangeDataSource
+    fun bindResultRangeDataSource(resultRangeDataSourceImpl: com.joeloewi.croissant.core.database.ResultRangeDataSourceImpl): com.joeloewi.croissant.core.database.ResultRangeDataSource
 
     @Binds
-    fun bindSettingsDataSource(settingsDataSourceImpl: SettingsDataSourceImpl): SettingsDataSource
+    fun bindSettingsDataSource(settingsDataSourceImpl: com.joeloewi.croissant.core.database.SettingsDataSourceImpl): com.joeloewi.croissant.core.database.SettingsDataSource
 
     @Binds
-    fun bindHoYoLABDataSource(hoYoLABDataSourceImpl: HoYoLABDataSourceImpl): HoYoLABDataSource
+    fun bindHoYoLABDataSource(hoYoLABDataSourceImpl: com.joeloewi.croissant.core.network.impl.HoYoLABDataSourceImpl): com.joeloewi.croissant.core.network.HoYoLABDataSource
 
     @Binds
-    fun bindCommonCheckInDataSource(commonCheckInDataSourceImpl: CheckInDataSourceImpl): CheckInDataSource
+    fun bindCommonCheckInDataSource(commonCheckInDataSourceImpl: com.joeloewi.croissant.core.network.impl.CheckInDataSourceImpl): com.joeloewi.croissant.core.network.CheckInDataSource
 
     @Binds
-    fun bindArcaLiveAppDataSource(arcaLiveAppAppDataSourceImpl: ArcaLiveAppDataSourceImpl): ArcaLiveAppDataSource
+    fun bindArcaLiveAppDataSource(arcaLiveAppAppDataSourceImpl: com.joeloewi.croissant.core.network.impl.ArcaLiveAppDataSourceImpl): com.joeloewi.croissant.core.network.ArcaLiveAppDataSource
 
     @Binds
     fun bindSystemDataSource(systemDataSourceImpl: SystemDataSourceImpl): SystemDataSource

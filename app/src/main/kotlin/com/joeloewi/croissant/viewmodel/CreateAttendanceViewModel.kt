@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.WorkManager
-import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.domain.entity.Attendance
 import com.joeloewi.croissant.domain.entity.Game
 import com.joeloewi.croissant.domain.usecase.AttendanceUseCase

@@ -16,46 +16,49 @@
 
 package com.joeloewi.croissant.data.mapper
 
-import com.joeloewi.croissant.data.entity.local.AttendanceEntity
+import com.joeloewi.croissant.core.database.model.AttendanceEntity
 import com.joeloewi.croissant.data.mapper.base.Mapper
 import com.joeloewi.croissant.domain.entity.Attendance
 
-class AttendanceMapper : Mapper<Attendance, AttendanceEntity> {
-    override fun toData(domainEntity: Attendance): AttendanceEntity = with(domainEntity) {
-        AttendanceEntity(
-            id,
-            createdAt,
-            modifiedAt,
-            cookie,
-            nickname,
-            uid,
-            hourOfDay,
-            minute,
-            timezoneId,
-            attendCheckInEventWorkerName,
-            attendCheckInEventWorkerId,
-            checkSessionWorkerName,
-            checkSessionWorkerId,
-            oneTimeAttendCheckInEventWorkerName
-        )
-    }
+class AttendanceMapper :
+    Mapper<Attendance, com.joeloewi.croissant.core.database.model.AttendanceEntity> {
+    override fun toData(domainEntity: Attendance): com.joeloewi.croissant.core.database.model.AttendanceEntity =
+        with(domainEntity) {
+            com.joeloewi.croissant.core.database.model.AttendanceEntity(
+                id,
+                createdAt,
+                modifiedAt,
+                cookie,
+                nickname,
+                uid,
+                hourOfDay,
+                minute,
+                timezoneId,
+                attendCheckInEventWorkerName,
+                attendCheckInEventWorkerId,
+                checkSessionWorkerName,
+                checkSessionWorkerId,
+                oneTimeAttendCheckInEventWorkerName
+            )
+        }
 
-    override fun toDomain(dataEntity: AttendanceEntity): Attendance = with(dataEntity) {
-        Attendance(
-            id,
-            createdAt,
-            modifiedAt,
-            cookie,
-            nickname,
-            uid,
-            hourOfDay,
-            minute,
-            timezoneId,
-            attendCheckInEventWorkerName,
-            attendCheckInEventWorkerId,
-            checkSessionWorkerName,
-            checkSessionWorkerId,
-            oneTimeAttendCheckInEventWorkerName
-        )
-    }
+    override fun toDomain(dataEntity: com.joeloewi.croissant.core.database.model.AttendanceEntity): Attendance =
+        with(dataEntity) {
+            Attendance(
+                id,
+                createdAt,
+                modifiedAt,
+                cookie,
+                nickname,
+                uid,
+                hourOfDay,
+                minute,
+                timezoneId,
+                attendCheckInEventWorkerName,
+                attendCheckInEventWorkerId,
+                checkSessionWorkerName,
+                checkSessionWorkerId,
+                oneTimeAttendCheckInEventWorkerName
+            )
+        }
 }

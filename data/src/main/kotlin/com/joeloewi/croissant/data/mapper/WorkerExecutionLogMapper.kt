@@ -16,18 +16,26 @@
 
 package com.joeloewi.croissant.data.mapper
 
-import com.joeloewi.croissant.data.entity.local.WorkerExecutionLogEntity
+import com.joeloewi.croissant.core.database.model.WorkerExecutionLogEntity
 import com.joeloewi.croissant.data.mapper.base.Mapper
 import com.joeloewi.croissant.domain.entity.WorkerExecutionLog
 
-class WorkerExecutionLogMapper : Mapper<WorkerExecutionLog, WorkerExecutionLogEntity> {
+class WorkerExecutionLogMapper :
+    Mapper<WorkerExecutionLog, com.joeloewi.croissant.core.database.model.WorkerExecutionLogEntity> {
 
-    override fun toData(domainEntity: WorkerExecutionLog): WorkerExecutionLogEntity =
+    override fun toData(domainEntity: WorkerExecutionLog): com.joeloewi.croissant.core.database.model.WorkerExecutionLogEntity =
         with(domainEntity) {
-            WorkerExecutionLogEntity(id, attendanceId, createdAt, timezoneId, state, loggableWorker)
+            com.joeloewi.croissant.core.database.model.WorkerExecutionLogEntity(
+                id,
+                attendanceId,
+                createdAt,
+                timezoneId,
+                state,
+                loggableWorker
+            )
         }
 
-    override fun toDomain(dataEntity: WorkerExecutionLogEntity): WorkerExecutionLog =
+    override fun toDomain(dataEntity: com.joeloewi.croissant.core.database.model.WorkerExecutionLogEntity): WorkerExecutionLog =
         with(dataEntity) {
             WorkerExecutionLog(id, attendanceId, createdAt, timezoneId, state, loggableWorker)
         }

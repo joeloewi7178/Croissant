@@ -16,7 +16,6 @@
 
 package com.joeloewi.croissant.domain.usecase
 
-import com.joeloewi.croissant.domain.common.HoYoLABGame
 import com.joeloewi.croissant.domain.repository.ArcaLiveAppRepository
 import javax.inject.Inject
 

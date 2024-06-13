@@ -16,16 +16,16 @@
 
 package com.joeloewi.croissant.data.mapper
 
-import com.joeloewi.croissant.data.entity.local.relational.AttendanceWithGamesEntity
+import com.joeloewi.croissant.core.data.model.relational.AttendanceWithGames
+import com.joeloewi.croissant.core.database.model.relational.AttendanceWithGamesEntity
 import com.joeloewi.croissant.data.mapper.base.ReadOnlyMapper
-import com.joeloewi.croissant.domain.entity.relational.AttendanceWithGames
 
 class AttendanceWithGamesMapper(
     private val attendanceMapper: AttendanceMapper,
     private val gameMapper: GameMapper
-) : ReadOnlyMapper<AttendanceWithGames, AttendanceWithGamesEntity> {
+) : ReadOnlyMapper<com.joeloewi.croissant.core.data.model.relational.AttendanceWithGames, com.joeloewi.croissant.core.database.model.relational.AttendanceWithGamesEntity> {
 
-    override fun toDomain(dataEntity: AttendanceWithGamesEntity): AttendanceWithGames =
+    override fun toDomain(dataEntity: com.joeloewi.croissant.core.database.model.relational.AttendanceWithGamesEntity): com.joeloewi.croissant.core.data.model.relational.AttendanceWithGames =
         with(dataEntity) {
             AttendanceWithGames(
                 attendance = attendanceMapper.toDomain(attendanceEntity),

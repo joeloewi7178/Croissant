@@ -16,17 +16,23 @@
 
 package com.joeloewi.croissant.data.mapper
 
-import com.joeloewi.croissant.data.entity.local.ResinStatusWidgetEntity
+import com.joeloewi.croissant.core.database.model.ResinStatusWidgetEntity
 import com.joeloewi.croissant.data.mapper.base.Mapper
 import com.joeloewi.croissant.domain.entity.ResinStatusWidget
 
-class ResinStatusWidgetMapper : Mapper<ResinStatusWidget, ResinStatusWidgetEntity> {
-    override fun toData(domainEntity: ResinStatusWidget): ResinStatusWidgetEntity =
+class ResinStatusWidgetMapper :
+    Mapper<ResinStatusWidget, com.joeloewi.croissant.core.database.model.ResinStatusWidgetEntity> {
+    override fun toData(domainEntity: ResinStatusWidget): com.joeloewi.croissant.core.database.model.ResinStatusWidgetEntity =
         with(domainEntity) {
-            ResinStatusWidgetEntity(id, appWidgetId, interval, refreshGenshinResinStatusWorkerName)
+            com.joeloewi.croissant.core.database.model.ResinStatusWidgetEntity(
+                id,
+                appWidgetId,
+                interval,
+                refreshGenshinResinStatusWorkerName
+            )
         }
 
-    override fun toDomain(dataEntity: ResinStatusWidgetEntity): ResinStatusWidget =
+    override fun toDomain(dataEntity: com.joeloewi.croissant.core.database.model.ResinStatusWidgetEntity): ResinStatusWidget =
         with(dataEntity) {
             ResinStatusWidget(id, appWidgetId, interval, refreshGenshinResinStatusWorkerName)
         }

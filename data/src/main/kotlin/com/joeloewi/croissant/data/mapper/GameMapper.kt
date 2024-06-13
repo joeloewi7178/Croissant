@@ -16,16 +16,24 @@
 
 package com.joeloewi.croissant.data.mapper
 
-import com.joeloewi.croissant.data.entity.local.GameEntity
+import com.joeloewi.croissant.core.database.model.GameEntity
 import com.joeloewi.croissant.data.mapper.base.Mapper
 import com.joeloewi.croissant.domain.entity.Game
 
-class GameMapper : Mapper<Game, GameEntity> {
-    override fun toData(domainEntity: Game): GameEntity = with(domainEntity) {
-        GameEntity(id, attendanceId, roleId, type, region)
-    }
+class GameMapper : Mapper<Game, com.joeloewi.croissant.core.database.model.GameEntity> {
+    override fun toData(domainEntity: Game): com.joeloewi.croissant.core.database.model.GameEntity =
+        with(domainEntity) {
+            com.joeloewi.croissant.core.database.model.GameEntity(
+                id,
+                attendanceId,
+                roleId,
+                type,
+                region
+            )
+        }
 
-    override fun toDomain(dataEntity: GameEntity): Game = with(dataEntity) {
-        Game(id, attendanceId, roleId, type, region)
-    }
+    override fun toDomain(dataEntity: com.joeloewi.croissant.core.database.model.GameEntity): Game =
+        with(dataEntity) {
+            Game(id, attendanceId, roleId, type, region)
+        }
 }

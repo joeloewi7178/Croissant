@@ -13,8 +13,7 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics
-import com.joeloewi.croissant.domain.common.HoYoLABGame
-import com.joeloewi.croissant.domain.entity.DataSwitch
+import com.joeloewi.croissant.core.data.model.DataSwitch
 import com.joeloewi.croissant.domain.usecase.HoYoLABUseCase
 import com.joeloewi.croissant.domain.usecase.ResinStatusWidgetUseCase
 import com.joeloewi.croissant.util.ResinStatus
@@ -76,12 +75,12 @@ class RefreshResinStatusWorker @AssistedInject constructor(
                         }!!
                     }.mapCatching { gameRecord ->
                         val isDailyNoteEnabled =
-                            gameRecord.dataSwitches.find { it.switchId == DataSwitch.GENSHIN_IMPACT_DAILY_NOTE_SWITCH_ID }?.isPublic
+                            gameRecord.dataSwitches.find { it.switchId == com.joeloewi.croissant.core.data.model.DataSwitch.GENSHIN_IMPACT_DAILY_NOTE_SWITCH_ID }?.isPublic
 
                         if (isDailyNoteEnabled == false) {
                             changeDataSwitchHoYoLABUseCase(
                                 cookie = account.cookie,
-                                switchId = DataSwitch.GENSHIN_IMPACT_DAILY_NOTE_SWITCH_ID,
+                                switchId = com.joeloewi.croissant.core.data.model.DataSwitch.GENSHIN_IMPACT_DAILY_NOTE_SWITCH_ID,
                                 isPublic = true,
                                 gameId = gameRecord.gameId,
                             ).getOrThrow()

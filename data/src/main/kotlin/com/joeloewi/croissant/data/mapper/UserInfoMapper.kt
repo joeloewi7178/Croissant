@@ -16,13 +16,15 @@
 
 package com.joeloewi.croissant.data.mapper
 
+import com.joeloewi.croissant.core.data.model.UserInfo
 import com.joeloewi.croissant.data.entity.remote.UserInfoEntity
 import com.joeloewi.croissant.data.mapper.base.ReadOnlyMapper
-import com.joeloewi.croissant.domain.entity.UserInfo
 
-class UserInfoMapper : ReadOnlyMapper<UserInfo, UserInfoEntity> {
+class UserInfoMapper :
+    ReadOnlyMapper<com.joeloewi.croissant.core.data.model.UserInfo, UserInfoEntity> {
 
-    override fun toDomain(dataEntity: UserInfoEntity): UserInfo = with(dataEntity) {
-        UserInfo(uid, nickname)
-    }
+    override fun toDomain(dataEntity: UserInfoEntity): com.joeloewi.croissant.core.data.model.UserInfo =
+        with(dataEntity) {
+            com.joeloewi.croissant.core.data.model.UserInfo(uid, nickname)
+        }
 }

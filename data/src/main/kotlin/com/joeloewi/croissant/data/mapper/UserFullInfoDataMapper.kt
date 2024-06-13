@@ -16,15 +16,16 @@
 
 package com.joeloewi.croissant.data.mapper
 
+import com.joeloewi.croissant.core.data.model.UserFullInfoData
 import com.joeloewi.croissant.data.entity.remote.UserFullInfoDataEntity
 import com.joeloewi.croissant.data.mapper.base.ReadOnlyMapper
-import com.joeloewi.croissant.domain.entity.UserFullInfoData
 
 class UserFullInfoDataMapper(
     private val userInfoMapper: UserInfoMapper
-) : ReadOnlyMapper<UserFullInfoData, UserFullInfoDataEntity> {
+) : ReadOnlyMapper<com.joeloewi.croissant.core.data.model.UserFullInfoData, UserFullInfoDataEntity> {
 
-    override fun toDomain(dataEntity: UserFullInfoDataEntity): UserFullInfoData = with(dataEntity) {
-        UserFullInfoData(userInfoMapper.toDomain(userInfo))
-    }
+    override fun toDomain(dataEntity: UserFullInfoDataEntity): com.joeloewi.croissant.core.data.model.UserFullInfoData =
+        with(dataEntity) {
+            com.joeloewi.croissant.core.data.model.UserFullInfoData(userInfoMapper.toDomain(userInfo))
+        }
 }

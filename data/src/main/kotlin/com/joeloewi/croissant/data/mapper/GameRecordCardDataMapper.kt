@@ -16,15 +16,19 @@
 
 package com.joeloewi.croissant.data.mapper
 
+import com.joeloewi.croissant.core.data.model.GameRecordCardData
 import com.joeloewi.croissant.data.entity.remote.GameRecordCardDataEntity
 import com.joeloewi.croissant.data.mapper.base.ReadOnlyMapper
-import com.joeloewi.croissant.domain.entity.GameRecordCardData
 
 class GameRecordCardDataMapper(
     private val gameRecordMapper: GameRecordMapper
-) : ReadOnlyMapper<GameRecordCardData, GameRecordCardDataEntity> {
-    override fun toDomain(dataEntity: GameRecordCardDataEntity): GameRecordCardData =
+) : ReadOnlyMapper<com.joeloewi.croissant.core.data.model.GameRecordCardData, GameRecordCardDataEntity> {
+    override fun toDomain(dataEntity: GameRecordCardDataEntity): com.joeloewi.croissant.core.data.model.GameRecordCardData =
         with(dataEntity) {
-            GameRecordCardData(list.map { gameRecordMapper.toDomain(it) })
+            com.joeloewi.croissant.core.data.model.GameRecordCardData(list.map {
+                gameRecordMapper.toDomain(
+                    it
+                )
+            })
         }
 }

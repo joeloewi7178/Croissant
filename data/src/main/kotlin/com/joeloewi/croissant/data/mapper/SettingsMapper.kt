@@ -16,12 +16,13 @@
 
 package com.joeloewi.croissant.data.mapper
 
-import com.joeloewi.croissant.domain.entity.Settings
+import com.joeloewi.croissant.core.data.model.Settings
 
 class SettingsMapper {
-    fun toDomain(settings: com.joeloewi.croissant.data.Settings): Settings = Settings(
-        darkThemeEnabled = settings.darkThemeEnabled,
-        isFirstLaunch = settings.isFirstLaunch,
-        notifyMigrateToAlarmManager = settings.notifyMigrateToAlarmManager
-    )
+    fun toDomain(settings: com.joeloewi.croissant.data.Settings): com.joeloewi.croissant.core.data.model.Settings =
+        com.joeloewi.croissant.core.data.model.Settings(
+            darkThemeEnabled = settings.darkThemeEnabled,
+            isFirstLaunch = settings.isFirstLaunch,
+            notifyMigrateToAlarmManager = settings.notifyMigrateToAlarmManager
+        )
 }

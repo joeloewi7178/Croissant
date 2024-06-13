@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.core.net.toUri
-import com.joeloewi.croissant.domain.common.HoYoLABGame
 
 fun generateGameIntent(
     context: Context,

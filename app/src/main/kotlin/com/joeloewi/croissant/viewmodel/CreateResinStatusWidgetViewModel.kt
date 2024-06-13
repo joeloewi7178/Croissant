@@ -8,9 +8,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.WorkManager
 import androidx.work.await
+import com.joeloewi.croissant.core.data.model.UserInfo
 import com.joeloewi.croissant.domain.entity.Account
 import com.joeloewi.croissant.domain.entity.ResinStatusWidget
-import com.joeloewi.croissant.domain.entity.UserInfo
 import com.joeloewi.croissant.domain.usecase.AccountUseCase
 import com.joeloewi.croissant.domain.usecase.HoYoLABUseCase
 import com.joeloewi.croissant.domain.usecase.ResinStatusWidgetUseCase
@@ -40,7 +40,8 @@ class CreateResinStatusWidgetViewModel @Inject constructor(
     val selectableIntervals = listOf(15L, 30L)
 
     private val _createResinStatusWidgetState = MutableStateFlow<ILCE<List<Long>>>(ILCE.Idle)
-    private val _getUserInfoState = MutableStateFlow<ILCE<UserInfo>>(ILCE.Idle)
+    private val _getUserInfoState =
+        MutableStateFlow<ILCE<com.joeloewi.croissant.core.data.model.UserInfo>>(ILCE.Idle)
     private val _interval = MutableStateFlow(selectableIntervals.first())
 
     val appWidgetId =
@@ -48,7 +49,8 @@ class CreateResinStatusWidgetViewModel @Inject constructor(
     val createResinStatusWidgetState = _createResinStatusWidgetState.asStateFlow()
     val getUserInfoState = _getUserInfoState.asStateFlow()
     val interval = _interval.asStateFlow()
-    val userInfos = SnapshotStateList<Pair<String, UserInfo>>()
+    val userInfos =
+        SnapshotStateList<Pair<String, com.joeloewi.croissant.core.data.model.UserInfo>>()
 
     fun onReceiveCookie(cookie: String) {
         _getUserInfoState.value = ILCE.Loading

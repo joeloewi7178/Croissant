@@ -16,15 +16,15 @@
 
 package com.joeloewi.croissant.data.mapper
 
-import com.joeloewi.croissant.data.entity.local.relational.ResinStatusWidgetWithAccountsEntity
+import com.joeloewi.croissant.core.data.model.relational.ResinStatusWidgetWithAccounts
+import com.joeloewi.croissant.core.database.model.relational.ResinStatusWidgetWithAccountsEntity
 import com.joeloewi.croissant.data.mapper.base.ReadOnlyMapper
-import com.joeloewi.croissant.domain.entity.relational.ResinStatusWidgetWithAccounts
 
 class ResinStatusWithAccountsMapper(
     private val resinStatusWidgetMapper: ResinStatusWidgetMapper,
     private val accountMapper: AccountMapper
-) : ReadOnlyMapper<ResinStatusWidgetWithAccounts, ResinStatusWidgetWithAccountsEntity> {
-    override fun toDomain(dataEntity: ResinStatusWidgetWithAccountsEntity): ResinStatusWidgetWithAccounts =
+) : ReadOnlyMapper<com.joeloewi.croissant.core.data.model.relational.ResinStatusWidgetWithAccounts, com.joeloewi.croissant.core.database.model.relational.ResinStatusWidgetWithAccountsEntity> {
+    override fun toDomain(dataEntity: com.joeloewi.croissant.core.database.model.relational.ResinStatusWidgetWithAccountsEntity): com.joeloewi.croissant.core.data.model.relational.ResinStatusWidgetWithAccounts =
         with(dataEntity) {
             ResinStatusWidgetWithAccounts(
                 resinStatusWidget = resinStatusWidgetMapper.toDomain(resinStatusWidgetEntity),

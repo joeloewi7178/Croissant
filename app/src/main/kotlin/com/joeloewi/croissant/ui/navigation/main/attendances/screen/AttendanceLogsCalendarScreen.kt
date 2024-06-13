@@ -56,8 +56,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import com.joeloewi.croissant.R
+import com.joeloewi.croissant.core.data.model.ResultCount
 import com.joeloewi.croissant.domain.common.LoggableWorker
-import com.joeloewi.croissant.domain.entity.ResultCount
 import com.joeloewi.croissant.state.ILCE
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
@@ -110,7 +110,7 @@ fun AttendanceLogsCalendarScreen(
 private fun AttendanceLogsCalendarContent(
     deleteAllState: () -> ILCE<Int>,
     startToEnd: () -> Pair<ZonedDateTime, ZonedDateTime>,
-    resultCounts: () -> ImmutableList<ResultCount>,
+    resultCounts: () -> ImmutableList<com.joeloewi.croissant.core.data.model.ResultCount>,
     onDeleteAll: () -> Unit,
     onNavigateUp: () -> Unit,
     onClickDay: (localDate: String) -> Unit
@@ -250,7 +250,7 @@ private fun AttendanceLogsCalendarContent(
 @Composable
 private fun MonthPage(
     yearMonth: () -> YearMonth,
-    resultCounts: () -> ImmutableList<ResultCount>,
+    resultCounts: () -> ImmutableList<com.joeloewi.croissant.core.data.model.ResultCount>,
     onClickDay: (localDate: String) -> Unit
 ) {
     val updatedOnDayClick by rememberUpdatedState(newValue = onClickDay)
@@ -301,7 +301,7 @@ private fun MonthPage(
 private fun DayGridItem(
     yearMonth: () -> YearMonth,
     day: Int,
-    resultCounts: () -> ImmutableList<ResultCount>,
+    resultCounts: () -> ImmutableList<com.joeloewi.croissant.core.data.model.ResultCount>,
     onClickDay: (localDate: String) -> Unit
 ) {
     val windowSizeClass = calculateWindowSizeClass(activity = LocalActivity.current)
@@ -325,7 +325,7 @@ private fun DayGridItem(
             }
             val logCount = resultCounts().find {
                 it.date == date.toString()
-            } ?: ResultCount(date = date.toString())
+            } ?: com.joeloewi.croissant.core.data.model.ResultCount(date = date.toString())
             val colorScheme = MaterialTheme.colorScheme
             val primaryColor = remember(colorScheme) {
                 colorScheme.primary

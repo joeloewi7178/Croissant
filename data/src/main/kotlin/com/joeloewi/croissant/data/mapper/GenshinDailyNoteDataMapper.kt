@@ -16,14 +16,14 @@
 
 package com.joeloewi.croissant.data.mapper
 
+import com.joeloewi.croissant.core.data.model.GenshinDailyNoteData
 import com.joeloewi.croissant.data.entity.remote.GenshinDailyNoteDataEntity
 import com.joeloewi.croissant.data.mapper.base.ReadOnlyMapper
-import com.joeloewi.croissant.domain.entity.GenshinDailyNoteData
 
 class GenshinDailyNoteDataMapper :
-    ReadOnlyMapper<GenshinDailyNoteData, GenshinDailyNoteDataEntity> {
-    override fun toDomain(dataEntity: GenshinDailyNoteDataEntity): GenshinDailyNoteData =
+    ReadOnlyMapper<com.joeloewi.croissant.core.data.model.GenshinDailyNoteData, GenshinDailyNoteDataEntity> {
+    override fun toDomain(dataEntity: GenshinDailyNoteDataEntity): com.joeloewi.croissant.core.data.model.GenshinDailyNoteData =
         with(dataEntity) {
-            GenshinDailyNoteData(currentResin, maxResin)
+            com.joeloewi.croissant.core.data.model.GenshinDailyNoteData(currentResin, maxResin)
         }
 }

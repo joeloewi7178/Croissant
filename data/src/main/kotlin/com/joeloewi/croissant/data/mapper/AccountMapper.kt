@@ -16,16 +16,23 @@
 
 package com.joeloewi.croissant.data.mapper
 
-import com.joeloewi.croissant.data.entity.local.AccountEntity
+import com.joeloewi.croissant.core.database.model.AccountEntity
 import com.joeloewi.croissant.data.mapper.base.Mapper
 import com.joeloewi.croissant.domain.entity.Account
 
-class AccountMapper : Mapper<Account, AccountEntity> {
-    override fun toData(domainEntity: Account): AccountEntity = with(domainEntity) {
-        AccountEntity(id, resinStatusWidgetId, cookie, uid)
-    }
+class AccountMapper : Mapper<Account, com.joeloewi.croissant.core.database.model.AccountEntity> {
+    override fun toData(domainEntity: Account): com.joeloewi.croissant.core.database.model.AccountEntity =
+        with(domainEntity) {
+            com.joeloewi.croissant.core.database.model.AccountEntity(
+                id,
+                resinStatusWidgetId,
+                cookie,
+                uid
+            )
+        }
 
-    override fun toDomain(dataEntity: AccountEntity): Account = with(dataEntity) {
-        Account(id, resinStatusWidgetId, cookie, uid)
-    }
+    override fun toDomain(dataEntity: com.joeloewi.croissant.core.database.model.AccountEntity): Account =
+        with(dataEntity) {
+            Account(id, resinStatusWidgetId, cookie, uid)
+        }
 }

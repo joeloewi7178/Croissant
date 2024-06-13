@@ -16,16 +16,25 @@
 
 package com.joeloewi.croissant.data.mapper
 
-import com.joeloewi.croissant.data.entity.local.SuccessLogEntity
+import com.joeloewi.croissant.core.database.model.SuccessLogEntity
 import com.joeloewi.croissant.data.mapper.base.Mapper
 import com.joeloewi.croissant.domain.entity.SuccessLog
 
-class SuccessLogMapper : Mapper<SuccessLog, SuccessLogEntity> {
-    override fun toData(domainEntity: SuccessLog): SuccessLogEntity = with(domainEntity) {
-        SuccessLogEntity(id, executionLogId, gameName, retCode, message)
-    }
+class SuccessLogMapper :
+    Mapper<SuccessLog, com.joeloewi.croissant.core.database.model.SuccessLogEntity> {
+    override fun toData(domainEntity: SuccessLog): com.joeloewi.croissant.core.database.model.SuccessLogEntity =
+        with(domainEntity) {
+            com.joeloewi.croissant.core.database.model.SuccessLogEntity(
+                id,
+                executionLogId,
+                gameName,
+                retCode,
+                message
+            )
+        }
 
-    override fun toDomain(dataEntity: SuccessLogEntity): SuccessLog = with(dataEntity) {
-        SuccessLog(id, executionLogId, gameName, retCode, message)
-    }
+    override fun toDomain(dataEntity: com.joeloewi.croissant.core.database.model.SuccessLogEntity): SuccessLog =
+        with(dataEntity) {
+            SuccessLog(id, executionLogId, gameName, retCode, message)
+        }
 }

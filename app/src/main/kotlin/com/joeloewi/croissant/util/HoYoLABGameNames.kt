@@ -2,7 +2,6 @@ package com.joeloewi.croissant.util
 
 import androidx.annotation.StringRes
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.domain.common.HoYoLABGame
 
 @StringRes
 fun HoYoLABGame.gameNameStringResId(): Int = when (this) {

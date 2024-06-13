@@ -37,8 +37,8 @@ import androidx.paging.compose.itemKey
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.joeloewi.croissant.R
+import com.joeloewi.croissant.core.data.model.relational.WorkerExecutionLogWithState
 import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
-import com.joeloewi.croissant.domain.entity.relational.WorkerExecutionLogWithState
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.HalfDp
 import com.joeloewi.croissant.ui.theme.IconDp
@@ -71,7 +71,7 @@ fun AttendanceLogsDayScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AttendanceLogsDayContent(
-    pagedAttendanceLogs: LazyPagingItems<WorkerExecutionLogWithState>,
+    pagedAttendanceLogs: LazyPagingItems<com.joeloewi.croissant.core.data.model.relational.WorkerExecutionLogWithState>,
     onNavigateUp: () -> Unit
 ) {
     val viewModelStoreOwner = LocalViewModelStoreOwner.current
@@ -115,7 +115,7 @@ private fun AttendanceLogsDayContent(
 
 @Composable
 private fun WorkerExecutionLogWithStateItem(
-    item: () -> WorkerExecutionLogWithState
+    item: () -> com.joeloewi.croissant.core.data.model.relational.WorkerExecutionLogWithState
 ) {
     val currentItem by rememberUpdatedState(newValue = item())
 

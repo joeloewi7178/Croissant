@@ -16,22 +16,23 @@
 
 package com.joeloewi.croissant.data.mapper
 
+import com.joeloewi.croissant.core.data.model.GameRecord
 import com.joeloewi.croissant.data.entity.remote.GameRecordEntity
 import com.joeloewi.croissant.data.mapper.base.ReadOnlyMapper
-import com.joeloewi.croissant.domain.entity.GameRecord
 
 class GameRecordMapper(
     private val dataSwitchMapper: DataSwitchMapper
-) : ReadOnlyMapper<GameRecord, GameRecordEntity> {
-    override fun toDomain(dataEntity: GameRecordEntity): GameRecord = with(dataEntity) {
-        GameRecord(
-            hasRole,
-            gameId,
-            gameRoleId,
-            nickname,
-            level,
-            regionName,
-            region,
-            dataSwitches.map { dataSwitchMapper.toDomain(it) })
-    }
+) : ReadOnlyMapper<com.joeloewi.croissant.core.data.model.GameRecord, GameRecordEntity> {
+    override fun toDomain(dataEntity: GameRecordEntity): com.joeloewi.croissant.core.data.model.GameRecord =
+        with(dataEntity) {
+            com.joeloewi.croissant.core.data.model.GameRecord(
+                hasRole,
+                gameId,
+                gameRoleId,
+                nickname,
+                level,
+                regionName,
+                region,
+                dataSwitches.map { dataSwitchMapper.toDomain(it) })
+        }
 }
