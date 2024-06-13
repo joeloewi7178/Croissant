@@ -16,8 +16,7 @@ dependencies {
     compileOnly(libs.firebase.crashlytics.gradlePlugin)
     compileOnly(libs.kotlin.gradlePlugin)
     compileOnly(libs.ksp.gradlePlugin)
-    compileOnly("org.jetbrains.compose:compose-gradle-plugin:1.6.10")
-    compileOnly("org.jetbrains.kotlin:compose-compiler-gradle-plugin:2.0.0")
+    compileOnly(libs.compose.compiler.gradlePlugin)
 }
 
 gradlePlugin {
