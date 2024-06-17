@@ -17,35 +17,36 @@
 package com.joeloewi.croissant.core.database
 
 import androidx.paging.PagingData
-import com.joeloewi.croissant.core.data.model.relational.WorkerExecutionLogWithState
-import com.joeloewi.croissant.domain.common.LoggableWorker
-import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
-import com.joeloewi.croissant.domain.entity.WorkerExecutionLog
+import com.joeloewi.croissant.core.database.model.DataLoggableWorker
+import com.joeloewi.croissant.core.database.model.DataWorkerExecutionLogState
+import com.joeloewi.croissant.core.database.model.WorkerExecutionLogEntity
+import com.joeloewi.croissant.core.database.model.relational.WorkerExecutionLogWithStateEntity
+import com.joeloewi.croissant.core.model.DataHoYoLABGame
 import kotlinx.coroutines.flow.Flow
 
 interface WorkerExecutionLogDataSource {
-    suspend fun insert(workerExecutionLog: WorkerExecutionLog): Long
-    suspend fun delete(vararg workerExecutionLogs: WorkerExecutionLog): Int
+    suspend fun insert(workerExecutionLog: WorkerExecutionLogEntity): Long
+    suspend fun delete(vararg workerExecutionLogs: WorkerExecutionLogEntity): Int
     suspend fun deleteAll(
         attendanceId: Long,
-        loggableWorker: LoggableWorker
+        loggableWorker: DataLoggableWorker
     ): Int
 
     fun getByDatePaged(
         attendanceId: Long,
-        loggableWorker: LoggableWorker,
+        loggableWorker: DataLoggableWorker,
         dateString: String
-    ): Flow<PagingData<com.joeloewi.croissant.core.data.model.relational.WorkerExecutionLogWithState>>
+    ): Flow<PagingData<WorkerExecutionLogWithStateEntity>>
 
     fun getCountByState(
         attendanceId: Long,
-        loggableWorker: LoggableWorker,
-        state: WorkerExecutionLogState
+        loggableWorker: DataLoggableWorker,
+        state: DataWorkerExecutionLogState
     ): Flow<Long>
 
     suspend fun hasExecutedAtLeastOnce(
         attendanceId: Long,
-        gameName: HoYoLABGame,
+        gameName: DataHoYoLABGame,
         timestamp: Long
     ): Boolean
 }

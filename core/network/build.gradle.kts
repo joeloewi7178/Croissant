@@ -6,6 +6,10 @@ plugins {
 android {
     namespace = "com.joeloewi.croissant.core.network"
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -13,7 +17,9 @@ android {
 
 dependencies {
     api(projects.core.model)
+    api(projects.core.common)
 
+    implementation(libs.moshi.adapters)
     ksp(libs.moshi.kotlin.codegen.get())
 
     implementation(platform(libs.retrofit.bom))
@@ -30,4 +36,7 @@ dependencies {
 
     //html parsing
     implementation(libs.jsoup)
+
+    androidTestImplementation(libs.androidx.test.ext.junit.ktx)
+    testImplementation(libs.junit)
 }

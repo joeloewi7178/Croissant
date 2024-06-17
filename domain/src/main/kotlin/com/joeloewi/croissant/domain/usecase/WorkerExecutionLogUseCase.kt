@@ -16,10 +16,11 @@
 
 package com.joeloewi.croissant.domain.usecase
 
-import com.joeloewi.croissant.domain.common.LoggableWorker
-import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
-import com.joeloewi.croissant.domain.entity.WorkerExecutionLog
-import com.joeloewi.croissant.domain.repository.WorkerExecutionLogRepository
+import com.joeloewi.croissant.core.data.model.HoYoLABGame
+import com.joeloewi.croissant.core.data.model.LoggableWorker
+import com.joeloewi.croissant.core.data.model.WorkerExecutionLog
+import com.joeloewi.croissant.core.data.model.WorkerExecutionLogState
+import com.joeloewi.croissant.core.data.repository.WorkerExecutionLogRepository
 import javax.inject.Inject
 
 sealed class WorkerExecutionLogUseCase {

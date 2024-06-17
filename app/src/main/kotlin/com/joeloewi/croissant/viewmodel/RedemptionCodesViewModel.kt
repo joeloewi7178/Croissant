@@ -5,6 +5,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.core.text.HtmlCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.joeloewi.croissant.core.data.model.HoYoLABGame
 import com.joeloewi.croissant.domain.usecase.ArcaLiveAppUseCase
 import com.joeloewi.croissant.state.LCE
 import com.joeloewi.croissant.state.foldAsLce

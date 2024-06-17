@@ -17,30 +17,37 @@
 package com.joeloewi.croissant.core.data.repository
 
 import com.joeloewi.croissant.core.data.model.ResinStatusWidget
+import com.joeloewi.croissant.core.data.model.asData
+import com.joeloewi.croissant.core.data.model.asExternalData
 import com.joeloewi.croissant.core.data.model.relational.ResinStatusWidgetWithAccounts
+import com.joeloewi.croissant.core.data.model.relational.asExternalData
 import com.joeloewi.croissant.core.database.ResinStatusWidgetDataSource
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class ResinStatusWidgetRepositoryImpl @Inject constructor(
     private val resinStatusWidgetDataSource: ResinStatusWidgetDataSource
 ) : ResinStatusWidgetRepository {
-    override suspend fun getAll(): List<ResinStatusWidget> = resinStatusWidgetDataSource.getAll()
+    override suspend fun getAll(): List<ResinStatusWidget> = withContext(Dispatchers.IO) {
+        resinStatusWidgetDataSource.getAll().map { it.asExternalData() }
+    }
 
     override suspend fun insert(resinStatusWidget: ResinStatusWidget): Long =
-        resinStatusWidgetDataSource.insert(resinStatusWidget)
+        resinStatusWidgetDataSource.insert(resinStatusWidget.asData())
 
     override suspend fun delete(vararg resinStatusWidgets: ResinStatusWidget): Int =
-        resinStatusWidgetDataSource.delete(*resinStatusWidgets)
+        resinStatusWidgetDataSource.delete(*resinStatusWidgets.map { it.asData() }.toTypedArray())
 
     override suspend fun update(resinStatusWidget: ResinStatusWidget): Int =
-        resinStatusWidgetDataSource.update(resinStatusWidget)
+        resinStatusWidgetDataSource.update(resinStatusWidget.asData())
 
     override suspend fun getOne(id: Long): ResinStatusWidgetWithAccounts =
-        resinStatusWidgetDataSource.getOne(id)
+        resinStatusWidgetDataSource.getOne(id).asExternalData()
 
     override suspend fun deleteByAppWidgetId(vararg appWidgetIds: Int): Int =
         resinStatusWidgetDataSource.deleteByAppWidgetId(*appWidgetIds)
 
     override suspend fun getOneByAppWidgetId(appWidgetId: Int): ResinStatusWidgetWithAccounts =
-        resinStatusWidgetDataSource.getOneByAppWidgetId(appWidgetId)
+        resinStatusWidgetDataSource.getOneByAppWidgetId(appWidgetId).asExternalData()
 }

@@ -1,20 +1,21 @@
 package com.joeloewi.croissant.core.database
 
 import androidx.sqlite.db.SimpleSQLiteQuery
-import com.joeloewi.croissant.core.data.model.ResultRange
-import com.joeloewi.croissant.domain.common.LoggableWorker
+import com.joeloewi.croissant.core.database.dao.ResultRangeDao
+import com.joeloewi.croissant.core.database.model.DataLoggableWorker
+import com.joeloewi.croissant.core.database.model.ResultRangeEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 class ResultRangeDataSourceImpl @Inject constructor(
-    private val resultRangeDao: com.joeloewi.croissant.core.database.dao.ResultRangeDao
-) : com.joeloewi.croissant.core.database.ResultRangeDataSource {
+    private val resultRangeDao: ResultRangeDao
+) : ResultRangeDataSource {
     override fun getStartToEnd(
         attendanceId: Long,
-        loggableWorker: LoggableWorker
-    ): Flow<com.joeloewi.croissant.core.data.model.ResultRange> {
+        loggableWorker: DataLoggableWorker
+    ): Flow<ResultRangeEntity> {
         val query = """
             SELECT
                 MIN(
@@ -42,7 +43,7 @@ class ResultRangeDataSourceImpl @Inject constructor(
         return resultRangeDao.getStartToEnd(
             SimpleSQLiteQuery(
                 query,
-                arrayOf<com.joeloewi.croissant.core.data.model.ResultRange>()
+                arrayOf()
             )
         ).flowOn(Dispatchers.IO)
     }

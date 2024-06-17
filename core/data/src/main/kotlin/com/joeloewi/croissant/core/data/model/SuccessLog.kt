@@ -16,6 +16,8 @@
 
 package com.joeloewi.croissant.core.data.model
 
+import com.joeloewi.croissant.core.database.model.SuccessLogEntity
+
 data class SuccessLog(
     val id: Long = 0,
     val executionLogId: Long = 0,
@@ -23,3 +25,11 @@ data class SuccessLog(
     val retCode: Int = 0,
     val message: String = ""
 )
+
+fun SuccessLogEntity.asExternalData(): SuccessLog = with(this) {
+    SuccessLog(id, executionLogId, gameName.asExternalData(), retCode, message)
+}
+
+fun SuccessLog.asData(): SuccessLogEntity = with(this) {
+    SuccessLogEntity(id, executionLogId, gameName.asData(), retCode, message)
+}

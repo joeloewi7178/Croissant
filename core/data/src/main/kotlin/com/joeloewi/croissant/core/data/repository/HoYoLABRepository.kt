@@ -16,18 +16,18 @@
 
 package com.joeloewi.croissant.core.data.repository
 
-import com.joeloewi.croissant.core.data.model.BaseResponse
-import com.joeloewi.croissant.core.data.model.GameRecordCardData
+import com.joeloewi.croissant.core.data.model.GameRecord
 import com.joeloewi.croissant.core.data.model.GenshinDailyNoteData
-import com.joeloewi.croissant.core.data.model.UserFullInfo
+import com.joeloewi.croissant.core.data.model.UserInfo
+import com.joeloewi.croissant.core.model.BaseResponse
 
 interface HoYoLABRepository {
-    suspend fun getUserFullInfo(cookie: String): Result<UserFullInfo>
+    suspend fun getUserFullInfo(cookie: String): Result<UserInfo>
 
     suspend fun getGameRecordCard(
         cookie: String,
         uid: Long
-    ): Result<GameRecordCardData?>
+    ): Result<List<GameRecord>?>
 
     suspend fun getGenshinDailyNote(
         cookie: String,

@@ -9,9 +9,9 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.WorkManager
 import com.google.firebase.Firebase
 import com.google.firebase.analytics.analytics
-import com.joeloewi.croissant.domain.common.LoggableWorker
-import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
-import com.joeloewi.croissant.domain.entity.Game
+import com.joeloewi.croissant.core.data.model.Game
+import com.joeloewi.croissant.core.data.model.LoggableWorker
+import com.joeloewi.croissant.core.data.model.WorkerExecutionLogState
 import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
 import com.joeloewi.croissant.domain.usecase.GameUseCase
 import com.joeloewi.croissant.domain.usecase.WorkerExecutionLogUseCase

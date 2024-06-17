@@ -16,10 +16,19 @@
 
 package com.joeloewi.croissant.core.data.model.relational
 
-import com.joeloewi.croissant.domain.entity.Attendance
-import com.joeloewi.croissant.domain.entity.Game
+import com.joeloewi.croissant.core.data.model.Attendance
+import com.joeloewi.croissant.core.data.model.Game
+import com.joeloewi.croissant.core.data.model.asExternalData
+import com.joeloewi.croissant.core.database.model.relational.AttendanceWithGamesEntity
 
 data class AttendanceWithGames(
     val attendance: Attendance = Attendance(),
     val games: List<Game> = listOf()
 )
+
+fun AttendanceWithGamesEntity.asExternalData() = with(this) {
+    AttendanceWithGames(
+        attendance = attendanceEntity.asExternalData(),
+        games = gameEntities.map { it.asExternalData() }
+    )
+}

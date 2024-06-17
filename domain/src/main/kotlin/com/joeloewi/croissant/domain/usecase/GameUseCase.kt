@@ -16,8 +16,8 @@
 
 package com.joeloewi.croissant.domain.usecase
 
-import com.joeloewi.croissant.domain.entity.Game
-import com.joeloewi.croissant.domain.repository.GameRepository
+import com.joeloewi.croissant.core.data.model.Game
+import com.joeloewi.croissant.core.data.repository.GameRepository
 import javax.inject.Inject
 
 sealed class GameUseCase {

@@ -4,6 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
+import com.joeloewi.croissant.core.model.DataHoYoLABGame
 
 @Entity(
     foreignKeys = [
@@ -21,6 +22,6 @@ data class GameEntity(
     @ColumnInfo(index = true)
     val attendanceId: Long = 0,
     val roleId: Long = 0,
-    val type: HoYoLABGame = HoYoLABGame.Unknown,
+    val type: DataHoYoLABGame = DataHoYoLABGame.Unknown,
     val region: String = ""
 )

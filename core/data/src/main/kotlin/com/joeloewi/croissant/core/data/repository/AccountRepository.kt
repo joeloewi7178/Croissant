@@ -16,7 +16,7 @@
 
 package com.joeloewi.croissant.core.data.repository
 
-import android.accounts.Account
+import com.joeloewi.croissant.core.data.model.Account
 
 
 interface AccountRepository {

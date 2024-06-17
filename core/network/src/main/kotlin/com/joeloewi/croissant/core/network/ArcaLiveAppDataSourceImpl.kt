@@ -16,9 +16,9 @@
 
 package com.joeloewi.croissant.core.network
 
+import com.joeloewi.croissant.core.model.DataHoYoLABGame
 import com.joeloewi.croissant.core.network.dao.ArcaLiveAppService
-import com.joeloewi.croissant.domain.common.HoYoLABGame
-import com.skydoves.sandwich.ApiResponse
+import com.skydoves.sandwich.getOrThrow
 import com.skydoves.sandwich.mapSuccess
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -30,50 +30,52 @@ class ArcaLiveAppDataSourceImpl @Inject constructor(
 ) : ArcaLiveAppDataSource {
 
     override suspend fun getRedeemCode(
-        game: HoYoLABGame
-    ): ApiResponse<String> = withContext(Dispatchers.IO) {
-        when (game) {
-            HoYoLABGame.HonkaiImpact3rd -> {
-                arcaLiveAppService.getArticle(
-                    slug = "hk3rd",
-                    articleId = 85815048
-                ).mapSuccess {
-                    Jsoup.parse(content).apply {
-                        select("*:has(> img)").remove()
-                        repeat(5) {
-                            select("body > p:last-child").remove()
-                        }
-                    }.html()
+        game: DataHoYoLABGame
+    ): Result<String> = withContext(Dispatchers.IO) {
+        runCatching {
+            when (game) {
+                DataHoYoLABGame.HonkaiImpact3rd -> {
+                    arcaLiveAppService.getArticle(
+                        slug = "hk3rd",
+                        articleId = 85815048
+                    ).mapSuccess {
+                        Jsoup.parse(content).apply {
+                            select("*:has(> img)").remove()
+                            repeat(5) {
+                                select("body > p:last-child").remove()
+                            }
+                        }.html()
+                    }
                 }
-            }
 
-            HoYoLABGame.GenshinImpact -> {
-                arcaLiveAppService.getArticle(
-                    slug = "genshin",
-                    articleId = 95519559
-                ).mapSuccess {
-                    Jsoup.parse(content).apply {
-                        select("img").remove()
-                    }.select("table:first-of-type").apply {
-                        select("tr:last-child").remove()
-                    }.html().replace("https://oo.pe/", "")
+                DataHoYoLABGame.GenshinImpact -> {
+                    arcaLiveAppService.getArticle(
+                        slug = "genshin",
+                        articleId = 95519559
+                    ).mapSuccess {
+                        Jsoup.parse(content).apply {
+                            select("img").remove()
+                        }.select("table:first-of-type").apply {
+                            select("tr:last-child").remove()
+                        }.html().replace("https://oo.pe/", "")
+                    }
                 }
-            }
 
-            HoYoLABGame.HonkaiStarRail -> {
-                arcaLiveAppService.getArticle(
-                    slug = "hkstarrail",
-                    articleId = 72618649
-                ).mapSuccess {
-                    Jsoup.parse(content)
-                        .apply { select("img").remove() }
-                        .select("td:first-of-type")
-                        .html()
-                        .replace("https://oo.pe/", "")
+                DataHoYoLABGame.HonkaiStarRail -> {
+                    arcaLiveAppService.getArticle(
+                        slug = "hkstarrail",
+                        articleId = 72618649
+                    ).mapSuccess {
+                        Jsoup.parse(content)
+                            .apply { select("img").remove() }
+                            .select("td:first-of-type")
+                            .html()
+                            .replace("https://oo.pe/", "")
+                    }
                 }
-            }
 
-            HoYoLABGame.TearsOfThemis, HoYoLABGame.Unknown -> throw IllegalStateException()
+                DataHoYoLABGame.TearsOfThemis, DataHoYoLABGame.Unknown -> throw IllegalStateException()
+            }.getOrThrow()
         }
     }
 }

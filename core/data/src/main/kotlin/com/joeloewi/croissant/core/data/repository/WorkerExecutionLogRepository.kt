@@ -17,10 +17,11 @@
 package com.joeloewi.croissant.core.data.repository
 
 import androidx.paging.PagingData
+import com.joeloewi.croissant.core.data.model.HoYoLABGame
+import com.joeloewi.croissant.core.data.model.LoggableWorker
 import com.joeloewi.croissant.core.data.model.WorkerExecutionLog
+import com.joeloewi.croissant.core.data.model.WorkerExecutionLogState
 import com.joeloewi.croissant.core.data.model.relational.WorkerExecutionLogWithState
-import com.joeloewi.croissant.domain.common.LoggableWorker
-import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
 import kotlinx.coroutines.flow.Flow
 
 interface WorkerExecutionLogRepository {

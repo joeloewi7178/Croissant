@@ -59,9 +59,10 @@ import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.joeloewi.croissant.R
+import com.joeloewi.croissant.core.data.model.Attendance
+import com.joeloewi.croissant.core.data.model.Game
 import com.joeloewi.croissant.core.data.model.GameRecord
-import com.joeloewi.croissant.domain.entity.Attendance
-import com.joeloewi.croissant.domain.entity.Game
+import com.joeloewi.croissant.core.data.model.HoYoLABGame
 import com.joeloewi.croissant.state.LCE
 import com.joeloewi.croissant.state.StableWrapper
 import com.joeloewi.croissant.ui.theme.DefaultDp
@@ -77,7 +78,7 @@ import kotlinx.coroutines.flow.catch
 @Composable
 fun SelectGames(
     modifier: Modifier = Modifier,
-    connectedGames: () -> LCE<List<com.joeloewi.croissant.core.data.model.GameRecord>>,
+    connectedGames: () -> LCE<List<GameRecord>>,
     duplicatedAttendance: () -> Attendance?,
     checkedGames: () -> SnapshotStateList<Game>,
     onNextButtonClick: () -> Unit,
@@ -235,7 +236,7 @@ fun SelectGames(
                                 hoYoLABGame = item,
                                 gameRecord = {
                                     StableWrapper(connectedGames().content?.find { it.gameId == item.gameId }
-                                        ?: com.joeloewi.croissant.core.data.model.GameRecord())
+                                        ?: GameRecord())
                                 }
                             )
                         }

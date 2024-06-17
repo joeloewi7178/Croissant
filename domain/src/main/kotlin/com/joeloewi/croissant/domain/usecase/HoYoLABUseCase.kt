@@ -16,7 +16,7 @@
 
 package com.joeloewi.croissant.domain.usecase
 
-import com.joeloewi.croissant.domain.repository.HoYoLABRepository
+import com.joeloewi.croissant.core.data.repository.HoYoLABRepository
 import javax.inject.Inject
 
 sealed class HoYoLABUseCase {

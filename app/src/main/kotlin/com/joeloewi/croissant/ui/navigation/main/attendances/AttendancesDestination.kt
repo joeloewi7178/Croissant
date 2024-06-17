@@ -6,7 +6,7 @@ import androidx.compose.runtime.Immutable
 import androidx.navigation.NavArgumentBuilder
 import androidx.navigation.NavType
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.domain.common.LoggableWorker
+import com.joeloewi.croissant.core.data.model.LoggableWorker
 
 @Immutable
 sealed class AttendancesDestination {

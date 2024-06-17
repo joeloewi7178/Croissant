@@ -1,5 +1,6 @@
 package com.joeloewi.croissant.core.data.model
 
+import com.joeloewi.croissant.core.database.model.ResinStatusWidgetEntity
 import java.util.UUID
 
 data class ResinStatusWidget(
@@ -8,3 +9,11 @@ data class ResinStatusWidget(
     val interval: Long = 0,
     val refreshGenshinResinStatusWorkerName: UUID = UUID.randomUUID()
 )
+
+fun ResinStatusWidgetEntity.asExternalData(): ResinStatusWidget = with(this) {
+    ResinStatusWidget(id, appWidgetId, interval, refreshGenshinResinStatusWorkerName)
+}
+
+fun ResinStatusWidget.asData(): ResinStatusWidgetEntity = with(this) {
+    ResinStatusWidgetEntity(id, appWidgetId, interval, refreshGenshinResinStatusWorkerName)
+}

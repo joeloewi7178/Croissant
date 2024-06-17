@@ -16,10 +16,11 @@
 
 package com.joeloewi.croissant.core.database
 
-import com.joeloewi.croissant.domain.entity.Game
+import com.joeloewi.croissant.core.database.model.GameEntity
+
 
 interface GameDataSource {
-    suspend fun insert(vararg games: Game): List<Long>
-    suspend fun update(vararg games: Game): Int
-    suspend fun delete(vararg games: Game): Int
+    suspend fun insert(vararg games: GameEntity): List<Long>
+    suspend fun update(vararg games: GameEntity): Int
+    suspend fun delete(vararg games: GameEntity): Int
 }

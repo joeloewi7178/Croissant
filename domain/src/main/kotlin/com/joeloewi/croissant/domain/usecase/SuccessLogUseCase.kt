@@ -16,8 +16,8 @@
 
 package com.joeloewi.croissant.domain.usecase
 
-import com.joeloewi.croissant.domain.entity.SuccessLog
-import com.joeloewi.croissant.domain.repository.SuccessLogRepository
+import com.joeloewi.croissant.core.data.model.SuccessLog
+import com.joeloewi.croissant.core.data.repository.SuccessLogRepository
 import javax.inject.Inject
 
 sealed class SuccessLogUseCase {

@@ -17,12 +17,15 @@
 package com.joeloewi.croissant.core.data.repository
 
 import com.joeloewi.croissant.core.data.model.HoYoLABGame
+import com.joeloewi.croissant.core.data.model.asData
+import com.joeloewi.croissant.core.network.ArcaLiveAppDataSource
 import javax.inject.Inject
 
 class ArcaLiveAppRepositoryImpl @Inject constructor(
-    private val arcaLiveAppDataSource: com.joeloewi.croissant.core.network.ArcaLiveAppDataSource
+    private val arcaLiveAppDataSource: ArcaLiveAppDataSource
 ) : ArcaLiveAppRepository {
+
     override suspend fun getRedeemCode(
         game: HoYoLABGame
-    ): Result<String> = arcaLiveAppDataSource.runCatching { getRedeemCode(game).getOrThrow() }
+    ): Result<String> = arcaLiveAppDataSource.getRedeemCode(game.asData())
 }

@@ -33,4 +33,7 @@ protobuf {
 
 dependencies {
     api(libs.protobuf.kotlin.lite)
+
+    androidTestImplementation(libs.androidx.test.ext.junit.ktx)
+    testImplementation(libs.junit)
 }

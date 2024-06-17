@@ -16,18 +16,17 @@
 
 package com.joeloewi.croissant.core.database
 
-import com.joeloewi.croissant.data.mapper.FailureLogMapper
-import com.joeloewi.croissant.domain.entity.FailureLog
+import com.joeloewi.croissant.core.database.dao.FailureLogDao
+import com.joeloewi.croissant.core.database.model.FailureLogEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class FailureLogDataSourceImpl @Inject constructor(
-    private val failureLogDao: com.joeloewi.croissant.core.database.dao.FailureLogDao,
-    private val failureLogMapper: FailureLogMapper
-) : com.joeloewi.croissant.core.database.FailureLogDataSource {
+    private val failureLogDao: FailureLogDao
+) : FailureLogDataSource {
 
-    override suspend fun insert(failureLog: FailureLog): Long = withContext(Dispatchers.IO) {
-        failureLogDao.insert(failureLogMapper.toData(failureLog))
+    override suspend fun insert(failureLog: FailureLogEntity): Long = withContext(Dispatchers.IO) {
+        failureLogDao.insert(failureLog)
     }
 }

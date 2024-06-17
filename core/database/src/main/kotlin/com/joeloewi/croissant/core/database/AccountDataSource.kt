@@ -16,8 +16,8 @@
 
 package com.joeloewi.croissant.core.database
 
-import com.joeloewi.croissant.domain.entity.Account
+import com.joeloewi.croissant.core.database.model.AccountEntity
 
 interface AccountDataSource {
-    suspend fun insert(vararg accounts: Account): List<Long>
+    suspend fun insert(vararg accounts: AccountEntity): List<Long>
 }

@@ -16,8 +16,8 @@
 
 package com.joeloewi.croissant.core.network.model.response
 
+import com.joeloewi.croissant.core.model.BaseResponse
 import com.joeloewi.croissant.core.model.GameRecordCardDataEntity
-import com.joeloewi.croissant.core.network.model.response.base.BaseResponse
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 

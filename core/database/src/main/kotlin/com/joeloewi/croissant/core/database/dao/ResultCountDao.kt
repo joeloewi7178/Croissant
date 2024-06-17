@@ -3,7 +3,7 @@ package com.joeloewi.croissant.core.database.dao
 import androidx.room.Dao
 import androidx.room.RawQuery
 import androidx.sqlite.db.SupportSQLiteQuery
-import com.joeloewi.croissant.core.data.model.ResultCount
+import com.joeloewi.croissant.core.database.model.ResultCountEntity
 import com.joeloewi.croissant.core.database.model.WorkerExecutionLogEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -17,5 +17,5 @@ interface ResultCountDao {
     )
     fun getAll(
         query: SupportSQLiteQuery
-    ): Flow<List<com.joeloewi.croissant.core.data.model.ResultCount>>
+    ): Flow<List<ResultCountEntity>>
 }

@@ -16,8 +16,8 @@
 
 package com.joeloewi.croissant.domain.usecase
 
-import com.joeloewi.croissant.domain.entity.FailureLog
-import com.joeloewi.croissant.domain.repository.FailureLogRepository
+import com.joeloewi.croissant.core.data.model.FailureLog
+import com.joeloewi.croissant.core.data.repository.FailureLogRepository
 import javax.inject.Inject
 
 sealed class FailureLogUseCase {

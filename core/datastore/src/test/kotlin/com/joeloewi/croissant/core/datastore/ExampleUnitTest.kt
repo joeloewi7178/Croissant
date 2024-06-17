@@ -1,6 +1,6 @@
 package com.joeloewi.croissant.core.datastore
 
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**

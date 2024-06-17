@@ -68,7 +68,9 @@ baselineProfile {
 }
 
 dependencies {
-    implementation(projects.data)
+    implementation(projects.core.data)
+    implementation(projects.core.common)
+    implementation(projects.core.model)
     implementation(projects.domain)
     baselineProfile(projects.baselineprofile)
 

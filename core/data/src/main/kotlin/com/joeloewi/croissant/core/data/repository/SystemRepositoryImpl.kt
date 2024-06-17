@@ -1,6 +1,6 @@
 package com.joeloewi.croissant.core.data.repository
 
-import com.joeloewi.croissant.data.repository.system.SystemDataSource
+import com.joeloewi.croissant.core.system.SystemDataSource
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 

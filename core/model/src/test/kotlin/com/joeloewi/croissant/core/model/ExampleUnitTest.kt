@@ -1,6 +1,6 @@
 package com.joeloewi.croissant.core.model
 
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**

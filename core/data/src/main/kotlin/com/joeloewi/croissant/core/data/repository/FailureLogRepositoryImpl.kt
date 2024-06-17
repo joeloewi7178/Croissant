@@ -17,6 +17,7 @@
 package com.joeloewi.croissant.core.data.repository
 
 import com.joeloewi.croissant.core.data.model.FailureLog
+import com.joeloewi.croissant.core.data.model.asData
 import com.joeloewi.croissant.core.database.FailureLogDataSource
 import javax.inject.Inject
 
@@ -24,5 +25,5 @@ class FailureLogRepositoryImpl @Inject constructor(
     private val failureLogDataSource: FailureLogDataSource
 ) : FailureLogRepository {
     override suspend fun insert(failureLog: FailureLog): Long =
-        failureLogDataSource.insert(failureLog)
+        failureLogDataSource.insert(failureLog.asData())
 }

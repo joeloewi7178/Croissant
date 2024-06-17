@@ -20,8 +20,6 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
-import com.joeloewi.croissant.domain.common.LoggableWorker
-import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
 import java.util.TimeZone
 
 @Entity(
@@ -42,7 +40,7 @@ data class WorkerExecutionLogEntity(
     val createdAt: Long = System.currentTimeMillis(),
     val timezoneId: String = TimeZone.getDefault().id,
     @ColumnInfo(index = true)
-    val state: WorkerExecutionLogState = WorkerExecutionLogState.SUCCESS,
+    val state: DataWorkerExecutionLogState = DataWorkerExecutionLogState.SUCCESS,
     @ColumnInfo(index = true)
-    val loggableWorker: LoggableWorker = LoggableWorker.UNKNOWN,
+    val loggableWorker: DataLoggableWorker = DataLoggableWorker.UNKNOWN,
 )

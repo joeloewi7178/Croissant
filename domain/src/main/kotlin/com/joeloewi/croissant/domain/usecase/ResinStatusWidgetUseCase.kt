@@ -16,8 +16,8 @@
 
 package com.joeloewi.croissant.domain.usecase
 
-import com.joeloewi.croissant.domain.entity.ResinStatusWidget
-import com.joeloewi.croissant.domain.repository.ResinStatusWidgetRepository
+import com.joeloewi.croissant.core.data.model.ResinStatusWidget
+import com.joeloewi.croissant.core.data.repository.ResinStatusWidgetRepository
 import javax.inject.Inject
 
 sealed class ResinStatusWidgetUseCase {

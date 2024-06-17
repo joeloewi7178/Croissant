@@ -17,33 +17,53 @@
 package com.joeloewi.croissant.core.data.repository
 
 import androidx.paging.PagingData
+import androidx.paging.map
 import com.joeloewi.croissant.core.data.model.Attendance
+import com.joeloewi.croissant.core.data.model.asData
+import com.joeloewi.croissant.core.data.model.asExternalData
 import com.joeloewi.croissant.core.data.model.relational.AttendanceWithGames
+import com.joeloewi.croissant.core.data.model.relational.asExternalData
 import com.joeloewi.croissant.core.database.AttendanceDataSource
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class AttendanceRepositoryImpl @Inject constructor(
     private val attendanceDataSource: AttendanceDataSource,
 ) : AttendanceRepository {
-    override suspend fun insert(attendance: Attendance): Long =
-        attendanceDataSource.insert(attendance)
+    override suspend fun insert(attendance: Attendance): Long = withContext(Dispatchers.IO) {
+        attendanceDataSource.insert(attendance.asData())
+    }
 
-    override suspend fun update(vararg attendances: Attendance): Int =
-        attendanceDataSource.update(*attendances)
+    override suspend fun update(vararg attendances: Attendance): Int = withContext(Dispatchers.IO) {
+        attendanceDataSource.update(*attendances.map { it.asData() }.toTypedArray())
+    }
 
-    override suspend fun delete(vararg attendances: Attendance): Int =
-        attendanceDataSource.delete(*attendances)
+    override suspend fun delete(vararg attendances: Attendance): Int = withContext(Dispatchers.IO) {
+        attendanceDataSource.delete(*attendances.map { it.asData() }.toTypedArray())
+    }
 
-    override suspend fun getOneByUid(uid: Long): Attendance = attendanceDataSource.getOneByUid(uid)
+    override suspend fun getOneByUid(uid: Long): Attendance = withContext(Dispatchers.IO) {
+        attendanceDataSource.getOneByUid(uid).asExternalData()
+    }
 
-    override suspend fun getOne(id: Long): AttendanceWithGames = attendanceDataSource.getOne(id)
+    override suspend fun getOne(id: Long): AttendanceWithGames = withContext(Dispatchers.IO) {
+        attendanceDataSource.getOne(id).asExternalData()
+    }
 
     override suspend fun getByIds(vararg ids: Long): List<AttendanceWithGames> =
-        attendanceDataSource.getByIds(*ids)
+        withContext(Dispatchers.IO) {
+            attendanceDataSource.getByIds(*ids).map { it.asExternalData() }
+        }
 
     override fun getAllPaged(): Flow<PagingData<AttendanceWithGames>> =
         attendanceDataSource.getAllPaged()
+            .map { pagingData -> pagingData.map { it.asExternalData() } }.flowOn(Dispatchers.IO)
 
-    override suspend fun getAllOneShot(): List<Attendance> = attendanceDataSource.getAllOneShot()
+    override suspend fun getAllOneShot(): List<Attendance> = withContext(Dispatchers.IO) {
+        attendanceDataSource.getAllOneShot().map { it.asExternalData() }
+    }
 }

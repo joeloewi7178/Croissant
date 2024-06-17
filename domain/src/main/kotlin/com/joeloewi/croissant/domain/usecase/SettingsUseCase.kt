@@ -16,7 +16,7 @@
 
 package com.joeloewi.croissant.domain.usecase
 
-import com.joeloewi.croissant.domain.repository.SettingsRepository
+import com.joeloewi.croissant.core.data.repository.SettingsRepository
 import javax.inject.Inject
 
 sealed class SettingsUseCase {

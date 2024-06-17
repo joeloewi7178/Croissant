@@ -1,6 +1,6 @@
 package com.joeloewi.croissant.domain.usecase
 
-import com.joeloewi.croissant.domain.repository.SystemRepository
+import com.joeloewi.croissant.core.data.repository.SystemRepository
 import javax.inject.Inject
 
 sealed class SystemUseCase {

@@ -15,13 +15,14 @@ import com.google.firebase.Firebase
 import com.google.firebase.analytics.analytics
 import com.google.firebase.crashlytics.crashlytics
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.domain.common.HoYoLABRetCode
-import com.joeloewi.croissant.domain.common.LoggableWorker
-import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
-import com.joeloewi.croissant.domain.common.exception.HoYoLABUnsuccessfulResponseException
-import com.joeloewi.croissant.domain.entity.FailureLog
-import com.joeloewi.croissant.domain.entity.SuccessLog
-import com.joeloewi.croissant.domain.entity.WorkerExecutionLog
+import com.joeloewi.croissant.core.data.model.FailureLog
+import com.joeloewi.croissant.core.data.model.HoYoLABGame
+import com.joeloewi.croissant.core.data.model.HoYoLABRetCode
+import com.joeloewi.croissant.core.data.model.LoggableWorker
+import com.joeloewi.croissant.core.data.model.SuccessLog
+import com.joeloewi.croissant.core.data.model.WorkerExecutionLog
+import com.joeloewi.croissant.core.data.model.WorkerExecutionLogState
+import com.joeloewi.croissant.core.data.model.exception.HoYoLABUnsuccessfulResponseException
 import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
 import com.joeloewi.croissant.domain.usecase.CheckInUseCase
 import com.joeloewi.croissant.domain.usecase.FailureLogUseCase
@@ -259,9 +260,9 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                                         }
 
                                         if (retCode !in listOf(
-                                                HoYoLABRetCode.AlreadyCheckedIn,
-                                                HoYoLABRetCode.CharacterNotExists,
-                                                HoYoLABRetCode.LoginFailed
+                                                com.joeloewi.croissant.core.data.model.HoYoLABRetCode.AlreadyCheckedIn,
+                                                com.joeloewi.croissant.core.data.model.HoYoLABRetCode.CharacterNotExists,
+                                                com.joeloewi.croissant.core.data.model.HoYoLABRetCode.LoginFailed
                                             )
                                         ) {
                                             //we don't know which error was occurred

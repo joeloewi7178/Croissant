@@ -16,7 +16,8 @@
 
 package com.joeloewi.croissant.core.data.repository
 
-import com.joeloewi.croissant.core.data.model.BaseResponse
+import com.joeloewi.croissant.core.data.model.exception.throwIfNotOk
+import com.joeloewi.croissant.core.model.BaseResponse
 import com.joeloewi.croissant.core.network.CheckInDataSource
 import javax.inject.Inject
 

@@ -28,13 +28,13 @@ import com.joeloewi.croissant.core.database.dao.ResultCountDao
 import com.joeloewi.croissant.core.database.dao.ResultRangeDao
 import com.joeloewi.croissant.core.database.dao.SuccessLogDao
 import com.joeloewi.croissant.core.database.dao.WorkerExecutionLogDao
-import com.joeloewi.croissant.data.entity.local.AccountEntity
-import com.joeloewi.croissant.data.entity.local.AttendanceEntity
-import com.joeloewi.croissant.data.entity.local.FailureLogEntity
-import com.joeloewi.croissant.data.entity.local.GameEntity
-import com.joeloewi.croissant.data.entity.local.ResinStatusWidgetEntity
-import com.joeloewi.croissant.data.entity.local.SuccessLogEntity
-import com.joeloewi.croissant.data.entity.local.WorkerExecutionLogEntity
+import com.joeloewi.croissant.core.database.model.AccountEntity
+import com.joeloewi.croissant.core.database.model.AttendanceEntity
+import com.joeloewi.croissant.core.database.model.FailureLogEntity
+import com.joeloewi.croissant.core.database.model.GameEntity
+import com.joeloewi.croissant.core.database.model.ResinStatusWidgetEntity
+import com.joeloewi.croissant.core.database.model.SuccessLogEntity
+import com.joeloewi.croissant.core.database.model.WorkerExecutionLogEntity
 
 @Database(
     entities = [

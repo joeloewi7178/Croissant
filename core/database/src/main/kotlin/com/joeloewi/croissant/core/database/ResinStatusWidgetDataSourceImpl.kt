@@ -16,44 +16,40 @@
 
 package com.joeloewi.croissant.core.database
 
-import com.joeloewi.croissant.core.data.model.relational.ResinStatusWidgetWithAccounts
-import com.joeloewi.croissant.data.mapper.ResinStatusWidgetMapper
-import com.joeloewi.croissant.data.mapper.ResinStatusWithAccountsMapper
-import com.joeloewi.croissant.domain.entity.ResinStatusWidget
+import com.joeloewi.croissant.core.database.dao.ResinStatusWidgetDao
+import com.joeloewi.croissant.core.database.model.ResinStatusWidgetEntity
+import com.joeloewi.croissant.core.database.model.relational.ResinStatusWidgetWithAccountsEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class ResinStatusWidgetDataSourceImpl @Inject constructor(
-    private val resinStatusWidgetDao: com.joeloewi.croissant.core.database.dao.ResinStatusWidgetDao,
-    private val resinStatusWidgetMapper: ResinStatusWidgetMapper,
-    private val resinStatusWidgetWithAccountsMapper: ResinStatusWithAccountsMapper
-) : com.joeloewi.croissant.core.database.ResinStatusWidgetDataSource {
+    private val resinStatusWidgetDao: ResinStatusWidgetDao,
+) : ResinStatusWidgetDataSource {
 
-    override suspend fun getAll(): List<ResinStatusWidget> =
+    override suspend fun getAll(): List<ResinStatusWidgetEntity> =
         withContext(Dispatchers.IO) {
-            resinStatusWidgetDao.getAll().map { resinStatusWidgetMapper.toDomain(it) }
+            resinStatusWidgetDao.getAll()
         }
 
-    override suspend fun insert(resinStatusWidget: ResinStatusWidget): Long =
+    override suspend fun insert(resinStatusWidget: ResinStatusWidgetEntity): Long =
         withContext(Dispatchers.IO) {
-            resinStatusWidgetDao.insert(resinStatusWidgetMapper.toData(resinStatusWidget))
+            resinStatusWidgetDao.insert(resinStatusWidget)
         }
 
-    override suspend fun delete(vararg resinStatusWidgets: ResinStatusWidget): Int =
+    override suspend fun delete(vararg resinStatusWidgets: ResinStatusWidgetEntity): Int =
         withContext(Dispatchers.IO) {
-            resinStatusWidgetDao.delete(*resinStatusWidgets.map { resinStatusWidgetMapper.toData(it) }
-                .toTypedArray())
+            resinStatusWidgetDao.delete(*resinStatusWidgets)
         }
 
-    override suspend fun update(resinStatusWidget: ResinStatusWidget): Int =
+    override suspend fun update(resinStatusWidget: ResinStatusWidgetEntity): Int =
         withContext(Dispatchers.IO) {
-            resinStatusWidgetDao.update(resinStatusWidgetMapper.toData(resinStatusWidget))
+            resinStatusWidgetDao.update(resinStatusWidget)
         }
 
-    override suspend fun getOne(id: Long): com.joeloewi.croissant.core.data.model.relational.ResinStatusWidgetWithAccounts =
+    override suspend fun getOne(id: Long): ResinStatusWidgetWithAccountsEntity =
         withContext(Dispatchers.IO) {
-            resinStatusWidgetWithAccountsMapper.toDomain(resinStatusWidgetDao.getOne(id))
+            resinStatusWidgetDao.getOne(id)
         }
 
     override suspend fun deleteByAppWidgetId(vararg appWidgetIds: Int): Int =
@@ -61,12 +57,10 @@ class ResinStatusWidgetDataSourceImpl @Inject constructor(
             resinStatusWidgetDao.deleteByAppWidgetId(*appWidgetIds)
         }
 
-    override suspend fun getOneByAppWidgetId(appWidgetId: Int): com.joeloewi.croissant.core.data.model.relational.ResinStatusWidgetWithAccounts =
+    override suspend fun getOneByAppWidgetId(appWidgetId: Int): ResinStatusWidgetWithAccountsEntity =
         withContext(Dispatchers.IO) {
-            resinStatusWidgetWithAccountsMapper.toDomain(
-                resinStatusWidgetDao.getOneByAppWidgetId(
-                    appWidgetId
-                )
+            resinStatusWidgetDao.getOneByAppWidgetId(
+                appWidgetId
             )
         }
 }

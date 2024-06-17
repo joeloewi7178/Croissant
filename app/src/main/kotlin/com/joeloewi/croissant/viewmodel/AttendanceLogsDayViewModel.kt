@@ -4,7 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
-import com.joeloewi.croissant.domain.common.LoggableWorker
+import com.joeloewi.croissant.core.data.model.LoggableWorker
 import com.joeloewi.croissant.domain.usecase.WorkerExecutionLogUseCase
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import dagger.hilt.android.lifecycle.HiltViewModel

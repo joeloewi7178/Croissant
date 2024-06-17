@@ -16,15 +16,15 @@
 
 package com.joeloewi.croissant.core.database
 
-import com.joeloewi.croissant.core.data.model.relational.ResinStatusWidgetWithAccounts
-import com.joeloewi.croissant.domain.entity.ResinStatusWidget
+import com.joeloewi.croissant.core.database.model.ResinStatusWidgetEntity
+import com.joeloewi.croissant.core.database.model.relational.ResinStatusWidgetWithAccountsEntity
 
 interface ResinStatusWidgetDataSource {
-    suspend fun getAll(): List<ResinStatusWidget>
-    suspend fun insert(resinStatusWidget: ResinStatusWidget): Long
-    suspend fun delete(vararg resinStatusWidgets: ResinStatusWidget): Int
-    suspend fun update(resinStatusWidget: ResinStatusWidget): Int
-    suspend fun getOne(id: Long): com.joeloewi.croissant.core.data.model.relational.ResinStatusWidgetWithAccounts
+    suspend fun getAll(): List<ResinStatusWidgetEntity>
+    suspend fun insert(resinStatusWidget: ResinStatusWidgetEntity): Long
+    suspend fun delete(vararg resinStatusWidgets: ResinStatusWidgetEntity): Int
+    suspend fun update(resinStatusWidget: ResinStatusWidgetEntity): Int
+    suspend fun getOne(id: Long): ResinStatusWidgetWithAccountsEntity
     suspend fun deleteByAppWidgetId(vararg appWidgetIds: Int): Int
-    suspend fun getOneByAppWidgetId(appWidgetId: Int): com.joeloewi.croissant.core.data.model.relational.ResinStatusWidgetWithAccounts
+    suspend fun getOneByAppWidgetId(appWidgetId: Int): ResinStatusWidgetWithAccountsEntity
 }

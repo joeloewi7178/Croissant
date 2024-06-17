@@ -16,8 +16,8 @@
 
 package com.joeloewi.croissant.core.database
 
-import com.joeloewi.croissant.domain.entity.SuccessLog
+import com.joeloewi.croissant.core.database.model.SuccessLogEntity
 
 interface SuccessLogDataSource {
-    suspend fun insert(successLog: SuccessLog): Long
+    suspend fun insert(successLog: SuccessLogEntity): Long
 }

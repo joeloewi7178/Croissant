@@ -16,9 +16,13 @@
 
 package com.joeloewi.croissant.core.data.repository
 
-import com.joeloewi.croissant.core.database.SettingsDataSource
-import com.joeloewi.croissant.data.Settings
+import com.joeloewi.croissant.core.data.model.Settings
+import com.joeloewi.croissant.core.data.model.asExternalData
+import com.joeloewi.croissant.core.datastore.SettingsDataSource
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class SettingsRepositoryImpl @Inject constructor(
@@ -26,14 +30,15 @@ class SettingsRepositoryImpl @Inject constructor(
 ) : SettingsRepository {
 
     override fun getSettings(): Flow<Settings> =
-        settingsDataSource.getSettings()
+        settingsDataSource.getSettings().map { it.asExternalData() }.flowOn(Dispatchers.IO)
 
     override suspend fun setDarkThemeEnabled(darkThemeEnabled: Boolean): Settings =
-        settingsDataSource.setDarkThemeEnabled(darkThemeEnabled)
+        settingsDataSource.setDarkThemeEnabled(darkThemeEnabled).asExternalData()
 
     override suspend fun setIsFirstLaunch(isFirstLaunch: Boolean): Settings =
-        settingsDataSource.setIsFirstLaunch(isFirstLaunch)
+        settingsDataSource.setIsFirstLaunch(isFirstLaunch).asExternalData()
 
     override suspend fun setNotifyMigrateToAlarmManager(notifyMigrateToAlarmManager: Boolean): Settings =
         settingsDataSource.setNotifyMigrateToAlarmManager(notifyMigrateToAlarmManager)
+            .asExternalData()
 }

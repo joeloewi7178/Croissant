@@ -16,12 +16,22 @@
 
 package com.joeloewi.croissant.core.data.model.relational
 
-import com.joeloewi.croissant.domain.entity.FailureLog
-import com.joeloewi.croissant.domain.entity.SuccessLog
-import com.joeloewi.croissant.domain.entity.WorkerExecutionLog
+import com.joeloewi.croissant.core.data.model.FailureLog
+import com.joeloewi.croissant.core.data.model.SuccessLog
+import com.joeloewi.croissant.core.data.model.WorkerExecutionLog
+import com.joeloewi.croissant.core.data.model.asExternalData
+import com.joeloewi.croissant.core.database.model.relational.WorkerExecutionLogWithStateEntity
 
 data class WorkerExecutionLogWithState(
     val workerExecutionLog: WorkerExecutionLog = WorkerExecutionLog(),
     val successLog: SuccessLog? = null,
     val failureLog: FailureLog? = null,
 )
+
+fun WorkerExecutionLogWithStateEntity.asExternalData(): WorkerExecutionLogWithState = with(this) {
+    WorkerExecutionLogWithState(
+        workerExecutionLog = workerExecutionLogEntity.asExternalData(),
+        successLog = successLogEntity?.asExternalData(),
+        failureLog = failureLogEntity?.asExternalData()
+    )
+}

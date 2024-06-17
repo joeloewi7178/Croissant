@@ -16,19 +16,15 @@
 
 package com.joeloewi.croissant.core.database
 
-import com.joeloewi.croissant.data.mapper.AccountMapper
-import com.joeloewi.croissant.domain.entity.Account
+import com.joeloewi.croissant.core.database.model.AccountEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class AccountDataSourceImpl @Inject constructor(
-    private val accountDao: com.joeloewi.croissant.core.database.dao.AccountDao,
-    private val accountMapper: AccountMapper
-) : com.joeloewi.croissant.core.database.AccountDataSource {
+    private val accountDao: com.joeloewi.croissant.core.database.dao.AccountDao
+) : AccountDataSource {
 
-    override suspend fun insert(vararg accounts: Account): List<Long> =
-        withContext(Dispatchers.IO) {
-            accountDao.insert(*accounts.map { accountMapper.toData(it) }.toTypedArray())
-        }
+    override suspend fun insert(vararg accounts: AccountEntity): List<Long> =
+        withContext(Dispatchers.IO) { accountDao.insert(*accounts) }
 }

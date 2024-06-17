@@ -16,10 +16,28 @@
 
 package com.joeloewi.croissant.core.data.model.relational
 
-import com.joeloewi.croissant.domain.entity.Account
-import com.joeloewi.croissant.domain.entity.ResinStatusWidget
+import com.joeloewi.croissant.core.data.model.Account
+import com.joeloewi.croissant.core.data.model.ResinStatusWidget
+import com.joeloewi.croissant.core.data.model.asData
+import com.joeloewi.croissant.core.data.model.asExternalData
+import com.joeloewi.croissant.core.database.model.relational.ResinStatusWidgetWithAccountsEntity
 
 data class ResinStatusWidgetWithAccounts(
     val resinStatusWidget: ResinStatusWidget = ResinStatusWidget(),
     val accounts: List<Account> = listOf()
 )
+
+fun ResinStatusWidgetWithAccountsEntity.asExternalData(): ResinStatusWidgetWithAccounts =
+    with(this) {
+        ResinStatusWidgetWithAccounts(
+            resinStatusWidget = resinStatusWidgetEntity.asExternalData(),
+            accounts = accountEntities.map { it.asExternalData() }
+        )
+    }
+
+fun ResinStatusWidgetWithAccounts.asData(): ResinStatusWidgetWithAccountsEntity = with(this) {
+    ResinStatusWidgetWithAccountsEntity(
+        resinStatusWidgetEntity = resinStatusWidget.asData(),
+        accountEntities = accounts.map { it.asData() }
+    )
+}

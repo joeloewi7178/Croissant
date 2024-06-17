@@ -20,15 +20,14 @@ import com.joeloewi.croissant.core.network.model.response.ChangeDataSwitchRespon
 import com.joeloewi.croissant.core.network.model.response.GameRecordCardResponse
 import com.joeloewi.croissant.core.network.model.response.GenshinDailyNoteResponse
 import com.joeloewi.croissant.core.network.model.response.UserFullInfoResponse
-import com.skydoves.sandwich.ApiResponse
 
 interface HoYoLABDataSource {
-    suspend fun getUserFullInfo(cookie: String): ApiResponse<UserFullInfoResponse>
+    suspend fun getUserFullInfo(cookie: String): Result<UserFullInfoResponse>
 
     suspend fun getGameRecordCard(
         cookie: String,
         uid: Long
-    ): ApiResponse<GameRecordCardResponse>
+    ): Result<GameRecordCardResponse>
 
     suspend fun getGenshinDailyNote(
         ds: String = generateDS(headerInformation = HeaderInformation.OS),
@@ -37,12 +36,12 @@ interface HoYoLABDataSource {
         xRpcClientType: String = HeaderInformation.OS.xRpcClientType,
         roleId: Long,
         server: String,
-    ): ApiResponse<GenshinDailyNoteResponse>
+    ): Result<GenshinDailyNoteResponse>
 
     suspend fun changeDataSwitch(
         cookie: String,
         switchId: Int,
         isPublic: Boolean,
         gameId: Int
-    ): ApiResponse<ChangeDataSwitchResponse>
+    ): Result<ChangeDataSwitchResponse>
 }

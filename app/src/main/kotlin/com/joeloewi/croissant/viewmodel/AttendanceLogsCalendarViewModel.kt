@@ -3,7 +3,7 @@ package com.joeloewi.croissant.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.joeloewi.croissant.domain.common.LoggableWorker
+import com.joeloewi.croissant.core.data.model.LoggableWorker
 import com.joeloewi.croissant.domain.usecase.ResultCountUseCase
 import com.joeloewi.croissant.domain.usecase.ResultRangeUseCase
 import com.joeloewi.croissant.domain.usecase.WorkerExecutionLogUseCase

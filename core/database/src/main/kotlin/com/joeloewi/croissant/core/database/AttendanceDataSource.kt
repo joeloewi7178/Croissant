@@ -17,17 +17,17 @@
 package com.joeloewi.croissant.core.database
 
 import androidx.paging.PagingData
-import com.joeloewi.croissant.core.data.model.relational.AttendanceWithGames
-import com.joeloewi.croissant.domain.entity.Attendance
+import com.joeloewi.croissant.core.database.model.AttendanceEntity
+import com.joeloewi.croissant.core.database.model.relational.AttendanceWithGamesEntity
 import kotlinx.coroutines.flow.Flow
 
 interface AttendanceDataSource {
-    suspend fun insert(attendance: Attendance): Long
-    suspend fun update(vararg attendances: Attendance): Int
-    suspend fun delete(vararg attendances: Attendance): Int
-    suspend fun getOneByUid(uid: Long): Attendance
-    suspend fun getOne(id: Long): com.joeloewi.croissant.core.data.model.relational.AttendanceWithGames
-    suspend fun getByIds(vararg ids: Long): List<com.joeloewi.croissant.core.data.model.relational.AttendanceWithGames>
-    fun getAllPaged(): Flow<PagingData<com.joeloewi.croissant.core.data.model.relational.AttendanceWithGames>>
-    suspend fun getAllOneShot(): List<Attendance>
+    suspend fun insert(attendance: AttendanceEntity): Long
+    suspend fun update(vararg attendances: AttendanceEntity): Int
+    suspend fun delete(vararg attendances: AttendanceEntity): Int
+    suspend fun getOneByUid(uid: Long): AttendanceEntity
+    suspend fun getOne(id: Long): AttendanceWithGamesEntity
+    suspend fun getByIds(vararg ids: Long): List<AttendanceWithGamesEntity>
+    fun getAllPaged(): Flow<PagingData<AttendanceWithGamesEntity>>
+    suspend fun getAllOneShot(): List<AttendanceEntity>
 }

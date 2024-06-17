@@ -16,8 +16,7 @@
 
 package com.joeloewi.croissant.core.data.repository
 
-import com.joeloewi.croissant.data.Settings
-import com.joeloewi.croissant.domain.entity.Settings
+import com.joeloewi.croissant.core.data.model.Settings
 import kotlinx.coroutines.flow.Flow
 
 interface SettingsRepository {

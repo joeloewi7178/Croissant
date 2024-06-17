@@ -16,7 +16,8 @@
 
 package com.joeloewi.croissant.domain.usecase
 
-import com.joeloewi.croissant.domain.repository.ArcaLiveAppRepository
+import com.joeloewi.croissant.core.data.model.HoYoLABGame
+import com.joeloewi.croissant.core.data.repository.ArcaLiveAppRepository
 import javax.inject.Inject
 
 sealed class ArcaLiveAppUseCase {

@@ -16,8 +16,8 @@
 
 package com.joeloewi.croissant.domain.usecase
 
-import com.joeloewi.croissant.domain.entity.Attendance
-import com.joeloewi.croissant.domain.repository.AttendanceRepository
+import com.joeloewi.croissant.core.data.model.Attendance
+import com.joeloewi.croissant.core.data.repository.AttendanceRepository
 import javax.inject.Inject
 
 sealed class AttendanceUseCase {

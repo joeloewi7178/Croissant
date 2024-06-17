@@ -1,5 +1,6 @@
 package com.joeloewi.croissant.core.data.model
 
+import com.joeloewi.croissant.core.database.model.AttendanceEntity
 import java.util.TimeZone
 import java.util.UUID
 
@@ -19,3 +20,41 @@ data class Attendance(
     val checkSessionWorkerId: UUID = UUID.randomUUID(),
     val oneTimeAttendCheckInEventWorkerName: UUID = UUID.randomUUID(),
 )
+
+fun AttendanceEntity.asExternalData(): Attendance = with(this) {
+    Attendance(
+        id,
+        createdAt,
+        modifiedAt,
+        cookie,
+        nickname,
+        uid,
+        hourOfDay,
+        minute,
+        timezoneId,
+        attendCheckInEventWorkerName,
+        attendCheckInEventWorkerId,
+        checkSessionWorkerName,
+        checkSessionWorkerId,
+        oneTimeAttendCheckInEventWorkerName
+    )
+}
+
+fun Attendance.asData(): AttendanceEntity = with(this) {
+    AttendanceEntity(
+        id,
+        createdAt,
+        modifiedAt,
+        cookie,
+        nickname,
+        uid,
+        hourOfDay,
+        minute,
+        timezoneId,
+        attendCheckInEventWorkerName,
+        attendCheckInEventWorkerId,
+        checkSessionWorkerName,
+        checkSessionWorkerId,
+        oneTimeAttendCheckInEventWorkerName
+    )
+}

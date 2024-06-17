@@ -16,7 +16,7 @@
 
 package com.joeloewi.croissant.core.network
 
-import com.joeloewi.croissant.core.model.exceptCancellationException
+import com.joeloewi.croissant.core.common.exceptCancellationException
 import com.joeloewi.croissant.core.network.dao.CheckInService
 import com.joeloewi.croissant.core.network.dao.GenshinImpactCheckInService
 import com.joeloewi.croissant.core.network.model.response.AttendanceResponse

@@ -16,10 +16,20 @@
 
 package com.joeloewi.croissant.core.data.model
 
+import com.joeloewi.croissant.core.database.model.GameEntity
+
 data class Game(
     val id: Long = 0,
     val attendanceId: Long = 0,
     val roleId: Long = 0,
-    val type: HoYoLABGame = com.joeloewi.croissant.domain.common.HoYoLABGame.Unknown,
+    val type: HoYoLABGame = HoYoLABGame.Unknown,
     val region: String = ""
 )
+
+fun GameEntity.asExternalData(): Game = with(this) {
+    Game(id, attendanceId, roleId, type.asExternalData(), region)
+}
+
+fun Game.asData(): GameEntity = with(this) {
+    GameEntity(id, attendanceId, roleId, type.asData(), region)
+}

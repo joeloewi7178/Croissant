@@ -17,8 +17,7 @@
 package com.joeloewi.croissant.core.network
 
 import com.joeloewi.croissant.core.model.DataHoYoLABGame
-import com.skydoves.sandwich.ApiResponse
 
 interface ArcaLiveAppDataSource {
-    suspend fun getRedeemCode(game: DataHoYoLABGame): ApiResponse<String>
+    suspend fun getRedeemCode(game: DataHoYoLABGame): Result<String>
 }

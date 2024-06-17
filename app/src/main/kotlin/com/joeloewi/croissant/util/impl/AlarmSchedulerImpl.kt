@@ -5,7 +5,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.AlarmManagerCompat
-import com.joeloewi.croissant.domain.entity.Attendance
+import com.joeloewi.croissant.core.data.model.Attendance
 import com.joeloewi.croissant.receiver.AlarmReceiver
 import com.joeloewi.croissant.util.AlarmScheduler
 import com.joeloewi.croissant.util.canScheduleExactAlarmsCompat

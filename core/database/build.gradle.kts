@@ -14,5 +14,9 @@ android {
 
 dependencies {
     api(projects.core.model)
-    implementation(project(":domain"))
+
+    implementation(projects.core.common)
+
+    androidTestImplementation(libs.androidx.test.ext.junit.ktx)
+    testImplementation(libs.junit)
 }

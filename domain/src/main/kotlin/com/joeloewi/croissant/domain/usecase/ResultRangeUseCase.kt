@@ -1,7 +1,7 @@
 package com.joeloewi.croissant.domain.usecase
 
-import com.joeloewi.croissant.domain.common.LoggableWorker
-import com.joeloewi.croissant.domain.repository.ResultRangeRepository
+import com.joeloewi.croissant.core.data.model.LoggableWorker
+import com.joeloewi.croissant.core.data.repository.ResultRangeRepository
 import javax.inject.Inject
 
 sealed class ResultRangeUseCase {

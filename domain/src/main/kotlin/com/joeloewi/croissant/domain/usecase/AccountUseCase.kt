@@ -16,8 +16,8 @@
 
 package com.joeloewi.croissant.domain.usecase
 
-import com.joeloewi.croissant.domain.entity.Account
-import com.joeloewi.croissant.domain.repository.AccountRepository
+import com.joeloewi.croissant.core.data.model.Account
+import com.joeloewi.croissant.core.data.repository.AccountRepository
 import javax.inject.Inject
 
 sealed class AccountUseCase {

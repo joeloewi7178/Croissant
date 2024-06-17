@@ -16,58 +16,45 @@
 
 package com.joeloewi.croissant.core.data.repository
 
-import com.joeloewi.croissant.core.data.model.BaseResponse
-import com.joeloewi.croissant.core.data.model.GameRecordCardData
+import com.joeloewi.croissant.core.data.model.GameRecord
 import com.joeloewi.croissant.core.data.model.GenshinDailyNoteData
-import com.joeloewi.croissant.core.data.model.UserFullInfo
-import com.joeloewi.croissant.data.mapper.GameRecordCardDataMapper
-import com.joeloewi.croissant.data.mapper.GenshinDailyNoteDataMapper
-import com.joeloewi.croissant.data.mapper.UserFullInfoMapper
-import com.joeloewi.croissant.data.util.throwIfNotOk
+import com.joeloewi.croissant.core.data.model.UserInfo
+import com.joeloewi.croissant.core.data.model.asExternalData
+import com.joeloewi.croissant.core.data.model.exception.throwIfNotOk
+import com.joeloewi.croissant.core.model.BaseResponse
+import com.joeloewi.croissant.core.network.HoYoLABDataSource
 import javax.inject.Inject
 
 class HoYoLABRepositoryImpl @Inject constructor(
-    private val hoYoLABDataSource: com.joeloewi.croissant.core.network.HoYoLABDataSource,
-    private val userFullInfoMapper: UserFullInfoMapper,
-    private val gameRecordCardDataMapper: GameRecordCardDataMapper,
-    private val genshinDailyNoteDataMapper: GenshinDailyNoteDataMapper
+    private val hoYoLABDataSource: HoYoLABDataSource
 ) : HoYoLABRepository {
 
-    override suspend fun getUserFullInfo(cookie: String): Result<UserFullInfo> =
-        hoYoLABDataSource.runCatching {
-            getUserFullInfo(cookie).getOrThrow().throwIfNotOk()
-        }.mapCatching {
-            userFullInfoMapper.toDomain(it)
+    override suspend fun getUserFullInfo(cookie: String): Result<UserInfo> =
+        hoYoLABDataSource.getUserFullInfo(cookie).mapCatching {
+            it.apply { throwIfNotOk() }.data!!.userInfo.asExternalData()
         }
 
     override suspend fun getGameRecordCard(
         cookie: String,
         uid: Long
-    ): Result<GameRecordCardData?> =
-        hoYoLABDataSource.runCatching {
-            getGameRecordCard(cookie, uid).getOrThrow().throwIfNotOk().data!!
-        }.mapCatching {
-            gameRecordCardDataMapper.toDomain(it)
+    ): Result<List<GameRecord>> =
+        hoYoLABDataSource.getGameRecordCard(cookie, uid).mapCatching {
+            it.throwIfNotOk().data!!.list.map { list -> list.asExternalData() }
         }
 
     override suspend fun getGenshinDailyNote(
         cookie: String,
         roleId: Long,
         server: String
-    ): Result<GenshinDailyNoteData?> = hoYoLABDataSource.runCatching {
-        getGenshinDailyNote(
-            cookie = cookie, roleId = roleId, server = server
-        ).getOrThrow().throwIfNotOk().data!!
-    }.mapCatching {
-        genshinDailyNoteDataMapper.toDomain(it)
-    }
+    ): Result<GenshinDailyNoteData?> = hoYoLABDataSource.getGenshinDailyNote(
+        cookie = cookie, roleId = roleId, server = server
+    ).mapCatching { it.throwIfNotOk().data!!.asExternalData() }
 
     override suspend fun changeDataSwitch(
         cookie: String,
         switchId: Int,
         isPublic: Boolean,
         gameId: Int
-    ): Result<BaseResponse> = hoYoLABDataSource.runCatching {
-        changeDataSwitch(cookie, switchId, isPublic, gameId).getOrThrow().throwIfNotOk()
-    }
+    ): Result<BaseResponse> = hoYoLABDataSource.changeDataSwitch(cookie, switchId, isPublic, gameId)
+        .mapCatching { it.throwIfNotOk() }
 }

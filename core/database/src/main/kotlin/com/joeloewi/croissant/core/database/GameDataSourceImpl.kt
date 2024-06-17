@@ -16,26 +16,26 @@
 
 package com.joeloewi.croissant.core.database
 
-import com.joeloewi.croissant.data.mapper.GameMapper
-import com.joeloewi.croissant.domain.entity.Game
+import com.joeloewi.croissant.core.database.dao.GameDao
+import com.joeloewi.croissant.core.database.model.GameEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class GameDataSourceImpl @Inject constructor(
-    private val gameDao: com.joeloewi.croissant.core.database.dao.GameDao,
-    private val gameMapper: GameMapper,
-) : com.joeloewi.croissant.core.database.GameDataSource {
+    private val gameDao: GameDao
+) : GameDataSource {
 
-    override suspend fun insert(vararg games: Game): List<Long> = withContext(Dispatchers.IO) {
-        gameDao.insert(*games.map { gameMapper.toData(it) }.toTypedArray())
+    override suspend fun insert(vararg games: GameEntity): List<Long> =
+        withContext(Dispatchers.IO) {
+            gameDao.insert(*games)
+        }
+
+    override suspend fun update(vararg games: GameEntity): Int = withContext(Dispatchers.IO) {
+        gameDao.update(*games)
     }
 
-    override suspend fun update(vararg games: Game): Int = withContext(Dispatchers.IO) {
-        gameDao.update(*games.map { gameMapper.toData(it) }.toTypedArray())
-    }
-
-    override suspend fun delete(vararg games: Game): Int = withContext(Dispatchers.IO) {
-        gameDao.delete(*games.map { gameMapper.toData(it) }.toTypedArray())
+    override suspend fun delete(vararg games: GameEntity): Int = withContext(Dispatchers.IO) {
+        gameDao.delete(*games)
     }
 }

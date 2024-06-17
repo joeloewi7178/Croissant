@@ -1,17 +1,22 @@
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
-    alias(libs.plugins.kotlin.jvm)
-    `java-library`
+    alias(libs.plugins.croissant.android.library)
+    alias(libs.plugins.croissant.android.hilt)
 }
 
-kotlin {
-    jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+
+android {
+    namespace = "com.joeloewi.croissant.domain"
+
+    defaultConfig {
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 }
 
 dependencies {
-    implementation(libs.androidx.paging.common.ktx)
+    api(projects.core.data)
+    api(projects.core.model)
 
+    implementation(libs.androidx.paging.common.ktx)
     implementation(libs.javax.inject)
 }

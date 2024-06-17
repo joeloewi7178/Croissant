@@ -22,8 +22,7 @@ import com.joeloewi.croissant.core.network.model.response.GameRecordCardResponse
 import com.joeloewi.croissant.core.network.model.response.GenshinDailyNoteResponse
 import com.joeloewi.croissant.core.network.model.response.UserFullInfoResponse
 import com.joeloewi.croissant.data.api.model.request.DataSwitchRequest
-import com.joeloewi.croissant.data.common.GenshinImpactServer
-import com.skydoves.sandwich.ApiResponse
+import com.skydoves.sandwich.getOrThrow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -31,16 +30,16 @@ import javax.inject.Inject
 class HoYoLABDataSourceImpl @Inject constructor(
     private val hoYoLABService: HoYoLABService,
 ) : HoYoLABDataSource {
-    override suspend fun getUserFullInfo(cookie: String): ApiResponse<UserFullInfoResponse> =
+    override suspend fun getUserFullInfo(cookie: String): Result<UserFullInfoResponse> =
         withContext(Dispatchers.IO) {
-            hoYoLABService.getUserFullInfo(cookie)
+            runCatching { hoYoLABService.getUserFullInfo(cookie).getOrThrow() }
         }
 
     override suspend fun getGameRecordCard(
         cookie: String,
         uid: Long
-    ): ApiResponse<GameRecordCardResponse> = withContext(Dispatchers.IO) {
-        hoYoLABService.getGameRecordCard(cookie, uid)
+    ): Result<GameRecordCardResponse> = withContext(Dispatchers.IO) {
+        runCatching { hoYoLABService.getGameRecordCard(cookie, uid).getOrThrow() }
     }
 
     override suspend fun getGenshinDailyNote(
@@ -50,29 +49,32 @@ class HoYoLABDataSourceImpl @Inject constructor(
         xRpcClientType: String,
         roleId: Long,
         server: String
-    ): ApiResponse<GenshinDailyNoteResponse> = withContext(Dispatchers.IO) {
-        val headerInformation = when (GenshinImpactServer.findByRegion(server)) {
-            GenshinImpactServer.CNServer -> {
-                HeaderInformation.CN
-            }
+    ): Result<GenshinDailyNoteResponse> = withContext(Dispatchers.IO) {
+        runCatching {
+            val headerInformation =
+                when (com.joeloewi.croissant.core.common.GenshinImpactServer.findByRegion(server)) {
+                    com.joeloewi.croissant.core.common.GenshinImpactServer.CNServer -> {
+                        HeaderInformation.CN
+                    }
 
-            GenshinImpactServer.Unknown -> {
-                HeaderInformation.CN
-            }
+                    com.joeloewi.croissant.core.common.GenshinImpactServer.Unknown -> {
+                        HeaderInformation.CN
+                    }
 
-            else -> {
-                HeaderInformation.OS
-            }
+                    else -> {
+                        HeaderInformation.OS
+                    }
+                }
+
+            hoYoLABService.getGenshinDailyNote(
+                generateDS(headerInformation),
+                cookie,
+                xRpcAppVersion = headerInformation.xRpcAppVersion,
+                xRpcClientType = headerInformation.xRpcClientType,
+                roleId,
+                server
+            ).getOrThrow()
         }
-
-        hoYoLABService.getGenshinDailyNote(
-            generateDS(headerInformation),
-            cookie,
-            xRpcAppVersion = headerInformation.xRpcAppVersion,
-            xRpcClientType = headerInformation.xRpcClientType,
-            roleId,
-            server
-        )
     }
 
     override suspend fun changeDataSwitch(
@@ -80,11 +82,13 @@ class HoYoLABDataSourceImpl @Inject constructor(
         switchId: Int,
         isPublic: Boolean,
         gameId: Int
-    ): ApiResponse<ChangeDataSwitchResponse> = withContext(Dispatchers.IO) {
-        hoYoLABService.changeDataSwitch(
-            cookie, DataSwitchRequest(
-                switchId, isPublic, gameId
-            )
-        )
+    ): Result<ChangeDataSwitchResponse> = withContext(Dispatchers.IO) {
+        runCatching {
+            hoYoLABService.changeDataSwitch(
+                cookie, DataSwitchRequest(
+                    switchId, isPublic, gameId
+                )
+            ).getOrThrow()
+        }
     }
 }

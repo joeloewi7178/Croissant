@@ -19,52 +19,44 @@ package com.joeloewi.croissant.core.database
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import androidx.paging.map
-import com.joeloewi.croissant.core.data.model.relational.WorkerExecutionLogWithState
-import com.joeloewi.croissant.data.mapper.WorkerExecutionLogMapper
-import com.joeloewi.croissant.data.mapper.WorkerExecutionLogWithStateMapper
-import com.joeloewi.croissant.domain.common.LoggableWorker
-import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
-import com.joeloewi.croissant.domain.entity.WorkerExecutionLog
+import com.joeloewi.croissant.core.database.dao.WorkerExecutionLogDao
+import com.joeloewi.croissant.core.database.model.DataLoggableWorker
+import com.joeloewi.croissant.core.database.model.DataWorkerExecutionLogState
+import com.joeloewi.croissant.core.database.model.WorkerExecutionLogEntity
+import com.joeloewi.croissant.core.database.model.relational.WorkerExecutionLogWithStateEntity
+import com.joeloewi.croissant.core.model.DataHoYoLABGame
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class WorkerExecutionLogDataSourceImpl @Inject constructor(
-    private val workerExecutionLogDao: com.joeloewi.croissant.core.database.dao.WorkerExecutionLogDao,
-    private val workerExecutionLogMapper: WorkerExecutionLogMapper,
-    private val workerExecutionLogWithStateMapper: WorkerExecutionLogWithStateMapper,
-) : com.joeloewi.croissant.core.database.WorkerExecutionLogDataSource {
+    private val workerExecutionLogDao: WorkerExecutionLogDao,
+) : WorkerExecutionLogDataSource {
 
-    override suspend fun insert(workerExecutionLog: WorkerExecutionLog): Long =
+    override suspend fun insert(workerExecutionLog: WorkerExecutionLogEntity): Long =
         withContext(Dispatchers.IO) {
-            workerExecutionLogDao.insert(workerExecutionLogMapper.toData(workerExecutionLog))
+            workerExecutionLogDao.insert(workerExecutionLog)
         }
 
-    override suspend fun delete(vararg workerExecutionLogs: WorkerExecutionLog): Int =
+    override suspend fun delete(vararg workerExecutionLogs: WorkerExecutionLogEntity): Int =
         withContext(Dispatchers.IO) {
-            workerExecutionLogDao.delete(*workerExecutionLogs.map {
-                workerExecutionLogMapper.toData(
-                    it
-                )
-            }.toTypedArray())
+            workerExecutionLogDao.delete(*workerExecutionLogs)
         }
 
     override suspend fun deleteAll(
         attendanceId: Long,
-        loggableWorker: LoggableWorker
+        loggableWorker: DataLoggableWorker
     ): Int = withContext(Dispatchers.IO) {
         workerExecutionLogDao.deleteAll(attendanceId, loggableWorker)
     }
 
     override fun getByDatePaged(
         attendanceId: Long,
-        loggableWorker: LoggableWorker,
+        loggableWorker: DataLoggableWorker,
         dateString: String
-    ): Flow<PagingData<com.joeloewi.croissant.core.data.model.relational.WorkerExecutionLogWithState>> =
+    ): Flow<PagingData<WorkerExecutionLogWithStateEntity>> =
         Pager(
             config = PagingConfig(
                 pageSize = 8
@@ -74,20 +66,18 @@ class WorkerExecutionLogDataSourceImpl @Inject constructor(
                     attendanceId, loggableWorker, dateString
                 )
             }
-        ).flow
-            .map { pagingData -> pagingData.map { workerExecutionLogWithStateMapper.toDomain(it) } }
-            .flowOn(Dispatchers.IO)
+        ).flow.flowOn(Dispatchers.IO)
 
     override fun getCountByState(
         attendanceId: Long,
-        loggableWorker: LoggableWorker,
-        state: WorkerExecutionLogState
+        loggableWorker: DataLoggableWorker,
+        state: DataWorkerExecutionLogState
     ): Flow<Long> = workerExecutionLogDao.getCountByState(attendanceId, loggableWorker, state)
         .flowOn(Dispatchers.IO)
 
     override suspend fun hasExecutedAtLeastOnce(
         attendanceId: Long,
-        gameName: HoYoLABGame,
+        gameName: DataHoYoLABGame,
         timestamp: Long
     ): Boolean = withContext(Dispatchers.IO) {
         workerExecutionLogDao.getCountByDate(attendanceId, timestamp, gameName) > 0

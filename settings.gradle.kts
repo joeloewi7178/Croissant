@@ -18,7 +18,6 @@ dependencyResolutionManagement {
 rootProject.name = "Croissant"
 include(":app")
 include(":domain")
-include(":data")
 include(":baselineprofile")
 include(":core:data")
 include(":core:database")
@@ -26,3 +25,5 @@ include(":core:datastore")
 include(":core:datastore-proto")
 include(":core:model")
 include(":core:network")
+include(":core:common")
+include(":core:system")

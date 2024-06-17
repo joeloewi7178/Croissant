@@ -16,8 +16,8 @@
 
 package com.joeloewi.croissant.core.database
 
-import com.joeloewi.croissant.domain.entity.FailureLog
+import com.joeloewi.croissant.core.database.model.FailureLogEntity
 
 interface FailureLogDataSource {
-    suspend fun insert(failureLog: FailureLog): Long
+    suspend fun insert(failureLog: FailureLogEntity): Long
 }

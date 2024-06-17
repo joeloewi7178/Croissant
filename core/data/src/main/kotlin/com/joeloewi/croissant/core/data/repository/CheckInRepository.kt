@@ -16,7 +16,7 @@
 
 package com.joeloewi.croissant.core.data.repository
 
-import com.joeloewi.croissant.core.data.model.BaseResponse
+import com.joeloewi.croissant.core.model.BaseResponse
 
 interface CheckInRepository {
 

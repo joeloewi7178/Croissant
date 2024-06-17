@@ -17,7 +17,7 @@ import androidx.work.ForegroundInfo
 import coil.imageLoader
 import coil.request.ImageRequest
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.data.common.generateGameIntent
+import com.joeloewi.croissant.core.data.model.HoYoLABGame
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -142,11 +142,12 @@ class NotificationGenerator(
                 PendingIntent.getActivity(
                     context,
                     0,
-                    generateGameIntent(
+                    Intent()
+                    /*generateGameIntent(
                         context = context,
                         hoYoLABGame = hoYoLABGame,
                         region = region
-                    ),
+                    )*/,
                     pendingIntentFlag
                 )
 

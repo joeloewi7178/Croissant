@@ -16,8 +16,7 @@
 
 package com.joeloewi.croissant.core.data.model
 
-import com.joeloewi.croissant.domain.common.LoggableWorker
-import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
+import com.joeloewi.croissant.core.database.model.WorkerExecutionLogEntity
 import java.util.TimeZone
 
 data class WorkerExecutionLog(
@@ -28,3 +27,11 @@ data class WorkerExecutionLog(
     val state: WorkerExecutionLogState = WorkerExecutionLogState.SUCCESS,
     val loggableWorker: LoggableWorker = LoggableWorker.UNKNOWN,
 )
+
+fun WorkerExecutionLogEntity.asExternalData(): WorkerExecutionLog = with(this) {
+    WorkerExecutionLog(id, attendanceId, createdAt, timezoneId)
+}
+
+fun WorkerExecutionLog.asData(): WorkerExecutionLogEntity = with(this) {
+    WorkerExecutionLogEntity(id, attendanceId, createdAt, timezoneId)
+}

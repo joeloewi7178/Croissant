@@ -16,13 +16,15 @@
 
 package com.joeloewi.croissant.core.data.repository
 
-import android.accounts.Account
+import com.joeloewi.croissant.core.data.model.Account
+import com.joeloewi.croissant.core.data.model.asData
 import com.joeloewi.croissant.core.database.AccountDataSource
 import javax.inject.Inject
 
 class AccountRepositoryImpl @Inject constructor(
     private val accountDataSource: AccountDataSource
 ) : AccountRepository {
+
     override suspend fun insert(vararg accounts: Account): List<Long> =
-        accountDataSource.insert(*accounts)
+        accountDataSource.insert(*accounts.map { it.asData() }.toTypedArray())
 }

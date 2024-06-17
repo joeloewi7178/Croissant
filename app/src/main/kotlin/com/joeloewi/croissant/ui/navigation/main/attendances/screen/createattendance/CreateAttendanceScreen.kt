@@ -35,9 +35,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.core.data.model.GameRecord
-import com.joeloewi.croissant.domain.entity.Attendance
-import com.joeloewi.croissant.domain.entity.Game
+import com.joeloewi.croissant.core.data.model.Attendance
+import com.joeloewi.croissant.core.data.model.Game
 import com.joeloewi.croissant.state.ILCE
 import com.joeloewi.croissant.state.LCE
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.composable.GetSession

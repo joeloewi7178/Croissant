@@ -17,12 +17,17 @@
 package com.joeloewi.croissant.core.data.repository
 
 import androidx.paging.PagingData
+import androidx.paging.map
+import com.joeloewi.croissant.core.data.model.HoYoLABGame
+import com.joeloewi.croissant.core.data.model.LoggableWorker
 import com.joeloewi.croissant.core.data.model.WorkerExecutionLog
+import com.joeloewi.croissant.core.data.model.WorkerExecutionLogState
+import com.joeloewi.croissant.core.data.model.asData
 import com.joeloewi.croissant.core.data.model.relational.WorkerExecutionLogWithState
+import com.joeloewi.croissant.core.data.model.relational.asExternalData
 import com.joeloewi.croissant.core.database.WorkerExecutionLogDataSource
-import com.joeloewi.croissant.domain.common.LoggableWorker
-import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class WorkerExecutionLogRepositoryImpl @Inject constructor(
@@ -30,32 +35,46 @@ class WorkerExecutionLogRepositoryImpl @Inject constructor(
 ) : WorkerExecutionLogRepository {
 
     override suspend fun insert(workerExecutionLog: WorkerExecutionLog): Long =
-        workerExecutionLogDataSource.insert(workerExecutionLog)
+        workerExecutionLogDataSource.insert(workerExecutionLog.asData())
 
     override suspend fun delete(vararg workerExecutionLogs: WorkerExecutionLog): Int =
-        workerExecutionLogDataSource.delete(*workerExecutionLogs)
+        workerExecutionLogDataSource.delete(*workerExecutionLogs.map { it.asData() }.toTypedArray())
 
     override suspend fun deleteAll(attendanceId: Long, loggableWorker: LoggableWorker): Int =
-        workerExecutionLogDataSource.deleteAll(attendanceId, loggableWorker)
+        workerExecutionLogDataSource.deleteAll(attendanceId, loggableWorker.asData())
 
     override fun getByDatePaged(
         attendanceId: Long,
         loggableWorker: LoggableWorker,
         localDate: String
     ): Flow<PagingData<WorkerExecutionLogWithState>> =
-        workerExecutionLogDataSource.getByDatePaged(attendanceId, loggableWorker, localDate)
+        workerExecutionLogDataSource.getByDatePaged(
+            attendanceId,
+            loggableWorker.asData(),
+            localDate
+        ).map { pagingData ->
+            pagingData.map { it.asExternalData() }
+        }
 
     override fun getCountByState(
         attendanceId: Long,
         loggableWorker: LoggableWorker,
         state: WorkerExecutionLogState
     ): Flow<Long> =
-        workerExecutionLogDataSource.getCountByState(attendanceId, loggableWorker, state)
+        workerExecutionLogDataSource.getCountByState(
+            attendanceId,
+            loggableWorker.asData(),
+            state.asData()
+        )
 
     override suspend fun hasExecutedAtLeastOnce(
         attendanceId: Long,
         gameName: HoYoLABGame,
         timestamp: Long
     ): Boolean =
-        workerExecutionLogDataSource.hasExecutedAtLeastOnce(attendanceId, gameName, timestamp)
+        workerExecutionLogDataSource.hasExecutedAtLeastOnce(
+            attendanceId,
+            gameName.asData(),
+            timestamp
+        )
 }

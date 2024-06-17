@@ -5,8 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.WorkManager
-import com.joeloewi.croissant.domain.entity.Attendance
-import com.joeloewi.croissant.domain.entity.Game
+import com.joeloewi.croissant.core.data.model.Attendance
+import com.joeloewi.croissant.core.data.model.Game
+import com.joeloewi.croissant.core.data.model.HoYoLABGame
 import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
 import com.joeloewi.croissant.domain.usecase.GameUseCase
 import com.joeloewi.croissant.domain.usecase.HoYoLABUseCase
@@ -52,7 +53,7 @@ class CreateAttendanceViewModel @Inject constructor(
     private val _userInfo = _cookie
         .filter { it.isNotEmpty() }
         .map { cookie ->
-            getUserFullInfoHoYoLABUseCase(cookie = cookie).getOrThrow().data?.userInfo
+            getUserFullInfoHoYoLABUseCase(cookie = cookie).getOrThrow()
         }
         .flowOn(Dispatchers.IO)
         .catch {}
@@ -81,7 +82,7 @@ class CreateAttendanceViewModel @Inject constructor(
                 invoke(
                     pair.second,
                     pair.first.uid
-                ).getOrThrow()!!.list.also { list ->
+                ).getOrThrow()!!.also { list ->
                     list.map { gameRecord ->
                         Game(
                             roleId = gameRecord.gameRoleId,

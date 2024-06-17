@@ -23,10 +23,11 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import com.joeloewi.croissant.core.database.model.DataLoggableWorker
+import com.joeloewi.croissant.core.database.model.DataWorkerExecutionLogState
 import com.joeloewi.croissant.core.database.model.WorkerExecutionLogEntity
 import com.joeloewi.croissant.core.database.model.relational.WorkerExecutionLogWithStateEntity
-import com.joeloewi.croissant.domain.common.LoggableWorker
-import com.joeloewi.croissant.domain.common.WorkerExecutionLogState
+import com.joeloewi.croissant.core.model.DataHoYoLABGame
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -49,7 +50,7 @@ interface WorkerExecutionLogDao {
     )
     suspend fun deleteAll(
         attendanceId: Long,
-        loggableWorker: LoggableWorker
+        loggableWorker: DataLoggableWorker
     ): Int
 
     @Transaction
@@ -66,7 +67,7 @@ interface WorkerExecutionLogDao {
     )
     fun getByDatePaged(
         attendanceId: Long,
-        loggableWorker: LoggableWorker,
+        loggableWorker: DataLoggableWorker,
         localDate: String,
     ): PagingSource<Int, WorkerExecutionLogWithStateEntity>
 
@@ -82,8 +83,8 @@ interface WorkerExecutionLogDao {
     )
     fun getCountByState(
         attendanceId: Long,
-        loggableWorker: LoggableWorker,
-        state: WorkerExecutionLogState
+        loggableWorker: DataLoggableWorker,
+        state: DataWorkerExecutionLogState
     ): Flow<Long>
 
     @Query(
@@ -119,6 +120,6 @@ interface WorkerExecutionLogDao {
     suspend fun getCountByDate(
         attendanceId: Long,
         timestamp: Long,
-        gameName: HoYoLABGame
+        gameName: DataHoYoLABGame
     ): Long
 }

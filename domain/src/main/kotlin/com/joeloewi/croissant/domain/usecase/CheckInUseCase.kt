@@ -16,7 +16,7 @@
 
 package com.joeloewi.croissant.domain.usecase
 
-import com.joeloewi.croissant.domain.repository.CheckInRepository
+import com.joeloewi.croissant.core.data.repository.CheckInRepository
 import javax.inject.Inject
 
 sealed class CheckInUseCase {
