@@ -1,7 +1,5 @@
 package com.joeloewi.croissant.core.data.model
 
-import com.joeloewi.croissant.core.datastore.Settings
-
 data class Settings(
     val darkThemeEnabled: Boolean = false,
     val isFirstLaunch: Boolean = true,

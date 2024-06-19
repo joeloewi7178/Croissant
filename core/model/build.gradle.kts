@@ -1,15 +1,6 @@
 plugins {
-    alias(libs.plugins.croissant.android.library)
+    alias(libs.plugins.croissant.jvm.library)
     id("com.google.devtools.ksp")
-}
-
-android {
-    namespace = "com.joeloewi.croissant.core.model"
-
-    defaultConfig {
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
-    }
 }
 
 dependencies {
@@ -17,6 +8,5 @@ dependencies {
     implementation(libs.moshi.adapters)
     ksp(libs.moshi.kotlin.codegen)
 
-    androidTestImplementation(libs.androidx.test.ext.junit.ktx)
     testImplementation(libs.junit)
 }

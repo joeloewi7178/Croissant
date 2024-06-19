@@ -1,4 +1,4 @@
-package com.joeloewi.croissant.core.model
+package com.joeloewi.croissant.feature.redeemcodes
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -17,6 +17,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.joeloewi.croissant.core.model.test", appContext.packageName)
+        assertEquals("com.joeloewi.croissant.feature.redeemcodes.test", appContext.packageName)
     }
 }

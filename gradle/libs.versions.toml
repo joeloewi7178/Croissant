@@ -176,6 +176,7 @@ ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devto
 kotlinx-atomicfu-gradlePlugin = { group = "org.jetbrains.kotlinx", name = "atomicfu-gradle-plugin", version.ref = "kotlinxAtomicfu" }
 gms-oss-licenses-gradlePlugin = { group = "com.google.android.gms", name = "oss-licenses-plugin", version.ref = "gmsOssLicensesPlugin" }
 compose-compiler-gradlePlugin = { group = "org.jetbrains.kotlin", name = "compose-compiler-gradle-plugin", version.ref = "kotlin" }
+room-gradlePlugin = { group = "androidx.room", name = "room-gradle-plugin", version.ref = "room" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 
 [plugins]
@@ -194,6 +195,7 @@ kotlinx-atomicfu = { id = "kotlinx-atomicfu", version.ref = "kotlinxAtomicfu" }
 gms-oss-licenses-plugin = { id = "com.google.android.gms.oss-licenses-plugin", version.ref = "gmsOssLicensesPlugin" }
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "composePlugin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+room = { id = "androidx.room", version.ref = "room" }
 
 #plugins from this project
 croissant-android-application-compose = { id = "croissant.android.application.compose", version = "unspecified" }
@@ -202,3 +204,4 @@ croissant-android-library = { id = "croissant.android.library", version = "unspe
 croissant-android-hilt = { id = "croissant.android.hilt", version = "unspecified" }
 croissant-android-room = { id = "croissant.android.room", version = "unspecified" }
 croissant-android-application-firebase = { id = "croissant.android.application.firebase", version = "unspecified" }
+croissant-jvm-library = { id = "croissant.jvm.library", version = "unspecified" }

@@ -2,10 +2,10 @@ package com.joeloewi.croissant
 
 import com.android.build.api.dsl.CommonExtension
 import org.gradle.api.Project
-import org.gradle.api.artifacts.VersionCatalogsExtension
+import org.gradle.api.provider.Provider
+import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
-import org.gradle.kotlin.dsl.getByType
-import java.io.File
+import org.jetbrains.kotlin.compose.compiler.gradle.ComposeCompilerGradlePluginExtension
 
 /**
  * Configure Compose-specific options
@@ -13,24 +13,9 @@ import java.io.File
 internal fun Project.configureAndroidCompose(
     commonExtension: CommonExtension<*, *, *, *, *, *>,
 ) {
-    val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
-
-    with(pluginManager) {
-        apply(libs.findPlugin("compose-compiler").get().get().pluginId)
-    }
-
     commonExtension.apply {
         buildFeatures {
             compose = true
-        }
-
-        kotlin {
-            compilerOptions {
-                freeCompilerArgs.set(
-                    freeCompilerArgs.get()
-                        .toMutableList() + buildComposeMetricsParameters()
-                )
-            }
         }
 
         dependencies {
@@ -43,28 +28,23 @@ internal fun Project.configureAndroidCompose(
             "androidTestImplementation"(platform(coilKtBom))
         }
     }
-}
 
-private fun Project.buildComposeMetricsParameters(): List<String> {
-    val metricParameters = mutableListOf<String>()
-    val enableMetricsProvider = project.providers.gradleProperty("enableComposeCompilerMetrics")
-    val enableMetrics = (enableMetricsProvider.orNull == "true")
-    if (enableMetrics) {
-        val metricsFolder = File(project.layout.buildDirectory.get().asFile, "compose-metrics")
-        metricParameters.add("-P")
-        metricParameters.add(
-            "plugin:androidx.compose.compiler.plugins.kotlin:metricsDestination=" + metricsFolder.absolutePath
-        )
-    }
+    extensions.configure<ComposeCompilerGradlePluginExtension> {
+        fun Provider<String>.onlyIfTrue() = flatMap { provider { it.takeIf(String::toBoolean) } }
+        fun Provider<*>.relativeToRootProject(dir: String) = flatMap {
+            rootProject.layout.buildDirectory.dir(projectDir.toRelativeString(rootDir))
+        }.map { it.dir(dir) }
 
-    val enableReportsProvider = project.providers.gradleProperty("enableComposeCompilerReports")
-    val enableReports = (enableReportsProvider.orNull == "true")
-    if (enableReports) {
-        val reportsFolder = File(project.layout.buildDirectory.get().asFile, "compose-reports")
-        metricParameters.add("-P")
-        metricParameters.add(
-            "plugin:androidx.compose.compiler.plugins.kotlin:reportsDestination=" + reportsFolder.absolutePath
-        )
+        project.providers.gradleProperty("enableComposeCompilerMetrics").onlyIfTrue()
+            .relativeToRootProject("compose-metrics")
+            .let(metricsDestination::set)
+
+        project.providers.gradleProperty("enableComposeCompilerReports").onlyIfTrue()
+            .relativeToRootProject("compose-reports")
+            .let(reportsDestination::set)
+
+        stabilityConfigurationFile.set(rootProject.layout.projectDirectory.file("compose_compiler_config.conf"))
+
+        enableStrongSkippingMode.set(true)
     }
-    return metricParameters.toList()
 }
