@@ -64,7 +64,7 @@ fornewidPlaceholderMaterial3 = "2.0.0"
 kotlinxAtomicfu = "0.24.0"
 composePlugin = "1.6.10"
 orbit = "8.0.0"
-junitVersion = "1.1.5"
+junitVersion = "1.2.0"
 
 [libraries]
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
