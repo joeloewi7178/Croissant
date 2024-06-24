@@ -35,14 +35,12 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,11 +51,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.core.data.model.LoggableWorker
-import com.joeloewi.croissant.state.ILCE
+import com.joeloewi.croissant.core.data.model.ResultCount
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.ui.theme.HalfDp
@@ -70,11 +67,10 @@ import com.joeloewi.croissant.util.navigationIconButton
 import com.joeloewi.croissant.util.useNavRail
 import com.joeloewi.croissant.viewmodel.AttendanceLogsCalendarViewModel
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.coroutines.flow.catch
+import org.orbitmvi.orbit.compose.collectAsState
 import java.time.LocalDate
 import java.time.Year
 import java.time.YearMonth
-import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
@@ -84,22 +80,18 @@ fun AttendanceLogsCalendarScreen(
     onNavigateUp: () -> Unit,
     onClickDay: (attendanceId: Long, loggableWorker: LoggableWorker, localDate: String) -> Unit
 ) {
-    val deleteAllState by attendanceLogsCalendarViewModel.deleteAllState.collectAsStateWithLifecycle()
-    val resultCounts by attendanceLogsCalendarViewModel.resultCounts.collectAsStateWithLifecycle()
-    val startToEnd by attendanceLogsCalendarViewModel.startToEnd.collectAsStateWithLifecycle()
+    val state by attendanceLogsCalendarViewModel.collectAsState()
 
     AttendanceLogsCalendarContent(
-        deleteAllState = { deleteAllState },
-        startToEnd = { startToEnd },
-        resultCounts = { resultCounts },
+        state = state,
         onDeleteAll = attendanceLogsCalendarViewModel::deleteAll,
         onNavigateUp = onNavigateUp,
         onClickDay = {
-            onClickDay(
+            /*onClickDay(
                 attendanceLogsCalendarViewModel.attendanceId,
                 attendanceLogsCalendarViewModel.loggableWorker.value,
                 it
-            )
+            )*/
         }
     )
 }
@@ -107,16 +99,14 @@ fun AttendanceLogsCalendarScreen(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 private fun AttendanceLogsCalendarContent(
-    deleteAllState: () -> ILCE<Int>,
-    startToEnd: () -> Pair<ZonedDateTime, ZonedDateTime>,
-    resultCounts: () -> ImmutableList<com.joeloewi.croissant.core.data.model.ResultCount>,
+    state: AttendanceLogsCalendarViewModel.AttendanceLogsCalendarState,
     onDeleteAll: () -> Unit,
     onNavigateUp: () -> Unit,
     onClickDay: (localDate: String) -> Unit
 ) {
     val context = LocalContext.current
     val pagerState = rememberPagerState {
-        with(startToEnd()) {
+        with(state.startToEnd) {
             ChronoUnit.MONTHS.between(first, second) + 1
         }.toInt()
     }
@@ -124,7 +114,7 @@ private fun AttendanceLogsCalendarContent(
     val viewModelStoreOwner = LocalViewModelStoreOwner.current
     var showDeleteConfirmationDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
+    /*LaunchedEffect(Unit) {
         snapshotFlow(deleteAllState).catch { }.collect {
             when (it) {
                 is ILCE.Content -> {
@@ -145,7 +135,7 @@ private fun AttendanceLogsCalendarContent(
                 }
             }
         }
-    }
+    }*/
 
     Scaffold(
         snackbarHost = {
@@ -184,19 +174,17 @@ private fun AttendanceLogsCalendarContent(
                     modifier = Modifier.fillMaxSize(),
                     state = pagerState,
                     key = {
-                        startToEnd().second.minusMonths(it.toLong())
+                        state.startToEnd.second.minusMonths(it.toLong())
                             .format(DateTimeFormatter.ofPattern("yyyy-MM"))
                     },
                     reverseLayout = true
                 ) { page ->
 
                     MonthPage(
-                        yearMonth = {
-                            with(startToEnd().second.minusMonths(page.toLong())) {
-                                Year.of(year).atMonth(month)
-                            }
+                        yearMonth = with(state.startToEnd.second.minusMonths(page.toLong())) {
+                            Year.of(year).atMonth(month)
                         },
-                        resultCounts = resultCounts,
+                        resultCounts = state.resultCounts,
                         onClickDay = onClickDay
                     )
                 }
@@ -248,13 +236,13 @@ private fun AttendanceLogsCalendarContent(
 
 @Composable
 private fun MonthPage(
-    yearMonth: () -> YearMonth,
-    resultCounts: () -> ImmutableList<com.joeloewi.croissant.core.data.model.ResultCount>,
+    yearMonth: YearMonth,
+    resultCounts: ImmutableList<ResultCount>,
     onClickDay: (localDate: String) -> Unit
 ) {
     val updatedOnDayClick by rememberUpdatedState(newValue = onClickDay)
-    val totalDays = remember(yearMonth()) {
-        yearMonth().generateCalendarDays()
+    val totalDays = remember(yearMonth) {
+        yearMonth.generateCalendarDays()
     }
 
     Column(
@@ -267,7 +255,7 @@ private fun MonthPage(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = DefaultDp),
-                text = yearMonth().toString(),
+                text = yearMonth.toString(),
                 style = MaterialTheme.typography.displaySmall,
                 textAlign = TextAlign.Center,
             )
@@ -280,7 +268,7 @@ private fun MonthPage(
             itemsIndexed(
                 items = totalDays,
                 key = { index, _ ->
-                    yearMonth().format(DateTimeFormatter.ofPattern("yyyy-MM")) + "[$index]"
+                    yearMonth.format(DateTimeFormatter.ofPattern("yyyy-MM")) + "[$index]"
                 }
             ) { _, day ->
 
@@ -298,9 +286,9 @@ private fun MonthPage(
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 private fun DayGridItem(
-    yearMonth: () -> YearMonth,
+    yearMonth: YearMonth,
     day: Int,
-    resultCounts: () -> ImmutableList<com.joeloewi.croissant.core.data.model.ResultCount>,
+    resultCounts: ImmutableList<ResultCount>,
     onClickDay: (localDate: String) -> Unit
 ) {
     val windowSizeClass = calculateWindowSizeClass(activity = LocalActivity.current)
@@ -319,12 +307,12 @@ private fun DayGridItem(
             )
     ) {
         if (day != 0) {
-            val date = remember(yearMonth(), day) {
-                yearMonth().atDay(day)
+            val date = remember(yearMonth, day) {
+                yearMonth.atDay(day)
             }
-            val logCount = resultCounts().find {
+            val logCount = resultCounts.find {
                 it.date == date.toString()
-            } ?: com.joeloewi.croissant.core.data.model.ResultCount(date = date.toString())
+            } ?: ResultCount(date = date.toString())
             val colorScheme = MaterialTheme.colorScheme
             val primaryColor = remember(colorScheme) {
                 colorScheme.primary

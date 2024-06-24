@@ -17,7 +17,6 @@ import com.joeloewi.croissant.util.isDeviceNexus5X
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filter
@@ -30,7 +29,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import javax.inject.Inject
 
-@FlowPreview
 @HiltViewModel
 class MainActivityViewModel @Inject constructor(
     private val appUpdateManager: AppUpdateManager,

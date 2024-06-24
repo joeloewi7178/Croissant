@@ -6,7 +6,7 @@ data class Settings(
     val notifyMigrateToAlarmManager: Boolean = true
 )
 
-fun Settings.asExternalData(): com.joeloewi.croissant.core.data.model.Settings = with(this) {
+fun com.joeloewi.croissant.core.datastore.Settings.asExternalData(): Settings = with(this) {
     Settings(
         darkThemeEnabled = darkThemeEnabled,
         isFirstLaunch = isFirstLaunch,
@@ -14,8 +14,8 @@ fun Settings.asExternalData(): com.joeloewi.croissant.core.data.model.Settings =
     )
 }
 
-fun com.joeloewi.croissant.core.data.model.Settings.asData(): Settings = with(this) {
-    Settings.newBuilder()
+fun Settings.asData(): com.joeloewi.croissant.core.datastore.Settings = with(this) {
+    com.joeloewi.croissant.core.datastore.Settings.newBuilder()
         .setDarkThemeEnabled(darkThemeEnabled)
         .setIsFirstLaunch(isFirstLaunch)
         .setNotifyMigrateToAlarmManager(notifyMigrateToAlarmManager)
