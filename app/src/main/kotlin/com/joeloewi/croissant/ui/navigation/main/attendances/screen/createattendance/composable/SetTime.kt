@@ -53,8 +53,8 @@ import java.time.ZonedDateTime
 @Composable
 fun SetTime(
     modifier: Modifier = Modifier,
-    hourOfDay: () -> Int,
-    minute: () -> Int,
+    hourOfDay: Int,
+    minute: Int,
     onHourOfDayChange: (Int) -> Unit,
     onMinuteChange: (Int) -> Unit,
     onNextButtonClick: () -> Unit
@@ -166,15 +166,15 @@ fun SetTime(
 
 @Composable
 private fun TimePickerWithState(
-    hourOfDay: () -> Int,
-    minute: () -> Int,
+    hourOfDay: Int,
+    minute: Int,
     onHourOfDayChange: (Int) -> Unit,
     onMinuteChange: (Int) -> Unit
 ) {
     TimeAndTimePicker(
         modifier = Modifier.fillMaxWidth(),
-        hourOfDay = hourOfDay(),
-        minute = minute(),
+        hourOfDay = hourOfDay,
+        minute = minute,
         onHourOfDayChange = onHourOfDayChange,
         onMinuteChange = onMinuteChange
     )
@@ -182,8 +182,8 @@ private fun TimePickerWithState(
 
 @Composable
 private fun FirstExecutionTime(
-    hourOfDay: () -> Int,
-    minute: () -> Int
+    hourOfDay: Int,
+    minute: Int
 ) {
     val canExecuteToday by remember {
         combine(
@@ -193,8 +193,8 @@ private fun FirstExecutionTime(
                     delay(1000)
                 }
             },
-            snapshotFlow(hourOfDay),
-            snapshotFlow(minute)
+            snapshotFlow { hourOfDay },
+            snapshotFlow { minute }
         ) { current, hourOfDay, minute ->
             val target = current.withHour(hourOfDay)
                 .withMinute(minute)
@@ -224,8 +224,8 @@ private fun FirstExecutionTime(
     ) {
         derivedStateOf {
             ZonedDateTime.now()
-                .withHour(hourOfDay())
-                .withMinute(minute())
+                .withHour(hourOfDay)
+                .withMinute(minute)
                 .withSecond(30)
                 .withNano(0)
                 .format(

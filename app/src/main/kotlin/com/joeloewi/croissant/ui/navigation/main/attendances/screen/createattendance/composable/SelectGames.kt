@@ -16,13 +16,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
@@ -31,20 +28,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,7 +57,6 @@ import com.joeloewi.croissant.core.data.model.Attendance
 import com.joeloewi.croissant.core.data.model.Game
 import com.joeloewi.croissant.core.data.model.GameRecord
 import com.joeloewi.croissant.core.data.model.HoYoLABGame
-import com.joeloewi.croissant.state.LCE
 import com.joeloewi.croissant.state.StableWrapper
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.IconDp
@@ -71,16 +64,16 @@ import com.joeloewi.croissant.util.gameNameStringResId
 import io.github.fornewid.placeholder.foundation.PlaceholderHighlight
 import io.github.fornewid.placeholder.foundation.fade
 import io.github.fornewid.placeholder.foundation.placeholder
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.flow.catch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SelectGames(
     modifier: Modifier = Modifier,
-    connectedGames: () -> LCE<List<GameRecord>>,
-    duplicatedAttendance: () -> Attendance?,
-    checkedGames: () -> SnapshotStateList<Game>,
+    connectedGames: ImmutableList<GameRecord>,
+    duplicatedAttendance: Attendance?,
+    checkedGames: SnapshotStateList<Game>,
     onNextButtonClick: () -> Unit,
     onNavigateToAttendanceDetailScreen: (Long) -> Unit,
     onCancelCreateAttendance: () -> Unit
@@ -97,11 +90,11 @@ fun SelectGames(
     val containsNotSupportedGame = stringResource(id = R.string.contains_not_supported_game)
     val chooseAtLeastOneGame = stringResource(id = R.string.choose_at_least_one_game)
     val lazyListState = rememberLazyListState()
-    var showDuplicateAlertDialog by remember(duplicatedAttendance()) {
-        mutableStateOf(duplicatedAttendance() != null)
+    var showDuplicateAlertDialog by remember(duplicatedAttendance) {
+        mutableStateOf(duplicatedAttendance != null)
     }
 
-    LaunchedEffect(Unit) {
+    /*LaunchedEffect(Unit) {
         snapshotFlow(connectedGames).catch { }.collect {
             when (it) {
                 is LCE.Content -> {
@@ -131,9 +124,9 @@ fun SelectGames(
                 }
             }
         }
-    }
+    }*/
 
-    LaunchedEffect(checkedGames().isEmpty()) {
+    /*LaunchedEffect(checkedGames().isEmpty()) {
         snapshotFlow(connectedGames).catch { }.collect {
             when (it) {
                 is LCE.Content -> {
@@ -157,7 +150,7 @@ fun SelectGames(
                 }
             }
         }
-    }
+    }*/
 
     Scaffold(
         modifier = modifier,
@@ -167,7 +160,7 @@ fun SelectGames(
         bottomBar = {
             AnimatedVisibility(
                 modifier = Modifier.navigationBarsPadding(),
-                visible = !connectedGames().isLoading && connectedGames().error == null,
+                visible = true,
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
@@ -176,7 +169,7 @@ fun SelectGames(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = DefaultDp),
-                    enabled = checkedGames().isNotEmpty(),
+                    enabled = checkedGames.isNotEmpty(),
                     onClick = onNextButtonClick
                 ) {
                     Row(
@@ -219,7 +212,7 @@ fun SelectGames(
                 style = MaterialTheme.typography.bodyMedium
             )
 
-            when (connectedGames()) {
+            /*when (connectedGames) {
                 is LCE.Content -> {
                     LazyColumn(
                         state = lazyListState,
@@ -273,7 +266,7 @@ fun SelectGames(
                         }
                     }
                 }
-            }
+            }*/
         }
 
         if (showDuplicateAlertDialog) {
@@ -284,7 +277,7 @@ fun SelectGames(
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            duplicatedAttendance()?.id?.let {
+                            duplicatedAttendance?.id?.let {
                                 showDuplicateAlertDialog = false
                                 onNavigateToAttendanceDetailScreen(it)
                             }
@@ -401,9 +394,9 @@ fun ConnectedGamesListItemPlaceholder() {
 @Composable
 fun ConnectedGamesContentListItem(
     modifier: Modifier,
-    checkedGames: () -> SnapshotStateList<Game>,
+    checkedGames: SnapshotStateList<Game>,
     hoYoLABGame: HoYoLABGame,
-    gameRecord: (HoYoLABGame) -> StableWrapper<com.joeloewi.croissant.core.data.model.GameRecord>
+    gameRecord: (HoYoLABGame) -> StableWrapper<GameRecord>
 ) {
     val currentGameRecord by rememberUpdatedState(newValue = gameRecord(hoYoLABGame))
     val game by remember(hoYoLABGame, gameRecord) {
@@ -418,7 +411,7 @@ fun ConnectedGamesContentListItem(
 
     val enabled by remember(hoYoLABGame, gameRecord) {
         derivedStateOf {
-            hoYoLABGame == HoYoLABGame.TearsOfThemis || hoYoLABGame == HoYoLABGame.HonkaiStarRail || currentGameRecord.value.gameId != com.joeloewi.croissant.core.data.model.GameRecord.INVALID_GAME_ID
+            hoYoLABGame == HoYoLABGame.TearsOfThemis || hoYoLABGame == HoYoLABGame.HonkaiStarRail || currentGameRecord.value.gameId != GameRecord.INVALID_GAME_ID
         }
     }
 
@@ -433,16 +426,16 @@ fun ConnectedGamesContentListItem(
                 }
             )
             .composed {
-                remember(checkedGames().contains(game), enabled) {
+                remember(checkedGames.contains(game), enabled) {
                     toggleable(
-                        value = checkedGames().contains(game),
+                        value = checkedGames.contains(game),
                         enabled = enabled,
                         role = Role.Checkbox,
                         onValueChange = { checked ->
                             if (checked) {
-                                checkedGames().add(game)
+                                checkedGames.add(game)
                             } else {
-                                checkedGames().remove(game)
+                                checkedGames.remove(game)
                             }
                         }
                     )
@@ -467,7 +460,7 @@ fun ConnectedGamesContentListItem(
         },
         trailingContent = {
             Checkbox(
-                checked = checkedGames().contains(game),
+                checked = checkedGames.contains(game),
                 onCheckedChange = null
             )
         },

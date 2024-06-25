@@ -1,36 +1,32 @@
 package com.joeloewi.croissant.viewmodel
 
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.WorkManager
 import com.joeloewi.croissant.core.data.model.Attendance
 import com.joeloewi.croissant.core.data.model.Game
+import com.joeloewi.croissant.core.data.model.GameRecord
 import com.joeloewi.croissant.core.data.model.HoYoLABGame
+import com.joeloewi.croissant.core.data.model.UserInfo
 import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
 import com.joeloewi.croissant.domain.usecase.GameUseCase
 import com.joeloewi.croissant.domain.usecase.HoYoLABUseCase
-import com.joeloewi.croissant.state.ILCE
-import com.joeloewi.croissant.state.LCE
-import com.joeloewi.croissant.state.foldAsILCE
-import com.joeloewi.croissant.state.foldAsLce
 import com.joeloewi.croissant.util.AlarmScheduler
 import com.joeloewi.croissant.worker.CheckSessionWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.orbitmvi.orbit.Container
+import org.orbitmvi.orbit.ContainerHost
+import org.orbitmvi.orbit.syntax.simple.intent
+import org.orbitmvi.orbit.syntax.simple.postSideEffect
+import org.orbitmvi.orbit.syntax.simple.reduce
+import org.orbitmvi.orbit.viewmodel.container
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import javax.inject.Inject
@@ -45,126 +41,137 @@ class CreateAttendanceViewModel @Inject constructor(
     private val updateAttendanceUseCase: AttendanceUseCase.Update,
     private val insertGameUseCase: GameUseCase.Insert,
     private val getOneByUidAttendanceUseCase: AttendanceUseCase.GetOneByUid
-) : ViewModel() {
-    private val _cookie = MutableStateFlow("")
-    private val _hourOfDay = MutableStateFlow(ZonedDateTime.now().hour)
-    private val _minute = MutableStateFlow(ZonedDateTime.now().minute)
-    private val _insertAttendanceState = MutableStateFlow<ILCE<List<Long>>>(ILCE.Idle)
-    private val _userInfo = _cookie
-        .filter { it.isNotEmpty() }
-        .map { cookie ->
-            getUserFullInfoHoYoLABUseCase(cookie = cookie).getOrThrow()
-        }
-        .flowOn(Dispatchers.IO)
-        .catch {}
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Lazily,
-            initialValue = null
-        )
-    val duplicatedAttendance = _userInfo
-        .filterNotNull()
-        .map { getOneByUidAttendanceUseCase(it.uid) }
-        .flowOn(Dispatchers.IO)
-        .catch {}
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Lazily,
-            initialValue = null
-        )
-    val connectedGames = _userInfo
-        .filterNotNull()
-        .combine(_cookie) { userInfo, cookie ->
-            userInfo to cookie
-        }.map { pair ->
-            checkedGames.clear()
-            getGameRecordCardHoYoLABUseCase.runCatching {
-                invoke(
-                    pair.second,
-                    pair.first.uid
-                ).getOrThrow()!!.also { list ->
-                    list.map { gameRecord ->
-                        Game(
-                            roleId = gameRecord.gameRoleId,
-                            type = HoYoLABGame.findByGameId(gameId = gameRecord.gameId),
-                            region = gameRecord.region
-                        )
-                    }.let { withContext(Dispatchers.Main) { checkedGames.addAll(it) } }
-                }
-            }.foldAsLce()
-        }.flowOn(Dispatchers.IO).stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Lazily,
-            initialValue = LCE.Loading
-        )
-    val cookie = _cookie.asStateFlow()
-    val checkedGames = mutableStateListOf<Game>()
-    val hourOfDay = _hourOfDay.asStateFlow()
-    val minute = _minute.asStateFlow()
-    val insertAttendanceState = _insertAttendanceState.asStateFlow()
+) : ViewModel(),
+    ContainerHost<CreateAttendanceViewModel.State, CreateAttendanceViewModel.SideEffect> {
+
+    override val container: Container<State, SideEffect> = container(State()) {
+
+    }
 
     fun setCookie(cookie: String) {
-        _cookie.value = cookie
+        intent {
+            reduce { state.copy(cookie = cookie) }
+
+            if (cookie.isNotEmpty()) {
+                val userInfo = getUserFullInfoHoYoLABUseCase(cookie = cookie).getOrNull()
+                reduce { state.copy(userInfo = userInfo) }
+
+                val existingAttendance =
+                    state.userInfo?.let { getOneByUidAttendanceUseCase(it.uid) }
+                reduce { state.copy(existingAttendance = existingAttendance) }
+
+                val connectedGames = state.userInfo?.uid?.let {
+                    getGameRecordCardHoYoLABUseCase.invoke(
+                        cookie = state.cookie,
+                        uid = it
+                    )
+                }?.getOrNull()?.toImmutableList() ?: persistentListOf()
+                val converted = connectedGames.map { gameRecord ->
+                    Game(
+                        roleId = gameRecord.gameRoleId,
+                        type = HoYoLABGame.findByGameId(gameId = gameRecord.gameId),
+                        region = gameRecord.region
+                    )
+                }
+
+                withContext(Dispatchers.Main) {
+                    state.checkedGames.clear()
+                    state.checkedGames.addAll(converted)
+                }
+
+                reduce { state.copy(connectedGames = connectedGames) }
+            }
+        }
     }
 
     fun setHourOfDay(hourOfDay: Int) {
-        _hourOfDay.value = hourOfDay
+        intent { reduce { state.copy(hourOfDay = hourOfDay) } }
     }
 
     fun setMinute(minute: Int) {
-        _minute.value = minute
+        intent { reduce { state.copy(minute = minute) } }
+    }
+
+    fun onNavigateUp() {
+        intent { postSideEffect(SideEffect.NavigateUp) }
+    }
+
+    fun onNavigateToAttendanceDetailScreen(attendanceId: Long) {
+        intent { postSideEffect(SideEffect.NavigateToAttendanceDetail(attendanceId)) }
+    }
+
+    fun onLoginHoYoLAB() {
+        intent { postSideEffect(SideEffect.OnLoginHoYoLAB) }
+    }
+
+    fun onShowCancelConfirmationDialog(showCancelConfirmationDialog: Boolean) {
+        intent { reduce { state.copy(showCancelConfirmationDialog = showCancelConfirmationDialog) } }
     }
 
     fun createAttendance() {
-        _insertAttendanceState.value = ILCE.Loading
-        viewModelScope.launch(Dispatchers.IO) {
-            _insertAttendanceState.value = insertAttendanceUseCase.runCatching {
-                val hourOfDay = _hourOfDay.value
-                val minute = _minute.value
-                val attendance = Attendance(
-                    cookie = _cookie.value,
-                    nickname = _userInfo.value!!.nickname,
-                    uid = _userInfo.value!!.uid,
-                    hourOfDay = hourOfDay,
-                    minute = minute,
-                    timezoneId = ZoneId.systemDefault().id
-                )
+        intent {
+            postSideEffect(SideEffect.ShowProgressDialog)
+            val attendance = Attendance(
+                cookie = state.cookie,
+                nickname = state.userInfo?.nickname ?: "",
+                uid = state.userInfo?.uid ?: 0,
+                hourOfDay = state.hourOfDay,
+                minute = state.minute,
+                timezoneId = ZoneId.systemDefault().id
+            )
 
-                with(attendance) {
-                    copy(
-                        id = invoke(attendance)
-                    )
-                }
-            }.mapCatching { attendance ->
-                alarmScheduler.scheduleCheckInAlarm(
-                    attendance = attendance,
-                    scheduleForTomorrow = false
-                )
+            val attendanceId = insertAttendanceUseCase.invoke(attendance)
 
-                val periodicCheckSessionWork = CheckSessionWorker.buildPeriodicWork(
-                    attendanceId = attendance.id
-                )
+            alarmScheduler.scheduleCheckInAlarm(
+                attendance = attendance,
+                scheduleForTomorrow = false
+            )
 
-                workManager.enqueueUniquePeriodicWork(
-                    attendance.checkSessionWorkerName.toString(),
-                    ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
-                    periodicCheckSessionWork
-                )
+            val periodicCheckSessionWork = CheckSessionWorker.buildPeriodicWork(
+                attendanceId = attendance.id
+            )
 
-                updateAttendanceUseCase(
-                    attendance.copy(
-                        checkSessionWorkerId = periodicCheckSessionWork.id
-                    )
-                )
+            workManager.enqueueUniquePeriodicWork(
+                attendance.checkSessionWorkerName.toString(),
+                ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
+                periodicCheckSessionWork
+            )
 
-                attendance.id
-            }.mapCatching { attendanceId ->
-                insertGameUseCase(
-                    *checkedGames.map {
-                        it.copy(attendanceId = attendanceId)
-                    }.toTypedArray()
+            updateAttendanceUseCase(
+                attendance.copy(
+                    checkSessionWorkerId = periodicCheckSessionWork.id
                 )
-            }.foldAsILCE()
+            )
+
+            insertGameUseCase(
+                *state.checkedGames.map {
+                    it.copy(attendanceId = attendanceId)
+                }.toTypedArray()
+            )
+            postSideEffect(SideEffect.DismissProgressDialog)
+            postSideEffect(SideEffect.NavigateUp)
         }
+    }
+
+    data class State(
+        val cookie: String = "",
+        val hourOfDay: Int = ZonedDateTime.now().hour,
+        val minute: Int = ZonedDateTime.now().minute,
+        val checkedGames: SnapshotStateList<Game> = mutableStateListOf(),
+        val userInfo: UserInfo? = null,
+        val existingAttendance: Attendance? = null,
+        val connectedGames: ImmutableList<GameRecord> = persistentListOf(),
+        val showCancelConfirmationDialog: Boolean = false
+    )
+
+    sealed class SideEffect {
+        data object ShowProgressDialog : SideEffect()
+        data object DismissProgressDialog : SideEffect()
+        data object NavigateUp : SideEffect()
+        data class NavigateToAttendanceDetail(
+            val attendanceId: Long
+        ) : SideEffect()
+
+        data object OnLoginHoYoLAB : SideEffect()
     }
 }
