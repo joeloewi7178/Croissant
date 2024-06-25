@@ -119,4 +119,5 @@
     <string name="execution_notice">To ensure accuracy, the scheduled task will be executed 30 seconds after the specified time. For example, if you schedule a task for 12:34 PM, it will actually be executed at 12:34:30 PM.</string>
     <string name="attendance_retry_unknown_error">Attendance failed due to unknown error. Retry has scheduled.</string>
     <string name="attendance_retry_too_many_requests_error">Attendance failed due to too many requests. Retry has scheduled.</string>
+    <string name="loading">Loading</string>
 </resources>

@@ -378,7 +378,7 @@ fun LoginHoYoLABContent(
                                         val intent = Intent(Intent.ACTION_VIEW, it)
 
                                         if (intent.resolveActivity(activity.packageManager) != null) {
-                                            activity.startActivity(Intent(Intent.ACTION_VIEW, it))
+                                            activity.startActivity(intent)
                                         }
                                     }
                                 }

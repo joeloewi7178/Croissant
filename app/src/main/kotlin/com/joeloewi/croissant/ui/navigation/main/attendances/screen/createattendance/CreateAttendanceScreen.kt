@@ -249,9 +249,7 @@ fun CreateAttendanceContent(
         }
 
         if (insertAttendanceState().isLoading) {
-            ProgressDialog(
-                onDismissRequest = {}
-            )
+            ProgressDialog()
         }
     }
 }

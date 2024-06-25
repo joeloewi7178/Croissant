@@ -11,9 +11,13 @@ import com.joeloewi.croissant.core.data.model.Attendance
 import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
 import com.joeloewi.croissant.util.AlarmScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import org.orbitmvi.orbit.Container
+import org.orbitmvi.orbit.ContainerHost
+import org.orbitmvi.orbit.syntax.simple.intent
+import org.orbitmvi.orbit.syntax.simple.postSideEffect
+import org.orbitmvi.orbit.viewmodel.container
 import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
 
 @HiltViewModel
 class AttendancesViewModel @Inject constructor(
@@ -21,11 +25,13 @@ class AttendancesViewModel @Inject constructor(
     private val alarmScheduler: AlarmScheduler,
     private val deleteAttendanceUseCase: AttendanceUseCase.Delete,
     getAllPagedAttendanceWithGamesUseCase: AttendanceUseCase.GetAllPaged,
-) : ViewModel() {
+) : ViewModel(), ContainerHost<Unit, AttendancesViewModel.SideEffect> {
     val pagedAttendanceWithGames = getAllPagedAttendanceWithGamesUseCase().cachedIn(viewModelScope)
 
+    override val container: Container<Unit, SideEffect> = container(Unit)
+
     fun deleteAttendance(attendance: Attendance) {
-        viewModelScope.launch(Dispatchers.IO) {
+        intent {
             Firebase.analytics.logEvent("delete_attendance", bundleOf())
 
             runCatching {
@@ -43,8 +49,30 @@ class AttendancesViewModel @Inject constructor(
             }.onSuccess {
 
             }.onFailure {
-
+                if (it is CancellationException) {
+                    throw it
+                }
             }
         }
+    }
+
+    fun onClickAttendance(attendanceId: Long) {
+        intent {
+            postSideEffect(SideEffect.OnClickAttendance(attendanceId))
+        }
+    }
+
+    fun onClickCreateAttendance() {
+        intent {
+            postSideEffect(SideEffect.OnClickCreateAttendance)
+        }
+    }
+
+    sealed class SideEffect {
+        data class OnClickAttendance(
+            val attendanceId: Long
+        ) : SideEffect()
+
+        data object OnClickCreateAttendance : SideEffect()
     }
 }

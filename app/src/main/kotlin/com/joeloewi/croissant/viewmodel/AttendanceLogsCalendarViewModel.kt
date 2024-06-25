@@ -15,8 +15,6 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -39,74 +37,111 @@ class AttendanceLogsCalendarViewModel @Inject constructor(
     private val getAllResultCountUseCase: ResultCountUseCase.GetAll,
     savedStateHandle: SavedStateHandle
 ) : ViewModel(),
-    ContainerHost<AttendanceLogsCalendarViewModel.AttendanceLogsCalendarState, AttendanceLogsCalendarViewModel.AttendanceLogsCalendarSideEffect> {
+    ContainerHost<AttendanceLogsCalendarViewModel.State, AttendanceLogsCalendarViewModel.SideEffect> {
     //parameter
     private val _attendanceIdKey = AttendancesDestination.AttendanceLogsCalendarScreen.ATTENDANCE_ID
     private val _loggableWorkerKey =
         AttendancesDestination.AttendanceLogsCalendarScreen.LOGGABLE_WORKER
-    private val _loggableWorker =
-        savedStateHandle.getStateFlow(_loggableWorkerKey, LoggableWorker.UNKNOWN)
-    private val _attendanceId =
-        savedStateHandle.getStateFlow(_attendanceIdKey, Long.MIN_VALUE)
-    private val _resultCounts =
-        combine(_attendanceId, _loggableWorker) { attendanceId, loggableWorker ->
-            getAllResultCountUseCase(attendanceId, loggableWorker)
-        }.flatMapLatest { it }.map {
-            it.toImmutableList()
-        }.flowOn(Dispatchers.IO).stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Eagerly,
-            initialValue = persistentListOf()
-        )
-    private val _startToEnd =
-        combine(_attendanceId, _loggableWorker) { attendanceId, loggableWorker ->
-            getStartToEnd(attendanceId, loggableWorker)
-        }.flatMapLatest { it }.map {
-            ZonedDateTime.ofInstant(
-                Instant.ofEpochMilli(it.start),
-                ZoneId.systemDefault()
-            ) to ZonedDateTime.ofInstant(Instant.ofEpochMilli(it.end), ZoneId.systemDefault())
-        }.flowOn(Dispatchers.IO).stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(),
-            initialValue = with(ZonedDateTime.now()) {
-                withDayOfMonth(1) to withDayOfMonth(
-                    Year.of(year).atMonth(month).atEndOfMonth().dayOfMonth
-                )
-            }
-        )
 
-    override val container: Container<AttendanceLogsCalendarState, AttendanceLogsCalendarSideEffect> =
-        container(AttendanceLogsCalendarState()) {
+    override val container: Container<State, SideEffect> =
+        container(State()) {
             intent {
-                _resultCounts.collect {
+                getAllResultCountUseCase(state.attendanceId, state.loggableWorker).map {
+                    it.toImmutableList()
+                }.flowOn(Dispatchers.IO).stateIn(
+                    scope = viewModelScope,
+                    started = SharingStarted.Eagerly,
+                    initialValue = persistentListOf()
+                ).collect {
                     reduce { state.copy(resultCounts = it) }
                 }
             }
 
             intent {
-                _startToEnd.collect {
+                getStartToEnd(state.attendanceId, state.loggableWorker).map {
+                    ZonedDateTime.ofInstant(
+                        Instant.ofEpochMilli(it.start),
+                        ZoneId.systemDefault()
+                    ) to ZonedDateTime.ofInstant(
+                        Instant.ofEpochMilli(it.end),
+                        ZoneId.systemDefault()
+                    )
+                }.flowOn(Dispatchers.IO).stateIn(
+                    scope = viewModelScope,
+                    started = SharingStarted.WhileSubscribed(),
+                    initialValue = with(ZonedDateTime.now()) {
+                        withDayOfMonth(1) to withDayOfMonth(
+                            Year.of(year).atMonth(month).atEndOfMonth().dayOfMonth
+                        )
+                    }
+                ).collect {
                     reduce { state.copy(startToEnd = it) }
+                }
+            }
+
+            intent {
+                savedStateHandle.getStateFlow(_attendanceIdKey, Long.MIN_VALUE).collect {
+                    reduce { state.copy(attendanceId = it) }
+                }
+            }
+
+            intent {
+                savedStateHandle.getStateFlow(_loggableWorkerKey, LoggableWorker.UNKNOWN).collect {
+                    reduce { state.copy(loggableWorker = it) }
                 }
             }
         }
 
     fun deleteAll() {
         intent {
-            postSideEffect(AttendanceLogsCalendarSideEffect.Dialog(true))
-
-            postSideEffect(AttendanceLogsCalendarSideEffect.Dialog(false))
+            postSideEffect(SideEffect.ShowLoadingDialog)
+            val count = deleteAllPagedWorkerExecutionLogUseCase.invoke(
+                state.attendanceId,
+                state.loggableWorker
+            )
+            postSideEffect(SideEffect.HideLoadingDialog)
+            postSideEffect(SideEffect.ShowDeleteCompleteSnackbar(count))
         }
     }
 
-    data class AttendanceLogsCalendarState(
+    fun onClickDay(localDate: String) {
+        intent {
+            postSideEffect(
+                SideEffect.NavigateToDay(
+                    state.attendanceId,
+                    state.loggableWorker,
+                    localDate
+                )
+            )
+        }
+    }
+
+    fun onShowConfirmDeleteDialogChange(showConfirmDeleteDialog: Boolean) {
+        intent {
+            reduce { state.copy(showConfirmDeleteDialog = showConfirmDeleteDialog) }
+        }
+    }
+
+    data class State(
         val resultCounts: ImmutableList<ResultCount> = persistentListOf(),
-        val startToEnd: Pair<ZonedDateTime, ZonedDateTime> = ZonedDateTime.now() to ZonedDateTime.now()
+        val startToEnd: Pair<ZonedDateTime, ZonedDateTime> = ZonedDateTime.now() to ZonedDateTime.now(),
+        val attendanceId: Long = Long.MIN_VALUE,
+        val loggableWorker: LoggableWorker = LoggableWorker.UNKNOWN,
+        val showConfirmDeleteDialog: Boolean = false
     )
 
-    sealed class AttendanceLogsCalendarSideEffect {
-        data class Dialog(
-            val shouldShow: Boolean
-        ) : AttendanceLogsCalendarSideEffect()
+    sealed class SideEffect {
+        data class NavigateToDay(
+            val attendanceId: Long,
+            val loggableWorker: LoggableWorker,
+            val localDate: String
+        ) : SideEffect()
+
+        data class ShowDeleteCompleteSnackbar(
+            val count: Int
+        ) : SideEffect()
+
+        data object ShowLoadingDialog : SideEffect()
+        data object HideLoadingDialog : SideEffect()
     }
 }

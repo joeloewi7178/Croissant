@@ -173,9 +173,7 @@ fun ResinStatusWidgetDetailContent(
         }
 
         if (updateResinStatusWidgetState().isLoading) {
-            ProgressDialog(
-                onDismissRequest = {}
-            )
+            ProgressDialog()
         }
     }
 }

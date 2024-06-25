@@ -80,7 +80,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.analytics.analytics
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.core.data.model.Attendance
-import com.joeloewi.croissant.state.StableWrapper
+import com.joeloewi.croissant.core.data.model.relational.AttendanceWithGames
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.ui.theme.HalfDp
@@ -102,6 +102,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.orbitmvi.orbit.compose.collectSideEffect
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
@@ -109,18 +110,25 @@ import java.time.ZonedDateTime
 fun AttendancesScreen(
     snackbarHostState: SnackbarHostState,
     attendancesViewModel: AttendancesViewModel = hiltViewModel(),
-    onCreateAttendanceClick: () -> Unit,
-    onClickAttendance: (Attendance) -> Unit
+    onClickCreateAttendance: () -> Unit,
+    onClickAttendance: (attendanceId: Long) -> Unit
 ) {
     val pagedAttendancesWithGames =
         attendancesViewModel.pagedAttendanceWithGames.collectAsLazyPagingItems()
 
+    attendancesViewModel.collectSideEffect {
+        when (it) {
+            is AttendancesViewModel.SideEffect.OnClickAttendance -> onClickAttendance(it.attendanceId)
+            AttendancesViewModel.SideEffect.OnClickCreateAttendance -> onClickCreateAttendance()
+        }
+    }
+
     AttendancesContent(
         snackbarHostState = snackbarHostState,
         pagedAttendancesWithGames = pagedAttendancesWithGames,
-        onCreateAttendanceClick = onCreateAttendanceClick,
+        onClickCreateAttendance = attendancesViewModel::onClickCreateAttendance,
         onDeleteAttendance = attendancesViewModel::deleteAttendance,
-        onClickAttendance = onClickAttendance
+        onClickAttendance = attendancesViewModel::onClickAttendance
     )
 }
 
@@ -131,10 +139,10 @@ fun AttendancesScreen(
 @Composable
 private fun AttendancesContent(
     snackbarHostState: SnackbarHostState,
-    pagedAttendancesWithGames: LazyPagingItems<com.joeloewi.croissant.core.data.model.relational.AttendanceWithGames>,
-    onCreateAttendanceClick: () -> Unit,
+    pagedAttendancesWithGames: LazyPagingItems<AttendanceWithGames>,
+    onClickCreateAttendance: () -> Unit,
     onDeleteAttendance: (Attendance) -> Unit,
-    onClickAttendance: (Attendance) -> Unit,
+    onClickAttendance: (attendanceId: Long) -> Unit,
 ) {
 
     Scaffold(
@@ -150,7 +158,7 @@ private fun AttendancesContent(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = onCreateAttendanceClick
+                onClick = onClickCreateAttendance
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -202,7 +210,7 @@ private fun AttendancesContent(
                     if (item != null) {
                         AttendanceWithGamesItem(
                             modifier = Modifier.animateItemPlacement(),
-                            item = { StableWrapper(item) },
+                            item = item,
                             onDeleteAttendance = onDeleteAttendance,
                             onClickAttendance = onClickAttendance
                         )
@@ -221,9 +229,9 @@ private fun AttendancesContent(
 @Composable
 fun AttendanceWithGamesItem(
     modifier: Modifier,
-    item: () -> StableWrapper<com.joeloewi.croissant.core.data.model.relational.AttendanceWithGames>,
+    item: AttendanceWithGames,
     onDeleteAttendance: (Attendance) -> Unit,
-    onClickAttendance: (Attendance) -> Unit
+    onClickAttendance: (attendanceId: Long) -> Unit
 ) {
     val swipeToDismissState = rememberSwipeToDismissBoxState()
     val context = LocalContext.current
@@ -233,7 +241,7 @@ fun AttendanceWithGamesItem(
     LaunchedEffect(Unit) {
         snapshotFlow { swipeToDismissState.currentValue }.catch { }.collectLatest {
             if (it == SwipeToDismissBoxValue.EndToStart) {
-                onDeleteAttendance(item().value.attendance)
+                onDeleteAttendance(item.attendance)
             }
         }
     }
@@ -244,12 +252,12 @@ fun AttendanceWithGamesItem(
         enableDismissFromStartToEnd = false,
         backgroundContent = {
             SwipeToDismissBackground(
-                targetValue = { swipeToDismissState.targetValue }
+                targetValue = swipeToDismissState.targetValue
             )
         }
     ) {
         DismissContent(
-            dismissDirection = { swipeToDismissState.dismissDirection },
+            dismissDirection = swipeToDismissState.dismissDirection,
             attendanceWithGames = item,
             onClickOneTimeAttend = remember {
                 { attendance ->
@@ -276,7 +284,7 @@ fun AttendanceWithGamesItem(
                     }
                 }
             },
-            onClickAttendance = remember { onClickAttendance }
+            onClickAttendance = onClickAttendance
         )
     }
 }
@@ -284,13 +292,13 @@ fun AttendanceWithGamesItem(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SwipeToDismissBackground(
-    targetValue: () -> SwipeToDismissBoxValue
+    targetValue: SwipeToDismissBoxValue
 ) {
     val scale by animateFloatAsState(
-        if (targetValue() == SwipeToDismissBoxValue.Settled) 0.75f else 1f, label = ""
+        if (targetValue == SwipeToDismissBoxValue.Settled) 0.75f else 1f, label = ""
     )
     val backgroundColor by animateColorAsState(
-        when (targetValue()) {
+        when (targetValue) {
             SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.errorContainer
             else -> {
                 MaterialTheme.colorScheme.surfaceColorAtElevation(HalfDp)
@@ -298,7 +306,7 @@ private fun SwipeToDismissBackground(
         }, label = ""
     )
     val iconColor by animateColorAsState(
-        when (targetValue()) {
+        when (targetValue) {
             SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.onErrorContainer
             else -> {
                 MaterialTheme.colorScheme.onSurface
@@ -322,24 +330,24 @@ private fun SwipeToDismissBackground(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 private fun DismissContent(
-    dismissDirection: () -> SwipeToDismissBoxValue,
-    attendanceWithGames: () -> StableWrapper<com.joeloewi.croissant.core.data.model.relational.AttendanceWithGames>,
-    onClickAttendance: (Attendance) -> Unit,
+    dismissDirection: SwipeToDismissBoxValue,
+    attendanceWithGames: AttendanceWithGames,
+    onClickAttendance: (attendanceId: Long) -> Unit,
     onClickOneTimeAttend: (Attendance) -> Unit
 ) {
     ListItem(
         modifier = Modifier
             .composed {
                 val elevation by animateDpAsState(
-                    if (dismissDirection() != SwipeToDismissBoxValue.Settled) HalfDp else 0.dp,
+                    if (dismissDirection != SwipeToDismissBoxValue.Settled) HalfDp else 0.dp,
                     label = ""
                 )
 
-                remember(elevation, attendanceWithGames().value.attendance.id) {
-                    shadow(elevation).clickable { onClickAttendance(attendanceWithGames().value.attendance) }
+                remember(elevation, attendanceWithGames.attendance.id) {
+                    shadow(elevation).clickable { onClickAttendance(attendanceWithGames.attendance.id) }
                 }
             },
         supportingContent = {
@@ -348,7 +356,7 @@ private fun DismissContent(
                 userScrollEnabled = false
             ) {
                 items(
-                    items = attendanceWithGames().value.games,
+                    items = attendanceWithGames.games,
                     key = { it.id }
                 ) { game ->
                     AsyncImage(
@@ -368,11 +376,11 @@ private fun DismissContent(
             val hourFormat = LocalHourFormat.current
 
             val formattedTime by remember(
-                attendanceWithGames().value.attendance,
+                attendanceWithGames.attendance,
                 hourFormat
             ) {
                 derivedStateOf {
-                    with(attendanceWithGames().value.attendance) {
+                    with(attendanceWithGames.attendance) {
                         ZonedDateTime.now(ZoneId.of(timezoneId))
                             .withHour(hourOfDay)
                             .withMinute(minute)
@@ -393,7 +401,7 @@ private fun DismissContent(
                         )
                     )
                     append(" ")
-                    append("(${attendanceWithGames().value.attendance.timezoneId})")
+                    append("(${attendanceWithGames.attendance.timezoneId})")
                 }
             )
         },
@@ -401,7 +409,7 @@ private fun DismissContent(
             Text(
                 text = stringResource(
                     id = R.string.attendance_of_nickname,
-                    attendanceWithGames().value.attendance.nickname
+                    attendanceWithGames.attendance.nickname
                 ),
                 style = MaterialTheme.typography.titleMedium
             )
@@ -410,7 +418,7 @@ private fun DismissContent(
             val context = LocalContext.current
             val lifecycleOwner = LocalLifecycleOwner.current
             val workerName =
-                attendanceWithGames().value.attendance.oneTimeAttendCheckInEventWorkerName.toString()
+                attendanceWithGames.attendance.oneTimeAttendCheckInEventWorkerName.toString()
             val isRunningFlow = remember(context, workerName) {
                 WorkManager.getInstance(context)
                     .getWorkInfosFlow(
@@ -430,7 +438,7 @@ private fun DismissContent(
             IconButton(
                 enabled = !isRunning,
                 onClick = remember {
-                    { onClickOneTimeAttend(attendanceWithGames().value.attendance) }
+                    { onClickOneTimeAttend(attendanceWithGames.attendance) }
                 }
             ) {
                 AnimatedContent(

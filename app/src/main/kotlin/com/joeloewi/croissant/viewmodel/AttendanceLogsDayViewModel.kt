@@ -8,6 +8,13 @@ import com.joeloewi.croissant.core.data.model.LoggableWorker
 import com.joeloewi.croissant.domain.usecase.WorkerExecutionLogUseCase
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.flatMapConcat
+import org.orbitmvi.orbit.Container
+import org.orbitmvi.orbit.ContainerHost
+import org.orbitmvi.orbit.syntax.simple.intent
+import org.orbitmvi.orbit.syntax.simple.postSideEffect
+import org.orbitmvi.orbit.syntax.simple.reduce
+import org.orbitmvi.orbit.viewmodel.container
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
@@ -16,21 +23,54 @@ import javax.inject.Inject
 class AttendanceLogsDayViewModel @Inject constructor(
     getByDatePagedWorkerExecutionLogUseCase: WorkerExecutionLogUseCase.GetByDatePaged,
     savedStateHandle: SavedStateHandle,
-) : ViewModel() {
+) : ViewModel(),
+    ContainerHost<AttendanceLogsDayViewModel.State, AttendanceLogsDayViewModel.SideEffect> {
+
     private val _attendanceIdKey = AttendancesDestination.AttendanceLogsDayScreen.ATTENDANCE_ID
     private val _loggableWorkerKey = AttendancesDestination.AttendanceLogsDayScreen.LOGGABLE_WORKER
     private val _localDateKey = AttendancesDestination.AttendanceLogsDayScreen.LOCAL_DATE
 
-    private val _attendanceId = savedStateHandle.get<Long>(_attendanceIdKey) ?: Long.MIN_VALUE
-    private val _loggableWorker =
-        savedStateHandle.get<LoggableWorker>(_loggableWorkerKey) ?: LoggableWorker.UNKNOWN
-    private val _localDate = savedStateHandle.get<String>(_localDateKey) ?: LocalDate.now().format(
-        DateTimeFormatter.ISO_LOCAL_DATE
+    override val container: Container<State, SideEffect> = container(State()) {
+
+        intent {
+            savedStateHandle.getStateFlow(_attendanceIdKey, Long.MIN_VALUE).collect {
+                reduce { state.copy(attendanceId = it) }
+            }
+        }
+
+        intent {
+            savedStateHandle.getStateFlow(_loggableWorkerKey, LoggableWorker.UNKNOWN).collect {
+                reduce { state.copy(loggableWorker = it) }
+            }
+        }
+
+        intent {
+            savedStateHandle.getStateFlow(
+                _localDateKey,
+                LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+            ).collect {
+                reduce { state.copy(localDate = it) }
+            }
+        }
+    }
+
+    val pagedAttendanceLogs = container.stateFlow.flatMapConcat {
+        getByDatePagedWorkerExecutionLogUseCase(it.attendanceId, it.loggableWorker, it.localDate)
+    }.cachedIn(viewModelScope)
+
+    fun onNavigateUp() {
+        intent {
+            postSideEffect(SideEffect.NavigateUp)
+        }
+    }
+
+    data class State(
+        val attendanceId: Long = Long.MIN_VALUE,
+        val loggableWorker: LoggableWorker = LoggableWorker.UNKNOWN,
+        val localDate: String = LocalDate.now().toString()
     )
 
-    val pagedAttendanceLogs = getByDatePagedWorkerExecutionLogUseCase(
-        attendanceId = _attendanceId,
-        loggableWorker = _loggableWorker,
-        localDate = _localDate
-    ).cachedIn(viewModelScope)
+    sealed class SideEffect {
+        data object NavigateUp : SideEffect()
+    }
 }

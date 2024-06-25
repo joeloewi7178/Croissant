@@ -324,15 +324,12 @@ fun CreateResinStatusWidgetContent(
         }
 
         if (insertResinStatusWidgetState().isLoading) {
-            ProgressDialog(
-                onDismissRequest = {}
-            )
+            ProgressDialog()
         }
 
         if (getInfoUserState().isLoading) {
             ProgressDialog(
                 title = { Text(text = stringResource(id = R.string.retrieving_data)) },
-                onDismissRequest = {}
             )
         }
     }

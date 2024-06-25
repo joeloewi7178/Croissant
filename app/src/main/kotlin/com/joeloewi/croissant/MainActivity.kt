@@ -396,12 +396,12 @@ fun CroissantNavHost(
                     composable(route = AttendancesDestination.AttendancesScreen.route) {
                         AttendancesScreen(
                             snackbarHostState = snackbarHostState,
-                            onCreateAttendanceClick = {
+                            onClickCreateAttendance = {
                                 navController.value.navigate(AttendancesDestination.CreateAttendanceScreen.route)
                             },
                             onClickAttendance = {
                                 navController.value.navigate(
-                                    AttendancesDestination.AttendanceDetailScreen.generateRoute(it.id)
+                                    AttendancesDestination.AttendanceDetailScreen.generateRoute(it)
                                 )
                             }
                         )

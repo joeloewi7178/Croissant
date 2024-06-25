@@ -62,7 +62,6 @@ androidxBaselineProfile = "1.2.4"
 androidTools = "31.5.0"
 fornewidPlaceholderMaterial3 = "2.0.0"
 kotlinxAtomicfu = "0.24.0"
-composePlugin = "1.6.10"
 orbit = "8.0.0"
 junitVersion = "1.2.0"
 
@@ -193,7 +192,6 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 androidx-baselineprofile = { id = "androidx.baselineprofile", version.ref = "androidxBaselineProfile" }
 kotlinx-atomicfu = { id = "kotlinx-atomicfu", version.ref = "kotlinxAtomicfu" }
 gms-oss-licenses-plugin = { id = "com.google.android.gms.oss-licenses-plugin", version.ref = "gmsOssLicensesPlugin" }
-jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "composePlugin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 room = { id = "androidx.room", version.ref = "room" }
 

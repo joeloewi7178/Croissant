@@ -17,11 +17,10 @@ import com.joeloewi.croissant.R
 fun ProgressDialog(
     title: @Composable () -> Unit = {
         Text(text = stringResource(id = R.string.saving))
-    },
-    onDismissRequest: () -> Unit
+    }
 ) {
     AlertDialog(
-        onDismissRequest = onDismissRequest,
+        onDismissRequest = {},
         confirmButton = {},
         icon = {
             Icon(

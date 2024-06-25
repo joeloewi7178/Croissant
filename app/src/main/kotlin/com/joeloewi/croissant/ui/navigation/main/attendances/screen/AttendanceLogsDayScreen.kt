@@ -32,6 +32,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import coil.compose.AsyncImage
@@ -42,17 +43,16 @@ import com.joeloewi.croissant.core.data.model.relational.WorkerExecutionLogWithS
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.HalfDp
 import com.joeloewi.croissant.ui.theme.IconDp
-import com.joeloewi.croissant.util.collectAsLazyPagingItemsWithLifecycle
 import com.joeloewi.croissant.util.navigationIconButton
 import com.joeloewi.croissant.viewmodel.AttendanceLogsDayViewModel
 import io.github.fornewid.placeholder.foundation.PlaceholderHighlight
 import io.github.fornewid.placeholder.foundation.fade
 import io.github.fornewid.placeholder.foundation.placeholder
+import org.orbitmvi.orbit.compose.collectSideEffect
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
-
 
 @Composable
 fun AttendanceLogsDayScreen(
@@ -60,11 +60,17 @@ fun AttendanceLogsDayScreen(
     onNavigateUp: () -> Unit
 ) {
     val pagedAttendanceLogs =
-        attendanceLogsDayViewModel.pagedAttendanceLogs.collectAsLazyPagingItemsWithLifecycle()
+        attendanceLogsDayViewModel.pagedAttendanceLogs.collectAsLazyPagingItems()
+
+    attendanceLogsDayViewModel.collectSideEffect {
+        when (it) {
+            AttendanceLogsDayViewModel.SideEffect.NavigateUp -> onNavigateUp()
+        }
+    }
 
     AttendanceLogsDayContent(
         pagedAttendanceLogs = pagedAttendanceLogs,
-        onNavigateUp = onNavigateUp
+        onNavigateUp = attendanceLogsDayViewModel::onNavigateUp
     )
 }
 
@@ -74,8 +80,6 @@ private fun AttendanceLogsDayContent(
     pagedAttendanceLogs: LazyPagingItems<WorkerExecutionLogWithState>,
     onNavigateUp: () -> Unit
 ) {
-    val viewModelStoreOwner = LocalViewModelStoreOwner.current
-
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -83,7 +87,7 @@ private fun AttendanceLogsDayContent(
                 title = {
                     Text(text = stringResource(id = R.string.execution_log))
                 },
-                navigationIcon = viewModelStoreOwner.navigationIconButton(
+                navigationIcon = LocalViewModelStoreOwner.current.navigationIconButton(
                     onClick = onNavigateUp
                 ),
             )
@@ -104,7 +108,7 @@ private fun AttendanceLogsDayContent(
                 val item = pagedAttendanceLogs[index]
 
                 if (item != null) {
-                    WorkerExecutionLogWithStateItem(item = { item })
+                    WorkerExecutionLogWithStateItem(item = item)
                 } else {
                     WorkerExecutionLogWithStateItemPlaceHolder()
                 }
@@ -115,12 +119,10 @@ private fun AttendanceLogsDayContent(
 
 @Composable
 private fun WorkerExecutionLogWithStateItem(
-    item: () -> WorkerExecutionLogWithState
+    item: WorkerExecutionLogWithState
 ) {
-    val currentItem by rememberUpdatedState(newValue = item())
-
     val colorByState by rememberUpdatedState(
-        when (currentItem.workerExecutionLog.state) {
+        when (item.workerExecutionLog.state) {
             WorkerExecutionLogState.SUCCESS -> {
                 MaterialTheme.colorScheme.surfaceVariant
             }
@@ -131,7 +133,7 @@ private fun WorkerExecutionLogWithStateItem(
         }
     )
     val textByState by rememberUpdatedState(
-        when (currentItem.workerExecutionLog.state) {
+        when (item.workerExecutionLog.state) {
             WorkerExecutionLogState.SUCCESS -> {
                 stringResource(id = R.string.success)
             }
@@ -141,12 +143,12 @@ private fun WorkerExecutionLogWithStateItem(
             }
         }
     )
-    val readableTimestamp by remember(currentItem.workerExecutionLog.createdAt) {
+    val readableTimestamp by remember(item.workerExecutionLog.createdAt) {
         derivedStateOf {
             val dateTimeFormatter =
                 DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
             val localDateTime =
-                Instant.ofEpochMilli(currentItem.workerExecutionLog.createdAt)
+                Instant.ofEpochMilli(item.workerExecutionLog.createdAt)
                     .atZone(ZoneId.systemDefault())
                     .toLocalDateTime()
             dateTimeFormatter.format(localDateTime)
@@ -178,13 +180,13 @@ private fun WorkerExecutionLogWithStateItem(
 
                     Text(text = readableTimestamp)
 
-                    currentItem.successLog?.run {
+                    item.successLog?.run {
                         Text(text = message)
 
                         Text(text = "$retCode")
                     }
 
-                    currentItem.failureLog?.run {
+                    item.failureLog?.run {
                         Text(text = failureMessage)
 
                         Text(text = failureStackTrace)
@@ -197,7 +199,7 @@ private fun WorkerExecutionLogWithStateItem(
                             .clip(MaterialTheme.shapes.extraSmall)
                             .size(IconDp),
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data(currentItem.successLog?.gameName?.gameIconUrl)
+                            .data(item.successLog?.gameName?.gameIconUrl)
                             .build(),
                         contentDescription = null
                     )
