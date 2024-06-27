@@ -63,7 +63,7 @@ androidTools = "31.5.0"
 fornewidPlaceholderMaterial3 = "2.0.0"
 kotlinxAtomicfu = "0.24.0"
 orbit = "8.0.0"
-junitVersion = "1.2.0"
+junitVersion = "1.2.1"
 
 [libraries]
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
