@@ -35,7 +35,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
@@ -43,7 +42,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.state.LCE
 import com.joeloewi.croissant.util.LocalActivity
@@ -72,14 +70,12 @@ private fun DeveloperInfoContent(
     onNavigateUp: () -> Unit
 ) {
     val activity = LocalActivity.current
-    val context = LocalContext.current
-    val viewModelStoreOwner = LocalViewModelStoreOwner.current
     val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
             TopAppBar(
-                navigationIcon = viewModelStoreOwner.navigationIconButton(
+                navigationIcon = LocalViewModelStoreOwner.current.navigationIconButton(
                     onClick = onNavigateUp
                 ),
                 title = {
@@ -122,11 +118,7 @@ private fun DeveloperInfoContent(
                                 }
                             },
                         contentScale = ContentScale.Crop,
-                        model = remember(context) {
-                            ImageRequest.Builder(context)
-                                .data(R.drawable.hug_me)
-                                .build()
-                        },
+                        model = R.drawable.hug_me,
                         contentDescription = null
                     )
                     Text(text = "joeloewi", style = MaterialTheme.typography.headlineMedium)

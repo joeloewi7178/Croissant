@@ -1,29 +1,34 @@
 package com.joeloewi.croissant.viewmodel
 
 import android.appwidget.AppWidgetManager
+import androidx.annotation.StringRes
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.WorkManager
 import androidx.work.await
+import com.joeloewi.croissant.R
 import com.joeloewi.croissant.core.data.model.Account
 import com.joeloewi.croissant.core.data.model.ResinStatusWidget
 import com.joeloewi.croissant.core.data.model.UserInfo
 import com.joeloewi.croissant.domain.usecase.AccountUseCase
 import com.joeloewi.croissant.domain.usecase.HoYoLABUseCase
 import com.joeloewi.croissant.domain.usecase.ResinStatusWidgetUseCase
-import com.joeloewi.croissant.state.ILCE
-import com.joeloewi.croissant.state.foldAsILCE
 import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration.ResinStatusWidgetConfigurationDestination
 import com.joeloewi.croissant.worker.RefreshResinStatusWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.orbitmvi.orbit.Container
+import org.orbitmvi.orbit.ContainerHost
+import org.orbitmvi.orbit.syntax.simple.intent
+import org.orbitmvi.orbit.syntax.simple.postSideEffect
+import org.orbitmvi.orbit.syntax.simple.reduce
+import org.orbitmvi.orbit.viewmodel.container
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -34,49 +39,61 @@ class CreateResinStatusWidgetViewModel @Inject constructor(
     private val insertResinStatusWidgetUseCase: ResinStatusWidgetUseCase.Insert,
     private val insertAccountUseCase: AccountUseCase.Insert,
     savedStateHandle: SavedStateHandle,
-) : ViewModel() {
+) : ViewModel(),
+    ContainerHost<CreateResinStatusWidgetViewModel.State, CreateResinStatusWidgetViewModel.SideEffect> {
+
     private val _appWidgetIdKey =
         ResinStatusWidgetConfigurationDestination.CreateResinStatusWidgetScreen.APP_WIDGET_ID
-    val selectableIntervals = listOf(15L, 30L)
 
-    private val _createResinStatusWidgetState = MutableStateFlow<ILCE<List<Long>>>(ILCE.Idle)
-    private val _getUserInfoState =
-        MutableStateFlow<ILCE<UserInfo>>(ILCE.Idle)
-    private val _interval = MutableStateFlow(selectableIntervals.first())
-
-    val appWidgetId =
-        savedStateHandle.getStateFlow(_appWidgetIdKey, AppWidgetManager.INVALID_APPWIDGET_ID)
-    val createResinStatusWidgetState = _createResinStatusWidgetState.asStateFlow()
-    val getUserInfoState = _getUserInfoState.asStateFlow()
-    val interval = _interval.asStateFlow()
-    val userInfos =
-        SnapshotStateList<Pair<String, UserInfo>>()
+    override val container: Container<State, SideEffect> = container(State()) {
+        intent {
+            savedStateHandle.getStateFlow(_appWidgetIdKey, AppWidgetManager.INVALID_APPWIDGET_ID)
+                .collect { reduce { state.copy(appWidgetId = it.toLong()) } }
+        }
+    }
 
     fun onReceiveCookie(cookie: String) {
-        _getUserInfoState.value = ILCE.Loading
-        viewModelScope.launch(Dispatchers.IO) {
-            _getUserInfoState.value = getUserFullInfoHoYoLABUseCase(cookie).mapCatching {
-                withContext(Dispatchers.Main) {
-                    userInfos.add(cookie to it)
+        intent {
+            postSideEffect(SideEffect.ShowProgressDialog(R.string.retrieving_data))
+
+            try {
+                val userInfo = getUserFullInfoHoYoLABUseCase(cookie).getOrThrow()
+
+                val newState = state.apply {
+                    withContext(Dispatchers.Main) {
+                        userInfos.add(cookie to userInfo)
+                    }
                 }
-                it
-            }.foldAsILCE()
+
+                reduce { newState }
+            } catch (cause: CancellationException) {
+                throw cause
+            } catch (cause: Throwable) {
+                postSideEffect(SideEffect.ShowSnackbar)
+            } finally {
+                postSideEffect(SideEffect.DismissProgressDialog)
+            }
         }
     }
 
     fun setInterval(interval: Long) {
-        _interval.value = interval
+        intent {
+            reduce { state.copy(interval = interval) }
+        }
     }
 
-    fun configureAppWidget() {
-        _createResinStatusWidgetState.value = ILCE.Loading
-        viewModelScope.launch(Dispatchers.IO) {
-            _createResinStatusWidgetState.value = runCatching {
-                val appWidgetId = appWidgetId.value
+    fun configureAppWidget(
+        appWidgetId: Int,
+        interval: Long,
+        userInfos: List<Pair<String, UserInfo>>
+    ) {
+        intent {
+            postSideEffect(SideEffect.ShowProgressDialog())
 
+            runCatching {
                 val resinStatusWidget = ResinStatusWidget(
                     appWidgetId = appWidgetId,
-                    interval = _interval.value,
+                    interval = interval,
                 )
 
                 val resinStatusWidgetId = insertResinStatusWidgetUseCase(
@@ -93,7 +110,7 @@ class CreateResinStatusWidgetViewModel @Inject constructor(
                     }
 
                 val periodicWorkRequest = RefreshResinStatusWorker.buildPeriodicWork(
-                    repeatInterval = _interval.value,
+                    repeatInterval = interval,
                     repeatIntervalTimeUnit = TimeUnit.MINUTES,
                     appWidgetId = appWidgetId
                 )
@@ -105,7 +122,31 @@ class CreateResinStatusWidgetViewModel @Inject constructor(
                 ).await()
 
                 insertAccountUseCase(*accounts.toTypedArray())
-            }.foldAsILCE()
+            }
+
+            postSideEffect(SideEffect.DismissProgressDialog)
+            postSideEffect(SideEffect.FinishActivity(appWidgetId))
         }
+    }
+
+    data class State(
+        val appWidgetId: Long = -1,
+        val selectableIntervals: ImmutableList<Long> = persistentListOf(15, 30),
+        val interval: Long = 15,
+        val userInfo: UserInfo? = null,
+        val userInfos: SnapshotStateList<Pair<String, UserInfo>> = SnapshotStateList()
+    )
+
+    sealed class SideEffect {
+        data class ShowProgressDialog(
+            @StringRes val textResourceId: Int? = null
+        ) : SideEffect()
+
+        data class FinishActivity(
+            val appWidgetId: Int
+        ) : SideEffect()
+
+        data object DismissProgressDialog : SideEffect()
+        data object ShowSnackbar : SideEffect()
     }
 }

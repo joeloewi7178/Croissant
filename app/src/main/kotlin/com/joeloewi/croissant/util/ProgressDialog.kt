@@ -15,7 +15,7 @@ import com.joeloewi.croissant.R
 
 @Composable
 fun ProgressDialog(
-    title: @Composable () -> Unit = {
+    title: (@Composable () -> Unit)? = null ?: {
         Text(text = stringResource(id = R.string.saving))
     }
 ) {
