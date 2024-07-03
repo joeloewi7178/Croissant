@@ -18,9 +18,9 @@ class TextToSpeechFactory(
                 if (status != TextToSpeech.SUCCESS) {
                     throw IllegalStateException()
                 }
-                textToSpeech!!.apply {
+                textToSpeech?.apply {
                     val currentLocale = Locale.getDefault()
-                    val targetLocale = if (availableLanguages.contains(currentLocale)) {
+                    val targetLocale = if (currentLocale in availableLanguages) {
                         currentLocale
                     } else {
                         Locale.ENGLISH

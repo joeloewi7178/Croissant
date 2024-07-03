@@ -26,7 +26,7 @@ import retrofit2.http.Query
 interface ArcaLiveAppService {
     @GET("view/article/{slug}/{articleId}")
     suspend fun getArticle(
-        @Header("User-Agent") userAgent: String = "live.arca.android.playstore/0.8.331-playstore",
+        @Header("User-Agent") userAgent: String = "net.umanle.arca.android.playstore/0.9.57",
         @Path("slug") slug: String,
         @Path("articleId") articleId: Long,
         @Query("viewCount") viewCount: Boolean = false

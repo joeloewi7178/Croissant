@@ -19,6 +19,7 @@ package com.joeloewi.croissant.di
 import android.content.Context
 import androidx.hilt.work.HiltWorkerFactory
 import coil.ImageLoader
+import com.joeloewi.croissant.core.common.di.DefaultDispatcherExecutor
 import com.joeloewi.croissant.util.NotificationGenerator
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -33,7 +34,7 @@ interface InitializerEntryPoint {
     fun imageLoader(): ImageLoader
     fun hiltWorkerFactory(): HiltWorkerFactory
 
-    @com.joeloewi.croissant.core.common.di.DefaultDispatcherExecutor
+    @DefaultDispatcherExecutor
     fun executor(): Executor
     fun notificationGenerator(): NotificationGenerator
 }

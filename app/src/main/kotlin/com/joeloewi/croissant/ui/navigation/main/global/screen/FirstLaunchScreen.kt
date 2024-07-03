@@ -16,9 +16,6 @@
 
 package com.joeloewi.croissant.ui.navigation.main.global.screen
 
-import android.content.Intent
-import android.os.Build
-import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -44,12 +41,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -59,10 +54,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.PermissionStatus
-import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.theme.DefaultDp
@@ -71,62 +63,67 @@ import com.joeloewi.croissant.util.CroissantPermission
 import com.joeloewi.croissant.util.SpecialPermission
 import com.joeloewi.croissant.util.rememberSpecialPermissionState
 import com.joeloewi.croissant.viewmodel.FirstLaunchViewModel
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combine
+import org.orbitmvi.orbit.compose.collectAsState
+import org.orbitmvi.orbit.compose.collectSideEffect
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun FirstLaunchScreen(
     firstLaunchViewModel: FirstLaunchViewModel = hiltViewModel(),
     onNavigateToAttendances: () -> Unit
 ) {
-    FirstLaunchContent(
-        onFirstLaunchChange = firstLaunchViewModel::setIsFirstLaunch,
-        onNavigateToAttendances = onNavigateToAttendances
-    )
-}
-
-@OptIn(ExperimentalPermissionsApi::class)
-@Composable
-private fun FirstLaunchContent(
-    onFirstLaunchChange: (Boolean) -> Unit,
-    onNavigateToAttendances: () -> Unit
-) {
-    val context = LocalContext.current
-    val scheduleExactAlarmPermissionState =
-        rememberSpecialPermissionState(specialPermission = SpecialPermission.ScheduleExactAlarms)
-    val multiplePermissionsState = rememberMultiplePermissionsState(
-        permissions = listOf(
-            CroissantPermission.AccessHoYoLABSession.permission,
-            CroissantPermission.PostNotifications.permission
-        ),
-        onPermissionsResult = {
-            if (!scheduleExactAlarmPermissionState.status.isGranted) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
-
-                    if (intent.resolveActivity(context.packageManager) != null) {
-                        context.startActivity(intent)
-                    }
-                }
-            }
+    val state by firstLaunchViewModel.collectAsState()
+    val scheduleExactAlarmPermissionState = rememberSpecialPermissionState(
+        specialPermission = SpecialPermission.ScheduleExactAlarms,
+        onPermissionResult = {
+            firstLaunchViewModel.onPermissionGranted(CroissantPermission.ScheduleExactAlarms)
         }
     )
-    val croissantPermissions = remember { CroissantPermission.entries }
+    val multiplePermissionsState = rememberMultiplePermissionsState(
+        permissions = state.normalPermissions,
+        onPermissionsResult = { results ->
+            val grantedPermissions = results.filter { it.value }.mapNotNull { result ->
+                state.croissantPermissions.find { it.permission == result.key }
+            }.toTypedArray()
 
-    LaunchedEffect(Unit) {
-        combine(
-            snapshotFlow { multiplePermissionsState.allPermissionsGranted },
-            snapshotFlow { scheduleExactAlarmPermissionState.status == PermissionStatus.Granted }
-        ) { allNormalPermissionsGranted, isScheduleExactAlarmPermitted ->
-            allNormalPermissionsGranted && isScheduleExactAlarmPermitted
-        }.catch { }.collect {
-            if (it) {
-                onFirstLaunchChange(false)
+            firstLaunchViewModel.onPermissionGranted(*grantedPermissions)
+            firstLaunchViewModel.onLaunchScheduleExactAlarmPermissionRequest()
+        }
+    )
+
+    firstLaunchViewModel.collectSideEffect { sideEffect ->
+        when (sideEffect) {
+            FirstLaunchViewModel.SideEffect.LaunchMultiplePermissionsRequest -> {
+                multiplePermissionsState.launchMultiplePermissionRequest()
+            }
+
+            FirstLaunchViewModel.SideEffect.LaunchScheduleExactAlarmPermissionRequest -> {
+                scheduleExactAlarmPermissionState.launchPermissionRequest()
+            }
+
+            FirstLaunchViewModel.SideEffect.NavigateToAttendances -> {
                 onNavigateToAttendances()
             }
         }
     }
 
+    LaunchedEffect(state.grantedPermissions, state.croissantPermissions) {
+        if (state.grantedPermissions == state.croissantPermissions) {
+            firstLaunchViewModel.onNavigateToAttendances()
+        }
+    }
+
+    FirstLaunchContent(
+        state = state,
+        onLaunchMultiplePermissionRequest = firstLaunchViewModel::onLaunchMultiplePermissionRequest,
+    )
+}
+
+@Composable
+private fun FirstLaunchContent(
+    state: FirstLaunchViewModel.State,
+    onLaunchMultiplePermissionRequest: () -> Unit
+) {
     Scaffold(
         bottomBar = {
             FilledTonalButton(
@@ -134,9 +131,7 @@ private fun FirstLaunchContent(
                     .fillMaxWidth()
                     .navigationBarsPadding()
                     .padding(horizontal = DefaultDp),
-                onClick = {
-                    multiplePermissionsState.launchMultiplePermissionRequest()
-                }
+                onClick = onLaunchMultiplePermissionRequest
             ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(
@@ -172,9 +167,7 @@ private fun FirstLaunchContent(
                     modifier = Modifier
                         .size(48.dp)
                         .clip(MaterialTheme.shapes.extraSmall),
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(R.mipmap.ic_launcher)
-                        .build(),
+                    model = R.mipmap.ic_launcher,
                     contentDescription = null
                 )
             }
@@ -208,7 +201,8 @@ private fun FirstLaunchContent(
                 modifier = Modifier.weight(1f)
             ) {
                 item(
-                    key = "permissionsHeader"
+                    key = "permissionsHeader",
+                    contentType = "PermissionsHeader"
                 ) {
                     ListItem(
                         headlineContent = {
@@ -221,8 +215,9 @@ private fun FirstLaunchContent(
                 }
 
                 items(
-                    items = croissantPermissions,
-                    key = { it.permission }
+                    items = state.croissantPermissions,
+                    key = { it.permission },
+                    contentType = { it::class.java.simpleName }
                 ) { item ->
 
                     ListItem(
@@ -241,24 +236,11 @@ private fun FirstLaunchContent(
                             )
                         },
                         trailingContent = {
-                            when (item) {
-                                CroissantPermission.AccessHoYoLABSession, CroissantPermission.PostNotifications -> {
-                                    if (multiplePermissionsState.permissions.find { it.permission == item.permission }?.status == PermissionStatus.Granted) {
-                                        Icon(
-                                            imageVector = Icons.Default.CheckCircle,
-                                            contentDescription = Icons.Default.CheckCircle.name
-                                        )
-                                    }
-                                }
-
-                                CroissantPermission.ScheduleExactAlarms -> {
-                                    if (scheduleExactAlarmPermissionState.status == PermissionStatus.Granted) {
-                                        Icon(
-                                            imageVector = Icons.Default.CheckCircle,
-                                            contentDescription = Icons.Default.CheckCircle.name
-                                        )
-                                    }
-                                }
+                            if (state.grantedPermissions.contains(item)) {
+                                Icon(
+                                    imageVector = Icons.Default.CheckCircle,
+                                    contentDescription = Icons.Default.CheckCircle.name
+                                )
                             }
                         }
                     )

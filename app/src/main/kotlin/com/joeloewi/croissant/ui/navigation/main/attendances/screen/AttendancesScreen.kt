@@ -75,7 +75,6 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkQuery
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.google.firebase.Firebase
 import com.google.firebase.analytics.analytics
 import com.joeloewi.croissant.R
@@ -364,9 +363,7 @@ private fun DismissContent(
                             .animateItemPlacement()
                             .size(IconDp)
                             .shadow(4.dp, shape = MaterialTheme.shapes.extraSmall),
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(game.type.gameIconUrl)
-                            .build(),
+                        model = game.type.gameIconUrl,
                         contentDescription = null
                     )
                 }
@@ -522,9 +519,7 @@ private fun AttendanceWithGamesItemPlaceholder(
                                 highlightColor = MaterialTheme.colorScheme.background,
                             )
                         ),
-                    model = ImageRequest.Builder(
-                        LocalContext.current
-                    ).build(),
+                    model = null,
                     contentDescription = null
                 )
             }
@@ -541,8 +536,7 @@ private fun AttendanceWithGamesItemPlaceholder(
                             .animateItemPlacement()
                             .clip(MaterialTheme.shapes.extraSmall)
                             .size(IconDp),
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .build(),
+                        model = null,
                         contentDescription = null
                     )
                 }
@@ -564,9 +558,7 @@ private fun AttendanceWithGamesItemPlaceholder(
                             highlightColor = MaterialTheme.colorScheme.background,
                         )
                     ),
-                model = ImageRequest.Builder(
-                    LocalContext.current
-                ).build(),
+                model = null,
                 contentDescription = null
             )
         }

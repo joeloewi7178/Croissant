@@ -18,11 +18,11 @@ package com.joeloewi.croissant.core.network.dao
 
 import com.joeloewi.croissant.core.network.HeaderInformation
 import com.joeloewi.croissant.core.network.generateDS
+import com.joeloewi.croissant.core.network.model.request.DataSwitchRequest
 import com.joeloewi.croissant.core.network.model.response.ChangeDataSwitchResponse
 import com.joeloewi.croissant.core.network.model.response.GameRecordCardResponse
 import com.joeloewi.croissant.core.network.model.response.GenshinDailyNoteResponse
 import com.joeloewi.croissant.core.network.model.response.UserFullInfoResponse
-import com.joeloewi.croissant.data.api.model.request.DataSwitchRequest
 import com.skydoves.sandwich.ApiResponse
 import retrofit2.http.Body
 import retrofit2.http.GET

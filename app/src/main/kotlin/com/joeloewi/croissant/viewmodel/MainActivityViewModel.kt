@@ -10,12 +10,14 @@ import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics
 import com.joeloewi.croissant.domain.usecase.SettingsUseCase
 import com.joeloewi.croissant.domain.usecase.SystemUseCase
-import com.joeloewi.croissant.state.LCE
-import com.joeloewi.croissant.state.foldAsLce
+import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
+import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
+import com.joeloewi.croissant.ui.navigation.main.global.GlobalDestination
 import com.joeloewi.croissant.util.HourFormat
 import com.joeloewi.croissant.util.isDeviceNexus5X
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.atomicfu.atomic
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
@@ -24,9 +26,13 @@ import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
+import org.orbitmvi.orbit.Container
+import org.orbitmvi.orbit.ContainerHost
+import org.orbitmvi.orbit.syntax.simple.intent
+import org.orbitmvi.orbit.syntax.simple.reduce
+import org.orbitmvi.orbit.viewmodel.container
 import javax.inject.Inject
 
 @HiltViewModel
@@ -36,18 +42,16 @@ class MainActivityViewModel @Inject constructor(
     getSettingsUseCase: SettingsUseCase.GetSettings,
     is24HourFormat: SystemUseCase.Is24HourFormat,
     isDeviceRooted: SystemUseCase.IsDeviceRooted,
-) : ViewModel() {
+) : ViewModel(), ContainerHost<MainActivityViewModel.State, MainActivityViewModel.SideEffect> {
     private val _settings = getSettingsUseCase()
-    private val _isLoading = atomic(true)
-
-    val hourFormat = is24HourFormat().map {
+    private val _hourFormat = is24HourFormat().map {
         HourFormat.fromSystemHourFormat(it)
     }.catch { }.flowOn(Dispatchers.IO).stateIn(
         scope = viewModelScope,
         started = SharingStarted.Lazily,
         initialValue = HourFormat.fromSystemHourFormat(is24HourFormatImmediate)
     )
-    val appUpdateResultState =
+    private val _appUpdateResultState =
         flow {
             emit(Build.MODEL)
         }.filter {
@@ -64,32 +68,52 @@ class MainActivityViewModel @Inject constructor(
             started = SharingStarted.Lazily,
             initialValue = AppUpdateResult.NotAvailable
         )
-    val darkThemeEnabled = _settings.map {
-        runCatching { it.darkThemeEnabled }.foldAsLce()
-    }.catch {
-        emit(LCE.Error(it))
-    }.onEach { }.stateIn(
+    private val _darkThemeEnabled = _settings.map {
+        it.darkThemeEnabled
+    }.catch {}.flowOn(Dispatchers.IO).stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = LCE.Loading
+        initialValue = false
     )
-    val isDeviceRooted = flow {
+    private val _isDeviceRooted = flow {
         emit(isDeviceRooted())
     }.catch { }.flowOn(Dispatchers.IO).stateIn(
         scope = viewModelScope,
         started = SharingStarted.Lazily,
         initialValue = false
     )
-    val isFirstLaunch =
+    private val _isFirstLaunch =
         _settings.map { it.isFirstLaunch }.take(1).catch { }.flowOn(Dispatchers.IO).stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(),
             initialValue = false
         )
-    val isLoading: Boolean
-        get() = _isLoading.value
 
-    fun onApplyNightModeCompleted() {
-        _isLoading.compareAndSet(expect = true, update = false)
+    override val container: Container<State, SideEffect> = container(State()) {
+        intent { _hourFormat.collect { reduce { state.copy(hourFormat = it) } } }
+        intent { _appUpdateResultState.collect { reduce { state.copy(appUpdateResult = it) } } }
+        intent { _darkThemeEnabled.collect { reduce { state.copy(darkThemeEnabled = it) } } }
+        intent { _isDeviceRooted.collect { reduce { state.copy(isDeviceRooted = it) } } }
+        intent { _isFirstLaunch.collect { reduce { state.copy(isFirstLaunch = it) } } }
     }
+
+    data class State(
+        val hourFormat: HourFormat = HourFormat.TwelveHour,
+        val appUpdateResult: AppUpdateResult = AppUpdateResult.NotAvailable,
+        val darkThemeEnabled: Boolean = false,
+        val isDeviceRooted: Boolean = false,
+        val isFirstLaunch: Boolean = false,
+        val fullScreenDestinations: ImmutableList<String> = persistentListOf(
+            AttendancesDestination.CreateAttendanceScreen.route,
+            AttendancesDestination.LoginHoYoLabScreen.route,
+            GlobalDestination.FirstLaunchScreen.route
+        ),
+        val croissantNavigations: ImmutableList<CroissantNavigation> = persistentListOf(
+            CroissantNavigation.Attendances,
+            CroissantNavigation.RedemptionCodes,
+            CroissantNavigation.Settings
+        )
+    )
+
+    sealed class SideEffect
 }

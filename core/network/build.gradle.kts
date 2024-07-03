@@ -30,6 +30,8 @@ dependencies {
 
     implementation(platform(libs.okhttp3.bom))
     implementation(libs.okhttp3.logging.interceptor)
+    implementation(libs.okhttp3.okhttp)
+    implementation(libs.okhttp3.urlconnection)
 
     implementation(libs.sandwich)
     implementation(libs.sandwich.retrofit)

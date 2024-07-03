@@ -17,11 +17,11 @@
 package com.joeloewi.croissant.core.network
 
 import com.joeloewi.croissant.core.network.dao.HoYoLABService
+import com.joeloewi.croissant.core.network.model.request.DataSwitchRequest
 import com.joeloewi.croissant.core.network.model.response.ChangeDataSwitchResponse
 import com.joeloewi.croissant.core.network.model.response.GameRecordCardResponse
 import com.joeloewi.croissant.core.network.model.response.GenshinDailyNoteResponse
 import com.joeloewi.croissant.core.network.model.response.UserFullInfoResponse
-import com.joeloewi.croissant.data.api.model.request.DataSwitchRequest
 import com.skydoves.sandwich.getOrThrow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

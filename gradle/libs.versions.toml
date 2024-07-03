@@ -138,6 +138,8 @@ retrofit-response-type-keeper = { group = "com.squareup.retrofit2", name = "resp
 okhttp3-dnsoverhttps = { group = "com.squareup.okhttp3", name = "okhttp-dnsoverhttps" }
 okhttp3-bom = { group = "com.squareup.okhttp3", name = "okhttp-bom", version.ref = "okhttp3Bom" }
 okhttp3-logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor" }
+okhttp3-okhttp = { group = "com.squareup.okhttp3", name = "okhttp" }
+okhttp3-urlconnection = { group = "com.squareup.okhttp3", name = "okhttp-urlconnection" }
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }

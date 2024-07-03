@@ -7,63 +7,25 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavHostController
-import com.google.firebase.Firebase
-import com.google.firebase.crashlytics.crashlytics
-import com.joeloewi.croissant.state.LCE
-import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration.ResinStatusWidgetConfigurationDestination
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.joeloewi.croissant.viewmodel.LoadingViewModel
+import org.orbitmvi.orbit.compose.collectSideEffect
 
 @Composable
 fun LoadingScreen(
-    navController: NavHostController,
-    loadingViewModel: LoadingViewModel
+    loadingViewModel: LoadingViewModel = hiltViewModel(),
+    onNavigateToCreateResinStatusWidget: (appWidgetId: Int) -> Unit,
+    onNavigateToResinStatusWidgetDetail: (appWidgetId: Int) -> Unit,
 ) {
-    val isAppWidgetConfigured by loadingViewModel.isAppWidgetInitialized.collectAsStateWithLifecycle()
-    val appWidgetId = remember { loadingViewModel.appWidgetId }
-
-    LaunchedEffect(isAppWidgetConfigured) {
-        when (isAppWidgetConfigured) {
-            is LCE.Content -> {
-                runCatching {
-                    if (isAppWidgetConfigured.content == true) {
-                        navController.navigate(
-                            ResinStatusWidgetConfigurationDestination.ResinStatusWidgetDetailScreen()
-                                .generateRoute(appWidgetId)
-                        ) {
-                            navController.currentDestination?.let {
-                                popUpTo(it.id) {
-                                    inclusive = true
-                                }
-                            }
-                        }
-                    } else {
-                        navController.navigate(
-                            ResinStatusWidgetConfigurationDestination.CreateResinStatusWidgetScreen()
-                                .generateRoute(appWidgetId)
-                        ) {
-                            navController.currentDestination?.let {
-                                popUpTo(it.id) {
-                                    inclusive = true
-                                }
-                            }
-                        }
-                    }
-                }.onFailure { cause ->
-                    Firebase.crashlytics.apply {
-                        log(ResinStatusWidgetConfigurationDestination.LoadingScreen().route)
-                        recordException(cause)
-                    }
-                }
+    loadingViewModel.collectSideEffect { sideEffect ->
+        when (sideEffect) {
+            is LoadingViewModel.SideEffect.NavigateToCreateResinStatusWidget -> {
+                onNavigateToCreateResinStatusWidget(sideEffect.appWidgetId)
             }
 
-            else -> {
-
+            is LoadingViewModel.SideEffect.NavigateToResinStatusWidgetDetail -> {
+                onNavigateToResinStatusWidgetDetail(sideEffect.appWidgetId)
             }
         }
     }

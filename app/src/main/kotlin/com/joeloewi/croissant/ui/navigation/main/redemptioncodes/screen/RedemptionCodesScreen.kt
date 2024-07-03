@@ -70,7 +70,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.core.data.model.HoYoLABGame
 import com.joeloewi.croissant.state.LCE
@@ -292,9 +291,7 @@ private fun RedemptionCodeListItem(
                             .padding(12.dp)
                             .size(IconDp)
                             .clip(MaterialTheme.shapes.extraSmall),
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(item.first.gameIconUrl)
-                            .build(),
+                        model = item.first.gameIconUrl,
                         contentDescription = null
                     )
                 },
@@ -405,8 +402,7 @@ private fun RedemptionCodeListItemPlaceholder() {
                                 highlightColor = MaterialTheme.colorScheme.surfaceVariant,
                             )
                         ),
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .build(),
+                    model = null,
                     contentDescription = null
                 )
 

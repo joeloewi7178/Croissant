@@ -16,6 +16,8 @@
 
 package com.joeloewi.croissant.viewmodel
 
+import android.appwidget.AppWidgetManager
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.joeloewi.croissant.domain.usecase.SettingsUseCase
@@ -23,17 +25,35 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import org.orbitmvi.orbit.Container
+import org.orbitmvi.orbit.ContainerHost
+import org.orbitmvi.orbit.syntax.simple.intent
+import org.orbitmvi.orbit.syntax.simple.reduce
+import org.orbitmvi.orbit.viewmodel.container
 import javax.inject.Inject
 
 @HiltViewModel
 class WidgetConfigurationActivityViewModel @Inject constructor(
     getSettingsUseCase: SettingsUseCase.GetSettings,
-) : ViewModel() {
-    private val _settings = getSettingsUseCase()
-
-    val darkThemeEnabled = _settings.map { it.darkThemeEnabled }.stateIn(
+    savedStateHandle: SavedStateHandle
+) : ViewModel(), ContainerHost<WidgetConfigurationActivityViewModel.State, Nothing> {
+    private val _darkThemeEnabled = getSettingsUseCase().map { it.darkThemeEnabled }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(),
         initialValue = false
+    )
+    private val _appWidgetId = savedStateHandle.getStateFlow(
+        AppWidgetManager.EXTRA_APPWIDGET_ID,
+        AppWidgetManager.INVALID_APPWIDGET_ID
+    )
+
+    override val container: Container<State, Nothing> = container(State()) {
+        intent { _darkThemeEnabled.collect { reduce { state.copy(isDarkThemEnabled = it) } } }
+        intent { _appWidgetId.collect { reduce { state.copy(appWidgetId = it) } } }
+    }
+
+    data class State(
+        val isDarkThemEnabled: Boolean = false,
+        val appWidgetId: Int = AppWidgetManager.INVALID_APPWIDGET_ID
     )
 }

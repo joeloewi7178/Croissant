@@ -27,7 +27,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
@@ -36,7 +35,6 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.core.data.model.WorkerExecutionLogState
 import com.joeloewi.croissant.core.data.model.relational.WorkerExecutionLogWithState
@@ -198,9 +196,7 @@ private fun WorkerExecutionLogWithStateItem(
                         modifier = Modifier
                             .clip(MaterialTheme.shapes.extraSmall)
                             .size(IconDp),
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(item.successLog?.gameName?.gameIconUrl)
-                            .build(),
+                        model = item.successLog?.gameName?.gameIconUrl,
                         contentDescription = null
                     )
                 }
@@ -288,8 +284,7 @@ private fun WorkerExecutionLogWithStateItemPlaceHolder() {
                             highlightColor = MaterialTheme.colorScheme.surfaceVariant,
                         )
                     ),
-                model = ImageRequest.Builder(LocalContext.current)
-                    .build(),
+                model = null,
                 contentDescription = null
             )
         }

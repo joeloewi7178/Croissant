@@ -16,21 +16,65 @@
 
 package com.joeloewi.croissant.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.joeloewi.croissant.domain.usecase.SettingsUseCase
+import com.joeloewi.croissant.util.CroissantPermission
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
+import org.orbitmvi.orbit.Container
+import org.orbitmvi.orbit.ContainerHost
+import org.orbitmvi.orbit.syntax.simple.intent
+import org.orbitmvi.orbit.syntax.simple.postSideEffect
+import org.orbitmvi.orbit.syntax.simple.reduce
+import org.orbitmvi.orbit.viewmodel.container
 import javax.inject.Inject
 
 @HiltViewModel
 class FirstLaunchViewModel @Inject constructor(
     private val setIsFirstLaunchSettingsUseCase: SettingsUseCase.SetIsFirstLaunch,
-) : ViewModel() {
-    fun setIsFirstLaunch(isFirstLaunch: Boolean) {
-        viewModelScope.launch(Dispatchers.IO) {
-            setIsFirstLaunchSettingsUseCase(isFirstLaunch)
+    private val savedStateHandle: SavedStateHandle
+) : ViewModel(), ContainerHost<FirstLaunchViewModel.State, FirstLaunchViewModel.SideEffect> {
+
+    override val container: Container<State, SideEffect> = container(State())
+
+    fun onPermissionGranted(vararg croissantPermission: CroissantPermission) = intent {
+        reduce {
+            state.copy(
+                grantedPermissions = state.grantedPermissions.toMutableList().apply {
+                    addAll(croissantPermission)
+                }.toImmutableList()
+            )
         }
+    }
+
+    fun onLaunchMultiplePermissionRequest() = intent {
+        postSideEffect(SideEffect.LaunchMultiplePermissionsRequest)
+    }
+
+    fun onLaunchScheduleExactAlarmPermissionRequest() = intent {
+        postSideEffect(SideEffect.LaunchScheduleExactAlarmPermissionRequest)
+    }
+
+    fun onNavigateToAttendances() = intent {
+        setIsFirstLaunchSettingsUseCase(false)
+        postSideEffect(SideEffect.NavigateToAttendances)
+    }
+
+    data class State(
+        val croissantPermissions: ImmutableList<CroissantPermission> = CroissantPermission.entries.toImmutableList(),
+        val normalPermissions: ImmutableList<String> = persistentListOf(
+            CroissantPermission.AccessHoYoLABSession.permission,
+            CroissantPermission.PostNotifications.permission
+        ),
+        val grantedPermissions: ImmutableList<CroissantPermission> = persistentListOf()
+    )
+
+    sealed class SideEffect {
+        data object LaunchMultiplePermissionsRequest : SideEffect()
+        data object LaunchScheduleExactAlarmPermissionRequest : SideEffect()
+        data object NavigateToAttendances : SideEffect()
     }
 }

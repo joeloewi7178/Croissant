@@ -45,13 +45,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.core.data.model.Attendance
 import com.joeloewi.croissant.core.data.model.Game
@@ -380,9 +378,7 @@ fun ConnectedGamesListItemPlaceholder() {
                             highlightColor = MaterialTheme.colorScheme.background,
                         )
                     ),
-                model = ImageRequest.Builder(
-                    LocalContext.current
-                ).build(),
+                model = null,
                 contentDescription = null
             )
         },
@@ -449,11 +445,7 @@ fun ConnectedGamesContentListItem(
                     modifier = Modifier
                         .size(IconDp)
                         .clip(MaterialTheme.shapes.extraSmall),
-                    model = ImageRequest.Builder(
-                        LocalContext.current
-                    )
-                        .data(hoYoLABGame.gameIconUrl)
-                        .build(),
+                    model = hoYoLABGame.gameIconUrl,
                     contentDescription = null
                 )
             }

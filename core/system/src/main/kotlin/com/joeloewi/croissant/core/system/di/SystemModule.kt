@@ -3,12 +3,12 @@ package com.joeloewi.croissant.core.system.di
 import android.app.AlarmManager
 import android.appwidget.AppWidgetManager
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.PowerManager
 import android.os.Process
 import androidx.core.content.getSystemService
-import androidx.core.os.HandlerCompat
 import com.joeloewi.croissant.core.system.RootChecker
 import dagger.Module
 import dagger.Provides
@@ -26,9 +26,7 @@ object SystemModule {
         HandlerThread("ApplicationHandlerThread", Process.THREAD_PRIORITY_DEFAULT).apply {
             isDaemon = true
             start()
-        }.let {
-            HandlerCompat.createAsync(it.looper)
-        }
+        }.let { Handler(it.looper) }
 
     @Provides
     fun provideAlarmManager(
@@ -50,4 +48,9 @@ object SystemModule {
     fun provideAppWidgetManager(
         @ApplicationContext context: Context
     ): AppWidgetManager = context.getSystemService()!!
+
+    @Provides
+    fun providePackageManager(
+        @ApplicationContext context: Context
+    ): PackageManager = context.packageManager
 }

@@ -2,16 +2,17 @@ package com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.res
 
 import android.appwidget.AppWidgetManager
 import androidx.compose.runtime.Immutable
-import androidx.navigation.NavArgumentBuilder
+import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavType
+import androidx.navigation.navArgument
 
 @Immutable
 sealed class ResinStatusWidgetConfigurationDestination {
-    abstract val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>>
-    protected abstract val plainRoute: String
+    abstract val arguments: List<NamedNavArgument>
+    abstract val plainRoute: String
     val route: String by lazy {
         "${plainRoute}${
-            arguments.map { it.first }.joinToString(
+            arguments.map { it.name }.joinToString(
                 separator = "/",
                 prefix = if (arguments.isEmpty()) {
                     ""
@@ -23,54 +24,54 @@ sealed class ResinStatusWidgetConfigurationDestination {
     }
 
     data object EmptyScreen : ResinStatusWidgetConfigurationDestination() {
-        override val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>> = listOf()
+        override val arguments: List<NamedNavArgument> = listOf()
         override val plainRoute: String = "emptyScreen"
     }
 
-    class LoadingScreen(
-        override val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>> = listOf(
-            APP_WIDGET_ID to {
+    data object LoadingScreen : ResinStatusWidgetConfigurationDestination() {
+        const val APP_WIDGET_ID = "appWidgetId"
+
+        override val arguments: List<NamedNavArgument> = listOf(
+            navArgument(APP_WIDGET_ID) {
                 type = NavType.IntType
                 defaultValue = AppWidgetManager.INVALID_APPWIDGET_ID
             }
-        ),
+        )
         override val plainRoute: String = "loadingScreen"
-    ) : ResinStatusWidgetConfigurationDestination() {
-        companion object {
-            const val APP_WIDGET_ID = "appWidgetId"
-        }
 
         fun generateRoute(appWidgetId: Int) = "${plainRoute}/${appWidgetId}"
     }
 
-    class CreateResinStatusWidgetScreen(
-        override val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>> = listOf(
-            APP_WIDGET_ID to { type = NavType.IntType }
-        ),
+    data object CreateResinStatusWidgetScreen : ResinStatusWidgetConfigurationDestination() {
+        const val APP_WIDGET_ID = "appWidgetId"
+
+        override val arguments: List<NamedNavArgument> = listOf(
+            navArgument(LoadingScreen.APP_WIDGET_ID) {
+                type = NavType.IntType
+                defaultValue = AppWidgetManager.INVALID_APPWIDGET_ID
+            }
+        )
         override val plainRoute: String = "createResinStatusWidgetScreen"
-    ) : ResinStatusWidgetConfigurationDestination() {
-        companion object {
-            const val APP_WIDGET_ID = "appWidgetId"
-        }
 
         fun generateRoute(appWidgetId: Int) = "${plainRoute}/${appWidgetId}"
     }
 
-    class ResinStatusWidgetDetailScreen(
-        override val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>> = listOf(
-            APP_WIDGET_ID to { type = NavType.IntType }
-        ),
+    data object ResinStatusWidgetDetailScreen : ResinStatusWidgetConfigurationDestination() {
+        const val APP_WIDGET_ID = "appWidgetId"
+
+        override val arguments: List<NamedNavArgument> = listOf(
+            navArgument(LoadingScreen.APP_WIDGET_ID) {
+                type = NavType.IntType
+                defaultValue = AppWidgetManager.INVALID_APPWIDGET_ID
+            }
+        )
         override val plainRoute: String = "resinStatusWidgetDetailScreen"
-    ) : ResinStatusWidgetConfigurationDestination() {
-        companion object {
-            const val APP_WIDGET_ID = "appWidgetId"
-        }
 
         fun generateRoute(appWidgetId: Int) = "${plainRoute}/${appWidgetId}"
     }
 
     data object LoginHoYoLABScreen : ResinStatusWidgetConfigurationDestination() {
-        override val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>> = listOf()
+        override val arguments: List<NamedNavArgument> = listOf()
         override val plainRoute: String = "loginHoYoLABScreen"
     }
 }

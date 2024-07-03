@@ -1,7 +1,6 @@
 package com.joeloewi.croissant.ui.navigation.main.settings.screen
 
 import android.content.Intent
-import android.net.Uri
 import android.speech.tts.TextToSpeech
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -29,8 +28,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,26 +36,44 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import coil.compose.AsyncImage
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.state.LCE
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.navigationIconButton
 import com.joeloewi.croissant.viewmodel.DeveloperInfoViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import org.orbitmvi.orbit.compose.collectAsState
+import org.orbitmvi.orbit.compose.collectSideEffect
 
 @Composable
 fun DeveloperInfoScreen(
     developerInfoViewModel: DeveloperInfoViewModel = hiltViewModel(),
     onNavigateUp: () -> Unit
 ) {
-    val textToSpeech by developerInfoViewModel.textToSpeech.collectAsStateWithLifecycle(context = Dispatchers.IO)
+    val activity = LocalActivity.current
+    val state by developerInfoViewModel.collectAsState()
+
+    developerInfoViewModel.collectSideEffect { sideEffect ->
+        when (sideEffect) {
+            is DeveloperInfoViewModel.SideEffect.LaunchIntent -> {
+                activity.startActivity(sideEffect.intent)
+            }
+
+            is DeveloperInfoViewModel.SideEffect.SpeakText -> {
+                sideEffect.textToSpeech?.speak(
+                    sideEffect.text,
+                    TextToSpeech.QUEUE_FLUSH,
+                    bundleOf(),
+                    sideEffect.utteranceId
+                )
+            }
+        }
+    }
 
     DeveloperInfoContent(
-        textToSpeech = { textToSpeech },
+        state = state,
+        onSpeakText = developerInfoViewModel::onSpeakText,
+        onLaunchIntent = developerInfoViewModel::onLaunchIntent,
         onNavigateUp = onNavigateUp
     )
 }
@@ -66,12 +81,11 @@ fun DeveloperInfoScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DeveloperInfoContent(
-    textToSpeech: () -> LCE<TextToSpeech>,
+    state: DeveloperInfoViewModel.State,
+    onSpeakText: (text: String, utteranceId: String) -> Unit,
+    onLaunchIntent: (intent: Intent) -> Unit,
     onNavigateUp: () -> Unit
 ) {
-    val activity = LocalActivity.current
-    val coroutineScope = rememberCoroutineScope()
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -104,19 +118,8 @@ private fun DeveloperInfoContent(
                             .clip(CircleShape)
                             .size(64.dp)
                             .clickable(
-                                enabled = textToSpeech() is LCE.Content
-                            ) {
-                                coroutineScope.launch(Dispatchers.IO) {
-                                    textToSpeech().content?.runCatching {
-                                        speak(
-                                            "안아줘요",
-                                            TextToSpeech.QUEUE_FLUSH,
-                                            bundleOf(),
-                                            "hug_me"
-                                        )
-                                    }
-                                }
-                            },
+                                enabled = state.isTTSInitialized
+                            ) { onSpeakText("안아줘요", "hug_me") },
                         contentScale = ContentScale.Crop,
                         model = R.drawable.hug_me,
                         contentDescription = null
@@ -144,22 +147,10 @@ private fun DeveloperInfoContent(
             item(
                 key = "github"
             ) {
-                val developerGithub = remember { "https://github.com/joeloewi7178" }
-                val intent = remember {
-                    Intent(
-                        Intent.ACTION_VIEW,
-                        Uri.parse(developerGithub)
-                    )
-                }
-
                 ListItem(
                     modifier = Modifier.clickable(
-                        enabled = remember {
-                            intent.resolveActivity(activity.packageManager) != null
-                        }
-                    ) {
-                        activity.startActivity(intent)
-                    },
+                        enabled = state.canLaunchGithubIntent
+                    ) { onLaunchIntent(state.githubIntent) },
                     leadingContent = {
                         Icon(
                             imageVector = Icons.Default.Public,
@@ -176,7 +167,7 @@ private fun DeveloperInfoContent(
                         Text(text = "Github")
                     },
                     headlineContent = {
-                        Text(text = developerGithub)
+                        Text(text = state.developerGithub)
                     }
                 )
             }
@@ -197,23 +188,12 @@ private fun DeveloperInfoContent(
             item(
                 key = "email"
             ) {
-                val developerEmail = remember { "joeloewi7178@gmail.com" }
-                val intent = remember {
-                    Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:")).apply {
-                        putExtra(Intent.EXTRA_EMAIL, developerEmail)
-                    }
-                }
-
                 ListItem(
                     modifier = Modifier
                         .padding()
                         .clickable(
-                            enabled = remember {
-                                intent.resolveActivity(activity.packageManager) != null
-                            }
-                        ) {
-                            activity.startActivity(intent)
-                        },
+                            enabled = state.canLaunchEmailIntent
+                        ) { onLaunchIntent(state.emailIntent) },
                     leadingContent = {
                         Icon(
                             imageVector = Icons.Default.Email,
@@ -230,7 +210,7 @@ private fun DeveloperInfoContent(
                         Text(text = stringResource(id = R.string.email))
                     },
                     headlineContent = {
-                        Text(text = developerEmail)
+                        Text(text = state.developerEmail)
                     }
                 )
             }

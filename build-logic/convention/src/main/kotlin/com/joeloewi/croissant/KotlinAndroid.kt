@@ -77,9 +77,9 @@ private inline fun <reified T : KotlinTopLevelExtension> Project.configureKotlin
     }.apply {
         jvmTarget.set(JvmTarget.JVM_17)
         allWarningsAsErrors.set(warningsAsErrors.toBoolean())
-        freeCompilerArgs.add(
+        /*freeCompilerArgs.add(
             // Enable experimental coroutines APIs, including Flow
             "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
-        )
+        )*/
     }
 }
