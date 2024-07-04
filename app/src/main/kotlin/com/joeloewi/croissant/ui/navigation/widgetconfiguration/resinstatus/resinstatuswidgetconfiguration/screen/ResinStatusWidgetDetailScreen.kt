@@ -21,40 +21,51 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.state.ILCE
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.ProgressDialog
 import com.joeloewi.croissant.viewmodel.ResinStatusWidgetDetailViewModel
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.flow.catch
+import org.orbitmvi.orbit.compose.collectAsState
+import org.orbitmvi.orbit.compose.collectSideEffect
 
 @Composable
 fun ResinStatusWidgetDetailScreen(
     resinStatusWidgetDetailViewModel: ResinStatusWidgetDetailViewModel = hiltViewModel()
 ) {
-    val updateResinStatusWidgetState by resinStatusWidgetDetailViewModel.updateResinStatusWidgetState.collectAsStateWithLifecycle()
-    val interval by resinStatusWidgetDetailViewModel.interval.collectAsStateWithLifecycle()
-    val selectableIntervals =
-        remember { resinStatusWidgetDetailViewModel.selectableIntervals.toImmutableList() }
+    val activity = LocalActivity.current
+    val state by resinStatusWidgetDetailViewModel.collectAsState()
+    var showProgressDialog by remember { mutableStateOf(false) }
+
+    resinStatusWidgetDetailViewModel.collectSideEffect { sideEffect ->
+        when (sideEffect) {
+            ResinStatusWidgetDetailViewModel.SideEffect.DismissProgressDialog -> {
+                showProgressDialog = false
+            }
+
+            ResinStatusWidgetDetailViewModel.SideEffect.ShowProgressDialog -> {
+                showProgressDialog = true
+            }
+
+            ResinStatusWidgetDetailViewModel.SideEffect.FinishActivity -> {
+                activity.finish()
+            }
+        }
+    }
 
     ResinStatusWidgetDetailContent(
-        updateResinStatusWidgetState = { updateResinStatusWidgetState },
-        selectableIntervals = selectableIntervals,
-        interval = interval,
+        state = state,
+        showProgressDialog = showProgressDialog,
         onUpdateResinStatusWidget = resinStatusWidgetDetailViewModel::updateResinStatusWidget,
         onIntervalChange = resinStatusWidgetDetailViewModel::setInterval
     )
@@ -63,30 +74,11 @@ fun ResinStatusWidgetDetailScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResinStatusWidgetDetailContent(
-    updateResinStatusWidgetState: () -> ILCE<Int>,
-    selectableIntervals: ImmutableList<Long>,
-    interval: Long,
+    state: ResinStatusWidgetDetailViewModel.State,
+    showProgressDialog: Boolean,
     onUpdateResinStatusWidget: () -> Unit,
     onIntervalChange: (Long) -> Unit
 ) {
-    val activity = LocalActivity.current
-
-    LaunchedEffect(Unit) {
-        snapshotFlow { updateResinStatusWidgetState() }.catch { }.collect {
-            when (it) {
-                is ILCE.Content -> {
-                    if (it.content != 0) {
-                        activity.finish()
-                    }
-                }
-
-                else -> {
-
-                }
-            }
-        }
-    }
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -140,9 +132,9 @@ fun ResinStatusWidgetDetailContent(
                     alignment = Alignment.CenterHorizontally
                 )
             ) {
-                selectableIntervals.forEach {
-                    val isSelected by remember(it) {
-                        derivedStateOf { interval == it }
+                state.selectableIntervals.forEach {
+                    val isSelected by remember(it, state.interval) {
+                        derivedStateOf { state.interval == it }
                     }
 
                     Row(
@@ -172,7 +164,7 @@ fun ResinStatusWidgetDetailContent(
             }
         }
 
-        if (updateResinStatusWidgetState().isLoading) {
+        if (showProgressDialog) {
             ProgressDialog()
         }
     }

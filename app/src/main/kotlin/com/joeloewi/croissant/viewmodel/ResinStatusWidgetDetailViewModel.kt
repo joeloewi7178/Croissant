@@ -3,20 +3,21 @@ package com.joeloewi.croissant.viewmodel
 import android.appwidget.AppWidgetManager
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.WorkManager
 import androidx.work.await
 import com.joeloewi.croissant.domain.usecase.ResinStatusWidgetUseCase
-import com.joeloewi.croissant.state.ILCE
-import com.joeloewi.croissant.state.foldAsILCE
 import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration.ResinStatusWidgetConfigurationDestination
 import com.joeloewi.croissant.worker.RefreshResinStatusWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import org.orbitmvi.orbit.Container
+import org.orbitmvi.orbit.ContainerHost
+import org.orbitmvi.orbit.syntax.simple.intent
+import org.orbitmvi.orbit.syntax.simple.postSideEffect
+import org.orbitmvi.orbit.syntax.simple.reduce
+import org.orbitmvi.orbit.viewmodel.container
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -26,60 +27,70 @@ class ResinStatusWidgetDetailViewModel @Inject constructor(
     private val getOneByAppWidgetIdResinStatusWidgetUseCase: ResinStatusWidgetUseCase.GetOneByAppWidgetId,
     private val updateResinStatusWidgetUseCase: ResinStatusWidgetUseCase.Update,
     savedStateHandle: SavedStateHandle,
-) : ViewModel() {
+) : ViewModel(),
+    ContainerHost<ResinStatusWidgetDetailViewModel.State, ResinStatusWidgetDetailViewModel.SideEffect> {
     private val _appWidgetIdKey =
         ResinStatusWidgetConfigurationDestination.ResinStatusWidgetDetailScreen.APP_WIDGET_ID
-    private val _appWidgetId =
-        savedStateHandle.get<Int>(_appWidgetIdKey) ?: AppWidgetManager.INVALID_APPWIDGET_ID
-    val selectableIntervals = listOf(15L, 30L)
 
-    private val _updateResinStatusWidgetState = MutableStateFlow<ILCE<Int>>(ILCE.Idle)
-    private val _interval = MutableStateFlow(selectableIntervals.first())
+    override val container: Container<State, SideEffect> = container(State()) {
+        intent {
+            reduce {
+                state.copy(
+                    appWidgetId = savedStateHandle.get<Int>(_appWidgetIdKey)
+                        ?: AppWidgetManager.INVALID_APPWIDGET_ID
+                )
+            }
 
-    val updateResinStatusWidgetState = _updateResinStatusWidgetState.asStateFlow()
-    val interval = _interval.asStateFlow()
-
-    init {
-        viewModelScope.launch(Dispatchers.IO) {
             getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
-                invoke(appWidgetId = _appWidgetId)
-            }.mapCatching { resinStatusWidgetWithAccounts ->
-                _interval.value = resinStatusWidgetWithAccounts.resinStatusWidget.interval
+                invoke(appWidgetId = state.appWidgetId)
+            }.onSuccess {
+                reduce { state.copy(interval = it.resinStatusWidget.interval) }
             }
         }
     }
 
-    fun setInterval(interval: Long) {
-        _interval.value = interval
+    fun setInterval(interval: Long) = intent {
+        reduce { state.copy(interval = interval) }
     }
 
-    fun updateResinStatusWidget() {
-        _updateResinStatusWidgetState.value = ILCE.Loading
-        viewModelScope.launch(Dispatchers.IO) {
-            _updateResinStatusWidgetState.value =
-                getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
-                    invoke(appWidgetId = _appWidgetId)
-                }.mapCatching {
-                    val resinStatusWidget = it.resinStatusWidget
+    fun updateResinStatusWidget() = intent {
+        postSideEffect(SideEffect.ShowProgressDialog)
+        getOneByAppWidgetIdResinStatusWidgetUseCase.runCatching {
+            invoke(appWidgetId = state.appWidgetId)
+        }.mapCatching {
+            val resinStatusWidget = it.resinStatusWidget
 
-                    val periodicWorkRequest = RefreshResinStatusWorker.buildPeriodicWork(
-                        repeatInterval = _interval.value,
-                        repeatIntervalTimeUnit = TimeUnit.MINUTES,
-                        appWidgetId = _appWidgetId
-                    )
+            val periodicWorkRequest = RefreshResinStatusWorker.buildPeriodicWork(
+                repeatInterval = state.interval,
+                repeatIntervalTimeUnit = TimeUnit.MINUTES,
+                appWidgetId = state.appWidgetId
+            )
 
-                    workManager.enqueueUniquePeriodicWork(
-                        resinStatusWidget.refreshGenshinResinStatusWorkerName.toString(),
-                        ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
-                        periodicWorkRequest
-                    ).await()
+            workManager.enqueueUniquePeriodicWork(
+                resinStatusWidget.refreshGenshinResinStatusWorkerName.toString(),
+                ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
+                periodicWorkRequest
+            ).await()
 
-                    it.resinStatusWidget.copy(
-                        interval = _interval.value
-                    )
-                }.mapCatching {
-                    updateResinStatusWidgetUseCase(it)
-                }.foldAsILCE()
+            it.resinStatusWidget.copy(
+                interval = state.interval
+            )
+        }.mapCatching {
+            updateResinStatusWidgetUseCase(it)
         }
+        postSideEffect(SideEffect.DismissProgressDialog)
+        postSideEffect(SideEffect.FinishActivity)
+    }
+
+    data class State(
+        val appWidgetId: Int = AppWidgetManager.INVALID_APPWIDGET_ID,
+        val selectableIntervals: ImmutableList<Long> = persistentListOf(15L, 30L),
+        val interval: Long = selectableIntervals.first()
+    )
+
+    sealed class SideEffect {
+        data object ShowProgressDialog : SideEffect()
+        data object DismissProgressDialog : SideEffect()
+        data object FinishActivity : SideEffect()
     }
 }

@@ -26,7 +26,9 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
@@ -35,7 +37,6 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.semantics.Role
 import androidx.core.content.IntentCompat
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
@@ -46,42 +47,79 @@ import com.joeloewi.croissant.util.SpecialPermission
 import com.joeloewi.croissant.util.isDeviceNexus5X
 import com.joeloewi.croissant.util.rememberSpecialPermissionState
 import com.joeloewi.croissant.viewmodel.SettingsViewModel
+import org.orbitmvi.orbit.compose.collectAsState
+import org.orbitmvi.orbit.compose.collectSideEffect
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun SettingsScreen(
     settingsViewModel: SettingsViewModel = hiltViewModel(),
     onDeveloperInfoClick: () -> Unit
 ) {
-    val darkThemeEnabled by settingsViewModel.darkThemeEnabled.collectAsStateWithLifecycle()
-    val isUnusedAppRestrictionEnabled by settingsViewModel.isUnusedAppRestrictionEnabled.collectAsStateWithLifecycle()
-
-    SettingsContent(
-        darkThemeEnabled = { darkThemeEnabled },
-        isUnusedAppRestrictionEnabled = { isUnusedAppRestrictionEnabled },
-        onDarkThemeEnabled = settingsViewModel::setDarkThemeEnabled,
-        onDeveloperInfoClick = onDeveloperInfoClick
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
-@Composable
-fun SettingsContent(
-    darkThemeEnabled: () -> Boolean,
-    isUnusedAppRestrictionEnabled: () -> Result<Boolean>,
-    onDarkThemeEnabled: (Boolean) -> Unit,
-    onDeveloperInfoClick: () -> Unit
-) {
+    val state by settingsViewModel.collectAsState()
     val activity = LocalActivity.current
     val activityResult = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult(),
-        onResult = {}
+        onResult = { settingsViewModel.onIsUnusedAppRestrictionEnabledPermissionChanged() }
     )
-    val ignoreBatteryOptimizations =
-        rememberSpecialPermissionState(
-            specialPermission = SpecialPermission.IgnoreBatteryOptimization,
-            onPermissionResult = {}
-        )
+    val ignoreBatteryOptimizationsPermissionState = rememberSpecialPermissionState(
+        specialPermission = SpecialPermission.IgnoreBatteryOptimization,
+        onPermissionResult = {}
+    )
 
+    LaunchedEffect(ignoreBatteryOptimizationsPermissionState) {
+        snapshotFlow { ignoreBatteryOptimizationsPermissionState.status.isGranted }.collect {
+            settingsViewModel.onIgnoreBatteryOptimizationPermissionChanged(it)
+        }
+    }
+
+    settingsViewModel.collectSideEffect { sideEffect ->
+        when (sideEffect) {
+            SettingsViewModel.SideEffect.LaunchIgnoreBatteryOptimizationPermissionRequest -> {
+                ignoreBatteryOptimizationsPermissionState.launchPermissionRequest()
+            }
+
+            SettingsViewModel.SideEffect.LaunchManageUnusedAppRestrictionIntent -> {
+                runCatching {
+                    activityResult.launch(
+                        IntentCompat.createManageUnusedAppRestrictionsIntent(
+                            activity,
+                            activity.packageName
+                        )
+                    )
+                }
+            }
+
+            SettingsViewModel.SideEffect.LaunchOpenSourceLicensesIntent -> {
+                with(Intent(activity, OssLicensesMenuActivity::class.java)) {
+                    if (resolveActivity(activity.packageManager) != null && !isDeviceNexus5X()) {
+                        activity.startActivity(this)
+                    }
+                }
+            }
+        }
+    }
+
+    SettingsContent(
+        state = state,
+        onDarkThemeEnabled = settingsViewModel::setDarkThemeEnabled,
+        onDeveloperInfoClick = onDeveloperInfoClick,
+        onIgnoreBatteryOptimizationsValueChange = settingsViewModel::onIgnoreBatteryOptimizationsValueChange,
+        onIsUnusedAppRestrictionEnabledValueChange = settingsViewModel::onIsUnusedAppRestrictionEnabledValueChange,
+        onClickViewOpenSourceLicenses = {}
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsContent(
+    state: SettingsViewModel.State,
+    onDarkThemeEnabled: (Boolean) -> Unit,
+    onDeveloperInfoClick: () -> Unit,
+    onIgnoreBatteryOptimizationsValueChange: () -> Unit,
+    onIsUnusedAppRestrictionEnabledValueChange: () -> Unit,
+    onClickViewOpenSourceLicenses: () -> Unit
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -98,7 +136,8 @@ fun SettingsContent(
                 .fillMaxSize()
         ) {
             item(
-                key = "themeHeader"
+                key = "themeHeader",
+                contentType = "Header"
             ) {
                 ListItem(
                     headlineContent = {
@@ -111,11 +150,12 @@ fun SettingsContent(
             }
 
             item(
-                key = "darkModeSwitch"
+                key = "darkModeSwitch",
+                contentType = "ThemeContent"
             ) {
                 ListItem(
                     modifier = Modifier.toggleable(
-                        value = darkThemeEnabled(),
+                        value = state.darkThemeEnabled,
                         role = Role.Switch,
                         onValueChange = onDarkThemeEnabled
                     ),
@@ -135,7 +175,7 @@ fun SettingsContent(
                     },
                     trailingContent = {
                         Switch(
-                            checked = darkThemeEnabled(),
+                            checked = state.darkThemeEnabled,
                             onCheckedChange = null
                         )
                     }
@@ -143,7 +183,8 @@ fun SettingsContent(
             }
 
             item(
-                key = "maintenance"
+                key = "maintenanceHeader",
+                contentType = "Header"
             ) {
                 ListItem(
                     headlineContent = {
@@ -156,14 +197,15 @@ fun SettingsContent(
             }
 
             item(
-                key = "ignoreBatteryOptimization"
+                key = "ignoreBatteryOptimization",
+                contentType = "MaintenanceContent"
             ) {
                 ListItem(
                     modifier = Modifier.toggleable(
-                        value = ignoreBatteryOptimizations.status.isGranted,
+                        value = state.ignoreBatteryOptimizations,
                         role = Role.Switch,
                         onValueChange = {
-                            ignoreBatteryOptimizations.launchPermissionRequest()
+                            onIgnoreBatteryOptimizationsValueChange()
                         }
                     ),
                     leadingContent = {
@@ -182,7 +224,7 @@ fun SettingsContent(
                     },
                     trailingContent = {
                         Switch(
-                            checked = ignoreBatteryOptimizations.status.isGranted,
+                            checked = state.ignoreBatteryOptimizations,
                             onCheckedChange = null
                         )
                     }
@@ -190,19 +232,16 @@ fun SettingsContent(
             }
 
             item(
-                key = "unusedAppRestriction"
+                key = "unusedAppRestriction",
+                contentType = "MaintenanceContent"
             ) {
                 ListItem(
                     modifier = Modifier.toggleable(
-                        value = !isUnusedAppRestrictionEnabled().getOrDefault(false),
+                        enabled = state.canModifyUnusedAppRestriction,
+                        value = !state.isUnusedAppRestrictionEnabled,
                         role = Role.Switch,
                         onValueChange = {
-                            activityResult.launch(
-                                IntentCompat.createManageUnusedAppRestrictionsIntent(
-                                    activity,
-                                    activity.packageName
-                                )
-                            )
+                            onIsUnusedAppRestrictionEnabledValueChange()
                         }
                     ),
                     leadingContent = {
@@ -221,7 +260,8 @@ fun SettingsContent(
                     },
                     trailingContent = {
                         Switch(
-                            checked = !isUnusedAppRestrictionEnabled().getOrDefault(false),
+                            enabled = state.canModifyUnusedAppRestriction,
+                            checked = !state.isUnusedAppRestrictionEnabled,
                             onCheckedChange = null
                         )
                     }
@@ -229,7 +269,8 @@ fun SettingsContent(
             }
 
             item(
-                key = "othersHeader"
+                key = "othersHeader",
+                contentType = "Header"
             ) {
                 ListItem(
                     headlineContent = {
@@ -242,7 +283,8 @@ fun SettingsContent(
             }
 
             item(
-                key = "developerInfo"
+                key = "developerInfo",
+                contentType = "OthersContent"
             ) {
                 ListItem(
                     modifier = Modifier.clickable {
@@ -261,16 +303,11 @@ fun SettingsContent(
             }
 
             item(
-                key = "openSourceLicences"
+                key = "openSourceLicences",
+                contentType = "OthersContent"
             ) {
                 ListItem(
-                    modifier = Modifier.clickable {
-                        with(Intent(activity, OssLicensesMenuActivity::class.java)) {
-                            if (resolveActivity(activity.packageManager) != null && !isDeviceNexus5X()) {
-                                activity.startActivity(this)
-                            }
-                        }
-                    },
+                    modifier = Modifier.clickable(onClick = onClickViewOpenSourceLicenses),
                     leadingContent = {
                         Icon(
                             painter = rememberVectorPainter(

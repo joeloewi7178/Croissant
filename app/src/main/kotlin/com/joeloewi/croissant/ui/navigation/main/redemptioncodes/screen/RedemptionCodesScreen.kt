@@ -1,7 +1,5 @@
 package com.joeloewi.croissant.ui.navigation.main.redemptioncodes.screen
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
@@ -38,12 +36,11 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.PullToRefreshState
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -51,24 +48,20 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.core.data.model.HoYoLABGame
@@ -78,52 +71,44 @@ import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.ui.theme.HalfDp
 import com.joeloewi.croissant.ui.theme.IconDp
+import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.gameNameStringResId
 import com.joeloewi.croissant.viewmodel.RedemptionCodesViewModel
 import io.github.fornewid.placeholder.foundation.PlaceholderHighlight
 import io.github.fornewid.placeholder.foundation.fade
 import io.github.fornewid.placeholder.foundation.placeholder
-import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.catch
+import org.orbitmvi.orbit.compose.collectAsState
+import org.orbitmvi.orbit.compose.collectSideEffect
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RedemptionCodesScreen(
     redemptionCodesViewModel: RedemptionCodesViewModel = hiltViewModel()
 ) {
-    val hoYoLABGameRedemptionCodesState by redemptionCodesViewModel.hoYoLABGameRedemptionCodesState.collectAsStateWithLifecycle()
-    val expandedItems = remember { redemptionCodesViewModel.expandedItems }
-
-    RedemptionCodesContent(
-        hoYoLABGameRedemptionCodesState = { hoYoLABGameRedemptionCodesState },
-        expandedItems = { expandedItems },
-        onRefresh = { redemptionCodesViewModel.getRedemptionCodes() }
-    )
-}
-
-@OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalFoundationApi::class
-)
-@Composable
-private fun RedemptionCodesContent(
-    hoYoLABGameRedemptionCodesState: () -> LCE<ImmutableList<Pair<HoYoLABGame, AnnotatedString>>>,
-    expandedItems: () -> SnapshotStateList<HoYoLABGame>,
-    onRefresh: () -> Unit
-) {
-    val snackbarHostState = remember { SnackbarHostState() }
+    val activity = LocalActivity.current
+    val state by redemptionCodesViewModel.collectAsState()
     val pullToRefreshState = rememberPullToRefreshState()
+
+    redemptionCodesViewModel.collectSideEffect { sideEffect ->
+        when (sideEffect) {
+            is RedemptionCodesViewModel.SideEffect.LaunchIntent -> {
+                activity.startActivity(sideEffect.intent)
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
         snapshotFlow { pullToRefreshState.isRefreshing }.catch { }
             .collect { isRefreshing ->
                 if (isRefreshing) {
-                    onRefresh()
+                    redemptionCodesViewModel.getRedemptionCodes()
                 }
             }
     }
 
-    LaunchedEffect(pullToRefreshState) {
-        snapshotFlow { hoYoLABGameRedemptionCodesState() }.catch { }
+    LaunchedEffect(Unit) {
+        snapshotFlow { state.redemptionCodes }.catch { }
             .collect {
                 when (it) {
                     LCE.Loading -> {
@@ -139,10 +124,28 @@ private fun RedemptionCodesContent(
             }
     }
 
+    RedemptionCodesContent(
+        state = state,
+        pullToRefreshState = pullToRefreshState,
+        onRefresh = redemptionCodesViewModel::getRedemptionCodes,
+        onClickUrl = redemptionCodesViewModel::onClickUrl,
+        onClickExpand = redemptionCodesViewModel::onClickExpand
+    )
+}
+
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalFoundationApi::class
+)
+@Composable
+private fun RedemptionCodesContent(
+    state: RedemptionCodesViewModel.State,
+    pullToRefreshState: PullToRefreshState,
+    onRefresh: () -> Unit,
+    onClickUrl: (annotatedString: AnnotatedString, offset: Int) -> Unit,
+    onClickExpand: (hoYoLABGame: HoYoLABGame) -> Unit
+) {
     Scaffold(
-        snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
-        },
         topBar = {
             TopAppBar(
                 title = {
@@ -162,16 +165,18 @@ private fun RedemptionCodesContent(
                 modifier = Modifier
                     .fillMaxSize(),
             ) {
-                when (val state = hoYoLABGameRedemptionCodesState()) {
+                when (val redemptionCodesState = state.redemptionCodes) {
                     is LCE.Content -> {
                         items(
-                            items = state.content,
+                            items = redemptionCodesState.content,
                             key = { it.first.name }
                         ) { item ->
                             RedemptionCodeListItem(
                                 modifier = Modifier.animateItemPlacement(),
                                 item = item,
-                                expandedItems = expandedItems
+                                isExpanded = item.first in state.expandedItems,
+                                onClickUrl = onClickUrl,
+                                onClickExpand = onClickExpand
                             )
                         }
                     }
@@ -243,15 +248,16 @@ private fun RedemptionCodesContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalTextApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RedemptionCodeListItem(
     modifier: Modifier,
-    expandedItems: () -> SnapshotStateList<HoYoLABGame>,
-    item: Pair<HoYoLABGame, AnnotatedString>
+    isExpanded: Boolean,
+    item: Pair<HoYoLABGame, AnnotatedString>,
+    onClickUrl: (annotatedString: AnnotatedString, offset: Int) -> Unit,
+    onClickExpand: (hoYoLABGame: HoYoLABGame) -> Unit
 ) {
     val foldedHeight = 216.dp
-    val context = LocalContext.current
     val textStyle = LocalTextStyle.current
     val textColor = textStyle.color.takeOrElse {
         LocalContentColor.current
@@ -301,15 +307,9 @@ private fun RedemptionCodeListItem(
                 actions = {
                     if (isContentCanBeFolded) {
                         IconButton(
-                            onClick = {
-                                if (!expandedItems().contains(item.first)) {
-                                    expandedItems().add(item.first)
-                                } else {
-                                    expandedItems().remove(item.first)
-                                }
-                            }
+                            onClick = { onClickExpand(item.first) }
                         ) {
-                            if (expandedItems().contains(item.first)) {
+                            if (isExpanded) {
                                 Icon(
                                     imageVector = Icons.Default.ExpandLess,
                                     contentDescription = Icons.Default.ExpandLess.name
@@ -331,7 +331,7 @@ private fun RedemptionCodeListItem(
                     .composed {
                         val measureHeight by remember(
                             isContentCanBeFolded,
-                            expandedItems,
+                            isExpanded,
                             item.first
                         ) {
                             derivedStateOf {
@@ -339,7 +339,7 @@ private fun RedemptionCodeListItem(
                                     return@derivedStateOf Dp.Unspecified
                                 }
 
-                                if (expandedItems().contains(item.first)) {
+                                if (isExpanded) {
                                     return@derivedStateOf Dp.Unspecified
                                 }
 
@@ -357,15 +357,7 @@ private fun RedemptionCodeListItem(
                     ClickableText(
                         text = item.second,
                         style = textStyle.copy(color = textColor),
-                        onClick = { offset ->
-                            item.second.getUrlAnnotations(offset, offset).firstOrNull()?.let {
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(it.item.url))
-
-                                if (intent.resolveActivity(context.packageManager) != null) {
-                                    context.startActivity(intent)
-                                }
-                            }
-                        }
+                        onClick = { offset -> onClickUrl(item.second, offset) }
                     )
                 }
             }

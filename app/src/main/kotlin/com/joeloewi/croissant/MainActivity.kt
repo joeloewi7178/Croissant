@@ -38,7 +38,6 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -67,8 +66,6 @@ import androidx.navigation.navDeepLink
 import com.google.firebase.Firebase
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.analytics
-import com.joeloewi.croissant.state.LCE
-import com.joeloewi.croissant.state.foldAsLce
 import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.AttendanceDetailScreen
@@ -95,12 +92,10 @@ import com.joeloewi.croissant.viewmodel.MainActivityViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -143,9 +138,72 @@ class MainActivity : AppCompatActivity() {
                 CompositionLocalProvider(
                     LocalActivity provides this
                 ) {
-                    val activityViewModel: MainActivityViewModel =
-                        hiltViewModel(LocalActivity.current)
+                    val activityViewModel: MainActivityViewModel = hiltViewModel(LocalActivity.current)
                     val state by activityViewModel.collectAsState()
+                    val context = LocalContext.current
+                    val activity = LocalActivity.current
+                    val deepLinkUri = remember(context) {
+                        Uri.Builder()
+                            .scheme(context.getString(R.string.deep_link_scheme))
+                            .authority(context.packageName)
+                            .build()
+                    }
+                    val snackbarHostState = remember { SnackbarHostState() }
+                    val navController = rememberNavController()
+                    val windowSizeClass = calculateWindowSizeClass(activity = activity)
+
+                    LaunchedEffect(navController) {
+                        navController.currentBackStackEntryFlow.collect {
+                            activityViewModel.onCurrentBackStackEntryChange(it)
+                        }
+                    }
+
+                    val isNavigationRailVisible by remember {
+                        derivedStateOf {
+
+                        }
+                    }
+                    val isBottomNavigationBarVisible by remember {
+                        derivedStateOf {
+                            !state.fullScreenDestinations.any { route ->
+                                (currentBackStackEntry?.destination?.route?.contains(
+                                    route
+                                ) != false)
+                            } && !windowSizeClass.useNavRail()
+                                    && currentBackStackEntry?.destination?.route == currentBackStackEntry?.destination?.parent?.startDestinationRoute
+                        }
+                    }
+                    val calculatedStartDestination = remember(state.isFirstLaunch) {
+                        val anyOfPermissionsIsDenied = persistentListOf(
+                            CroissantPermission.AccessHoYoLABSession.permission,
+                            CroissantPermission.PostNotifications.permission
+                        ).any {
+                            ContextCompat.checkSelfPermission(
+                                activity,
+                                it
+                            ) == PackageManager.PERMISSION_DENIED
+                        } || activity.getSystemService<AlarmManager>()?.canScheduleExactAlarmsCompat() == false
+
+                        if (state.isFirstLaunch || anyOfPermissionsIsDenied) {
+                            GlobalDestination.FirstLaunchScreen.route
+                        } else {
+                            CroissantNavigation.Attendances.route
+                        }
+                    }
+
+                    LaunchedEffect(navController) {
+                        withContext(Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
+                            navController.currentBackStackEntryFlow.catch { }.collect {
+                                Firebase.analytics.logEvent(
+                                    FirebaseAnalytics.Event.SCREEN_VIEW,
+                                    bundleOf(
+                                        FirebaseAnalytics.Param.SCREEN_NAME to it.destination.route,
+                                        FirebaseAnalytics.Param.SCREEN_CLASS to activity::class.java.simpleName
+                                    )
+                                )
+                            }
+                        }
+                    }
 
                     CompositionLocalProvider(
                         LocalHourFormat provides state.hourFormat
@@ -167,61 +225,12 @@ class MainActivity : AppCompatActivity() {
 fun CroissantApp(
     state: MainActivityViewModel.State
 ) {
-    val context = LocalContext.current
-    val activity = LocalActivity.current
-    val deepLinkUri = remember(context) {
-        Uri.Builder()
-            .scheme(context.getString(R.string.deep_link_scheme))
-            .authority(context.packageName)
-            .build()
-    }
-    val snackbarHostState = remember { SnackbarHostState() }
-    val navController = rememberNavController()
-    val windowSizeClass = calculateWindowSizeClass(activity = activity)
-    val currentBackStackEntry by remember(navController) {
-        navController.currentBackStackEntryFlow
-    }.collectAsStateWithLifecycle(initialValue = null)
-    val isNavigationRailVisible by remember {
-        derivedStateOf {
-            !state.fullScreenDestinations.any { route ->
-                (currentBackStackEntry?.destination?.route?.contains(
-                    route
-                ) != false)
-            } && windowSizeClass.useNavRail()
-                    && currentBackStackEntry?.destination?.route == currentBackStackEntry?.destination?.parent?.startDestinationRoute
-        }
-    }
-    val isBottomNavigationBarVisible by remember {
-        derivedStateOf {
-            !state.fullScreenDestinations.any { route ->
-                (currentBackStackEntry?.destination?.route?.contains(
-                    route
-                ) != false)
-            } && !windowSizeClass.useNavRail()
-                    && currentBackStackEntry?.destination?.route == currentBackStackEntry?.destination?.parent?.startDestinationRoute
-        }
-    }
-
-    LaunchedEffect(navController) {
-        withContext(Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
-            navController.currentBackStackEntryFlow.catch { }.collect {
-                Firebase.analytics.logEvent(
-                    FirebaseAnalytics.Event.SCREEN_VIEW,
-                    bundleOf(
-                        FirebaseAnalytics.Param.SCREEN_NAME to it.destination.route,
-                        FirebaseAnalytics.Param.SCREEN_CLASS to activity::class.java.simpleName
-                    )
-                )
-            }
-        }
-    }
-
     Scaffold(
         bottomBar = {
-            if (isBottomNavigationBarVisible) {
+            if (state.isBottomNavigationBarVisible) {
                 CroissantBottomNavigationBar(
                     croissantNavigations = state.croissantNavigations,
-                    currentBackStackEntry = currentBackStackEntry,
+                    currentBackStackEntry = state.currentBackStackEntry,
                     onClickNavigationButton = { route ->
                         navController.navigate(route) {
                             popUpTo(navController.graph.findStartDestination().id) {
@@ -241,10 +250,10 @@ fun CroissantApp(
                 .padding(innerPadding)
         ) {
             Row {
-                if (isNavigationRailVisible) {
+                if (state.isNavigationRailVisible) {
                     CroissantNavigationRail(
                         croissantNavigations = state.croissantNavigations,
-                        currentBackStackEntry = currentBackStackEntry,
+                        currentBackStackEntry = state.currentBackStackEntry,
                         onClickNavigationButton = { route ->
                             navController.navigate(route) {
                                 popUpTo(navController.graph.findStartDestination().id) {
@@ -257,11 +266,11 @@ fun CroissantApp(
                     )
                 }
                 Column(
-                    modifier = remember(isNavigationRailVisible) {
+                    modifier = remember(state.isNavigationRailVisible) {
                         Modifier
                             .fillMaxSize(1f)
                             .run {
-                                if (isNavigationRailVisible) {
+                                if (state.isNavigationRailVisible) {
                                     navigationBarsPadding()
                                 } else {
                                     this
@@ -274,7 +283,8 @@ fun CroissantApp(
                         navController = navController,
                         snackbarHostState = snackbarHostState,
                         deepLinkUri = deepLinkUri.toString(),
-                        isFirstLaunch = state.isFirstLaunch
+                        route = activity::class.java.simpleName,
+                        startDestination = calculatedStartDestination
                     )
                 }
             }
@@ -322,231 +332,194 @@ fun CroissantNavHost(
     navController: NavHostController,
     snackbarHostState: SnackbarHostState,
     deepLinkUri: String,
-    isFirstLaunch: Boolean
+    route: String,
+    startDestination: String
 ) {
-    val activity = LocalActivity.current
-    val calculatedStartDestination by remember {
-        snapshotFlow(isFirstLaunch).map { isFirstLaunch ->
-            val anyOfPermissionsIsDenied = persistentListOf(
-                CroissantPermission.AccessHoYoLABSession.permission,
-                CroissantPermission.PostNotifications.permission
-            ).any {
-                ContextCompat.checkSelfPermission(
-                    activity,
-                    it
-                ) == PackageManager.PERMISSION_DENIED
-            } || activity.getSystemService<AlarmManager>()
-                ?.canScheduleExactAlarmsCompat() == false
-
-            isFirstLaunch || anyOfPermissionsIsDenied
-        }.map {
-            if (it) {
-                GlobalDestination.FirstLaunchScreen.route
-            } else {
-                CroissantNavigation.Attendances.route
+    NavHost(
+        modifier = modifier,
+        navController = navController,
+        route = route,
+        startDestination = startDestination
+    ) {
+        navigation(
+            startDestination = AttendancesDestination.AttendancesScreen.route,
+            route = CroissantNavigation.Attendances.route
+        ) {
+            composable(route = AttendancesDestination.AttendancesScreen.route) {
+                AttendancesScreen(
+                    snackbarHostState = snackbarHostState,
+                    onClickCreateAttendance = {
+                        navController.navigate(AttendancesDestination.CreateAttendanceScreen.route)
+                    },
+                    onClickAttendance = {
+                        navController.navigate(
+                            AttendancesDestination.AttendanceDetailScreen.generateRoute(it)
+                        )
+                    }
+                )
             }
-        }.map {
-            runCatching { it }.foldAsLce()
-        }.catch {
-            if (it !is CancellationException) {
-                emit(runCatching { throw it }.foldAsLce<String>())
-            }
-        }
-    }.collectAsStateWithLifecycle(initialValue = LCE.Loading)
 
-    when (val cached = calculatedStartDestination) {
-        is LCE.Content -> {
-            NavHost(
-                modifier = modifier,
-                navController = navController,
-                route = activity::class.java.simpleName,
-                startDestination = cached.content
-            ) {
-                navigation(
-                    startDestination = AttendancesDestination.AttendancesScreen.route,
-                    route = CroissantNavigation.Attendances.route
-                ) {
-                    composable(route = AttendancesDestination.AttendancesScreen.route) {
-                        AttendancesScreen(
-                            snackbarHostState = snackbarHostState,
-                            onClickCreateAttendance = {
-                                navController.navigate(AttendancesDestination.CreateAttendanceScreen.route)
-                            },
-                            onClickAttendance = {
-                                navController.navigate(
-                                    AttendancesDestination.AttendanceDetailScreen.generateRoute(it)
-                                )
-                            }
-                        )
-                    }
-
-                    composable(route = AttendancesDestination.CreateAttendanceScreen.route) {
-                        val newCookie by remember {
-                            it.savedStateHandle.getStateFlow(
-                                AttendancesDestination.LoginHoYoLabScreen.COOKIE,
-                                ""
-                            )
-                        }.collectAsStateWithLifecycle()
-
-                        CreateAttendanceScreen(
-                            newCookie = { newCookie },
-                            onLoginHoYoLAB = {
-                                navController.navigate(AttendancesDestination.LoginHoYoLabScreen.route)
-                            },
-                            onNavigateToAttendanceDetailScreen = {
-                                navController.navigate(
-                                    AttendancesDestination.AttendanceDetailScreen.generateRoute(it)
-                                ) {
-                                    popUpTo(AttendancesDestination.CreateAttendanceScreen.route) {
-                                        inclusive = true
-                                    }
-                                }
-                            },
-                            onNavigateUp = {
-                                navController.navigateUp()
-                            }
-                        )
-                    }
-
-                    composable(
-                        route = AttendancesDestination.LoginHoYoLabScreen.route,
-                    ) {
-                        LoginHoYoLABScreen(
-                            onNavigateUp = { cookie ->
-                                with(navController) {
-                                    if (cookie == null) {
-                                        navigateUp()
-                                    } else {
-                                        previousBackStackEntry?.savedStateHandle?.set(
-                                            AttendancesDestination.LoginHoYoLabScreen.COOKIE,
-                                            cookie
-                                        )
-                                        navigateUp()
-                                    }
-                                }
-                            }
-                        )
-                    }
-
-                    composable(
-                        route = AttendancesDestination.AttendanceDetailScreen.route,
-                        arguments = AttendancesDestination.AttendanceDetailScreen.arguments.map { argument ->
-                            navArgument(argument.first, argument.second)
-                        },
-                        deepLinks = listOf(
-                            navDeepLink {
-                                uriPattern =
-                                    "$deepLinkUri/${AttendancesDestination.AttendanceDetailScreen.route}"
-                            }
-                        )
-                    ) { navBackStackEntry ->
-                        val newCookie by remember {
-                            navBackStackEntry.savedStateHandle.getStateFlow(
-                                AttendancesDestination.LoginHoYoLabScreen.COOKIE,
-                                ""
-                            )
-                        }.collectAsStateWithLifecycle()
-
-                        AttendanceDetailScreen(
-                            newCookie = { newCookie },
-                            onNavigateUp = { navController.navigateUp() },
-                            onClickRefreshSession = {
-                                navController.navigate(AttendancesDestination.LoginHoYoLabScreen.route)
-                            },
-                            onClickLogSummary = { attendanceId, loggableWorker ->
-                                navController.navigate(
-                                    AttendancesDestination.AttendanceLogsCalendarScreen.generateRoute(
-                                        attendanceId,
-                                        loggableWorker
-                                    )
-                                )
-                            }
-                        )
-                    }
-
-                    composable(
-                        route = AttendancesDestination.AttendanceLogsCalendarScreen.route,
-                        arguments = AttendancesDestination.AttendanceLogsCalendarScreen.arguments.map { argument ->
-                            navArgument(argument.first, argument.second)
-                        }
-                    ) {
-                        AttendanceLogsCalendarScreen(
-                            onNavigateUp = { navController.navigateUp() },
-                            onClickDay = { attendanceId, loggableWorker, localDate ->
-                                navController.navigate(
-                                    AttendancesDestination.AttendanceLogsDayScreen.generateRoute(
-                                        attendanceId = attendanceId,
-                                        loggableWorker = loggableWorker,
-                                        localDate = localDate,
-                                    )
-                                )
-                            }
-                        )
-                    }
-
-                    composable(
-                        route = AttendancesDestination.AttendanceLogsDayScreen.route,
-                        arguments = AttendancesDestination.AttendanceLogsDayScreen.arguments.map { argument ->
-                            navArgument(argument.first, argument.second)
-                        }
-                    ) {
-                        AttendanceLogsDayScreen(
-                            onNavigateUp = { navController.navigateUp() }
-                        )
-                    }
-                }
-
-                navigation(
-                    startDestination = RedemptionCodesDestination.RedemptionCodesScreen.route,
-                    route = CroissantNavigation.RedemptionCodes.route
-                ) {
-                    composable(route = RedemptionCodesDestination.RedemptionCodesScreen.route) {
-                        RedemptionCodesScreen()
-                    }
-                }
-
-                navigation(
-                    startDestination = SettingsDestination.SettingsScreen.route,
-                    route = CroissantNavigation.Settings.route
-                ) {
-                    composable(route = SettingsDestination.SettingsScreen.route) {
-                        SettingsScreen(
-                            onDeveloperInfoClick = {
-                                navController.navigate(SettingsDestination.DeveloperInfoScreen.route)
-                            }
-                        )
-                    }
-
-                    composable(route = SettingsDestination.DeveloperInfoScreen.route) {
-                        DeveloperInfoScreen(
-                            onNavigateUp = { navController.navigateUp() }
-                        )
-                    }
-                }
-
-                composable(route = GlobalDestination.FirstLaunchScreen.route) {
-                    FirstLaunchScreen(
-                        onNavigateToAttendances = {
-                            with(navController.graph) {
-                                findNode(CroissantNavigation.Attendances.route)?.id?.let {
-                                    setStartDestination(
-                                        it
-                                    )
-                                }
-                            }
-                            navController.navigate(AttendancesDestination.AttendancesScreen.route) {
-                                popUpTo(activity::class.java.simpleName) {
-                                    inclusive = true
-                                }
-                            }
-                        }
+            composable(route = AttendancesDestination.CreateAttendanceScreen.route) {
+                val newCookie by remember {
+                    it.savedStateHandle.getStateFlow(
+                        AttendancesDestination.LoginHoYoLabScreen.COOKIE,
+                        ""
                     )
+                }.collectAsStateWithLifecycle()
+
+                CreateAttendanceScreen(
+                    newCookie = { newCookie },
+                    onLoginHoYoLAB = {
+                        navController.navigate(AttendancesDestination.LoginHoYoLabScreen.route)
+                    },
+                    onNavigateToAttendanceDetailScreen = {
+                        navController.navigate(
+                            AttendancesDestination.AttendanceDetailScreen.generateRoute(it)
+                        ) {
+                            popUpTo(AttendancesDestination.CreateAttendanceScreen.route) {
+                                inclusive = true
+                            }
+                        }
+                    },
+                    onNavigateUp = {
+                        navController.navigateUp()
+                    }
+                )
+            }
+
+            composable(
+                route = AttendancesDestination.LoginHoYoLabScreen.route,
+            ) {
+                LoginHoYoLABScreen(
+                    onNavigateUp = { cookie ->
+                        with(navController) {
+                            if (cookie == null) {
+                                navigateUp()
+                            } else {
+                                previousBackStackEntry?.savedStateHandle?.set(
+                                    AttendancesDestination.LoginHoYoLabScreen.COOKIE,
+                                    cookie
+                                )
+                                navigateUp()
+                            }
+                        }
+                    }
+                )
+            }
+
+            composable(
+                route = AttendancesDestination.AttendanceDetailScreen.route,
+                arguments = AttendancesDestination.AttendanceDetailScreen.arguments.map { argument ->
+                    navArgument(argument.first, argument.second)
+                },
+                deepLinks = listOf(
+                    navDeepLink {
+                        uriPattern =
+                            "$deepLinkUri/${AttendancesDestination.AttendanceDetailScreen.route}"
+                    }
+                )
+            ) { navBackStackEntry ->
+                val newCookie by remember {
+                    navBackStackEntry.savedStateHandle.getStateFlow(
+                        AttendancesDestination.LoginHoYoLabScreen.COOKIE,
+                        ""
+                    )
+                }.collectAsStateWithLifecycle()
+
+                AttendanceDetailScreen(
+                    newCookie = { newCookie },
+                    onNavigateUp = { navController.navigateUp() },
+                    onClickRefreshSession = {
+                        navController.navigate(AttendancesDestination.LoginHoYoLabScreen.route)
+                    },
+                    onClickLogSummary = { attendanceId, loggableWorker ->
+                        navController.navigate(
+                            AttendancesDestination.AttendanceLogsCalendarScreen.generateRoute(
+                                attendanceId,
+                                loggableWorker
+                            )
+                        )
+                    }
+                )
+            }
+
+            composable(
+                route = AttendancesDestination.AttendanceLogsCalendarScreen.route,
+                arguments = AttendancesDestination.AttendanceLogsCalendarScreen.arguments.map { argument ->
+                    navArgument(argument.first, argument.second)
                 }
+            ) {
+                AttendanceLogsCalendarScreen(
+                    onNavigateUp = { navController.navigateUp() },
+                    onClickDay = { attendanceId, loggableWorker, localDate ->
+                        navController.navigate(
+                            AttendancesDestination.AttendanceLogsDayScreen.generateRoute(
+                                attendanceId = attendanceId,
+                                loggableWorker = loggableWorker,
+                                localDate = localDate,
+                            )
+                        )
+                    }
+                )
+            }
+
+            composable(
+                route = AttendancesDestination.AttendanceLogsDayScreen.route,
+                arguments = AttendancesDestination.AttendanceLogsDayScreen.arguments.map { argument ->
+                    navArgument(argument.first, argument.second)
+                }
+            ) {
+                AttendanceLogsDayScreen(
+                    onNavigateUp = { navController.navigateUp() }
+                )
             }
         }
 
-        else -> {
+        navigation(
+            startDestination = RedemptionCodesDestination.RedemptionCodesScreen.route,
+            route = CroissantNavigation.RedemptionCodes.route
+        ) {
+            composable(route = RedemptionCodesDestination.RedemptionCodesScreen.route) {
+                RedemptionCodesScreen()
+            }
+        }
 
+        navigation(
+            startDestination = SettingsDestination.SettingsScreen.route,
+            route = CroissantNavigation.Settings.route
+        ) {
+            composable(route = SettingsDestination.SettingsScreen.route) {
+                SettingsScreen(
+                    onDeveloperInfoClick = {
+                        navController.navigate(SettingsDestination.DeveloperInfoScreen.route)
+                    }
+                )
+            }
+
+            composable(route = SettingsDestination.DeveloperInfoScreen.route) {
+                DeveloperInfoScreen(
+                    onNavigateUp = { navController.navigateUp() }
+                )
+            }
+        }
+
+        composable(route = GlobalDestination.FirstLaunchScreen.route) {
+            FirstLaunchScreen(
+                onNavigateToAttendances = {
+                    with(navController.graph) {
+                        findNode(CroissantNavigation.Attendances.route)?.id?.let {
+                            setStartDestination(
+                                it
+                            )
+                        }
+                    }
+                    navController.navigate(AttendancesDestination.AttendancesScreen.route) {
+                        popUpTo(route) {
+                            inclusive = true
+                        }
+                    }
+                }
+            )
         }
     }
 }

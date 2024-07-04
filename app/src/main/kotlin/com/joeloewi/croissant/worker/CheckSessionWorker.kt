@@ -12,9 +12,11 @@ import androidx.work.workDataOf
 import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics
 import com.joeloewi.croissant.core.data.model.FailureLog
+import com.joeloewi.croissant.core.data.model.HoYoLABRetCode
 import com.joeloewi.croissant.core.data.model.LoggableWorker
 import com.joeloewi.croissant.core.data.model.WorkerExecutionLog
 import com.joeloewi.croissant.core.data.model.WorkerExecutionLogState
+import com.joeloewi.croissant.core.data.model.exception.HoYoLABUnsuccessfulResponseException
 import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
 import com.joeloewi.croissant.domain.usecase.FailureLogUseCase
 import com.joeloewi.croissant.domain.usecase.HoYoLABUseCase
@@ -89,8 +91,8 @@ class CheckSessionWorker @AssistedInject constructor(
             },
             onFailure = { cause ->
                 when (cause) {
-                    is com.joeloewi.croissant.core.data.model.exception.HoYoLABUnsuccessfulResponseException -> {
-                        if (com.joeloewi.croissant.core.data.model.HoYoLABRetCode.findByCode(cause.retCode) == com.joeloewi.croissant.core.data.model.HoYoLABRetCode.LoginFailed) {
+                    is HoYoLABUnsuccessfulResponseException -> {
+                        if (HoYoLABRetCode.findByCode(cause.retCode) == HoYoLABRetCode.LoginFailed) {
                             with(notificationGenerator) {
                                 safeNotify(
                                     UUID.randomUUID().toString(),

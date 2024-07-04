@@ -3,6 +3,7 @@ package com.joeloewi.croissant.viewmodel
 import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavBackStackEntry
 import com.google.android.play.core.appupdate.AppUpdateManager
 import com.google.android.play.core.ktx.AppUpdateResult
 import com.google.android.play.core.ktx.requestUpdateFlow
@@ -97,6 +98,21 @@ class MainActivityViewModel @Inject constructor(
         intent { _isFirstLaunch.collect { reduce { state.copy(isFirstLaunch = it) } } }
     }
 
+    fun onCurrentBackStackEntryChange(navBackStackEntry: NavBackStackEntry) = intent {
+        reduce { state.copy(currentBackStackEntry = navBackStackEntry) }
+        val currentBackStackEntry = state.currentBackStackEntry
+        val destination = currentBackStackEntry?.destination
+
+        val isNavigationRailVisible =
+            currentBackStackEntry?.destination?.route in state.fullScreenDestinations && state.useNavRail && destination?.route == destination?.parent?.startDestinationRoute
+
+        reduce { state.copy(isNavigationRailVisible = isNavigationRailVisible) }
+    }
+
+    fun onUseNavRailChange(useNavRail: Boolean) = intent {
+        reduce { state.copy(useNavRail = useNavRail) }
+    }
+
     data class State(
         val hourFormat: HourFormat = HourFormat.TwelveHour,
         val appUpdateResult: AppUpdateResult = AppUpdateResult.NotAvailable,
@@ -112,7 +128,11 @@ class MainActivityViewModel @Inject constructor(
             CroissantNavigation.Attendances,
             CroissantNavigation.RedemptionCodes,
             CroissantNavigation.Settings
-        )
+        ),
+        val currentBackStackEntry: NavBackStackEntry? = null,
+        val isNavigationRailVisible: Boolean = false,
+        val isBottomNavigationBarVisible: Boolean = false,
+        val useNavRail: Boolean = false,
     )
 
     sealed class SideEffect
