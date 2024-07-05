@@ -62,7 +62,7 @@ androidxBaselineProfile = "1.2.4"
 androidTools = "31.5.0"
 fornewidPlaceholderMaterial3 = "2.0.0"
 kotlinxAtomicfu = "0.25.0"
-orbit = "8.0.0"
+orbit = "9.0.0"
 junitVersion = "1.2.1"
 
 [libraries]
