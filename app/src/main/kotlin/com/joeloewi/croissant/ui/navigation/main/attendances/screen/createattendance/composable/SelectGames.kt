@@ -93,7 +93,8 @@ fun SelectGames(
             HoYoLABGame.HonkaiImpact3rd,
             HoYoLABGame.GenshinImpact,
             HoYoLABGame.TearsOfThemis,
-            HoYoLABGame.HonkaiStarRail
+            HoYoLABGame.HonkaiStarRail,
+            HoYoLABGame.ZenlessZoneZero
         ).toImmutableList()
     }
     val containsNotSupportedGame = stringResource(id = R.string.contains_not_supported_game)
@@ -424,7 +425,7 @@ fun ConnectedGamesContentListItem(
 
     val enabled by remember(hoYoLABGame, gameRecord) {
         derivedStateOf {
-            hoYoLABGame == HoYoLABGame.TearsOfThemis || hoYoLABGame == HoYoLABGame.HonkaiStarRail || currentGameRecord.value.gameId != GameRecord.INVALID_GAME_ID
+            hoYoLABGame == HoYoLABGame.TearsOfThemis || currentGameRecord.value.gameId != GameRecord.INVALID_GAME_ID
         }
     }
 

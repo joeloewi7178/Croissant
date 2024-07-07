@@ -21,6 +21,7 @@ import com.joeloewi.croissant.data.api.dao.ArcaLiveAppService
 import com.joeloewi.croissant.data.api.dao.CheckInService
 import com.joeloewi.croissant.data.api.dao.GenshinImpactCheckInService
 import com.joeloewi.croissant.data.api.dao.HoYoLABService
+import com.joeloewi.croissant.data.api.dao.ZenlessZoneZeroCheckInService
 import com.joeloewi.croissant.data.api.model.response.AttendanceResponse
 import com.joeloewi.croissant.data.api.model.response.ChangeDataSwitchResponse
 import com.joeloewi.croissant.data.api.model.response.GameRecordCardResponse
@@ -143,6 +144,14 @@ object ApiModule {
     fun provideArcaLiveAppService(retrofitBuilder: Retrofit.Builder): ArcaLiveAppService =
         retrofitBuilder
             .baseUrl("https://arca.live/api/app/")
+            .build()
+            .create()
+
+    @Singleton
+    @Provides
+    fun providesZenlessZoneZeroCheckInService(retrofitBuilder: Retrofit.Builder): ZenlessZoneZeroCheckInService =
+        retrofitBuilder
+            .baseUrl("https://sg-act-nap-api.hoyolab.com")
             .build()
             .create()
 }
