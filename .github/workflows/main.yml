@@ -65,6 +65,9 @@ jobs:
           -Pandroid.experimental.androidTest.numManagedDeviceShards=1
           -Pandroid.experimental.testOptions.managedDevices.maxConcurrentDevices=1
 
+      - name: Build app bundle
+        run: ./gradlew :app:bundleRelease
+      
       - name: Upload Android Release to Play Store
         uses: r0adkll/upload-google-play@v1
         with:
