@@ -35,6 +35,12 @@ fun generateGameIntent(
         }
     }
 
+    HoYoLABGame.ZenlessZoneZero -> {
+        with("com.HoYoverse.Nap") {
+            this to "market://details?id=${this}".toUri()
+        }
+    }
+
     HoYoLABGame.Unknown -> {
         "" to Uri.EMPTY
     }

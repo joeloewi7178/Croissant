@@ -47,7 +47,8 @@ class AttendCheckInEventWorker @AssistedInject constructor(
     private val attendCheckInGenshinImpactUseCase: CheckInUseCase.AttendCheckInGenshinImpact,
     private val attendCheckInHonkaiImpact3rdUseCase: CheckInUseCase.AttendCheckInHonkaiImpact3rd,
     private val attendCheckInTearsOfThemisUseCase: CheckInUseCase.AttendCheckInTearsOfThemis,
-    private val attendCheckInHonkaiStarRail: CheckInUseCase.AttendCheckInHonkaiStarRail,
+    private val attendCheckInHonkaiStarRailUseCase: CheckInUseCase.AttendCheckInHonkaiStarRailUseCase,
+    private val attendCheckInZenlessZoneZeroUseCase: CheckInUseCase.AttendCheckInZenlessZoneZeroUseCase,
     private val insertWorkerExecutionLogUseCase: WorkerExecutionLogUseCase.Insert,
     private val hasExecutedAtLeastOnce: WorkerExecutionLogUseCase.HasExecutedAtLeastOnce,
     private val insertSuccessLogUseCase: SuccessLogUseCase.Insert,
@@ -159,7 +160,11 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                         }
 
                         HoYoLABGame.HonkaiStarRail -> {
-                            attendCheckInHonkaiStarRail(cookie = cookie)
+                            attendCheckInHonkaiStarRailUseCase(cookie = cookie)
+                        }
+
+                        HoYoLABGame.ZenlessZoneZero -> {
+                            attendCheckInZenlessZoneZeroUseCase(cookie = cookie)
                         }
 
                         HoYoLABGame.Unknown -> {

@@ -76,6 +76,18 @@ class ArcaLiveAppDataSourceImpl @Inject constructor(
                     }
                 }
 
+                HoYoLABGame.ZenlessZoneZero -> {
+                    arcaLiveAppService.getArticle(
+                        slug = "zenlesszonezero",
+                        articleId = 109976603
+                    ).mapSuccess {
+                        Jsoup.parse(content)
+                            .apply { select("img").remove() }
+                            .html()
+                            .replace("https://oo.pe/", "")
+                    }
+                }
+
                 HoYoLABGame.TearsOfThemis, HoYoLABGame.Unknown -> throw IllegalStateException()
             }
         }

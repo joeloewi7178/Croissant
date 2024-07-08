@@ -43,4 +43,10 @@ class CheckInRepositoryImpl @Inject constructor(
     ): Result<BaseResponse> = checkInDataSource.runCatching {
         attendCheckInHonkaiImpact3rd(cookie).getOrThrow().throwIfNotOk()
     }
+
+    override suspend fun attendCheckInZenlessZoneZero(
+        cookie: String
+    ): Result<BaseResponse> = checkInDataSource.runCatching {
+        attendCheckInZenlessZoneZero(cookie).getOrThrow().throwIfNotOk()
+    }
 }

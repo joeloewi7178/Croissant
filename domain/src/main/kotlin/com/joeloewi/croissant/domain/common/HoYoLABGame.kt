@@ -23,19 +23,23 @@ enum class HoYoLABGame(
 ) {
     HonkaiImpact3rd(
         gameId = 1,
-        gameIconUrl = "https://webstatic-sea.hoyolab.com/communityweb/business/bh3_hoyoverse.png",
+        gameIconUrl = "https://hyl-static-res-prod.hoyolab.com/communityweb/business/bh3_hoyoverse.png",
     ),
     GenshinImpact(
         gameId = 2,
-        gameIconUrl = "https://webstatic-sea.hoyolab.com/communityweb/business/ys_hoyoverse.png",
+        gameIconUrl = "https://hyl-static-res-prod.hoyolab.com/communityweb/business/ys_hoyoverse.png",
     ),
     TearsOfThemis(
         gameId = 4,
-        gameIconUrl = "https://webstatic-sea.hoyolab.com/communityweb/business/nxx_hoyoverse.png",
+        gameIconUrl = "https://hyl-static-res-prod.hoyolab.com/communityweb/business/nxx_hoyoverse.png",
     ),
     HonkaiStarRail(
         gameId = 6,
-        gameIconUrl = "https://webstatic-sea.hoyolab.com/communityweb/business/starrail_hoyoverse.png"
+        gameIconUrl = "https://hyl-static-res-prod.hoyolab.com/communityweb/business/starrail_hoyoverse.png"
+    ),
+    ZenlessZoneZero(
+        gameId = 8,
+        gameIconUrl = "https://hyl-static-res-prod.hoyolab.com/communityweb/business/nap.png"
     ),
     Unknown(
         gameId = -1,

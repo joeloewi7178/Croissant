@@ -197,12 +197,14 @@ fun SettingsContent(
                         value = !isUnusedAppRestrictionEnabled().getOrDefault(false),
                         role = Role.Switch,
                         onValueChange = {
-                            activityResult.launch(
-                                IntentCompat.createManageUnusedAppRestrictionsIntent(
-                                    activity,
-                                    activity.packageName
+                            runCatching {
+                                activityResult.launch(
+                                    IntentCompat.createManageUnusedAppRestrictionsIntent(
+                                        activity,
+                                        activity.packageName
+                                    )
                                 )
-                            )
+                            }
                         }
                     ),
                     leadingContent = {

@@ -18,6 +18,7 @@ package com.joeloewi.croissant.data.repository.remote.impl
 
 import com.joeloewi.croissant.data.api.dao.CheckInService
 import com.joeloewi.croissant.data.api.dao.GenshinImpactCheckInService
+import com.joeloewi.croissant.data.api.dao.ZenlessZoneZeroCheckInService
 import com.joeloewi.croissant.data.api.model.response.AttendanceResponse
 import com.joeloewi.croissant.data.repository.remote.CheckInDataSource
 import com.joeloewi.croissant.data.util.runAndRetryWithExponentialBackOff
@@ -28,7 +29,8 @@ import javax.inject.Inject
 
 class CheckInDataSourceImpl @Inject constructor(
     private val checkInService: CheckInService,
-    private val genshinImpactCheckInService: GenshinImpactCheckInService
+    private val genshinImpactCheckInService: GenshinImpactCheckInService,
+    private val zenlessZoneZeroCheckInService: ZenlessZoneZeroCheckInService
 ) : CheckInDataSource {
 
     override suspend fun attend(actId: String, cookie: String): ApiResponse<AttendanceResponse> =
@@ -51,6 +53,14 @@ class CheckInDataSourceImpl @Inject constructor(
     ): ApiResponse<AttendanceResponse> = withContext(Dispatchers.IO) {
         runAndRetryWithExponentialBackOff {
             checkInService.attendCheckInHonkaiImpact3rd(cookie = cookie)
+        }
+    }
+
+    override suspend fun attendCheckInZenlessZoneZero(
+        cookie: String
+    ): ApiResponse<AttendanceResponse> = withContext(Dispatchers.IO) {
+        runAndRetryWithExponentialBackOff {
+            zenlessZoneZeroCheckInService.attend(cookie = cookie)
         }
     }
 }
