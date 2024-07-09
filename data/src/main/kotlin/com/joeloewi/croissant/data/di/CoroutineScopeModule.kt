@@ -14,27 +14,23 @@
  *    limitations under the License.
  */
 
-package com.joeloewi.croissant.data.initializer
+package com.joeloewi.croissant.data.di
 
-import android.content.Context
-import androidx.startup.Initializer
-import com.joeloewi.croissant.data.di.NetworkEntryPoint
-import com.skydoves.sandwich.SandwichInitializer
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
-import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import javax.inject.Singleton
 
-class SandwichCustomInitializer : Initializer<Unit> {
+@Module
+@InstallIn(SingletonComponent::class)
+object CoroutineScopeModule {
 
-    @set:Inject
-    internal lateinit var coroutineScope: CoroutineScope
-
-    override fun create(context: Context) {
-        NetworkEntryPoint.resolve(context).inject(this)
-
-        SandwichInitializer.apply {
-            sandwichScope = coroutineScope
-        }
-    }
-
-    override fun dependencies(): MutableList<Class<out Initializer<*>>> = mutableListOf()
+    @Singleton
+    @Provides
+    fun provideCoroutineScope(): CoroutineScope =
+        CoroutineScope(Dispatchers.Default + SupervisorJob())
 }
