@@ -4,8 +4,6 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.os.PowerManager
-import androidx.lifecycle.ProcessLifecycleOwner
-import androidx.lifecycle.lifecycleScope
 import androidx.work.ExistingWorkPolicy
 import androidx.work.WorkManager
 import com.google.firebase.Firebase
@@ -17,6 +15,7 @@ import com.joeloewi.croissant.worker.RefreshResinStatusWorker
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
@@ -26,7 +25,6 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class ResinStatusWidgetProvider : AppWidgetProvider() {
-    private val _processLifecycleScope = ProcessLifecycleOwner.get().lifecycleScope
     private val _coroutineContext = Dispatchers.IO + CoroutineExceptionHandler { _, throwable ->
         Firebase.crashlytics.apply {
             log(this@ResinStatusWidgetProvider.javaClass.simpleName)
@@ -46,13 +44,16 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
     @Inject
     lateinit var workManager: WorkManager
 
+    @Inject
+    lateinit var coroutineScope: CoroutineScope
+
     override fun onUpdate(
         context: Context,
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray
     ) {
         //this method also called when user put widget on home screen
-        _processLifecycleScope.launch(_coroutineContext) {
+        coroutineScope.launch(_coroutineContext) {
             appWidgetIds.map { appWidgetId ->
                 async(SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
                     if (powerManager.isPowerSaveMode && !powerManager.isIgnoringBatteryOptimizationsCompat(
@@ -89,7 +90,7 @@ class ResinStatusWidgetProvider : AppWidgetProvider() {
     }
 
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
-        _processLifecycleScope.launch(_coroutineContext) {
+        coroutineScope.launch(_coroutineContext) {
             appWidgetIds.run {
                 map { appWidgetId ->
                     async(SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {

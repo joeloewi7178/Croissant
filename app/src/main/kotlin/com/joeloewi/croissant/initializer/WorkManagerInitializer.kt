@@ -17,18 +17,26 @@
 package com.joeloewi.croissant.initializer
 
 import android.content.Context
+import androidx.hilt.work.HiltWorkerFactory
 import androidx.startup.Initializer
 import androidx.work.Configuration
 import androidx.work.WorkManager
+import com.joeloewi.croissant.data.di.DefaultDispatcherExecutor
 import com.joeloewi.croissant.di.InitializerEntryPoint
-import com.joeloewi.croissant.di.entryPoints
+import java.util.concurrent.Executor
+import javax.inject.Inject
 
 class WorkManagerInitializer : Initializer<WorkManager> {
 
+    @set:Inject
+    internal lateinit var hiltWorkerFactory: HiltWorkerFactory
+
+    @Inject
+    @DefaultDispatcherExecutor
+    lateinit var executor: Executor
+
     override fun create(context: Context): WorkManager {
-        val initializerEntryPoint: InitializerEntryPoint by context.entryPoints()
-        val hiltWorkerFactory = initializerEntryPoint.hiltWorkerFactory()
-        val executor = initializerEntryPoint.executor()
+        InitializerEntryPoint.resolve(context).injectWorkManagerInitializer(this)
 
         WorkManager.initialize(
             context,
