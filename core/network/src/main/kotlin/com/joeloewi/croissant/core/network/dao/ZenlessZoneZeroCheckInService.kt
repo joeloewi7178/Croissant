@@ -1,6 +1,6 @@
-package com.joeloewi.croissant.data.api.dao
+package com.joeloewi.croissant.core.network.dao
 
-import com.joeloewi.croissant.data.api.model.response.AttendanceResponse
+import com.joeloewi.croissant.core.network.model.response.AttendanceResponse
 import com.skydoves.sandwich.ApiResponse
 import retrofit2.http.Body
 import retrofit2.http.Header

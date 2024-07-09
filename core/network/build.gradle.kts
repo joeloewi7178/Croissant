@@ -39,6 +39,8 @@ dependencies {
     //html parsing
     implementation(libs.jsoup)
 
+    implementation(libs.androidx.startup)
+
     androidTestImplementation(libs.androidx.test.ext.junit.ktx)
     testImplementation(libs.junit)
 }

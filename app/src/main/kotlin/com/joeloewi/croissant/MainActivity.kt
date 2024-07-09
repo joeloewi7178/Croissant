@@ -105,6 +105,7 @@ import org.orbitmvi.orbit.compose.collectAsState
 class MainActivity : AppCompatActivity() {
     private val _mainActivityViewModel: MainActivityViewModel by viewModels()
 
+    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     @SuppressLint("HardwareIds")
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -138,7 +139,8 @@ class MainActivity : AppCompatActivity() {
                 CompositionLocalProvider(
                     LocalActivity provides this
                 ) {
-                    val activityViewModel: MainActivityViewModel = hiltViewModel(LocalActivity.current)
+                    val activityViewModel: MainActivityViewModel =
+                        hiltViewModel(LocalActivity.current)
                     val state by activityViewModel.collectAsState()
                     val context = LocalContext.current
                     val activity = LocalActivity.current
@@ -182,7 +184,8 @@ class MainActivity : AppCompatActivity() {
                                 activity,
                                 it
                             ) == PackageManager.PERMISSION_DENIED
-                        } || activity.getSystemService<AlarmManager>()?.canScheduleExactAlarmsCompat() == false
+                        } || activity.getSystemService<AlarmManager>()
+                            ?.canScheduleExactAlarmsCompat() == false
 
                         if (state.isFirstLaunch || anyOfPermissionsIsDenied) {
                             GlobalDestination.FirstLaunchScreen.route

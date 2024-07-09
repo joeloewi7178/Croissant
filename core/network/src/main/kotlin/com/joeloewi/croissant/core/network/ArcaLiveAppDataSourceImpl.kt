@@ -85,7 +85,7 @@ class ArcaLiveAppDataSourceImpl @Inject constructor(
                             .replace("https://oo.pe/", "")
                     }
                 }
-            }
+            }.getOrThrow()
         }
     }
 }

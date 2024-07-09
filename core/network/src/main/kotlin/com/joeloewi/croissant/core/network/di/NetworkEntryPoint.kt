@@ -13,10 +13,10 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.joeloewi.croissant.data.di
+package com.joeloewi.croissant.core.network.di
 
 import android.content.Context
-import com.joeloewi.croissant.data.initializer.SandwichCustomInitializer
+import com.joeloewi.croissant.core.network.initializer.SandwichCustomInitializer
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors

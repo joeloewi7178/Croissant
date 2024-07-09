@@ -15,6 +15,9 @@ enum class DataHoYoLABGame(
     HonkaiStarRail(
         gameId = 6
     ),
+    ZenlessZoneZero(
+        gameId = 8
+    ),
     Unknown(
         gameId = -1
     );

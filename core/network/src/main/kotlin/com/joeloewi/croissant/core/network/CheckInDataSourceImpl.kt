@@ -19,6 +19,7 @@ package com.joeloewi.croissant.core.network
 import com.joeloewi.croissant.core.common.exceptCancellationException
 import com.joeloewi.croissant.core.network.dao.CheckInService
 import com.joeloewi.croissant.core.network.dao.GenshinImpactCheckInService
+import com.joeloewi.croissant.core.network.dao.ZenlessZoneZeroCheckInService
 import com.joeloewi.croissant.core.network.model.response.AttendanceResponse
 import com.skydoves.sandwich.getOrThrow
 import kotlinx.coroutines.Dispatchers
@@ -59,9 +60,9 @@ class CheckInDataSourceImpl @Inject constructor(
 
     override suspend fun attendCheckInZenlessZoneZero(
         cookie: String
-    ): ApiResponse<AttendanceResponse> = runCatching {
+    ): Result<AttendanceResponse> = runCatching {
         withContext(Dispatchers.IO) {
-            zenlessZoneZeroCheckInService.attend(cookie = cookie)
+            zenlessZoneZeroCheckInService.attend(cookie = cookie).getOrThrow()
         }
     }.exceptCancellationException()
 }

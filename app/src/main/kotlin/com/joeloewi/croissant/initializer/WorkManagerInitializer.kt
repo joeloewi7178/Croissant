@@ -21,7 +21,7 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.startup.Initializer
 import androidx.work.Configuration
 import androidx.work.WorkManager
-import com.joeloewi.croissant.data.di.DefaultDispatcherExecutor
+import com.joeloewi.croissant.core.common.di.DefaultDispatcherExecutor
 import com.joeloewi.croissant.di.InitializerEntryPoint
 import java.util.concurrent.Executor
 import javax.inject.Inject

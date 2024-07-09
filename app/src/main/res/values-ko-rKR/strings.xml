@@ -119,4 +119,5 @@
     <string name="attendance_retry_unknown_error">알 수 없는 문제로 인해 출석하지 못했습니다. 재시도를 예약합니다.</string>
     <string name="attendance_retry_too_many_requests_error">요청이 빈번하여 출석하지 못 했습니다. 재시도를 예약합니다.</string>
     <string name="zenless_zone_zero_game_name">젠레스 존 제로</string>
+    <string name="loading">로딩중</string>
 </resources>

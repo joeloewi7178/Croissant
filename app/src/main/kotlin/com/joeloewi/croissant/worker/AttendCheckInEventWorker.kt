@@ -163,7 +163,7 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                             attendCheckInHonkaiStarRailUseCase(cookie = cookie)
                         }
 
-                        HoYoLABGame.ZenlessZoneZero -> {
+                        HoYoLABGame.ZenlessZonZero -> {
                             attendCheckInZenlessZoneZeroUseCase(cookie = cookie)
                         }
 

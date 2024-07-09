@@ -83,7 +83,7 @@ fun SelectGames(
             HoYoLABGame.GenshinImpact,
             HoYoLABGame.TearsOfThemis,
             HoYoLABGame.HonkaiStarRail,
-            HoYoLABGame.ZenlessZoneZero
+            HoYoLABGame.ZenlessZonZero
         ).toImmutableList()
     }
     val containsNotSupportedGame = stringResource(id = R.string.contains_not_supported_game)

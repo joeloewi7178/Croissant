@@ -23,7 +23,7 @@ import com.joeloewi.croissant.core.network.dao.ArcaLiveAppService
 import com.joeloewi.croissant.core.network.dao.CheckInService
 import com.joeloewi.croissant.core.network.dao.GenshinImpactCheckInService
 import com.joeloewi.croissant.core.network.dao.HoYoLABService
-mport com.joeloewi.croissant.data.api.dao.ZenlessZoneZeroCheckInService
+import com.joeloewi.croissant.core.network.dao.ZenlessZoneZeroCheckInService
 import com.joeloewi.croissant.core.network.model.response.AttendanceResponse
 import com.joeloewi.croissant.core.network.model.response.ChangeDataSwitchResponse
 import com.joeloewi.croissant.core.network.model.response.GameRecordCardResponse
