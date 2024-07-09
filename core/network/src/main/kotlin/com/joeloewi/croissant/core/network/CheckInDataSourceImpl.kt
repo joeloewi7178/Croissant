@@ -27,7 +27,8 @@ import javax.inject.Inject
 
 class CheckInDataSourceImpl @Inject constructor(
     private val checkInService: CheckInService,
-    private val genshinImpactCheckInService: GenshinImpactCheckInService
+    private val genshinImpactCheckInService: GenshinImpactCheckInService,
+    private val zenlessZoneZeroCheckInService: ZenlessZoneZeroCheckInService
 ) : CheckInDataSource {
 
     override suspend fun attend(
@@ -53,6 +54,14 @@ class CheckInDataSourceImpl @Inject constructor(
     ): Result<AttendanceResponse> = runCatching {
         withContext(Dispatchers.IO) {
             checkInService.attendCheckInHonkaiImpact3rd(cookie = cookie).getOrThrow()
+        }
+    }.exceptCancellationException()
+
+    override suspend fun attendCheckInZenlessZoneZero(
+        cookie: String
+    ): ApiResponse<AttendanceResponse> = runCatching {
+        withContext(Dispatchers.IO) {
+            zenlessZoneZeroCheckInService.attend(cookie = cookie)
         }
     }.exceptCancellationException()
 }

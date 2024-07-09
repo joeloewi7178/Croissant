@@ -1,5 +1,5 @@
 /*
- *    Copyright 2023. joeloewi
+ *    Copyright 2024. joeloewi
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,17 +14,23 @@
  *    limitations under the License.
  */
 
-package com.joeloewi.croissant.core.data.repository
+package com.joeloewi.croissant.data.di
 
-import com.joeloewi.croissant.core.model.BaseResponse
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import javax.inject.Singleton
 
-interface CheckInRepository {
+@Module
+@InstallIn(SingletonComponent::class)
+object CoroutineScopeModule {
 
-    suspend fun attend(actId: String, cookie: String): Result<BaseResponse>
-
-    suspend fun attendCheckInGenshinImpact(cookie: String): Result<BaseResponse>
-
-    suspend fun attendCheckInHonkaiImpact3rd(cookie: String): Result<BaseResponse>
-
-    suspend fun attendCheckInZenlessZoneZero(cookie: String): Result<BaseResponse>
+    @Singleton
+    @Provides
+    fun provideCoroutineScope(): CoroutineScope =
+        CoroutineScope(Dispatchers.Default + SupervisorJob())
 }

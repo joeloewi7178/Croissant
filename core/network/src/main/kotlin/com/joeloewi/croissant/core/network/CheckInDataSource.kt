@@ -25,4 +25,6 @@ interface CheckInDataSource {
     suspend fun attendCheckInGenshinImpact(cookie: String): Result<AttendanceResponse>
 
     suspend fun attendCheckInHonkaiImpact3rd(cookie: String): Result<AttendanceResponse>
+
+    suspend fun attendCheckInZenlessZoneZero(cookie: String): Result<AttendanceResponse>
 }

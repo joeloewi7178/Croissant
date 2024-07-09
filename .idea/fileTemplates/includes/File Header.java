@@ -1,5 +1,5 @@
 /*
- *    Copyright 2023. joeloewi
+ *    Copyright ${YEAR}. joeloewi
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -13,18 +13,4 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-
-package com.joeloewi.croissant.core.data.repository
-
-import com.joeloewi.croissant.core.model.BaseResponse
-
-interface CheckInRepository {
-
-    suspend fun attend(actId: String, cookie: String): Result<BaseResponse>
-
-    suspend fun attendCheckInGenshinImpact(cookie: String): Result<BaseResponse>
-
-    suspend fun attendCheckInHonkaiImpact3rd(cookie: String): Result<BaseResponse>
-
-    suspend fun attendCheckInZenlessZoneZero(cookie: String): Result<BaseResponse>
-}
+ 

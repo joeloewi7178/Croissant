@@ -17,11 +17,18 @@ jobs:
   # This workflow contains a single job called "build"
   build:
     # The type of runner that the job will run on
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     timeout-minutes: 120
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      - name: Enable KVM group perms
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          ls /dev/kvm
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -32,7 +39,7 @@ jobs:
           java-version: '17'
 
       - name: Install GMD image for baseline profile generation
-        run: yes | "$ANDROID_HOME"/cmdline-tools/latest/bin/sdkmanager "system-images;android-34;aosp_atd;x86_64"
+        run: yes | "$ANDROID_HOME"/cmdline-tools/latest/bin/sdkmanager "system-images;android-33;aosp_atd;x86_64"
 
       - name: Accept Android licenses
         run: yes | "$ANDROID_HOME"/cmdline-tools/latest/bin/sdkmanager --licenses || true
@@ -50,10 +57,10 @@ jobs:
           fileDir: './'
           encodedString: ${{ secrets.SIGNING_KEY }}
 
-      - name: Generate baseline profile
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 34
-          target: aosp_atd
-          arch: x86_64
-          script: ./gradlew :app:bundleRelease
+      - name: Build release variant including baseline profile generation
+        run: ./gradlew :app:assembleRelease
+          -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile
+          -Pandroid.testoptions.manageddevices.emulator.gpu="swiftshader_indirect"
+          -Pandroid.experimental.testOptions.managedDevices.emulator.showKernelLogging=true
+          -Pandroid.experimental.androidTest.numManagedDeviceShards=1
+          -Pandroid.experimental.testOptions.managedDevices.maxConcurrentDevices=1

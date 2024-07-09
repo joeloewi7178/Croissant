@@ -30,7 +30,7 @@ sealed class CheckInUseCase {
         ) = checkInRepository.attend(actId, cookie)
     }
 
-    class AttendCheckInHonkaiStarRail @Inject constructor(
+    class AttendCheckInHonkaiStarRailUseCase @Inject constructor(
         private val checkInRepository: CheckInRepository
     ) : CheckInUseCase() {
         suspend operator fun invoke(
@@ -53,5 +53,13 @@ sealed class CheckInUseCase {
         suspend operator fun invoke(
             cookie: String
         ) = checkInRepository.attendCheckInGenshinImpact(cookie)
+    }
+
+    class AttendCheckInZenlessZoneZeroUseCase @Inject constructor(
+        private val checkInRepository: CheckInRepository
+    ) : CheckInUseCase() {
+        suspend operator fun invoke(
+            cookie: String
+        ) = checkInRepository.attendCheckInZenlessZoneZero(cookie)
     }
 }

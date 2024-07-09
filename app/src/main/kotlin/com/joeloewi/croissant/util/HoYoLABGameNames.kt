@@ -22,6 +22,10 @@ fun HoYoLABGame.gameNameStringResId(): Int = when (this) {
         R.string.honkai_star_rail_game_name
     }
 
+    HoYoLABGame.ZenlessZoneZero -> {
+        R.string.zenless_zone_zero_game_name
+    }
+
     HoYoLABGame.Unknown -> {
         R.string.unknown_game_name
     }
