@@ -1,5 +1,5 @@
 /*
- *    Copyright 2023. joeloewi
+ *    Copyright 2024. joeloewi
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -13,13 +13,10 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-
-package com.joeloewi.croissant.di
+package com.joeloewi.croissant.data.di
 
 import android.content.Context
-import com.joeloewi.croissant.initializer.CoilInitializer
-import com.joeloewi.croissant.initializer.NotificationChannelInitializer
-import com.joeloewi.croissant.initializer.WorkManagerInitializer
+import com.joeloewi.croissant.data.initializer.SandwichCustomInitializer
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -27,19 +24,17 @@ import dagger.hilt.components.SingletonComponent
 
 @EntryPoint
 @InstallIn(SingletonComponent::class)
-interface InitializerEntryPoint {
-    fun injectCoilInitializer(coilInitializer: CoilInitializer)
-    fun injectNotificationChannelInitializer(initializer: NotificationChannelInitializer)
-    fun injectWorkManagerInitializer(workManagerInitializer: WorkManagerInitializer)
+interface NetworkEntryPoint {
+    fun inject(sandwichCustomInitializer: SandwichCustomInitializer)
 
     companion object {
-        fun resolve(context: Context): InitializerEntryPoint {
+        fun resolve(context: Context): NetworkEntryPoint {
             val appContext = context.applicationContext ?: throw IllegalStateException(
-                "applicationContext was not found in InitializerEntryPoint",
+                "applicationContext was not found in NetworkEntryPoint",
             )
             return EntryPointAccessors.fromApplication(
                 appContext,
-                InitializerEntryPoint::class.java,
+                NetworkEntryPoint::class.java,
             )
         }
     }

@@ -22,13 +22,15 @@ import coil.Coil
 import coil.ImageLoader
 import coil.imageLoader
 import com.joeloewi.croissant.di.InitializerEntryPoint
-import com.joeloewi.croissant.di.entryPoints
+import javax.inject.Inject
 
 class CoilInitializer : Initializer<ImageLoader> {
 
+    @set:Inject
+    internal lateinit var imageLoader: ImageLoader
+
     override fun create(context: Context): ImageLoader {
-        val initializerEntryPoint: InitializerEntryPoint by context.entryPoints()
-        val imageLoader = initializerEntryPoint.imageLoader()
+        InitializerEntryPoint.resolve(context).injectCoilInitializer(this)
 
         Coil.setImageLoader { imageLoader }
 
