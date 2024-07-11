@@ -10,4 +10,6 @@ interface SystemRepository {
     suspend fun isUnusedAppRestrictionEnabled(): Result<Boolean>
 
     suspend fun removeAllCookies(): Result<Boolean>
+
+    suspend fun checkPermissions(vararg permissions: String): List<Pair<String, Boolean>>
 }

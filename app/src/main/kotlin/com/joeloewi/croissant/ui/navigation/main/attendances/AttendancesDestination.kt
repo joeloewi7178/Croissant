@@ -3,18 +3,24 @@ package com.joeloewi.croissant.ui.navigation.main.attendances
 import android.content.Context
 import android.net.Uri
 import androidx.compose.runtime.Immutable
-import androidx.navigation.NavArgumentBuilder
+import androidx.navigation.NamedNavArgument
+import androidx.navigation.NavDeepLink
 import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.core.data.model.LoggableWorker
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 
 @Immutable
 sealed class AttendancesDestination {
-    abstract val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>>
+    abstract val arguments: ImmutableList<NamedNavArgument>
+    open val deepLinks: ImmutableList<NavDeepLink> = persistentListOf()
     protected abstract val plainRoute: String
     open val route: String
         get() = "${plainRoute}${
-            arguments.map { it.first }.joinToString(
+            arguments.map { it.name }.joinToString(
                 separator = "/",
                 prefix = if (arguments.isEmpty()) {
                     ""
@@ -25,28 +31,29 @@ sealed class AttendancesDestination {
         }"
 
     data object AttendancesScreen : AttendancesDestination() {
-        override val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>> = listOf()
+        override val arguments: ImmutableList<NamedNavArgument> = persistentListOf()
         override val plainRoute = "attendancesScreen"
     }
 
     data object CreateAttendanceScreen : AttendancesDestination() {
-        override val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>> = listOf()
+        override val arguments: ImmutableList<NamedNavArgument> = persistentListOf()
         override val plainRoute = "createAttendanceScreen"
     }
 
     data object LoginHoYoLabScreen : AttendancesDestination() {
         const val COOKIE = "cookie"
 
-        override val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>> = listOf()
+        override val arguments: ImmutableList<NamedNavArgument> = persistentListOf()
         override val plainRoute = "loginHoYoLabScreen"
     }
 
     data object AttendanceDetailScreen : AttendancesDestination() {
         const val ATTENDANCE_ID = "attendanceId"
 
-        override val arguments: List<Pair<String, (NavArgumentBuilder.() -> Unit)>> = listOf(
-            ATTENDANCE_ID to {
+        override val arguments: ImmutableList<NamedNavArgument> = persistentListOf(
+            navArgument(ATTENDANCE_ID) {
                 type = NavType.LongType
+                defaultValue = -1L
             }
         )
 
@@ -54,6 +61,17 @@ sealed class AttendancesDestination {
 
         override val route: String
             get() = "${plainRoute}/{${ATTENDANCE_ID}}"
+
+        override val deepLinks: ImmutableList<NavDeepLink> = persistentListOf(
+            navDeepLink {
+                uriPattern = "${
+                    Uri.Builder()
+                        .scheme("app")
+                        .authority("com.joeloewi.croissant")
+                        .build()
+                }/$route"
+            }
+        )
 
         fun generateRoute(
             attendanceId: Long
@@ -74,11 +92,11 @@ sealed class AttendancesDestination {
         const val ATTENDANCE_ID = "attendanceId"
         const val LOGGABLE_WORKER = "loggableWorker"
 
-        override val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>> = listOf(
-            ATTENDANCE_ID to {
+        override val arguments: ImmutableList<NamedNavArgument> = persistentListOf(
+            navArgument(ATTENDANCE_ID) {
                 type = NavType.LongType
             },
-            LOGGABLE_WORKER to {
+            navArgument(LOGGABLE_WORKER) {
                 type = NavType.EnumType(LoggableWorker::class.java)
             }
         )
@@ -94,14 +112,14 @@ sealed class AttendancesDestination {
         const val LOGGABLE_WORKER = "loggableWorker"
         const val LOCAL_DATE = "localDate"
 
-        override val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>> = listOf(
-            ATTENDANCE_ID to {
+        override val arguments: ImmutableList<NamedNavArgument> = persistentListOf(
+            navArgument(ATTENDANCE_ID) {
                 type = NavType.LongType
             },
-            LOGGABLE_WORKER to {
+            navArgument(LOGGABLE_WORKER) {
                 type = NavType.EnumType(LoggableWorker::class.java)
             },
-            LOCAL_DATE to {
+            navArgument(LOCAL_DATE) {
                 type = NavType.StringType
             }
         )

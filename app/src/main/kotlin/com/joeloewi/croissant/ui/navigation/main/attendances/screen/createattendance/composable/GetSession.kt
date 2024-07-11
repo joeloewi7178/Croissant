@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.exclude
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -17,8 +17,6 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.Star
@@ -90,7 +88,6 @@ fun GetSession(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(state = rememberScrollState())
                 .padding(innerPadding)
                 .padding(horizontal = DefaultDp),
             verticalArrangement = Arrangement.spacedBy(space = DefaultDp)
@@ -106,6 +103,7 @@ fun GetSession(
             )
 
             HorizontalPager(
+                modifier = Modifier.weight(1f),
                 state = rememberPagerState { 3 },
                 contentPadding = PaddingValues(horizontal = responsiveHorizontalPadding),
                 key = { it }
@@ -130,15 +128,21 @@ fun GetSession(
                     }
                 }
 
-                AsyncImage(
+                Column(
                     modifier = Modifier
                         .padding(DefaultDp)
-                        .clip(MaterialTheme.shapes.extraSmall)
-                        .fillMaxWidth()
-                        .aspectRatio(1f),
-                    model = drawableResId,
-                    contentDescription = null
-                )
+                        .fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    AsyncImage(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .clip(MaterialTheme.shapes.extraSmall),
+                        model = drawableResId,
+                        contentDescription = null
+                    )
+                }
             }
 
             Text(

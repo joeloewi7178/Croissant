@@ -9,6 +9,7 @@ import android.os.HandlerThread
 import android.os.PowerManager
 import android.os.Process
 import androidx.core.content.getSystemService
+import com.joeloewi.croissant.core.system.PermissionChecker
 import com.joeloewi.croissant.core.system.RootChecker
 import dagger.Module
 import dagger.Provides
@@ -53,4 +54,9 @@ object SystemModule {
     fun providePackageManager(
         @ApplicationContext context: Context
     ): PackageManager = context.packageManager
+
+    @Provides
+    fun providePermissionChecker(
+        @ApplicationContext context: Context
+    ): PermissionChecker = PermissionChecker(context)
 }

@@ -27,7 +27,8 @@ class SystemDataSourceImpl @Inject constructor(
     @ApplicationContext private val context: Context,
     @ApplicationHandlerDispatcher private val coroutineDispatcher: CoroutineDispatcher,
     private val applicationHandler: Handler,
-    private val rootChecker: RootChecker
+    private val rootChecker: RootChecker,
+    private val permissionChecker: PermissionChecker
 ) : SystemDataSource {
 
     override fun is24HourFormat(): Flow<Boolean> = callbackFlow {
@@ -82,4 +83,7 @@ class SystemDataSourceImpl @Inject constructor(
             }
         }
     }
+
+    override suspend fun checkPermissions(vararg permissions: String): List<Pair<String, Boolean>> =
+        permissionChecker.checkPermissions(*permissions)
 }

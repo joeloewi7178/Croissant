@@ -78,6 +78,7 @@ import io.github.fornewid.placeholder.foundation.PlaceholderHighlight
 import io.github.fornewid.placeholder.foundation.fade
 import io.github.fornewid.placeholder.foundation.placeholder
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import org.orbitmvi.orbit.compose.collectAsState
 import org.orbitmvi.orbit.compose.collectSideEffect
 
@@ -100,6 +101,7 @@ fun RedemptionCodesScreen(
 
     LaunchedEffect(Unit) {
         snapshotFlow { pullToRefreshState.isRefreshing }.catch { }
+            .distinctUntilChanged()
             .collect { isRefreshing ->
                 if (isRefreshing) {
                     redemptionCodesViewModel.getRedemptionCodes()
@@ -108,7 +110,7 @@ fun RedemptionCodesScreen(
     }
 
     LaunchedEffect(Unit) {
-        snapshotFlow { state.redemptionCodes }.catch { }
+        snapshotFlow { state.redemptionCodes }.catch { }.distinctUntilChanged()
             .collect {
                 when (it) {
                     LCE.Loading -> {
@@ -169,7 +171,8 @@ private fun RedemptionCodesContent(
                     is LCE.Content -> {
                         items(
                             items = redemptionCodesState.content,
-                            key = { it.first.name }
+                            key = { it.first.name },
+                            contentType = { it::class.java.simpleName }
                         ) { item ->
                             RedemptionCodeListItem(
                                 modifier = Modifier.animateItemPlacement(),
@@ -232,7 +235,8 @@ private fun RedemptionCodesContent(
                     LCE.Loading -> {
                         items(
                             items = IntArray(3) { it }.toTypedArray(),
-                            key = { "placeholder${it}" }
+                            key = { "placeholder${it}" },
+                            contentType = { "Placeholder" }
                         ) {
                             RedemptionCodeListItemPlaceholder()
                         }

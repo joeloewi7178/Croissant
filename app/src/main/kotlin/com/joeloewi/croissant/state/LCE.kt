@@ -1,10 +1,10 @@
 package com.joeloewi.croissant.state
 
-import androidx.compose.runtime.Stable
+import androidx.compose.runtime.Immutable
 
 //inspired by https://github.com/Laimiux/lce
 
-@Stable
+@Immutable
 sealed class LCE<out T> {
     open val content: T? = null
     open val error: Throwable? = null
@@ -18,6 +18,7 @@ sealed class LCE<out T> {
     data class Error(override val error: Throwable) : LCE<Nothing>()
 }
 
+@Immutable
 sealed class ILCE<out T> {
     open val content: T? = null
     open val error: Throwable? = null

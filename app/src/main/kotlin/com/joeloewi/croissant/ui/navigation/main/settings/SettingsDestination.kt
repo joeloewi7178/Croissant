@@ -1,15 +1,17 @@
 package com.joeloewi.croissant.ui.navigation.main.settings
 
 import androidx.compose.runtime.Immutable
-import androidx.navigation.NavArgumentBuilder
+import androidx.navigation.NamedNavArgument
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 
 @Immutable
 sealed class SettingsDestination {
-    abstract val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>>
+    open val arguments: ImmutableList<NamedNavArgument> = persistentListOf()
     protected abstract val plainRoute: String
     val route: String by lazy {
         "${plainRoute}${
-            arguments.map { it.first }.joinToString(
+            arguments.map { it.name }.joinToString(
                 separator = "/",
                 prefix = if (arguments.isEmpty()) {
                     ""
@@ -21,12 +23,10 @@ sealed class SettingsDestination {
     }
 
     data object SettingsScreen : SettingsDestination() {
-        override val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>> = listOf()
         override val plainRoute: String = "settingsScreen"
     }
 
     data object DeveloperInfoScreen : SettingsDestination() {
-        override val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>> = listOf()
         override val plainRoute: String = "developerInfoScreen"
     }
 }

@@ -1,8 +1,5 @@
 package com.joeloewi.croissant.util
 
-import androidx.compose.runtime.Stable
-
-@Stable
 enum class HourFormat {
     TwelveHour, TwentyFourHour;
 

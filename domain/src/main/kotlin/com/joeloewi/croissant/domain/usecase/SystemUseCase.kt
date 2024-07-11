@@ -28,4 +28,11 @@ sealed class SystemUseCase {
     ) : SystemUseCase() {
         suspend operator fun invoke() = systemRepository.removeAllCookies()
     }
+
+    class CheckPermissions @Inject constructor(
+        private val systemRepository: SystemRepository
+    ) : SystemUseCase() {
+        suspend operator fun invoke(vararg permissions: String) =
+            systemRepository.checkPermissions(*permissions)
+    }
 }

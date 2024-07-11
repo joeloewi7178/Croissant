@@ -1,15 +1,17 @@
 package com.joeloewi.croissant.ui.navigation.main.redemptioncodes
 
 import androidx.compose.runtime.Immutable
-import androidx.navigation.NavArgumentBuilder
+import androidx.navigation.NamedNavArgument
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 
 @Immutable
 sealed class RedemptionCodesDestination {
-    abstract val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>>
+    open val arguments: ImmutableList<NamedNavArgument> = persistentListOf()
     protected abstract val plainRoute: String
-    val route: String by lazy {
-        "${plainRoute}${
-            arguments.map { it.first }.joinToString(
+    val route: String
+        get() = "${plainRoute}${
+            arguments.map { it.name }.joinToString(
                 separator = "/",
                 prefix = if (arguments.isEmpty()) {
                     ""
@@ -18,10 +20,8 @@ sealed class RedemptionCodesDestination {
                 }
             ) { "{$it}" }
         }"
-    }
 
     data object RedemptionCodesScreen : RedemptionCodesDestination() {
-        override val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>> = listOf()
         override val plainRoute: String = "redemptionCodesScreen"
     }
 }

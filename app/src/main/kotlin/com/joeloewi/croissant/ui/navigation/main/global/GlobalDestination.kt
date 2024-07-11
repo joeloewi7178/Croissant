@@ -2,10 +2,12 @@ package com.joeloewi.croissant.ui.navigation.main.global
 
 import androidx.compose.runtime.Immutable
 import androidx.navigation.NavArgumentBuilder
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 
 @Immutable
 sealed class GlobalDestination {
-    abstract val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>>
+    abstract val arguments: ImmutableList<Pair<String, NavArgumentBuilder.() -> Unit>>
     abstract val plainRoute: String
     open val route: String
         get() = "${plainRoute}${
@@ -20,7 +22,8 @@ sealed class GlobalDestination {
         }"
 
     data object FirstLaunchScreen : GlobalDestination() {
-        override val arguments: List<Pair<String, NavArgumentBuilder.() -> Unit>> = listOf()
+        override val arguments: ImmutableList<Pair<String, NavArgumentBuilder.() -> Unit>> =
+            persistentListOf()
         override val plainRoute = "firstLaunchScreen"
     }
 }

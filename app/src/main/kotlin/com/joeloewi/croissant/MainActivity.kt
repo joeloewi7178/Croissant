@@ -1,9 +1,6 @@
 package com.joeloewi.croissant
 
 import android.annotation.SuppressLint
-import android.app.AlarmManager
-import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.compose.setContent
@@ -11,12 +8,22 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandIn
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
@@ -38,22 +45,19 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.window.DialogProperties
-import androidx.core.content.ContextCompat
-import androidx.core.content.getSystemService
 import androidx.core.os.bundleOf
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -61,11 +65,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
-import androidx.navigation.navDeepLink
 import com.google.firebase.Firebase
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.analytics
+import com.joeloewi.croissant.state.LCE
 import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.croissant.ui.navigation.main.attendances.screen.AttendanceDetailScreen
@@ -82,16 +85,13 @@ import com.joeloewi.croissant.ui.navigation.main.settings.SettingsDestination
 import com.joeloewi.croissant.ui.navigation.main.settings.screen.DeveloperInfoScreen
 import com.joeloewi.croissant.ui.navigation.main.settings.screen.SettingsScreen
 import com.joeloewi.croissant.ui.theme.CroissantTheme
-import com.joeloewi.croissant.util.CroissantPermission
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.LocalHourFormat
 import com.joeloewi.croissant.util.RequireAppUpdate
-import com.joeloewi.croissant.util.canScheduleExactAlarmsCompat
 import com.joeloewi.croissant.util.useNavRail
 import com.joeloewi.croissant.viewmodel.MainActivityViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
@@ -100,6 +100,7 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.orbitmvi.orbit.compose.collectAsState
+import org.orbitmvi.orbit.compose.collectSideEffect
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -142,14 +143,7 @@ class MainActivity : AppCompatActivity() {
                     val activityViewModel: MainActivityViewModel =
                         hiltViewModel(LocalActivity.current)
                     val state by activityViewModel.collectAsState()
-                    val context = LocalContext.current
                     val activity = LocalActivity.current
-                    val deepLinkUri = remember(context) {
-                        Uri.Builder()
-                            .scheme(context.getString(R.string.deep_link_scheme))
-                            .authority(context.packageName)
-                            .build()
-                    }
                     val snackbarHostState = remember { SnackbarHostState() }
                     val navController = rememberNavController()
                     val windowSizeClass = calculateWindowSizeClass(activity = activity)
@@ -157,40 +151,6 @@ class MainActivity : AppCompatActivity() {
                     LaunchedEffect(navController) {
                         navController.currentBackStackEntryFlow.collect {
                             activityViewModel.onCurrentBackStackEntryChange(it)
-                        }
-                    }
-
-                    val isNavigationRailVisible by remember {
-                        derivedStateOf {
-
-                        }
-                    }
-                    val isBottomNavigationBarVisible by remember {
-                        derivedStateOf {
-                            !state.fullScreenDestinations.any { route ->
-                                (currentBackStackEntry?.destination?.route?.contains(
-                                    route
-                                ) != false)
-                            } && !windowSizeClass.useNavRail()
-                                    && currentBackStackEntry?.destination?.route == currentBackStackEntry?.destination?.parent?.startDestinationRoute
-                        }
-                    }
-                    val calculatedStartDestination = remember(state.isFirstLaunch) {
-                        val anyOfPermissionsIsDenied = persistentListOf(
-                            CroissantPermission.AccessHoYoLABSession.permission,
-                            CroissantPermission.PostNotifications.permission
-                        ).any {
-                            ContextCompat.checkSelfPermission(
-                                activity,
-                                it
-                            ) == PackageManager.PERMISSION_DENIED
-                        } || activity.getSystemService<AlarmManager>()
-                            ?.canScheduleExactAlarmsCompat() == false
-
-                        if (state.isFirstLaunch || anyOfPermissionsIsDenied) {
-                            GlobalDestination.FirstLaunchScreen.route
-                        } else {
-                            CroissantNavigation.Attendances.route
                         }
                     }
 
@@ -208,13 +168,38 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
 
+                    LaunchedEffect(windowSizeClass.useNavRail()) {
+                        activityViewModel.onUseNavRailChange(windowSizeClass.useNavRail())
+                    }
+
+                    activityViewModel.collectSideEffect { sideEffect ->
+                        when (sideEffect) {
+                            MainActivityViewModel.SideEffect.FinishActivity -> activity.finish()
+                            is MainActivityViewModel.SideEffect.OnClickNavigationButton -> {
+                                navController.navigate(sideEffect.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }
+                        }
+                    }
+
                     CompositionLocalProvider(
                         LocalHourFormat provides state.hourFormat
                     ) {
                         RequireAppUpdate(
                             appUpdateResultState = state.appUpdateResult,
                         ) {
-                            CroissantApp(state = state)
+                            CroissantApp(
+                                state = state,
+                                navController = navController,
+                                snackbarHostState = snackbarHostState,
+                                onClickNavigationButton = activityViewModel::onClickNavigationButton,
+                                onClickConfirmClose = activityViewModel::onClickConfirmClose
+                            )
                         }
                     }
                 }
@@ -223,108 +208,120 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun CroissantApp(
-    state: MainActivityViewModel.State
+    state: MainActivityViewModel.State,
+    navController: NavHostController,
+    snackbarHostState: SnackbarHostState,
+    onClickNavigationButton: (String) -> Unit,
+    onClickConfirmClose: () -> Unit
 ) {
-    Scaffold(
-        bottomBar = {
-            if (state.isBottomNavigationBarVisible) {
-                CroissantBottomNavigationBar(
-                    croissantNavigations = state.croissantNavigations,
-                    currentBackStackEntry = state.currentBackStackEntry,
-                    onClickNavigationButton = { route ->
-                        navController.navigate(route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
+    when (state.startDestination) {
+        is LCE.Content -> {
+            Crossfade(
+                modifier = Modifier.fillMaxSize(),
+                targetState = state.useNavRail,
+                label = ""
+            ) { useNavRail ->
+                if (useNavRail) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .windowInsetsPadding(WindowInsets.systemBars)
+                    ) {
+                        AnimatedVisibility(
+                            modifier = Modifier.fillMaxHeight(),
+                            visible = state.isNavigationRailVisible,
+                            enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
+                            exit = shrinkOut(shrinkTowards = Alignment.CenterStart) + fadeOut(),
+                        ) {
+                            CroissantNavigationRail(
+                                croissantNavigations = state.croissantNavigations,
+                                navController = navController,
+                                onClickNavigationButton = onClickNavigationButton
+                            )
+                        }
+                        CroissantNavHost(
+                            modifier = Modifier
+                                .weight(1f)
+                                .animateContentSize(),
+                            navController = navController,
+                            snackbarHostState = snackbarHostState,
+                            route = state.route,
+                            startDestination = state.startDestination.content
+                        )
+                    }
+                } else {
+                    Scaffold(
+                        bottomBar = {
+                            AnimatedVisibility(
+                                modifier = Modifier.fillMaxWidth(),
+                                visible = state.isBottomNavigationBarVisible,
+                                enter = fadeIn() + expandIn(expandFrom = Alignment.TopCenter),
+                                exit = shrinkOut(shrinkTowards = Alignment.BottomCenter) + fadeOut(),
+                            ) {
+                                CroissantBottomNavigationBar(
+                                    croissantNavigations = state.croissantNavigations,
+                                    navController = navController,
+                                    onClickNavigationButton = onClickNavigationButton
+                                )
                             }
-                            launchSingleTop = true
-                            restoreState = true
+                        },
+                        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+                    ) { innerPadding ->
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(innerPadding)
+                                .animateContentSize()
+                        ) {
+                            CroissantNavHost(
+                                modifier = Modifier.fillMaxSize(),
+                                navController = navController,
+                                snackbarHostState = snackbarHostState,
+                                route = state.route,
+                                startDestination = state.startDestination.content
+                            )
+                        }
+
+                        if (state.isDeviceRooted) {
+                            AlertDialog(
+                                onDismissRequest = {},
+                                confirmButton = {
+                                    TextButton(
+                                        onClick = onClickConfirmClose
+                                    ) {
+                                        Text(text = stringResource(id = R.string.confirm))
+                                    }
+                                },
+                                icon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Warning,
+                                        contentDescription = Icons.Default.Warning.name
+                                    )
+                                },
+                                title = {
+                                    Text(text = stringResource(id = R.string.caution))
+                                },
+                                text = {
+                                    Text(
+                                        text = stringResource(id = R.string.device_rooting_detected),
+                                        textAlign = TextAlign.Center
+                                    )
+                                },
+                                properties = DialogProperties(
+                                    dismissOnClickOutside = false,
+                                    dismissOnBackPress = false
+                                )
+                            )
                         }
                     }
-                )
-            }
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            Row {
-                if (state.isNavigationRailVisible) {
-                    CroissantNavigationRail(
-                        croissantNavigations = state.croissantNavigations,
-                        currentBackStackEntry = state.currentBackStackEntry,
-                        onClickNavigationButton = { route ->
-                            navController.navigate(route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        }
-                    )
-                }
-                Column(
-                    modifier = remember(state.isNavigationRailVisible) {
-                        Modifier
-                            .fillMaxSize(1f)
-                            .run {
-                                if (state.isNavigationRailVisible) {
-                                    navigationBarsPadding()
-                                } else {
-                                    this
-                                }
-                            }
-                    }
-                ) {
-                    CroissantNavHost(
-                        modifier = Modifier.fillMaxSize(1f),
-                        navController = navController,
-                        snackbarHostState = snackbarHostState,
-                        deepLinkUri = deepLinkUri.toString(),
-                        route = activity::class.java.simpleName,
-                        startDestination = calculatedStartDestination
-                    )
                 }
             }
         }
 
-        if (state.isDeviceRooted) {
-            AlertDialog(
-                onDismissRequest = {},
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            activity.finish()
-                        }
-                    ) {
-                        Text(text = stringResource(id = R.string.confirm))
-                    }
-                },
-                icon = {
-                    Icon(
-                        imageVector = Icons.Default.Warning,
-                        contentDescription = Icons.Default.Warning.name
-                    )
-                },
-                title = {
-                    Text(text = stringResource(id = R.string.caution))
-                },
-                text = {
-                    Text(
-                        text = stringResource(id = R.string.device_rooting_detected),
-                        textAlign = TextAlign.Center
-                    )
-                },
-                properties = DialogProperties(
-                    dismissOnClickOutside = false,
-                    dismissOnBackPress = false
-                )
-            )
+        else -> {
+
         }
     }
 }
@@ -334,7 +331,6 @@ fun CroissantNavHost(
     modifier: Modifier,
     navController: NavHostController,
     snackbarHostState: SnackbarHostState,
-    deepLinkUri: String,
     route: String,
     startDestination: String
 ) {
@@ -412,15 +408,8 @@ fun CroissantNavHost(
 
             composable(
                 route = AttendancesDestination.AttendanceDetailScreen.route,
-                arguments = AttendancesDestination.AttendanceDetailScreen.arguments.map { argument ->
-                    navArgument(argument.first, argument.second)
-                },
-                deepLinks = listOf(
-                    navDeepLink {
-                        uriPattern =
-                            "$deepLinkUri/${AttendancesDestination.AttendanceDetailScreen.route}"
-                    }
-                )
+                arguments = AttendancesDestination.AttendanceDetailScreen.arguments,
+                deepLinks = AttendancesDestination.AttendanceDetailScreen.deepLinks
             ) { navBackStackEntry ->
                 val newCookie by remember {
                     navBackStackEntry.savedStateHandle.getStateFlow(
@@ -448,9 +437,7 @@ fun CroissantNavHost(
 
             composable(
                 route = AttendancesDestination.AttendanceLogsCalendarScreen.route,
-                arguments = AttendancesDestination.AttendanceLogsCalendarScreen.arguments.map { argument ->
-                    navArgument(argument.first, argument.second)
-                }
+                arguments = AttendancesDestination.AttendanceLogsCalendarScreen.arguments
             ) {
                 AttendanceLogsCalendarScreen(
                     onNavigateUp = { navController.navigateUp() },
@@ -468,9 +455,7 @@ fun CroissantNavHost(
 
             composable(
                 route = AttendancesDestination.AttendanceLogsDayScreen.route,
-                arguments = AttendancesDestination.AttendanceLogsDayScreen.arguments.map { argument ->
-                    navArgument(argument.first, argument.second)
-                }
+                arguments = AttendancesDestination.AttendanceLogsDayScreen.arguments
             ) {
                 AttendanceLogsDayScreen(
                     onNavigateUp = { navController.navigateUp() }
@@ -530,8 +515,8 @@ fun CroissantNavHost(
 @Composable
 private fun CroissantNavigationRail(
     modifier: Modifier = Modifier,
+    navController: NavHostController,
     croissantNavigations: ImmutableList<CroissantNavigation>,
-    currentBackStackEntry: NavBackStackEntry?,
     onClickNavigationButton: (String) -> Unit
 ) {
     NavigationRail(
@@ -545,8 +530,11 @@ private fun CroissantNavigationRail(
     ) {
         croissantNavigations.fastForEach { croissantNavigation ->
             key(croissantNavigation.route) {
-                val isSelected by remember(croissantNavigation.route, currentBackStackEntry) {
-                    derivedStateOf { currentBackStackEntry?.destination?.hierarchy?.any { it.route == croissantNavigation.route } == true }
+                val isSelected by remember(
+                    croissantNavigation.route,
+                    navController.currentBackStackEntry
+                ) {
+                    derivedStateOf { navController.currentBackStackEntry?.destination?.hierarchy?.any { it.route == croissantNavigation.route } == true }
                 }
 
                 NavigationRailItem(
@@ -578,7 +566,7 @@ private fun CroissantNavigationRail(
 private fun CroissantBottomNavigationBar(
     modifier: Modifier = Modifier,
     croissantNavigations: ImmutableList<CroissantNavigation>,
-    currentBackStackEntry: NavBackStackEntry?,
+    navController: NavHostController,
     onClickNavigationButton: (String) -> Unit
 ) {
     NavigationBar(
@@ -586,8 +574,11 @@ private fun CroissantBottomNavigationBar(
     ) {
         croissantNavigations.fastForEach { croissantNavigation ->
             key(croissantNavigation.route) {
-                val isSelected by remember(croissantNavigation.route, currentBackStackEntry) {
-                    derivedStateOf { currentBackStackEntry?.destination?.hierarchy?.any { it.route == croissantNavigation.route } == true }
+                val isSelected by remember(
+                    croissantNavigation.route,
+                    navController.currentBackStackEntry
+                ) {
+                    derivedStateOf { navController.currentBackStackEntry?.destination?.hierarchy?.any { it.route == croissantNavigation.route } == true }
                 }
 
                 NavigationBarItem(

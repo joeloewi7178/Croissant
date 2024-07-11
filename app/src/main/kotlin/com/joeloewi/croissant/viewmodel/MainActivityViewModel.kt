@@ -1,8 +1,8 @@
 package com.joeloewi.croissant.viewmodel
 
 import android.os.Build
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavBackStackEntry
 import com.google.android.play.core.appupdate.AppUpdateManager
 import com.google.android.play.core.ktx.AppUpdateResult
@@ -11,23 +11,26 @@ import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics
 import com.joeloewi.croissant.domain.usecase.SettingsUseCase
 import com.joeloewi.croissant.domain.usecase.SystemUseCase
+import com.joeloewi.croissant.state.LCE
 import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.croissant.ui.navigation.main.global.GlobalDestination
+import com.joeloewi.croissant.util.CroissantPermission
 import com.joeloewi.croissant.util.HourFormat
 import com.joeloewi.croissant.util.isDeviceNexus5X
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.take
 import org.orbitmvi.orbit.Container
 import org.orbitmvi.orbit.ContainerHost
@@ -41,15 +44,14 @@ class MainActivityViewModel @Inject constructor(
     getSettingsUseCase: SettingsUseCase.GetSettings,
     is24HourFormat: SystemUseCase.Is24HourFormat,
     isDeviceRooted: SystemUseCase.IsDeviceRooted,
+    checkPermissions: SystemUseCase.CheckPermissions
 ) : ViewModel(), ContainerHost<MainActivityViewModel.State, MainActivityViewModel.SideEffect> {
     private val _settings = getSettingsUseCase()
-    private val _hourFormat = is24HourFormat().map {
+    private val _hourFormat = is24HourFormat().onStart {
+        emit(is24HourFormatImmediate)
+    }.map {
         HourFormat.fromSystemHourFormat(it)
-    }.catch { }.flowOn(Dispatchers.IO).stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Lazily,
-        initialValue = HourFormat.fromSystemHourFormat(is24HourFormatImmediate)
-    )
+    }.catch { }.flowOn(Dispatchers.IO)
     private val _appUpdateResultState =
         flow {
             emit(Build.MODEL)
@@ -62,31 +64,15 @@ class MainActivityViewModel @Inject constructor(
                 log("AppUpdateManager")
                 recordException(cause)
             }
-        }.flowOn(Dispatchers.IO).stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Lazily,
-            initialValue = AppUpdateResult.NotAvailable
-        )
+        }.flowOn(Dispatchers.IO)
     private val _darkThemeEnabled = _settings.map {
         it.darkThemeEnabled
-    }.catch {}.flowOn(Dispatchers.IO).stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Eagerly,
-        initialValue = false
-    )
+    }.catch {}.flowOn(Dispatchers.IO)
     private val _isDeviceRooted = flow {
         emit(isDeviceRooted())
-    }.catch { }.flowOn(Dispatchers.IO).stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Lazily,
-        initialValue = false
-    )
+    }.catch { }.flowOn(Dispatchers.IO)
     private val _isFirstLaunch =
-        _settings.map { it.isFirstLaunch }.take(1).catch { }.flowOn(Dispatchers.IO).stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(),
-            initialValue = false
-        )
+        _settings.map { it.isFirstLaunch }.take(1).catch { }.flowOn(Dispatchers.IO)
 
     override val container: Container<State, SideEffect> = container(State()) {
         intent { _hourFormat.collect { reduce { state.copy(hourFormat = it) } } }
@@ -96,21 +82,76 @@ class MainActivityViewModel @Inject constructor(
         intent { _isFirstLaunch.collect { reduce { state.copy(isFirstLaunch = it) } } }
     }
 
+    init {
+        intent {
+            container.stateFlow.mapLatest {
+                Triple(it.isTopLevelDestination, it.useNavRail, it.isFullscreenDestination)
+            }.distinctUntilChanged().collect {
+                val (isTopLevelDestination, useNavRail, isFullscreenDestination) = it
+
+                val isNavigationRailVisible =
+                    isFullscreenDestination && useNavRail && isTopLevelDestination
+                val isBottomNavigationBarVisible =
+                    isFullscreenDestination && !useNavRail && isTopLevelDestination
+
+                reduce {
+                    state.copy(
+                        isNavigationRailVisible = isNavigationRailVisible,
+                        isBottomNavigationBarVisible = isBottomNavigationBarVisible
+                    )
+                }
+            }
+        }
+
+        intent {
+            container.stateFlow.map { it.isFirstLaunch }.distinctUntilChanged()
+                .collect { isFirstLaunch ->
+                    val anyOfPermissionsIsDenied = checkPermissions(
+                        CroissantPermission.AccessHoYoLABSession.permission,
+                        CroissantPermission.PostNotifications.permission
+                    ).any { !it.second }
+
+                    val startDestination = if (isFirstLaunch || anyOfPermissionsIsDenied) {
+                        GlobalDestination.FirstLaunchScreen.route
+                    } else {
+                        CroissantNavigation.Attendances.route
+                    }
+
+                    reduce {
+                        state.copy(startDestination = LCE.Content(startDestination))
+                    }
+                }
+        }
+    }
+
     fun onCurrentBackStackEntryChange(navBackStackEntry: NavBackStackEntry) = intent {
-        reduce { state.copy(currentBackStackEntry = navBackStackEntry) }
-        val currentBackStackEntry = state.currentBackStackEntry
-        val destination = currentBackStackEntry?.destination
+        reduce {
+            val destination = navBackStackEntry.destination
 
-        val isNavigationRailVisible =
-            currentBackStackEntry?.destination?.route in state.fullScreenDestinations && state.useNavRail && destination?.route == destination?.parent?.startDestinationRoute
+            val isTopLevelDestination =
+                destination.route == destination.parent?.startDestinationRoute
+            val isFullScreenDestination = destination.route !in state.fullScreenDestinations
 
-        reduce { state.copy(isNavigationRailVisible = isNavigationRailVisible) }
+            state.copy(
+                isTopLevelDestination = isTopLevelDestination,
+                isFullscreenDestination = isFullScreenDestination
+            )
+        }
     }
 
     fun onUseNavRailChange(useNavRail: Boolean) = intent {
         reduce { state.copy(useNavRail = useNavRail) }
     }
 
+    fun onClickConfirmClose() = intent {
+        postSideEffect(SideEffect.FinishActivity)
+    }
+
+    fun onClickNavigationButton(route: String) = intent {
+        postSideEffect(SideEffect.OnClickNavigationButton(route = route))
+    }
+
+    @Immutable
     data class State(
         val hourFormat: HourFormat = HourFormat.TwelveHour,
         val appUpdateResult: AppUpdateResult = AppUpdateResult.NotAvailable,
@@ -127,11 +168,20 @@ class MainActivityViewModel @Inject constructor(
             CroissantNavigation.RedemptionCodes,
             CroissantNavigation.Settings
         ),
-        val currentBackStackEntry: NavBackStackEntry? = null,
         val isNavigationRailVisible: Boolean = false,
         val isBottomNavigationBarVisible: Boolean = false,
+        val isTopLevelDestination: Boolean = false,
+        val isFullscreenDestination: Boolean = false,
         val useNavRail: Boolean = false,
+        val startDestination: LCE<String> = LCE.Loading,
+        val route: String = "MainActivity"
     )
 
-    sealed class SideEffect
+    @Immutable
+    sealed class SideEffect {
+        data object FinishActivity : SideEffect()
+        data class OnClickNavigationButton(
+            val route: String
+        ) : SideEffect()
+    }
 }

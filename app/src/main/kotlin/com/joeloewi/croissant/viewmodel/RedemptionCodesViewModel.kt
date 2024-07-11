@@ -3,6 +3,7 @@ package com.joeloewi.croissant.viewmodel
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.text.AnnotatedString
@@ -73,11 +74,13 @@ class RedemptionCodesViewModel @Inject constructor(
         }
     }
 
+    @Immutable
     data class State(
         val expandedItems: SnapshotStateList<HoYoLABGame> = mutableStateListOf(),
         val redemptionCodes: LCE<ImmutableList<Pair<HoYoLABGame, AnnotatedString>>> = LCE.Loading
     )
 
+    @Immutable
     sealed class SideEffect {
         data class LaunchIntent(
             val intent: Intent

@@ -16,4 +16,7 @@ class SystemRepositoryImpl @Inject constructor(
         systemDataSource.isUnusedAppRestrictionEnabled()
 
     override suspend fun removeAllCookies(): Result<Boolean> = systemDataSource.removeAllCookies()
+
+    override suspend fun checkPermissions(vararg permissions: String): List<Pair<String, Boolean>> =
+        systemDataSource.checkPermissions(*permissions)
 }
