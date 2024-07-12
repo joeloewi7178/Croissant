@@ -16,8 +16,10 @@
 
 package com.joeloewi.croissant.core.data.model
 
+import androidx.compose.runtime.Immutable
 import com.joeloewi.croissant.core.database.model.GameEntity
 
+@Immutable
 data class Game(
     val id: Long = 0,
     val attendanceId: Long = 0,

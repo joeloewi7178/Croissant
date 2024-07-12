@@ -1,7 +1,9 @@
 package com.joeloewi.croissant.core.data.model
 
+import androidx.compose.runtime.Immutable
 import com.joeloewi.croissant.core.database.model.FailureLogEntity
 
+@Immutable
 data class FailureLog(
     val id: Long = 0,
     val executionLogId: Long = 0,

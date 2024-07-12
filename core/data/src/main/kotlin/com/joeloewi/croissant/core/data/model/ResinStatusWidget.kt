@@ -1,8 +1,10 @@
 package com.joeloewi.croissant.core.data.model
 
+import androidx.compose.runtime.Immutable
 import com.joeloewi.croissant.core.database.model.ResinStatusWidgetEntity
 import java.util.UUID
 
+@Immutable
 data class ResinStatusWidget(
     val id: Long = 0,
     val appWidgetId: Int = 0,

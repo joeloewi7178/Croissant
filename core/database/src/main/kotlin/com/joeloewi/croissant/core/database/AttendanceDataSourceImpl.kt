@@ -46,7 +46,7 @@ class AttendanceDataSourceImpl @Inject constructor(
             attendanceDao.delete(*attendances)
         }
 
-    override suspend fun getOneByUid(uid: Long): AttendanceEntity = withContext(Dispatchers.IO) {
+    override suspend fun getOneByUid(uid: Long): AttendanceEntity? = withContext(Dispatchers.IO) {
         attendanceDao.getOneByUid(uid)
     }
 

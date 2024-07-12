@@ -46,7 +46,7 @@ interface AttendanceDao {
             WHERE uid = :uid
         """
     )
-    suspend fun getOneByUid(uid: Long): AttendanceEntity
+    suspend fun getOneByUid(uid: Long): AttendanceEntity?
 
     @Transaction
     @Query(

@@ -1,7 +1,9 @@
 package com.joeloewi.croissant.core.data.model
 
+import androidx.compose.runtime.Immutable
 import com.joeloewi.croissant.core.model.GameRecordEntity
 
+@Immutable
 data class GameRecord(
     val hasRole: Boolean = false,
     val gameId: Int = INVALID_GAME_ID,

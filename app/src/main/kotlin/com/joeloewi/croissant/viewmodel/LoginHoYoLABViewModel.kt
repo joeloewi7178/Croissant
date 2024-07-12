@@ -7,8 +7,8 @@ import android.net.http.SslError
 import android.webkit.CookieManager
 import android.webkit.SslErrorHandler
 import androidx.annotation.StringRes
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.webkit.CookieManagerCompat
 import androidx.webkit.WebViewFeature
 import com.joeloewi.croissant.R
@@ -18,12 +18,11 @@ import com.joeloewi.croissant.state.foldAsLce
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 import okhttp3.Cookie
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -39,18 +38,10 @@ class LoginHoYoLABViewModel @Inject constructor(
 ) : ViewModel(), ContainerHost<LoginHoYoLABViewModel.State, LoginHoYoLABViewModel.SideEffect> {
     private val _removeAllCookies = flow {
         emit(removeAllCookiesUseCase().foldAsLce())
-    }.catch { }.flowOn(Dispatchers.IO).stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Eagerly,
-        initialValue = LCE.Loading
-    )
+    }.catch { }.flowOn(Dispatchers.IO)
 
     override val container: Container<State, SideEffect> = container(State()) {
-        intent {
-            _removeAllCookies.collect {
-                reduce { state.copy(isRemovingCookies = it is LCE.Content) }
-            }
-        }
+        intent { _removeAllCookies.collect { reduce { state.copy(isCookieCleared = it) } } }
     }
 
     private suspend fun checkCurrentCookieIsValid(
@@ -59,10 +50,11 @@ class LoginHoYoLABViewModel @Inject constructor(
     ): Boolean = withContext(Dispatchers.IO) { names.map { cookie.contains(it) }.all { it } }
 
     private suspend fun getCurrentCookie(
-        cookieManager: CookieManager,
         url: String,
         baseUrl: String = url
     ): String = withContext(Dispatchers.IO) {
+        val cookieManager = CookieManager.getInstance()
+
         cookieManager.flush()
 
         if (WebViewFeature.isFeatureSupported(WebViewFeature.GET_COOKIE_INFO)) {
@@ -84,7 +76,6 @@ class LoginHoYoLABViewModel @Inject constructor(
 
     fun onCheckCookie(isManualCheck: Boolean) = intent {
         val currentCookie = getCurrentCookie(
-            cookieManager = state.cookieManager,
             url = state.hoyolabUrl
         )
 
@@ -111,12 +102,10 @@ class LoginHoYoLABViewModel @Inject constructor(
             reduce { state.copy(showSslErrorDialog = showSslErrorDialog) }
         }
 
+    @Immutable
     data class State(
-        val cookieManager: CookieManager = CookieManager.getInstance().apply {
-            setAcceptCookie(true)
-        },
         val hoyolabUrl: String = "https://m.hoyolab.com",
-        val isRemovingCookies: Boolean = true,
+        val isCookieCleared: LCE<Boolean> = LCE.Loading,
         val necessaryKeys: ImmutableList<String> = persistentListOf("ltoken_v2", "ltmid_v2"),
         val excludedUrls: ImmutableList<String> = persistentListOf(
             "www.webstatic-sea.mihoyo.com",
@@ -128,9 +117,11 @@ class LoginHoYoLABViewModel @Inject constructor(
             "about:blank",
             "https://account.hoyolab.com/single-page/cross-login.html"
         ),
-        val showSslErrorDialog: Pair<SslErrorHandler?, SslError?>? = null
+        val showSslErrorDialog: Pair<SslErrorHandler?, SslError?>? = null,
+        val allowedUrls: ImmutableList<String> = (mutableListOf(hoyolabUrl) + excludedUrls).toImmutableList()
     )
 
+    @Immutable
     sealed class SideEffect {
         data class NavigateUp(val cookie: String? = null) : SideEffect()
         data class LaunchIntent(val intent: Intent) : SideEffect()

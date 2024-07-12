@@ -1,7 +1,9 @@
 package com.joeloewi.croissant.core.data.model
 
+import androidx.compose.runtime.Immutable
 import com.joeloewi.croissant.core.database.model.AccountEntity
 
+@Immutable
 data class Account(
     val id: Long = 0,
     val resinStatusWidgetId: Long = 0,

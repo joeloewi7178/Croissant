@@ -25,7 +25,7 @@ interface AttendanceDataSource {
     suspend fun insert(attendance: AttendanceEntity): Long
     suspend fun update(vararg attendances: AttendanceEntity): Int
     suspend fun delete(vararg attendances: AttendanceEntity): Int
-    suspend fun getOneByUid(uid: Long): AttendanceEntity
+    suspend fun getOneByUid(uid: Long): AttendanceEntity?
     suspend fun getOne(id: Long): AttendanceWithGamesEntity
     suspend fun getByIds(vararg ids: Long): List<AttendanceWithGamesEntity>
     fun getAllPaged(): Flow<PagingData<AttendanceWithGamesEntity>>

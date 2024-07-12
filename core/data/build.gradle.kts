@@ -20,6 +20,7 @@ dependencies {
     api(projects.core.system)
 
     implementation(libs.androidx.paging.common.ktx)
+    compileOnly(libs.compose.stable.marker)
 
     androidTestImplementation(libs.androidx.test.ext.junit.ktx)
     testImplementation(libs.junit)

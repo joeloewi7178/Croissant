@@ -16,8 +16,10 @@
 
 package com.joeloewi.croissant.core.data.model
 
+import androidx.compose.runtime.Immutable
 import com.joeloewi.croissant.core.database.model.SuccessLogEntity
 
+@Immutable
 data class SuccessLog(
     val id: Long = 0,
     val executionLogId: Long = 0,

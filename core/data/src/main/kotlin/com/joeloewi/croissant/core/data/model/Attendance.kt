@@ -1,9 +1,11 @@
 package com.joeloewi.croissant.core.data.model
 
+import androidx.compose.runtime.Immutable
 import com.joeloewi.croissant.core.database.model.AttendanceEntity
 import java.util.TimeZone
 import java.util.UUID
 
+@Immutable
 data class Attendance(
     val id: Long = 0,
     val createdAt: Long = System.currentTimeMillis(),

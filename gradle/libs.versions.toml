@@ -64,6 +64,7 @@ fornewidPlaceholderMaterial3 = "2.0.0"
 kotlinxAtomicfu = "0.25.0"
 orbit = "9.0.0"
 junitVersion = "1.2.1"
+composeStableMarker = "1.0.5"
 
 [libraries]
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
@@ -168,6 +169,7 @@ kotlinx-atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version
 orbit-viewmodel = { group = "org.orbit-mvi", name = "orbit-viewmodel", version.ref = "orbit" }
 orbit-compose = { group = "org.orbit-mvi", name = "orbit-compose", version.ref = "orbit" }
 kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib" }
+compose-stable-marker = { group = "com.github.skydoves", name = "compose-stable-marker", version.ref = "composeStableMarker" }
 
 android-tools-common = { group = "com.android.tools", name = "common", version.ref = "androidTools" }
 firebase-crashlytics-gradlePlugin = { group = "com.google.firebase", name = "firebase-crashlytics-gradle", version.ref = "firebaseCrashlyticsPlugin" }

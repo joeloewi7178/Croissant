@@ -16,12 +16,14 @@
 
 package com.joeloewi.croissant.core.data.model.relational
 
+import androidx.compose.runtime.Immutable
 import com.joeloewi.croissant.core.data.model.Account
 import com.joeloewi.croissant.core.data.model.ResinStatusWidget
 import com.joeloewi.croissant.core.data.model.asData
 import com.joeloewi.croissant.core.data.model.asExternalData
 import com.joeloewi.croissant.core.database.model.relational.ResinStatusWidgetWithAccountsEntity
 
+@Immutable
 data class ResinStatusWidgetWithAccounts(
     val resinStatusWidget: ResinStatusWidget = ResinStatusWidget(),
     val accounts: List<Account> = listOf()

@@ -46,8 +46,8 @@ class AttendanceRepositoryImpl @Inject constructor(
         attendanceDataSource.delete(*attendances.map { it.asData() }.toTypedArray())
     }
 
-    override suspend fun getOneByUid(uid: Long): Attendance = withContext(Dispatchers.IO) {
-        attendanceDataSource.getOneByUid(uid).asExternalData()
+    override suspend fun getOneByUid(uid: Long): Attendance? = withContext(Dispatchers.IO) {
+        attendanceDataSource.getOneByUid(uid)?.asExternalData()
     }
 
     override suspend fun getOne(id: Long): AttendanceWithGames = withContext(Dispatchers.IO) {

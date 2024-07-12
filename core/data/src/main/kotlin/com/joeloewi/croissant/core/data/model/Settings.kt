@@ -1,5 +1,8 @@
 package com.joeloewi.croissant.core.data.model
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 data class Settings(
     val darkThemeEnabled: Boolean = false,
     val isFirstLaunch: Boolean = true,

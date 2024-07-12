@@ -41,7 +41,6 @@ import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
@@ -63,6 +62,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.Firebase
@@ -528,14 +528,13 @@ private fun CroissantNavigationRail(
             )
         }
     ) {
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentDestination = navBackStackEntry?.destination
+
         croissantNavigations.fastForEach { croissantNavigation ->
             key(croissantNavigation.route) {
-                val isSelected by remember(
-                    croissantNavigation.route,
-                    navController.currentBackStackEntry
-                ) {
-                    derivedStateOf { navController.currentBackStackEntry?.destination?.hierarchy?.any { it.route == croissantNavigation.route } == true }
-                }
+                val isSelected =
+                    currentDestination?.hierarchy?.any { it.route == croissantNavigation.route } == true
 
                 NavigationRailItem(
                     icon = {
@@ -572,14 +571,13 @@ private fun CroissantBottomNavigationBar(
     NavigationBar(
         modifier = modifier
     ) {
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentDestination = navBackStackEntry?.destination
+
         croissantNavigations.fastForEach { croissantNavigation ->
             key(croissantNavigation.route) {
-                val isSelected by remember(
-                    croissantNavigation.route,
-                    navController.currentBackStackEntry
-                ) {
-                    derivedStateOf { navController.currentBackStackEntry?.destination?.hierarchy?.any { it.route == croissantNavigation.route } == true }
-                }
+                val isSelected =
+                    currentDestination?.hierarchy?.any { it.route == croissantNavigation.route } == true
 
                 NavigationBarItem(
                     modifier = Modifier,

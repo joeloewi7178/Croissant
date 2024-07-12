@@ -16,9 +16,11 @@
 
 package com.joeloewi.croissant.core.data.model
 
+import androidx.compose.runtime.Immutable
 import com.joeloewi.croissant.core.database.model.WorkerExecutionLogEntity
 import java.util.TimeZone
 
+@Immutable
 data class WorkerExecutionLog(
     val id: Long = 0,
     val attendanceId: Long = 0,

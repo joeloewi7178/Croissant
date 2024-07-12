@@ -16,11 +16,13 @@
 
 package com.joeloewi.croissant.core.data.model.relational
 
+import androidx.compose.runtime.Immutable
 import com.joeloewi.croissant.core.data.model.Attendance
 import com.joeloewi.croissant.core.data.model.Game
 import com.joeloewi.croissant.core.data.model.asExternalData
 import com.joeloewi.croissant.core.database.model.relational.AttendanceWithGamesEntity
 
+@Immutable
 data class AttendanceWithGames(
     val attendance: Attendance = Attendance(),
     val games: List<Game> = listOf()

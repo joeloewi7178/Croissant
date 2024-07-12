@@ -16,12 +16,14 @@
 
 package com.joeloewi.croissant.core.data.model.relational
 
+import androidx.compose.runtime.Immutable
 import com.joeloewi.croissant.core.data.model.FailureLog
 import com.joeloewi.croissant.core.data.model.SuccessLog
 import com.joeloewi.croissant.core.data.model.WorkerExecutionLog
 import com.joeloewi.croissant.core.data.model.asExternalData
 import com.joeloewi.croissant.core.database.model.relational.WorkerExecutionLogWithStateEntity
 
+@Immutable
 data class WorkerExecutionLogWithState(
     val workerExecutionLog: WorkerExecutionLog = WorkerExecutionLog(),
     val successLog: SuccessLog? = null,
