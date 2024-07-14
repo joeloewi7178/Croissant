@@ -77,10 +77,14 @@ class CreateAttendanceViewModel @Inject constructor(
                 .distinctUntilChanged()
                 .collect {
                     val connectedGames = runCatching {
-                        getGameRecordCardHoYoLABUseCase.invoke(
+                        val gameRecords = getGameRecordCardHoYoLABUseCase.invoke(
                             cookie = state.cookie,
                             uid = it.uid
                         ).getOrThrow()?.toImmutableList() ?: persistentListOf()
+
+                        state.supportedGames.map { game ->
+                            game to gameRecords.find { it.gameId == game.gameId }
+                        }.toImmutableList()
                     }.foldAsLce()
 
                     reduce { state.copy(connectedGames = connectedGames) }
@@ -91,14 +95,8 @@ class CreateAttendanceViewModel @Inject constructor(
             container.stateFlow.mapLatest { it.connectedGames.content }
                 .filterNotNull()
                 .distinctUntilChanged()
-                .collect {
-                    val converted = it.map { gameRecord ->
-                        Game(
-                            roleId = gameRecord.gameRoleId,
-                            type = HoYoLABGame.findByGameId(gameId = gameRecord.gameId),
-                            region = gameRecord.region
-                        )
-                    }
+                .collect { connectedGames ->
+                    val converted = connectedGames.filter { it.second != null }
 
                     withContext(Dispatchers.Main) {
                         state.checkedGames.clear()
@@ -160,7 +158,12 @@ class CreateAttendanceViewModel @Inject constructor(
 
         insertGameUseCase(
             *state.checkedGames.map {
-                it.copy(attendanceId = attendanceId)
+                Game(
+                    attendanceId = attendanceId,
+                    roleId = it.second?.gameRoleId ?: 0,
+                    type = it.first,
+                    region = it.second?.region ?: ""
+                )
             }.toTypedArray()
         )
         postSideEffect(SideEffect.DismissProgressDialog)
@@ -172,11 +175,13 @@ class CreateAttendanceViewModel @Inject constructor(
         val cookie: String = "",
         val hourOfDay: Int = ZonedDateTime.now().hour,
         val minute: Int = ZonedDateTime.now().minute,
-        val checkedGames: SnapshotStateList<Game> = mutableStateListOf(),
+        val checkedGames: SnapshotStateList<Pair<HoYoLABGame, GameRecord?>> = mutableStateListOf(),
         val userInfo: UserInfo? = null,
         val existingAttendance: Attendance? = null,
-        val connectedGames: LCE<ImmutableList<GameRecord>> = LCE.Loading,
-        val showCancelConfirmationDialog: Boolean = false
+        val connectedGames: LCE<ImmutableList<Pair<HoYoLABGame, GameRecord?>>> = LCE.Loading,
+        val showCancelConfirmationDialog: Boolean = false,
+        val supportedGames: ImmutableList<HoYoLABGame> = HoYoLABGame.supportedGames()
+            .toImmutableList()
     )
 
     @Immutable

@@ -19,6 +19,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 import org.orbitmvi.orbit.Container
 import org.orbitmvi.orbit.ContainerHost
@@ -33,21 +36,27 @@ class RedemptionCodesViewModel @Inject constructor(
     ContainerHost<RedemptionCodesViewModel.State, RedemptionCodesViewModel.SideEffect> {
 
     override val container: Container<State, SideEffect> = container(State()) {
-        getRedemptionCodes()
+        fetchRedemptionCodes()
     }
 
-    fun getRedemptionCodes() = intent {
-        reduce { state.copy(redemptionCodes = LCE.Loading) }
-        val newState = HoYoLABGame.entries.filter {
+    private suspend fun getRedemptionCodes() = withContext(Dispatchers.IO) {
+        HoYoLABGame.entries.filter {
             it !in listOf(HoYoLABGame.Unknown, HoYoLABGame.TearsOfThemis)
         }.runCatching {
             map {
-                it to HtmlCompat.fromHtml(
-                    getRedeemCodeUseCase(it).getOrThrow(),
-                    HtmlCompat.FROM_HTML_MODE_COMPACT
-                ).toAnnotatedString()
-            }.toImmutableList()
+                async(SupervisorJob() + Dispatchers.Default) {
+                    it to HtmlCompat.fromHtml(
+                        getRedeemCodeUseCase(it).getOrThrow(),
+                        HtmlCompat.FROM_HTML_MODE_COMPACT
+                    ).toAnnotatedString()
+                }
+            }.awaitAll().toImmutableList()
         }.foldAsLce()
+    }
+
+    fun fetchRedemptionCodes() = intent {
+        reduce { state.copy(redemptionCodes = LCE.Loading) }
+        val newState = getRedemptionCodes()
         reduce { state.copy(redemptionCodes = newState) }
     }
 
@@ -74,6 +83,13 @@ class RedemptionCodesViewModel @Inject constructor(
         }
     }
 
+    fun onStartRefresh() = intent {
+        reduce { state.copy(redemptionCodes = LCE.Loading) }
+        val newState = getRedemptionCodes()
+        reduce { state.copy(redemptionCodes = newState) }
+        postSideEffect(SideEffect.EndRefresh)
+    }
+
     @Immutable
     data class State(
         val expandedItems: SnapshotStateList<HoYoLABGame> = mutableStateListOf(),
@@ -85,5 +101,7 @@ class RedemptionCodesViewModel @Inject constructor(
         data class LaunchIntent(
             val intent: Intent
         ) : SideEffect()
+
+        data object EndRefresh : SideEffect()
     }
 }

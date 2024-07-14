@@ -31,9 +31,23 @@ data class WorkerExecutionLog(
 )
 
 fun WorkerExecutionLogEntity.asExternalData(): WorkerExecutionLog = with(this) {
-    WorkerExecutionLog(id, attendanceId, createdAt, timezoneId)
+    WorkerExecutionLog(
+        id,
+        attendanceId,
+        createdAt,
+        timezoneId,
+        state.asExternalData(),
+        loggableWorker.asExternalData()
+    )
 }
 
 fun WorkerExecutionLog.asData(): WorkerExecutionLogEntity = with(this) {
-    WorkerExecutionLogEntity(id, attendanceId, createdAt, timezoneId)
+    WorkerExecutionLogEntity(
+        id,
+        attendanceId,
+        createdAt,
+        timezoneId,
+        state.asData(),
+        loggableWorker.asData()
+    )
 }

@@ -96,6 +96,10 @@ fun RedemptionCodesScreen(
             is RedemptionCodesViewModel.SideEffect.LaunchIntent -> {
                 activity.startActivity(sideEffect.intent)
             }
+
+            RedemptionCodesViewModel.SideEffect.EndRefresh -> {
+                pullToRefreshState.endRefresh()
+            }
         }
     }
 
@@ -104,32 +108,29 @@ fun RedemptionCodesScreen(
             .distinctUntilChanged()
             .collect { isRefreshing ->
                 if (isRefreshing) {
-                    redemptionCodesViewModel.getRedemptionCodes()
+                    redemptionCodesViewModel.onStartRefresh()
                 }
             }
     }
 
-    LaunchedEffect(Unit) {
-        snapshotFlow { state.redemptionCodes }.catch { }.distinctUntilChanged()
-            .collect {
-                when (it) {
-                    LCE.Loading -> {
+    LaunchedEffect(state.redemptionCodes) {
+        when (state.redemptionCodes) {
+            LCE.Loading -> {
 
-                    }
+            }
 
-                    else -> {
-                        if (pullToRefreshState.isRefreshing) {
-                            pullToRefreshState.endRefresh()
-                        }
-                    }
+            else -> {
+                if (pullToRefreshState.isRefreshing) {
+                    pullToRefreshState.endRefresh()
                 }
             }
+        }
     }
 
     RedemptionCodesContent(
         state = state,
         pullToRefreshState = pullToRefreshState,
-        onRefresh = redemptionCodesViewModel::getRedemptionCodes,
+        onRefresh = redemptionCodesViewModel::fetchRedemptionCodes,
         onClickUrl = redemptionCodesViewModel::onClickUrl,
         onClickExpand = redemptionCodesViewModel::onClickExpand
     )

@@ -33,6 +33,7 @@ enum class HoYoLABGame(
 
     companion object {
         fun findByGameId(gameId: Int) = entries.find { it.gameId == gameId } ?: Unknown
+        fun supportedGames() = entries.filter { it != Unknown }
     }
 }
 

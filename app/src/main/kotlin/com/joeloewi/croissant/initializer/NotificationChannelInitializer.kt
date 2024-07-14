@@ -12,7 +12,7 @@ class NotificationChannelInitializer : Initializer<Unit> {
     internal lateinit var notificationGenerator: NotificationGenerator
 
     override fun create(context: Context) {
-        InitializerEntryPoint.resolve(context).injectNotificationChannelInitializer(this)
+        InitializerEntryPoint.resolve(context).inject(this)
 
         notificationGenerator.createNotificationChannels()
     }

@@ -81,9 +81,9 @@ object ApiModule {
     @Provides
     fun provideRetrofitBuilder(
         @IoDispatcherExecutor executor: Executor,
-        okHttpClient: OkHttpClient
+        okHttpClient: dagger.Lazy<OkHttpClient>
     ): Retrofit.Builder = Retrofit.Builder()
-        .client(okHttpClient)
+        .client(okHttpClient.get())
         .addConverterFactory(ScalarsConverterFactory.create())
         .addCallAdapterFactory(ApiResponseCallAdapterFactory.create())
         .callbackExecutor(executor)
@@ -118,41 +118,51 @@ object ApiModule {
 
     @Singleton
     @Provides
-    fun provideHoYoLabService(retrofitBuilder: Retrofit.Builder): HoYoLABService =
-        retrofitBuilder
-            .baseUrl("https://bbs-api-os.hoyolab.com/")
-            .build()
-            .create()
+    fun provideHoYoLabService(
+        retrofitBuilder: dagger.Lazy<Retrofit.Builder>
+    ): HoYoLABService = retrofitBuilder
+        .get()
+        .baseUrl("https://bbs-api-os.hoyolab.com/")
+        .build()
+        .create()
 
     @Singleton
     @Provides
-    fun provideGenshinImpactCheckInService(retrofitBuilder: Retrofit.Builder): GenshinImpactCheckInService =
-        retrofitBuilder
-            .baseUrl("https://sg-hk4e-api.hoyolab.com/")
-            .build()
-            .create()
+    fun provideGenshinImpactCheckInService(
+        retrofitBuilder: dagger.Lazy<Retrofit.Builder>
+    ): GenshinImpactCheckInService = retrofitBuilder
+        .get()
+        .baseUrl("https://sg-hk4e-api.hoyolab.com/")
+        .build()
+        .create()
 
     @Singleton
     @Provides
-    fun provideCommonCheckInService(retrofitBuilder: Retrofit.Builder): CheckInService =
-        retrofitBuilder
-            .baseUrl("https://sg-public-api.hoyolab.com/")
-            .build()
-            .create()
+    fun provideCommonCheckInService(
+        retrofitBuilder: dagger.Lazy<Retrofit.Builder>
+    ): CheckInService = retrofitBuilder
+        .get()
+        .baseUrl("https://sg-public-api.hoyolab.com/")
+        .build()
+        .create()
 
     @Singleton
     @Provides
-    fun provideArcaLiveAppService(retrofitBuilder: Retrofit.Builder): ArcaLiveAppService =
-        retrofitBuilder
-            .baseUrl("https://arca.live/api/app/")
-            .build()
-            .create()
+    fun provideArcaLiveAppService(
+        retrofitBuilder: dagger.Lazy<Retrofit.Builder>
+    ): ArcaLiveAppService = retrofitBuilder
+        .get()
+        .baseUrl("https://arca.live/api/app/")
+        .build()
+        .create()
 
     @Singleton
     @Provides
-    fun providesZenlessZoneZeroCheckInService(retrofitBuilder: Retrofit.Builder): ZenlessZoneZeroCheckInService =
-        retrofitBuilder
-            .baseUrl("https://sg-act-nap-api.hoyolab.com")
-            .build()
-            .create()
+    fun providesZenlessZoneZeroCheckInService(
+        retrofitBuilder: dagger.Lazy<Retrofit.Builder>
+    ): ZenlessZoneZeroCheckInService = retrofitBuilder
+        .get()
+        .baseUrl("https://sg-act-nap-api.hoyolab.com")
+        .build()
+        .create()
 }

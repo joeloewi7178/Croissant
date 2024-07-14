@@ -15,15 +15,13 @@ import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkOut
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
@@ -225,9 +223,7 @@ fun CroissantApp(
             ) { useNavRail ->
                 if (useNavRail) {
                     Row(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .windowInsetsPadding(WindowInsets.systemBars)
+                        modifier = Modifier.fillMaxSize()
                     ) {
                         AnimatedVisibility(
                             modifier = Modifier.fillMaxHeight(),
@@ -243,6 +239,13 @@ fun CroissantApp(
                         }
                         CroissantNavHost(
                             modifier = Modifier
+                                .run {
+                                    if (state.isNavigationRailVisible) {
+                                        navigationBarsPadding()
+                                    } else {
+                                        this
+                                    }
+                                }
                                 .weight(1f)
                                 .animateContentSize(),
                             navController = navController,
@@ -257,7 +260,7 @@ fun CroissantApp(
                             AnimatedVisibility(
                                 modifier = Modifier.fillMaxWidth(),
                                 visible = state.isBottomNavigationBarVisible,
-                                enter = fadeIn() + expandIn(expandFrom = Alignment.TopCenter),
+                                enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
                                 exit = shrinkOut(shrinkTowards = Alignment.BottomCenter) + fadeOut(),
                             ) {
                                 CroissantBottomNavigationBar(
@@ -269,52 +272,16 @@ fun CroissantApp(
                         },
                         contentWindowInsets = WindowInsets(0, 0, 0, 0)
                     ) { innerPadding ->
-                        Column(
+                        CroissantNavHost(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(innerPadding)
-                                .animateContentSize()
-                        ) {
-                            CroissantNavHost(
-                                modifier = Modifier.fillMaxSize(),
-                                navController = navController,
-                                snackbarHostState = snackbarHostState,
-                                route = state.route,
-                                startDestination = state.startDestination.content
-                            )
-                        }
-
-                        if (state.isDeviceRooted) {
-                            AlertDialog(
-                                onDismissRequest = {},
-                                confirmButton = {
-                                    TextButton(
-                                        onClick = onClickConfirmClose
-                                    ) {
-                                        Text(text = stringResource(id = R.string.confirm))
-                                    }
-                                },
-                                icon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Warning,
-                                        contentDescription = Icons.Default.Warning.name
-                                    )
-                                },
-                                title = {
-                                    Text(text = stringResource(id = R.string.caution))
-                                },
-                                text = {
-                                    Text(
-                                        text = stringResource(id = R.string.device_rooting_detected),
-                                        textAlign = TextAlign.Center
-                                    )
-                                },
-                                properties = DialogProperties(
-                                    dismissOnClickOutside = false,
-                                    dismissOnBackPress = false
-                                )
-                            )
-                        }
+                                .animateContentSize(),
+                            navController = navController,
+                            snackbarHostState = snackbarHostState,
+                            route = state.route,
+                            startDestination = state.startDestination.content
+                        )
                     }
                 }
             }
@@ -323,6 +290,38 @@ fun CroissantApp(
         else -> {
 
         }
+    }
+
+    if (state.isDeviceRooted) {
+        AlertDialog(
+            onDismissRequest = {},
+            confirmButton = {
+                TextButton(
+                    onClick = onClickConfirmClose
+                ) {
+                    Text(text = stringResource(id = R.string.confirm))
+                }
+            },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = Icons.Default.Warning.name
+                )
+            },
+            title = {
+                Text(text = stringResource(id = R.string.caution))
+            },
+            text = {
+                Text(
+                    text = stringResource(id = R.string.device_rooting_detected),
+                    textAlign = TextAlign.Center
+                )
+            },
+            properties = DialogProperties(
+                dismissOnClickOutside = false,
+                dismissOnBackPress = false
+            )
+        )
     }
 }
 

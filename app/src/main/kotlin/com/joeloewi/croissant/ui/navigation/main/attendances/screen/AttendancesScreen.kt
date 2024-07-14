@@ -69,6 +69,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.flowWithLifecycle
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import androidx.work.ExistingWorkPolicy
 import androidx.work.WorkInfo
@@ -173,7 +174,10 @@ private fun AttendancesContent(
                 .fillMaxSize()
         ) {
             if (pagedAttendancesWithGames.isEmpty()) {
-                item {
+                item(
+                    key = "emptyAttendance",
+                    contentType = "EmptyAttendance"
+                ) {
                     Column(
                         modifier = Modifier
                             .fillParentMaxSize()
@@ -202,7 +206,8 @@ private fun AttendancesContent(
             } else {
                 items(
                     count = pagedAttendancesWithGames.itemCount,
-                    key = pagedAttendancesWithGames.itemKey { it.attendance.id }
+                    key = pagedAttendancesWithGames.itemKey { it.attendance.id },
+                    contentType = pagedAttendancesWithGames.itemContentType { it::class.java.simpleName }
                 ) { index ->
                     val item = runCatching { pagedAttendancesWithGames[index] }.getOrNull()
 

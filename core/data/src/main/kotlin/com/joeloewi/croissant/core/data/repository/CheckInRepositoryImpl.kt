@@ -16,7 +16,6 @@
 
 package com.joeloewi.croissant.core.data.repository
 
-import com.joeloewi.croissant.core.data.model.exception.throwIfNotOk
 import com.joeloewi.croissant.core.model.BaseResponse
 import com.joeloewi.croissant.core.network.CheckInDataSource
 import javax.inject.Inject
@@ -26,23 +25,25 @@ class CheckInRepositoryImpl @Inject constructor(
 ) : CheckInRepository {
 
     override suspend fun attend(actId: String, cookie: String): Result<BaseResponse> =
-        checkInDataSource.attend(actId, cookie)
+        checkInDataSource.runCatching {
+            attend(actId, cookie).getOrThrow()
+        }
 
     override suspend fun attendCheckInGenshinImpact(
         cookie: String
     ): Result<BaseResponse> = checkInDataSource.runCatching {
-        attendCheckInGenshinImpact(cookie).getOrThrow().throwIfNotOk()
+        attendCheckInGenshinImpact(cookie).getOrThrow()
     }
 
     override suspend fun attendCheckInHonkaiImpact3rd(
         cookie: String
     ): Result<BaseResponse> = checkInDataSource.runCatching {
-        attendCheckInHonkaiImpact3rd(cookie).getOrThrow().throwIfNotOk()
+        attendCheckInHonkaiImpact3rd(cookie).getOrThrow()
     }
 
     override suspend fun attendCheckInZenlessZoneZero(
         cookie: String
     ): Result<BaseResponse> = checkInDataSource.runCatching {
-        attendCheckInZenlessZoneZero(cookie).getOrThrow().throwIfNotOk()
+        attendCheckInZenlessZoneZero(cookie).getOrThrow()
     }
 }

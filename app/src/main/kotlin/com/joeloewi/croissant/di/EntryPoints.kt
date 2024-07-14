@@ -28,9 +28,9 @@ import dagger.hilt.components.SingletonComponent
 @EntryPoint
 @InstallIn(SingletonComponent::class)
 interface InitializerEntryPoint {
-    fun injectCoilInitializer(coilInitializer: CoilInitializer)
-    fun injectNotificationChannelInitializer(initializer: NotificationChannelInitializer)
-    fun injectWorkManagerInitializer(workManagerInitializer: WorkManagerInitializer)
+    fun inject(coilInitializer: CoilInitializer)
+    fun inject(initializer: NotificationChannelInitializer)
+    fun inject(workManagerInitializer: WorkManagerInitializer)
 
     companion object {
         fun resolve(context: Context): InitializerEntryPoint {

@@ -48,7 +48,11 @@ import com.joeloewi.croissant.core.database.model.WorkerExecutionLogEntity
     ],
     exportSchema = true,
     version = CroissantDatabase.LATEST_VERSION,
-    autoMigrations = [AutoMigration(from = 1, to = 2), AutoMigration(from = 2, to = 3)]
+    autoMigrations = [
+        AutoMigration(from = 1, to = 2),
+        AutoMigration(from = 2, to = 3),
+        AutoMigration(from = 3, to = 4)
+    ]
 )
 abstract class CroissantDatabase : RoomDatabase() {
     abstract fun attendanceDao(): AttendanceDao
@@ -62,6 +66,6 @@ abstract class CroissantDatabase : RoomDatabase() {
     abstract fun resultRangeDao(): ResultRangeDao
 
     companion object {
-        const val LATEST_VERSION = 3
+        const val LATEST_VERSION = 4
     }
 }

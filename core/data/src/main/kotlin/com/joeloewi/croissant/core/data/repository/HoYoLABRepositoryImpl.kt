@@ -20,7 +20,6 @@ import com.joeloewi.croissant.core.data.model.GameRecord
 import com.joeloewi.croissant.core.data.model.GenshinDailyNoteData
 import com.joeloewi.croissant.core.data.model.UserInfo
 import com.joeloewi.croissant.core.data.model.asExternalData
-import com.joeloewi.croissant.core.data.model.exception.throwIfNotOk
 import com.joeloewi.croissant.core.model.BaseResponse
 import com.joeloewi.croissant.core.network.HoYoLABDataSource
 import javax.inject.Inject
@@ -31,7 +30,7 @@ class HoYoLABRepositoryImpl @Inject constructor(
 
     override suspend fun getUserFullInfo(cookie: String): Result<UserInfo> =
         hoYoLABDataSource.getUserFullInfo(cookie).mapCatching {
-            it.apply { throwIfNotOk() }.data!!.userInfo.asExternalData()
+            it.data!!.userInfo.asExternalData()
         }
 
     override suspend fun getGameRecordCard(
@@ -39,7 +38,7 @@ class HoYoLABRepositoryImpl @Inject constructor(
         uid: Long
     ): Result<List<GameRecord>> =
         hoYoLABDataSource.getGameRecordCard(cookie, uid).mapCatching {
-            it.throwIfNotOk().data!!.list.map { list -> list.asExternalData() }
+            it.data!!.list.map { list -> list.asExternalData() }
         }
 
     override suspend fun getGenshinDailyNote(
@@ -48,7 +47,7 @@ class HoYoLABRepositoryImpl @Inject constructor(
         server: String
     ): Result<GenshinDailyNoteData?> = hoYoLABDataSource.getGenshinDailyNote(
         cookie = cookie, roleId = roleId, server = server
-    ).mapCatching { it.throwIfNotOk().data!!.asExternalData() }
+    ).mapCatching { it.data!!.asExternalData() }
 
     override suspend fun changeDataSwitch(
         cookie: String,
@@ -56,5 +55,4 @@ class HoYoLABRepositoryImpl @Inject constructor(
         isPublic: Boolean,
         gameId: Int
     ): Result<BaseResponse> = hoYoLABDataSource.changeDataSwitch(cookie, switchId, isPublic, gameId)
-        .mapCatching { it.throwIfNotOk() }
 }

@@ -36,7 +36,7 @@ class WorkManagerInitializer : Initializer<WorkManager> {
     lateinit var executor: Executor
 
     override fun create(context: Context): WorkManager {
-        InitializerEntryPoint.resolve(context).injectWorkManagerInitializer(this)
+        InitializerEntryPoint.resolve(context).inject(this)
 
         WorkManager.initialize(
             context,

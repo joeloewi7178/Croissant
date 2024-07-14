@@ -19,6 +19,7 @@ package com.joeloewi.croissant.core.database.model
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.util.TimeZone
 
@@ -29,6 +30,11 @@ import java.util.TimeZone
             parentColumns = arrayOf("id"),
             childColumns = arrayOf("attendanceId"),
             onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [
+        Index(
+            value = ["loggableWorker", "state"]
         )
     ]
 )

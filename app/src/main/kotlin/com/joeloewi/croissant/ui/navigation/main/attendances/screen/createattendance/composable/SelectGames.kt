@@ -1,6 +1,7 @@
 package com.joeloewi.croissant.ui.navigation.main.attendances.screen.createattendance.composable
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -16,10 +17,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
@@ -33,17 +37,13 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -52,10 +52,9 @@ import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.core.data.model.Attendance
-import com.joeloewi.croissant.core.data.model.Game
 import com.joeloewi.croissant.core.data.model.GameRecord
 import com.joeloewi.croissant.core.data.model.HoYoLABGame
-import com.joeloewi.croissant.state.StableWrapper
+import com.joeloewi.croissant.state.LCE
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.gameNameStringResId
@@ -63,29 +62,19 @@ import io.github.fornewid.placeholder.foundation.PlaceholderHighlight
 import io.github.fornewid.placeholder.foundation.fade
 import io.github.fornewid.placeholder.foundation.placeholder
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SelectGames(
     modifier: Modifier = Modifier,
-    connectedGames: ImmutableList<GameRecord>,
+    connectedGames: LCE<ImmutableList<Pair<HoYoLABGame, GameRecord?>>>,
     duplicatedAttendance: Attendance?,
-    checkedGames: SnapshotStateList<Game>,
+    checkedGames: SnapshotStateList<Pair<HoYoLABGame, GameRecord?>>,
     onNextButtonClick: () -> Unit,
     onNavigateToAttendanceDetailScreen: (Long) -> Unit,
     onCancelCreateAttendance: () -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
-    val supportedGames = remember {
-        listOf(
-            HoYoLABGame.HonkaiImpact3rd,
-            HoYoLABGame.GenshinImpact,
-            HoYoLABGame.TearsOfThemis,
-            HoYoLABGame.HonkaiStarRail,
-            HoYoLABGame.ZenlessZonZero
-        ).toImmutableList()
-    }
     val containsNotSupportedGame = stringResource(id = R.string.contains_not_supported_game)
     val chooseAtLeastOneGame = stringResource(id = R.string.choose_at_least_one_game)
     val lazyListState = rememberLazyListState()
@@ -163,7 +152,6 @@ fun SelectGames(
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
-
                 FilledTonalButton(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -211,61 +199,67 @@ fun SelectGames(
                 style = MaterialTheme.typography.bodyMedium
             )
 
-            /*when (connectedGames) {
-                is LCE.Content -> {
-                    LazyColumn(
-                        state = lazyListState,
-                        modifier = Modifier
-                            .fillMaxSize()
-                    ) {
-                        items(
-                            items = supportedGames,
-                            key = { it.name }
-                        ) { item ->
-                            ConnectedGamesContentListItem(
-                                modifier = Modifier.animateItemPlacement(),
-                                checkedGames = checkedGames,
-                                hoYoLABGame = item,
-                                gameRecord = {
-                                    StableWrapper(connectedGames().content?.find { it.gameId == item.gameId }
-                                        ?: GameRecord())
-                                }
-                            )
-                        }
-                    }
-                }
-
-                is LCE.Error -> {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Error,
-                            contentDescription = Icons.Default.Error.name
-                        )
-                        Text(text = stringResource(id = R.string.error_occurred))
-                    }
-                }
-
-                LCE.Loading -> {
-                    LazyColumn(
-                        state = lazyListState,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(innerPadding)
-                    ) {
-                        items(
-                            items = IntArray(5) { it }.toTypedArray(),
-                            key = { "placeholder${it}" }
+            Crossfade(
+                targetState = connectedGames,
+                label = ""
+            ) { state ->
+                when (state) {
+                    is LCE.Content -> {
+                        LazyColumn(
+                            state = lazyListState,
+                            modifier = Modifier.fillMaxSize()
                         ) {
-                            ConnectedGamesListItemPlaceholder()
+                            items(
+                                items = state.content,
+                                key = { it.first.name }
+                            ) { item ->
+                                ConnectedGamesContentListItem(
+                                    modifier = Modifier.animateItemPlacement(),
+                                    connectedGame = item,
+                                    checked = item in checkedGames,
+                                    onCheckedChange = { checked ->
+                                        if (!checked) {
+                                            checkedGames.remove(item)
+                                        } else {
+                                            checkedGames.add(item)
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    is LCE.Error -> {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Error,
+                                contentDescription = Icons.Default.Error.name
+                            )
+                            Text(text = stringResource(id = R.string.error_occurred))
+                        }
+                    }
+
+                    LCE.Loading -> {
+                        LazyColumn(
+                            state = lazyListState,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(innerPadding)
+                        ) {
+                            items(
+                                items = IntArray(5) { it }.toTypedArray(),
+                                key = { "placeholder${it}" }
+                            ) {
+                                ConnectedGamesListItemPlaceholder()
+                            }
                         }
                     }
                 }
-            }*/
+            }
         }
 
         if (showDuplicateAlertDialog) {
@@ -391,53 +385,18 @@ fun ConnectedGamesListItemPlaceholder() {
 @Composable
 fun ConnectedGamesContentListItem(
     modifier: Modifier,
-    checkedGames: SnapshotStateList<Game>,
-    hoYoLABGame: HoYoLABGame,
-    gameRecord: (HoYoLABGame) -> StableWrapper<GameRecord>
+    connectedGame: Pair<HoYoLABGame, GameRecord?>,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
 ) {
-    val currentGameRecord by rememberUpdatedState(newValue = gameRecord(hoYoLABGame))
-    val game by remember(hoYoLABGame, gameRecord) {
-        derivedStateOf {
-            Game(
-                roleId = currentGameRecord.value.gameRoleId,
-                type = hoYoLABGame,
-                region = currentGameRecord.value.region
-            )
-        }
-    }
-
-    val enabled by remember(hoYoLABGame, gameRecord) {
-        derivedStateOf {
-            hoYoLABGame == HoYoLABGame.TearsOfThemis || currentGameRecord.value.gameId != GameRecord.INVALID_GAME_ID
-        }
-    }
-
     ListItem(
         modifier = modifier
             .fillMaxWidth()
-            .alpha(
-                if (enabled) {
-                    1.0f
-                } else {
-                    0.38f
-                }
-            )
-            .composed {
-                remember(checkedGames.contains(game), enabled) {
-                    toggleable(
-                        value = checkedGames.contains(game),
-                        enabled = enabled,
-                        role = Role.Checkbox,
-                        onValueChange = { checked ->
-                            if (checked) {
-                                checkedGames.add(game)
-                            } else {
-                                checkedGames.remove(game)
-                            }
-                        }
-                    )
-                }
-            },
+            .toggleable(
+                value = checked,
+                role = Role.Checkbox,
+                onValueChange = onCheckedChange
+            ),
         leadingContent = {
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -446,22 +405,22 @@ fun ConnectedGamesContentListItem(
                     modifier = Modifier
                         .size(IconDp)
                         .clip(MaterialTheme.shapes.extraSmall),
-                    model = hoYoLABGame.gameIconUrl,
+                    model = connectedGame.first.gameIconUrl,
                     contentDescription = null
                 )
             }
         },
         trailingContent = {
             Checkbox(
-                checked = checkedGames.contains(game),
+                checked = checked,
                 onCheckedChange = null
             )
         },
         headlineContent = {
-            Text(text = stringResource(id = hoYoLABGame.gameNameStringResId()))
+            Text(text = stringResource(id = connectedGame.first.gameNameStringResId()))
         },
         supportingContent = {
-            with(currentGameRecord.value) {
+            connectedGame.second?.apply {
                 if (regionName.isNotEmpty() && region.isNotEmpty()) {
                     Text(
                         text = "$regionName (${region})"

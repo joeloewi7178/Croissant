@@ -17,52 +17,85 @@
 package com.joeloewi.croissant.core.network
 
 import com.joeloewi.croissant.core.common.exceptCancellationException
+import com.joeloewi.croissant.core.common.exception.HoYoLABUnsuccessfulResponseException
 import com.joeloewi.croissant.core.network.dao.CheckInService
 import com.joeloewi.croissant.core.network.dao.GenshinImpactCheckInService
 import com.joeloewi.croissant.core.network.dao.ZenlessZoneZeroCheckInService
 import com.joeloewi.croissant.core.network.model.response.AttendanceResponse
 import com.skydoves.sandwich.getOrThrow
+import com.skydoves.sandwich.suspendMapSuccess
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class CheckInDataSourceImpl @Inject constructor(
-    private val checkInService: CheckInService,
-    private val genshinImpactCheckInService: GenshinImpactCheckInService,
-    private val zenlessZoneZeroCheckInService: ZenlessZoneZeroCheckInService
+    private val checkInService: dagger.Lazy<CheckInService>,
+    private val genshinImpactCheckInService: dagger.Lazy<GenshinImpactCheckInService>,
+    private val zenlessZoneZeroCheckInService: dagger.Lazy<ZenlessZoneZeroCheckInService>
 ) : CheckInDataSource {
 
     override suspend fun attend(
         actId: String,
         cookie: String
-    ): Result<AttendanceResponse> =
+    ): Result<AttendanceResponse> = withContext(Dispatchers.IO) {
         runCatching {
-            withContext(Dispatchers.IO) {
-                checkInService.attendCommon(actId = actId, cookie = cookie).getOrThrow()
-            }
+            checkInService.get().attendCommon(actId = actId, cookie = cookie).suspendMapSuccess {
+                if (retCode != 0) {
+                    throw HoYoLABUnsuccessfulResponseException(
+                        retCode = retCode,
+                        responseMessage = message
+                    )
+                }
+                return@suspendMapSuccess this
+            }.getOrThrow()
         }.exceptCancellationException()
+    }
 
     override suspend fun attendCheckInGenshinImpact(
         cookie: String
-    ): Result<AttendanceResponse> = runCatching {
-        withContext(Dispatchers.IO) {
-            genshinImpactCheckInService.attend(cookie = cookie).getOrThrow()
-        }
-    }.exceptCancellationException()
+    ): Result<AttendanceResponse> = withContext(Dispatchers.IO) {
+        runCatching {
+            genshinImpactCheckInService.get().attend(cookie = cookie).suspendMapSuccess {
+                if (retCode != 0) {
+                    throw HoYoLABUnsuccessfulResponseException(
+                        retCode = retCode,
+                        responseMessage = message
+                    )
+                }
+                return@suspendMapSuccess this
+            }.getOrThrow()
+        }.exceptCancellationException()
+    }
 
     override suspend fun attendCheckInHonkaiImpact3rd(
         cookie: String
-    ): Result<AttendanceResponse> = runCatching {
-        withContext(Dispatchers.IO) {
-            checkInService.attendCheckInHonkaiImpact3rd(cookie = cookie).getOrThrow()
-        }
-    }.exceptCancellationException()
+    ): Result<AttendanceResponse> = withContext(Dispatchers.IO) {
+        runCatching {
+            checkInService.get().attendCheckInHonkaiImpact3rd(cookie = cookie).suspendMapSuccess {
+                if (retCode != 0) {
+                    throw HoYoLABUnsuccessfulResponseException(
+                        retCode = retCode,
+                        responseMessage = message
+                    )
+                }
+                return@suspendMapSuccess this
+            }.getOrThrow()
+        }.exceptCancellationException()
+    }
 
     override suspend fun attendCheckInZenlessZoneZero(
         cookie: String
-    ): Result<AttendanceResponse> = runCatching {
-        withContext(Dispatchers.IO) {
-            zenlessZoneZeroCheckInService.attend(cookie = cookie).getOrThrow()
-        }
-    }.exceptCancellationException()
+    ): Result<AttendanceResponse> = withContext(Dispatchers.IO) {
+        runCatching {
+            zenlessZoneZeroCheckInService.get().attend(cookie = cookie).suspendMapSuccess {
+                if (retCode != 0) {
+                    throw HoYoLABUnsuccessfulResponseException(
+                        retCode = retCode,
+                        responseMessage = message
+                    )
+                }
+                return@suspendMapSuccess this
+            }.getOrThrow()
+        }.exceptCancellationException()
+    }
 }

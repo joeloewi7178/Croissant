@@ -15,7 +15,5 @@ interface ResultCountDao {
             WorkerExecutionLogEntity::class
         ]
     )
-    fun getAll(
-        query: SupportSQLiteQuery
-    ): Flow<List<ResultCountEntity>>
+    fun getAll(query: SupportSQLiteQuery): Flow<List<ResultCountEntity>>
 }

@@ -16,6 +16,8 @@
 
 package com.joeloewi.croissant.core.network
 
+import com.joeloewi.croissant.core.common.GenshinImpactServer
+import com.joeloewi.croissant.core.common.exception.HoYoLABUnsuccessfulResponseException
 import com.joeloewi.croissant.core.network.dao.HoYoLABService
 import com.joeloewi.croissant.core.network.model.request.DataSwitchRequest
 import com.joeloewi.croissant.core.network.model.response.ChangeDataSwitchResponse
@@ -23,23 +25,44 @@ import com.joeloewi.croissant.core.network.model.response.GameRecordCardResponse
 import com.joeloewi.croissant.core.network.model.response.GenshinDailyNoteResponse
 import com.joeloewi.croissant.core.network.model.response.UserFullInfoResponse
 import com.skydoves.sandwich.getOrThrow
+import com.skydoves.sandwich.suspendMapSuccess
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class HoYoLABDataSourceImpl @Inject constructor(
-    private val hoYoLABService: HoYoLABService,
+    private val hoYoLABService: dagger.Lazy<HoYoLABService>,
 ) : HoYoLABDataSource {
     override suspend fun getUserFullInfo(cookie: String): Result<UserFullInfoResponse> =
         withContext(Dispatchers.IO) {
-            runCatching { hoYoLABService.getUserFullInfo(cookie).getOrThrow() }
+            runCatching {
+                hoYoLABService.get().getUserFullInfo(cookie).suspendMapSuccess {
+                    if (retCode != 0) {
+                        throw HoYoLABUnsuccessfulResponseException(
+                            retCode = retCode,
+                            responseMessage = message
+                        )
+                    }
+                    return@suspendMapSuccess this
+                }.getOrThrow()
+            }
         }
 
     override suspend fun getGameRecordCard(
         cookie: String,
         uid: Long
     ): Result<GameRecordCardResponse> = withContext(Dispatchers.IO) {
-        runCatching { hoYoLABService.getGameRecordCard(cookie, uid).getOrThrow() }
+        runCatching {
+            hoYoLABService.get().getGameRecordCard(cookie, uid).suspendMapSuccess {
+                if (retCode != 0) {
+                    throw HoYoLABUnsuccessfulResponseException(
+                        retCode = retCode,
+                        responseMessage = message
+                    )
+                }
+                return@suspendMapSuccess this
+            }.getOrThrow()
+        }
     }
 
     override suspend fun getGenshinDailyNote(
@@ -52,12 +75,12 @@ class HoYoLABDataSourceImpl @Inject constructor(
     ): Result<GenshinDailyNoteResponse> = withContext(Dispatchers.IO) {
         runCatching {
             val headerInformation =
-                when (com.joeloewi.croissant.core.common.GenshinImpactServer.findByRegion(server)) {
-                    com.joeloewi.croissant.core.common.GenshinImpactServer.CNServer -> {
+                when (GenshinImpactServer.findByRegion(server)) {
+                    GenshinImpactServer.CNServer -> {
                         HeaderInformation.CN
                     }
 
-                    com.joeloewi.croissant.core.common.GenshinImpactServer.Unknown -> {
+                    GenshinImpactServer.Unknown -> {
                         HeaderInformation.CN
                     }
 
@@ -66,14 +89,22 @@ class HoYoLABDataSourceImpl @Inject constructor(
                     }
                 }
 
-            hoYoLABService.getGenshinDailyNote(
+            hoYoLABService.get().getGenshinDailyNote(
                 generateDS(headerInformation),
                 cookie,
                 xRpcAppVersion = headerInformation.xRpcAppVersion,
                 xRpcClientType = headerInformation.xRpcClientType,
                 roleId,
                 server
-            ).getOrThrow()
+            ).suspendMapSuccess {
+                if (retCode != 0) {
+                    throw HoYoLABUnsuccessfulResponseException(
+                        retCode = retCode,
+                        responseMessage = message
+                    )
+                }
+                return@suspendMapSuccess this
+            }.getOrThrow()
         }
     }
 
@@ -84,11 +115,17 @@ class HoYoLABDataSourceImpl @Inject constructor(
         gameId: Int
     ): Result<ChangeDataSwitchResponse> = withContext(Dispatchers.IO) {
         runCatching {
-            hoYoLABService.changeDataSwitch(
-                cookie, DataSwitchRequest(
-                    switchId, isPublic, gameId
-                )
-            ).getOrThrow()
+            hoYoLABService.get().changeDataSwitch(
+                cookie, DataSwitchRequest(switchId, isPublic, gameId)
+            ).suspendMapSuccess {
+                if (retCode != 0) {
+                    throw HoYoLABUnsuccessfulResponseException(
+                        retCode = retCode,
+                        responseMessage = message
+                    )
+                }
+                return@suspendMapSuccess this
+            }.getOrThrow()
         }
     }
 }

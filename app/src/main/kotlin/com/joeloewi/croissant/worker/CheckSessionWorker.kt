@@ -11,12 +11,13 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics
+import com.joeloewi.croissant.core.common.exception.HoYoLABUnsuccessfulResponseException
 import com.joeloewi.croissant.core.data.model.FailureLog
 import com.joeloewi.croissant.core.data.model.HoYoLABRetCode
 import com.joeloewi.croissant.core.data.model.LoggableWorker
+import com.joeloewi.croissant.core.data.model.SuccessLog
 import com.joeloewi.croissant.core.data.model.WorkerExecutionLog
 import com.joeloewi.croissant.core.data.model.WorkerExecutionLogState
-import com.joeloewi.croissant.core.data.model.exception.HoYoLABUnsuccessfulResponseException
 import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
 import com.joeloewi.croissant.domain.usecase.FailureLogUseCase
 import com.joeloewi.croissant.domain.usecase.HoYoLABUseCase
@@ -75,13 +76,13 @@ class CheckSessionWorker @AssistedInject constructor(
                     )
                 )
 
-                /*insertSuccessLogUseCase(
+                insertSuccessLogUseCase(
                     SuccessLog(
                         executionLogId = executionLogId,
-                        retCode = userFullInfo,
-                        message = userFullInfo.message
+                        retCode = 0,
+                        message = "OK"
                     )
-                )*/
+                )
 
                 runAttemptCount.takeIf { count -> count > 0 }?.let {
                     Firebase.crashlytics.log("succeed after run attempts: $it")

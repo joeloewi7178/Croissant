@@ -20,21 +20,18 @@ import android.content.Context
 import androidx.startup.Initializer
 import coil.Coil
 import coil.ImageLoader
-import coil.imageLoader
 import com.joeloewi.croissant.di.InitializerEntryPoint
 import javax.inject.Inject
 
-class CoilInitializer : Initializer<ImageLoader> {
+class CoilInitializer : Initializer<Unit> {
 
     @set:Inject
-    internal lateinit var imageLoader: ImageLoader
+    internal lateinit var imageLoader: dagger.Lazy<ImageLoader>
 
-    override fun create(context: Context): ImageLoader {
-        InitializerEntryPoint.resolve(context).injectCoilInitializer(this)
+    override fun create(context: Context): Unit {
+        InitializerEntryPoint.resolve(context).inject(this)
 
-        Coil.setImageLoader { imageLoader }
-
-        return context.imageLoader
+        Coil.setImageLoader { imageLoader.get() }
     }
 
     override fun dependencies(): MutableList<Class<out Initializer<*>>> = mutableListOf()

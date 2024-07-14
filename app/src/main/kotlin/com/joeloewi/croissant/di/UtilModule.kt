@@ -59,7 +59,7 @@ object UtilModule {
     @Provides
     fun provideImageLoader(
         @ApplicationContext context: Context,
-        okHttpClient: OkHttpClient
+        okHttpClient: dagger.Lazy<OkHttpClient>
     ): ImageLoader = ImageLoader.Builder(context)
         .crossfade(true)
         .components {
@@ -78,7 +78,7 @@ object UtilModule {
                 this
             }
         }
-        .okHttpClient(okHttpClient)
+        .okHttpClient { okHttpClient.get() }
         .placeholder(R.drawable.image_placeholder)
         .build()
 }
