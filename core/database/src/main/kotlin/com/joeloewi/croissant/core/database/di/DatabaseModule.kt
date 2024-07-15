@@ -20,6 +20,15 @@ import android.content.Context
 import androidx.room.Room
 import com.joeloewi.croissant.core.common.di.IoDispatcherExecutor
 import com.joeloewi.croissant.core.database.CroissantDatabase
+import com.joeloewi.croissant.core.database.dao.AccountDao
+import com.joeloewi.croissant.core.database.dao.AttendanceDao
+import com.joeloewi.croissant.core.database.dao.FailureLogDao
+import com.joeloewi.croissant.core.database.dao.GameDao
+import com.joeloewi.croissant.core.database.dao.ResinStatusWidgetDao
+import com.joeloewi.croissant.core.database.dao.ResultCountDao
+import com.joeloewi.croissant.core.database.dao.ResultRangeDao
+import com.joeloewi.croissant.core.database.dao.SuccessLogDao
+import com.joeloewi.croissant.core.database.dao.WorkerExecutionLogDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -49,38 +58,38 @@ object DatabaseModule {
             .build()
 
     @Provides
-    fun provideAccountDao(croissantDatabase: CroissantDatabase): com.joeloewi.croissant.core.database.dao.AccountDao =
+    fun provideAccountDao(croissantDatabase: CroissantDatabase): AccountDao =
         croissantDatabase.accountDao()
 
     @Provides
-    fun provideAttendanceDao(croissantDatabase: CroissantDatabase): com.joeloewi.croissant.core.database.dao.AttendanceDao =
+    fun provideAttendanceDao(croissantDatabase: CroissantDatabase): AttendanceDao =
         croissantDatabase.attendanceDao()
 
     @Provides
-    fun provideFailureLogDao(croissantDatabase: CroissantDatabase): com.joeloewi.croissant.core.database.dao.FailureLogDao =
+    fun provideFailureLogDao(croissantDatabase: CroissantDatabase): FailureLogDao =
         croissantDatabase.failureLogDao()
 
     @Provides
-    fun provideGameDao(croissantDatabase: CroissantDatabase): com.joeloewi.croissant.core.database.dao.GameDao =
+    fun provideGameDao(croissantDatabase: CroissantDatabase): GameDao =
         croissantDatabase.gameDao()
 
     @Provides
-    fun provideResinStatusWidgetDao(croissantDatabase: CroissantDatabase): com.joeloewi.croissant.core.database.dao.ResinStatusWidgetDao =
+    fun provideResinStatusWidgetDao(croissantDatabase: CroissantDatabase): ResinStatusWidgetDao =
         croissantDatabase.resinStatusWidgetDao()
 
     @Provides
-    fun provideSuccessLogDao(croissantDatabase: CroissantDatabase): com.joeloewi.croissant.core.database.dao.SuccessLogDao =
+    fun provideSuccessLogDao(croissantDatabase: CroissantDatabase): SuccessLogDao =
         croissantDatabase.successLogDao()
 
     @Provides
-    fun provideWorkerExecutionLogDao(croissantDatabase: CroissantDatabase): com.joeloewi.croissant.core.database.dao.WorkerExecutionLogDao =
+    fun provideWorkerExecutionLogDao(croissantDatabase: CroissantDatabase): WorkerExecutionLogDao =
         croissantDatabase.workerExecutionLogDao()
 
     @Provides
-    fun provideResultCountDao(croissantDatabase: CroissantDatabase): com.joeloewi.croissant.core.database.dao.ResultCountDao =
+    fun provideResultCountDao(croissantDatabase: CroissantDatabase): ResultCountDao =
         croissantDatabase.resultCountDao()
 
     @Provides
-    fun provideResultRangeDao(croissantDatabase: CroissantDatabase): com.joeloewi.croissant.core.database.dao.ResultRangeDao =
+    fun provideResultRangeDao(croissantDatabase: CroissantDatabase): ResultRangeDao =
         croissantDatabase.resultRangeDao()
 }

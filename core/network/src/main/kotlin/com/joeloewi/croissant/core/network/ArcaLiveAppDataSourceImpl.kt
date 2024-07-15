@@ -26,7 +26,7 @@ import org.jsoup.Jsoup
 import javax.inject.Inject
 
 class ArcaLiveAppDataSourceImpl @Inject constructor(
-    private val arcaLiveAppService: dagger.Lazy<ArcaLiveAppService>,
+    private val arcaLiveAppService: ArcaLiveAppService,
 ) : ArcaLiveAppDataSource {
 
     override suspend fun getRedeemCode(
@@ -35,7 +35,7 @@ class ArcaLiveAppDataSourceImpl @Inject constructor(
         runCatching {
             when (game) {
                 DataHoYoLABGame.HonkaiImpact3rd -> {
-                    arcaLiveAppService.get().getArticle(
+                    arcaLiveAppService.getArticle(
                         slug = "hk3rd",
                         articleId = 85815048
                     ).mapSuccess {
@@ -49,7 +49,7 @@ class ArcaLiveAppDataSourceImpl @Inject constructor(
                 }
 
                 DataHoYoLABGame.GenshinImpact -> {
-                    arcaLiveAppService.get().getArticle(
+                    arcaLiveAppService.getArticle(
                         slug = "genshin",
                         articleId = 95519559
                     ).mapSuccess {
@@ -62,7 +62,7 @@ class ArcaLiveAppDataSourceImpl @Inject constructor(
                 }
 
                 DataHoYoLABGame.HonkaiStarRail -> {
-                    arcaLiveAppService.get().getArticle(
+                    arcaLiveAppService.getArticle(
                         slug = "hkstarrail",
                         articleId = 72618649
                     ).mapSuccess {
@@ -75,7 +75,7 @@ class ArcaLiveAppDataSourceImpl @Inject constructor(
                 }
 
                 else -> {
-                    arcaLiveAppService.get().getArticle(
+                    arcaLiveAppService.getArticle(
                         slug = "zenlesszonezero",
                         articleId = 109976603
                     ).mapSuccess {

@@ -40,7 +40,6 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
-import retrofit2.converter.scalars.ScalarsConverterFactory
 import retrofit2.create
 import java.io.IOException
 import java.net.Proxy
@@ -68,7 +67,10 @@ object ApiModule {
         })
         .run {
             if (BuildConfig.DEBUG) {
-                return@run addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+                return@run addInterceptor {
+                    HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
+                        .intercept(it)
+                }
             }
             return@run this
         }
@@ -83,10 +85,9 @@ object ApiModule {
         @IoDispatcherExecutor executor: Executor,
         okHttpClient: dagger.Lazy<OkHttpClient>
     ): Retrofit.Builder = Retrofit.Builder()
-        .client(okHttpClient.get())
-        .addConverterFactory(ScalarsConverterFactory.create())
+        .callFactory { okHttpClient.get().newCall(it) }
         .addCallAdapterFactory(ApiResponseCallAdapterFactory.create())
-        .callbackExecutor(executor)
+        .callbackExecutor { executor.execute(it) }
         .addConverterFactory(
             MoshiConverterFactory.create(
                 Moshi.Builder()
@@ -119,9 +120,8 @@ object ApiModule {
     @Singleton
     @Provides
     fun provideHoYoLabService(
-        retrofitBuilder: dagger.Lazy<Retrofit.Builder>
+        retrofitBuilder: Retrofit.Builder
     ): HoYoLABService = retrofitBuilder
-        .get()
         .baseUrl("https://bbs-api-os.hoyolab.com/")
         .build()
         .create()
@@ -129,9 +129,8 @@ object ApiModule {
     @Singleton
     @Provides
     fun provideGenshinImpactCheckInService(
-        retrofitBuilder: dagger.Lazy<Retrofit.Builder>
+        retrofitBuilder: Retrofit.Builder
     ): GenshinImpactCheckInService = retrofitBuilder
-        .get()
         .baseUrl("https://sg-hk4e-api.hoyolab.com/")
         .build()
         .create()
@@ -139,9 +138,8 @@ object ApiModule {
     @Singleton
     @Provides
     fun provideCommonCheckInService(
-        retrofitBuilder: dagger.Lazy<Retrofit.Builder>
+        retrofitBuilder: Retrofit.Builder
     ): CheckInService = retrofitBuilder
-        .get()
         .baseUrl("https://sg-public-api.hoyolab.com/")
         .build()
         .create()
@@ -149,9 +147,8 @@ object ApiModule {
     @Singleton
     @Provides
     fun provideArcaLiveAppService(
-        retrofitBuilder: dagger.Lazy<Retrofit.Builder>
+        retrofitBuilder: Retrofit.Builder
     ): ArcaLiveAppService = retrofitBuilder
-        .get()
         .baseUrl("https://arca.live/api/app/")
         .build()
         .create()
@@ -159,9 +156,8 @@ object ApiModule {
     @Singleton
     @Provides
     fun providesZenlessZoneZeroCheckInService(
-        retrofitBuilder: dagger.Lazy<Retrofit.Builder>
+        retrofitBuilder: Retrofit.Builder
     ): ZenlessZoneZeroCheckInService = retrofitBuilder
-        .get()
         .baseUrl("https://sg-act-nap-api.hoyolab.com")
         .build()
         .create()
