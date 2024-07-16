@@ -84,26 +84,6 @@ class MainActivityViewModel @Inject constructor(
 
     init {
         intent {
-            container.stateFlow.mapLatest {
-                Triple(it.isTopLevelDestination, it.useNavRail, it.isFullscreenDestination)
-            }.distinctUntilChanged().collect {
-                val (isTopLevelDestination, useNavRail, isFullscreenDestination) = it
-
-                val isNavigationRailVisible =
-                    isFullscreenDestination && useNavRail && isTopLevelDestination
-                val isBottomNavigationBarVisible =
-                    isFullscreenDestination && !useNavRail && isTopLevelDestination
-
-                reduce {
-                    state.copy(
-                        isNavigationRailVisible = isNavigationRailVisible,
-                        isBottomNavigationBarVisible = isBottomNavigationBarVisible
-                    )
-                }
-            }
-        }
-
-        intent {
             container.stateFlow.map { it.isFirstLaunch }.distinctUntilChanged()
                 .collect { isFirstLaunch ->
                     val anyOfPermissionsIsDenied = checkPermissions(
@@ -122,25 +102,6 @@ class MainActivityViewModel @Inject constructor(
                     }
                 }
         }
-    }
-
-    fun onCurrentBackStackEntryChange(navBackStackEntry: NavBackStackEntry) = intent {
-        reduce {
-            val destination = navBackStackEntry.destination
-
-            val isTopLevelDestination =
-                destination.route == destination.parent?.startDestinationRoute
-            val isFullScreenDestination = destination.route !in state.fullScreenDestinations
-
-            state.copy(
-                isTopLevelDestination = isTopLevelDestination,
-                isFullscreenDestination = isFullScreenDestination
-            )
-        }
-    }
-
-    fun onUseNavRailChange(useNavRail: Boolean) = intent {
-        reduce { state.copy(useNavRail = useNavRail) }
     }
 
     fun onClickConfirmClose() = intent {
@@ -168,11 +129,6 @@ class MainActivityViewModel @Inject constructor(
             CroissantNavigation.RedemptionCodes,
             CroissantNavigation.Settings
         ),
-        val isNavigationRailVisible: Boolean = false,
-        val isBottomNavigationBarVisible: Boolean = false,
-        val isTopLevelDestination: Boolean = false,
-        val isFullscreenDestination: Boolean = false,
-        val useNavRail: Boolean = false,
         val startDestination: LCE<String> = LCE.Loading,
         val route: String = "MainActivity"
     )

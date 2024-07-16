@@ -39,9 +39,14 @@ import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -104,7 +109,6 @@ import org.orbitmvi.orbit.compose.collectSideEffect
 class MainActivity : AppCompatActivity() {
     private val _mainActivityViewModel: MainActivityViewModel by viewModels()
 
-    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     @SuppressLint("HardwareIds")
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -144,13 +148,6 @@ class MainActivity : AppCompatActivity() {
                     val activity = LocalActivity.current
                     val snackbarHostState = remember { SnackbarHostState() }
                     val navController = rememberNavController()
-                    val windowSizeClass = calculateWindowSizeClass(activity = activity)
-
-                    LaunchedEffect(navController) {
-                        navController.currentBackStackEntryFlow.collect {
-                            activityViewModel.onCurrentBackStackEntryChange(it)
-                        }
-                    }
 
                     LaunchedEffect(navController) {
                         withContext(Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
@@ -164,10 +161,6 @@ class MainActivity : AppCompatActivity() {
                                 )
                             }
                         }
-                    }
-
-                    LaunchedEffect(windowSizeClass.useNavRail()) {
-                        activityViewModel.onUseNavRailChange(windowSizeClass.useNavRail())
                     }
 
                     activityViewModel.collectSideEffect { sideEffect ->
@@ -206,6 +199,7 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun CroissantApp(
     state: MainActivityViewModel.State,
@@ -214,20 +208,48 @@ fun CroissantApp(
     onClickNavigationButton: (String) -> Unit,
     onClickConfirmClose: () -> Unit
 ) {
+    val activity = LocalActivity.current
+    var isTopLevelDestination by rememberSaveable { mutableStateOf(false) }
+    var isFullScreenDestination by rememberSaveable { mutableStateOf(false) }
+    val windowSizeClass = calculateWindowSizeClass(activity = activity)
+    val useNavRail = windowSizeClass.useNavRail()
+    val isNavigationRailVisible by remember(
+        useNavRail,
+        isTopLevelDestination,
+        isFullScreenDestination
+    ) {
+        derivedStateOf { !isFullScreenDestination && useNavRail && isTopLevelDestination }
+    }
+    val isBottomNavigationBarVisible by remember(
+        useNavRail,
+        isTopLevelDestination,
+        isFullScreenDestination
+    ) {
+        derivedStateOf { !isFullScreenDestination && !useNavRail && isTopLevelDestination }
+    }
+
+    LaunchedEffect(navController, state.fullScreenDestinations) {
+        navController.currentBackStackEntryFlow.catch { }.collect {
+            isTopLevelDestination =
+                it.destination.route == it.destination.parent?.startDestinationRoute
+            isFullScreenDestination = it.destination.route in state.fullScreenDestinations
+        }
+    }
+
     when (state.startDestination) {
         is LCE.Content -> {
             Crossfade(
                 modifier = Modifier.fillMaxSize(),
-                targetState = state.useNavRail,
+                targetState = useNavRail,
                 label = ""
-            ) { useNavRail ->
-                if (useNavRail) {
+            ) { targetState ->
+                if (targetState) {
                     Row(
                         modifier = Modifier.fillMaxSize()
                     ) {
                         AnimatedVisibility(
                             modifier = Modifier.fillMaxHeight(),
-                            visible = state.isNavigationRailVisible,
+                            visible = isNavigationRailVisible,
                             enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
                             exit = shrinkOut(shrinkTowards = Alignment.CenterStart) + fadeOut(),
                         ) {
@@ -240,7 +262,7 @@ fun CroissantApp(
                         CroissantNavHost(
                             modifier = Modifier
                                 .run {
-                                    if (state.isNavigationRailVisible) {
+                                    if (isNavigationRailVisible) {
                                         navigationBarsPadding()
                                     } else {
                                         this
@@ -259,7 +281,7 @@ fun CroissantApp(
                         bottomBar = {
                             AnimatedVisibility(
                                 modifier = Modifier.fillMaxWidth(),
-                                visible = state.isBottomNavigationBarVisible,
+                                visible = isBottomNavigationBarVisible,
                                 enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
                                 exit = shrinkOut(shrinkTowards = Alignment.BottomCenter) + fadeOut(),
                             ) {
@@ -518,6 +540,15 @@ private fun CroissantNavigationRail(
     croissantNavigations: ImmutableList<CroissantNavigation>,
     onClickNavigationButton: (String) -> Unit
 ) {
+    val currentHierarchy = remember { SnapshotStateList<String>() }
+
+    LaunchedEffect(navController) {
+        navController.currentBackStackEntryFlow.collect { navBackStackEntry ->
+            currentHierarchy.clear()
+            currentHierarchy.addAll(navBackStackEntry.destination.hierarchy.mapNotNull { it.route })
+        }
+    }
+
     NavigationRail(
         modifier = modifier.fillMaxHeight(),
         header = {
@@ -527,26 +558,29 @@ private fun CroissantNavigationRail(
             )
         }
     ) {
-        val navBackStackEntry by navController.currentBackStackEntryAsState()
-        val currentDestination = navBackStackEntry?.destination
-
         croissantNavigations.fastForEach { croissantNavigation ->
             key(croissantNavigation.route) {
-                val isSelected =
-                    currentDestination?.hierarchy?.any { it.route == croissantNavigation.route } == true
+                val isSelected by remember(croissantNavigation.route, currentHierarchy) {
+                    derivedStateOf { croissantNavigation.route in currentHierarchy }
+                }
 
                 NavigationRailItem(
                     icon = {
-                        if (isSelected) {
-                            Icon(
-                                imageVector = croissantNavigation.filledIcon,
-                                contentDescription = croissantNavigation.filledIcon.name
-                            )
-                        } else {
-                            Icon(
-                                imageVector = croissantNavigation.outlinedIcon,
-                                contentDescription = croissantNavigation.outlinedIcon.name
-                            )
+                        Crossfade(
+                            targetState = isSelected,
+                            label = ""
+                        ) { targetState ->
+                            if (targetState) {
+                                Icon(
+                                    imageVector = croissantNavigation.filledIcon,
+                                    contentDescription = croissantNavigation.filledIcon.name
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = croissantNavigation.outlinedIcon,
+                                    contentDescription = croissantNavigation.outlinedIcon.name
+                                )
+                            }
                         }
                     },
                     selected = isSelected,

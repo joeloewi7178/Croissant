@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 4,
-    "identityHash": "dcb4c872c6d38cd58d6c5cdb93015c1d",
+    "identityHash": "9f3e179415d8e02e4533d1f89b8d9d47",
     "entities": [
       {
         "tableName": "AttendanceEntity",
@@ -174,14 +174,15 @@
         },
         "indices": [
           {
-            "name": "index_WorkerExecutionLogEntity_loggableWorker_state",
+            "name": "index_WorkerExecutionLogEntity_attendanceId_loggableWorker_state",
             "unique": false,
             "columnNames": [
+              "attendanceId",
               "loggableWorker",
               "state"
             ],
             "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_WorkerExecutionLogEntity_loggableWorker_state` ON `${TABLE_NAME}` (`loggableWorker`, `state`)"
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_WorkerExecutionLogEntity_attendanceId_loggableWorker_state` ON `${TABLE_NAME}` (`attendanceId`, `loggableWorker`, `state`)"
           },
           {
             "name": "index_WorkerExecutionLogEntity_attendanceId",
@@ -554,7 +555,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'dcb4c872c6d38cd58d6c5cdb93015c1d')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9f3e179415d8e02e4533d1f89b8d9d47')"
     ]
   }
 }

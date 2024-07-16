@@ -1,5 +1,6 @@
 package com.joeloewi.croissant.ui.navigation.main.attendances.screen
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -27,6 +28,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -41,7 +43,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,7 +50,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastForEach
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import coil.compose.AsyncImage
@@ -57,6 +57,7 @@ import com.joeloewi.croissant.R
 import com.joeloewi.croissant.core.data.model.Game
 import com.joeloewi.croissant.core.data.model.HoYoLABGame
 import com.joeloewi.croissant.core.data.model.LoggableWorker
+import com.joeloewi.croissant.state.LCE
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.LocalActivity
@@ -65,7 +66,6 @@ import com.joeloewi.croissant.util.gameNameStringResId
 import com.joeloewi.croissant.util.navigationIconButton
 import com.joeloewi.croissant.util.requestReview
 import com.joeloewi.croissant.viewmodel.AttendanceDetailViewModel
-import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.orbitmvi.orbit.compose.collectAsState
@@ -131,12 +131,6 @@ private fun AttendanceDetailContent(
     val activity = LocalActivity.current
     val snackbarHostState = remember { SnackbarHostState() }
     val pressSaveButton = stringResource(id = R.string.press_save_button_to_commit)
-    val list by rememberUpdatedState(
-        newValue = persistentListOf(
-            stringResource(id = R.string.uid) to state.uid.toString(),
-            stringResource(id = R.string.nickname) to state.nickname,
-        )
-    )
 
     /*LaunchedEffect(snackbarHostState) {
         snapshotFlow(newCookie).catch { }.collect {
@@ -201,7 +195,10 @@ private fun AttendanceDetailContent(
             TopAppBar(
                 title = {
                     Text(
-                        text = stringResource(id = R.string.attendance_of_nickname, state.nickname)
+                        text = stringResource(
+                            id = R.string.attendance_of_nickname,
+                            state.attendance.content?.nickname ?: ""
+                        )
                     )
                 },
                 navigationIcon = viewModelStoreOwner.navigationIconButton(
@@ -210,7 +207,7 @@ private fun AttendanceDetailContent(
                 actions = {
                     IconButton(
                         onClick = { onShowConfirmDeleteDialogChange(true) },
-                        enabled = !state.isContentLoading
+                        enabled = !state.attendance.isLoading
                     ) {
                         Icon(
                             imageVector = Icons.Default.Delete,
@@ -220,7 +217,7 @@ private fun AttendanceDetailContent(
 
                     IconButton(
                         onClick = onClickSave,
-                        enabled = !state.isContentLoading
+                        enabled = !state.attendance.isLoading
                     ) {
                         Icon(
                             imageVector = Icons.Default.Save,
@@ -235,139 +232,164 @@ private fun AttendanceDetailContent(
         },
         contentWindowInsets = WindowInsets.systemBars.exclude(WindowInsets.navigationBars)
     ) { innerPadding ->
-        LazyColumn(
+        Crossfade(
             modifier = Modifier
-                .fillMaxSize()
                 .padding(innerPadding)
-                .then(Modifier.padding(horizontal = DefaultDp)),
-            verticalArrangement = Arrangement.spacedBy(
-                space = DefaultDp,
-            )
-        ) {
-            item("userInformationHeadline") {
-                Text(
-                    modifier = Modifier.padding(vertical = DefaultDp),
-                    text = stringResource(id = R.string.session),
-                    style = MaterialTheme.typography.headlineSmall
-                )
-            }
-
-            item("sessionInfos") {
-                list.fastForEach {
-                    SessionInfoRow(
-                        key = it.first,
-                        value = it.second
-                    )
-                }
-            }
-
-            item("changeCookie") {
-                FilledTonalButton(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = onClickRefreshSession
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(
+                .fillMaxSize(),
+            targetState = state.attendance,
+            label = ""
+        ) { targetValue ->
+            when (targetValue) {
+                is LCE.Content -> {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .then(Modifier.padding(horizontal = DefaultDp)),
+                        verticalArrangement = Arrangement.spacedBy(
                             space = DefaultDp,
-                            alignment = Alignment.CenterHorizontally
-                        ),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = Icons.Default.Refresh.name
                         )
-                        Text(
-                            text = stringResource(id = R.string.refresh_session),
-                        )
-                    }
-                }
-            }
-
-            item("gamesHeadline") {
-                Text(
-                    modifier = Modifier.padding(vertical = DefaultDp),
-                    text = stringResource(id = R.string.games_to_attend),
-                    style = MaterialTheme.typography.headlineSmall
-                )
-            }
-
-            item("games") {
-                Column {
-                    LazyRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(space = DefaultDp)
                     ) {
-                        items(
-                            items = HoYoLABGame.entries.filter { it != HoYoLABGame.Unknown },
-                            key = { it.name }
-                        ) { item ->
-                            val game = Game(type = item)
+                        item("userInformationHeadline") {
+                            Text(
+                                modifier = Modifier.padding(vertical = DefaultDp),
+                                text = stringResource(id = R.string.session),
+                                style = MaterialTheme.typography.headlineSmall
+                            )
+                        }
 
-                            ConnectedGameListItem(
-                                modifier = Modifier.animateItemPlacement(),
-                                gameName = stringResource(id = item.gameNameStringResId()),
-                                gameIconUrl = item.gameIconUrl,
-                                checked = state.checkedGames.contains(game),
-                                onCheckedChange = {
+                        /*item("sessionInfos") {
+                            list.fastForEach {
+                                SessionInfoRow(
+                                    key = it.first,
+                                    value = it.second
+                                )
+                            }
+                        }*/
 
+                        item("changeCookie") {
+                            FilledTonalButton(
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = onClickRefreshSession
+                            ) {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(
+                                        space = DefaultDp,
+                                        alignment = Alignment.CenterHorizontally
+                                    ),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Refresh,
+                                        contentDescription = Icons.Default.Refresh.name
+                                    )
+                                    Text(
+                                        text = stringResource(id = R.string.refresh_session),
+                                    )
+                                }
+                            }
+                        }
+
+                        item("gamesHeadline") {
+                            Text(
+                                modifier = Modifier.padding(vertical = DefaultDp),
+                                text = stringResource(id = R.string.games_to_attend),
+                                style = MaterialTheme.typography.headlineSmall
+                            )
+                        }
+
+                        item("games") {
+                            Column {
+                                LazyRow(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(space = DefaultDp)
+                                ) {
+                                    items(
+                                        items = HoYoLABGame.entries.filter { it != HoYoLABGame.Unknown },
+                                        key = { it.name }
+                                    ) { item ->
+                                        val game = Game(type = item)
+
+                                        ConnectedGameListItem(
+                                            modifier = Modifier.animateItemPlacement(),
+                                            gameName = stringResource(id = item.gameNameStringResId()),
+                                            gameIconUrl = item.gameIconUrl,
+                                            checked = state.checkedGames.contains(game),
+                                            onCheckedChange = {
+
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        item("timeSettingHeadline") {
+                            Text(
+                                modifier = Modifier.padding(vertical = DefaultDp),
+                                text = stringResource(id = R.string.schedule_time_setting),
+                                style = MaterialTheme.typography.headlineSmall
+                            )
+                        }
+
+                        item("timePicker") {
+                            TimeAndTimePicker(
+                                modifier = Modifier.fillMaxWidth(),
+                                hourOfDay = targetValue.content.hourOfDay,
+                                minute = targetValue.content.minute,
+                                onHourOfDayChange = onHourOfDayChange,
+                                onMinuteChange = onMinuteChange
+                            )
+                        }
+
+                        item("logSummaryHeadline") {
+                            Text(
+                                modifier = Modifier.padding(vertical = DefaultDp),
+                                text = stringResource(id = R.string.execution_log_summary),
+                                style = MaterialTheme.typography.headlineSmall
+                            )
+                        }
+
+                        item(LoggableWorker.ATTEND_CHECK_IN_EVENT) {
+                            LogSummaryRow(
+                                title = stringResource(id = R.string.attendance),
+                                failureLogCount = state.attendCheckInEventWorkerFailureLogCount,
+                                successLogCount = state.attendCheckInEventWorkerSuccessLogCount,
+                                onClickLogSummary = {
+                                    onClickLogSummary(LoggableWorker.ATTEND_CHECK_IN_EVENT)
                                 }
                             )
                         }
+
+                        item(LoggableWorker.CHECK_SESSION) {
+                            LogSummaryRow(
+                                title = stringResource(id = R.string.session_validation),
+                                failureLogCount = state.checkSessionWorkerFailureLogCount,
+                                successLogCount = state.checkSessionWorkerSuccessLogCount,
+                                onClickLogSummary = {
+                                    onClickLogSummary(LoggableWorker.CHECK_SESSION)
+                                }
+                            )
+                        }
+
+                        item {
+                            Spacer(modifier = Modifier.navigationBarsPadding())
+                        }
                     }
                 }
-            }
 
-            item("timeSettingHeadline") {
-                Text(
-                    modifier = Modifier.padding(vertical = DefaultDp),
-                    text = stringResource(id = R.string.schedule_time_setting),
-                    style = MaterialTheme.typography.headlineSmall
-                )
-            }
+                is LCE.Error -> {
 
-            item("timePicker") {
-                TimeAndTimePicker(
-                    modifier = Modifier.fillMaxWidth(),
-                    hourOfDay = state.hourOfDay,
-                    minute = state.minute,
-                    onHourOfDayChange = onHourOfDayChange,
-                    onMinuteChange = onMinuteChange
-                )
-            }
+                }
 
-            item("logSummaryHeadline") {
-                Text(
-                    modifier = Modifier.padding(vertical = DefaultDp),
-                    text = stringResource(id = R.string.execution_log_summary),
-                    style = MaterialTheme.typography.headlineSmall
-                )
-            }
-
-            item(LoggableWorker.ATTEND_CHECK_IN_EVENT) {
-                LogSummaryRow(
-                    title = stringResource(id = R.string.attendance),
-                    failureLogCount = state.attendCheckInEventWorkerFailureLogCount,
-                    successLogCount = state.attendCheckInEventWorkerSuccessLogCount,
-                    onClickLogSummary = {
-                        onClickLogSummary(LoggableWorker.ATTEND_CHECK_IN_EVENT)
+                LCE.Loading -> {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        CircularProgressIndicator()
                     }
-                )
-            }
-
-            item(LoggableWorker.CHECK_SESSION) {
-                LogSummaryRow(
-                    title = stringResource(id = R.string.session_validation),
-                    failureLogCount = state.checkSessionWorkerFailureLogCount,
-                    successLogCount = state.checkSessionWorkerSuccessLogCount,
-                    onClickLogSummary = {
-                        onClickLogSummary(LoggableWorker.CHECK_SESSION)
-                    }
-                )
-            }
-
-            item {
-                Spacer(modifier = Modifier.navigationBarsPadding())
+                }
             }
         }
 

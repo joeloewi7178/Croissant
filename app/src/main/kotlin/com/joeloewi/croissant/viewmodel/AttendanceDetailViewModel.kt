@@ -9,12 +9,15 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.WorkManager
 import com.google.firebase.Firebase
 import com.google.firebase.analytics.analytics
+import com.joeloewi.croissant.core.data.model.Attendance
 import com.joeloewi.croissant.core.data.model.Game
 import com.joeloewi.croissant.core.data.model.LoggableWorker
 import com.joeloewi.croissant.core.data.model.WorkerExecutionLogState
 import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
 import com.joeloewi.croissant.domain.usecase.GameUseCase
 import com.joeloewi.croissant.domain.usecase.WorkerExecutionLogUseCase
+import com.joeloewi.croissant.state.LCE
+import com.joeloewi.croissant.state.foldAsLce
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.croissant.util.AlarmScheduler
 import com.joeloewi.croissant.worker.CheckSessionWorker
@@ -73,26 +76,17 @@ class AttendanceDetailViewModel @Inject constructor(
     override val container =
         container<AttendanceDetailState, AttendanceDetailSideEffect>(AttendanceDetailState()) {
             intent {
-                val attendanceWithGames = getOneAttendanceUseCase(_attendanceId)
-                val games = withContext(Dispatchers.Main) {
-                    state.checkedGames.apply {
-                        addAll(attendanceWithGames.games.map {
-                            Game(
-                                type = it.type
-                            )
-                        })
+                val attendanceWithGamesResult =
+                    runCatching { getOneAttendanceUseCase(_attendanceId) }.onSuccess {
+                        withContext(Dispatchers.Main) {
+                            state.checkedGames.addAll(it.games.map { Game(type = it.type) })
+                        }
                     }
-                }
 
                 reduce {
                     state.copy(
-                        cookie = attendanceWithGames.attendance.cookie,
-                        hourOfDay = attendanceWithGames.attendance.hourOfDay,
-                        minute = attendanceWithGames.attendance.minute,
-                        nickname = attendanceWithGames.attendance.nickname,
-                        uid = attendanceWithGames.attendance.uid,
-                        checkedGames = games,
-                        isContentLoading = false
+                        attendance = attendanceWithGamesResult.mapCatching { it.attendance }
+                            .foldAsLce()
                     )
                 }
             }
@@ -123,95 +117,123 @@ class AttendanceDetailViewModel @Inject constructor(
         }
 
     fun setCookie(cookie: String) = intent {
-        reduce { state.copy(cookie = cookie) }
+        reduce {
+            val attendance = state.attendance
+
+            if (attendance is LCE.Content) {
+                state.copy(attendance = LCE.Content(attendance.content.copy(cookie = cookie)))
+            } else {
+                state
+            }
+        }
     }
 
     fun setHourOfDay(hourOfDay: Int) = intent {
-        reduce { state.copy(hourOfDay = hourOfDay) }
+        reduce {
+            val attendance = state.attendance
+
+            if (attendance is LCE.Content) {
+                state.copy(attendance = LCE.Content(attendance.content.copy(hourOfDay = hourOfDay)))
+            } else {
+                state
+            }
+        }
     }
 
     fun setMinute(minute: Int) = intent {
-        reduce { state.copy(minute = minute) }
+        reduce {
+            val attendance = state.attendance
+
+            if (attendance is LCE.Content) {
+                state.copy(attendance = LCE.Content(attendance.content.copy(minute = minute)))
+            } else {
+                state
+            }
+        }
     }
 
     fun updateAttendance() {
         intent {
-            postSideEffect(AttendanceDetailSideEffect.Dialog(shouldShow = true))
+            val cachedAttendance = state.attendance
 
-            val attendanceWithGames = getOneAttendanceUseCase(_attendanceId)
-            val attendance = attendanceWithGames.attendance
+            if (cachedAttendance is LCE.Content) {
+                postSideEffect(AttendanceDetailSideEffect.Dialog(shouldShow = true))
 
-            workManager.cancelUniqueWork(attendance.attendCheckInEventWorkerName.toString())
+                val attendanceWithGames = getOneAttendanceUseCase(_attendanceId)
+                val attendance = attendanceWithGames.attendance
 
-            val periodicCheckSessionWork = CheckSessionWorker.buildPeriodicWork(
-                attendanceId = attendance.id
-            )
+                workManager.cancelUniqueWork(attendance.attendCheckInEventWorkerName.toString())
 
-            workManager.enqueueUniquePeriodicWork(
-                attendance.checkSessionWorkerName.toString(),
-                ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
-                periodicCheckSessionWork
-            )
+                val periodicCheckSessionWork = CheckSessionWorker.buildPeriodicWork(
+                    attendanceId = attendance.id
+                )
 
-            val newAttendance = attendance.copy(
-                modifiedAt = Instant.now().toEpochMilli(),
-                cookie = state.cookie,
-                nickname = state.nickname,
-                uid = state.uid,
-                hourOfDay = state.hourOfDay,
-                minute = state.minute,
-                timezoneId = ZoneId.systemDefault().id,
-                checkSessionWorkerId = periodicCheckSessionWork.id
-            )
+                workManager.enqueueUniquePeriodicWork(
+                    attendance.checkSessionWorkerName.toString(),
+                    ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
+                    periodicCheckSessionWork
+                )
 
-            alarmScheduler.scheduleCheckInAlarm(
-                attendance = newAttendance,
-                scheduleForTomorrow = false
-            )
+                val newAttendance = attendance.copy(
+                    modifiedAt = Instant.now().toEpochMilli(),
+                    cookie = cachedAttendance.content.cookie,
+                    nickname = cachedAttendance.content.nickname,
+                    uid = cachedAttendance.content.uid,
+                    hourOfDay = cachedAttendance.content.hourOfDay,
+                    minute = cachedAttendance.content.minute,
+                    timezoneId = ZoneId.systemDefault().id,
+                    checkSessionWorkerId = periodicCheckSessionWork.id
+                )
 
-            updateAttendanceUseCase(newAttendance)
+                alarmScheduler.scheduleCheckInAlarm(
+                    attendance = newAttendance,
+                    scheduleForTomorrow = false
+                )
 
-            val games = attendanceWithGames.games
-            val originalGames = arrayListOf<Game>()
-            val newGames = arrayListOf<Game>()
+                updateAttendanceUseCase(newAttendance)
 
-            if (state.checkedGames.isEmpty()) {
-                deleteGameUseCase(*games.toTypedArray())
-            } else {
-                games.forEach { game ->
-                    if (!state.checkedGames.contains(
-                            Game(
-                                type = game.type
+                val games = attendanceWithGames.games
+                val originalGames = arrayListOf<Game>()
+                val newGames = arrayListOf<Game>()
+
+                if (state.checkedGames.isEmpty()) {
+                    deleteGameUseCase(*games.toTypedArray())
+                } else {
+                    games.forEach { game ->
+                        if (!state.checkedGames.contains(
+                                Game(
+                                    type = game.type
+                                )
                             )
-                        )
-                    ) {
-                        deleteGameUseCase(game)
-                    } else {
-                        originalGames.add(
-                            Game(
-                                type = game.type
+                        ) {
+                            deleteGameUseCase(game)
+                        } else {
+                            originalGames.add(
+                                Game(
+                                    type = game.type
+                                )
                             )
-                        )
+                        }
+                    }
+
+                    state.checkedGames.forEach { game ->
+                        if (!originalGames.any { it == game }) {
+                            newGames.add(
+                                Game(
+                                    attendanceId = attendance.id,
+                                    roleId = game.roleId,
+                                    type = game.type,
+                                    region = game.region
+                                )
+                            )
+                        }
                     }
                 }
 
-                state.checkedGames.forEach { game ->
-                    if (!originalGames.any { it == game }) {
-                        newGames.add(
-                            Game(
-                                attendanceId = attendance.id,
-                                roleId = game.roleId,
-                                type = game.type,
-                                region = game.region
-                            )
-                        )
-                    }
-                }
+                insertGameUseCase(*newGames.toTypedArray())
+                postSideEffect(AttendanceDetailSideEffect.Dialog(shouldShow = false))
+                postSideEffect(AttendanceDetailSideEffect.NavigateUp)
             }
-
-            insertGameUseCase(*newGames.toTypedArray())
-            postSideEffect(AttendanceDetailSideEffect.Dialog(shouldShow = false))
-            postSideEffect(AttendanceDetailSideEffect.NavigateUp)
         }
     }
 
@@ -254,12 +276,7 @@ class AttendanceDetailViewModel @Inject constructor(
     }
 
     data class AttendanceDetailState(
-        val isContentLoading: Boolean = true,
-        val cookie: String = "",
-        val hourOfDay: Int = 0,
-        val minute: Int = 0,
-        val nickname: String = "",
-        val uid: Long = 0L,
+        val attendance: LCE<Attendance> = LCE.Loading,
         val checkedGames: SnapshotStateList<Game> = mutableStateListOf(),
         val checkSessionWorkerSuccessLogCount: Long = 0,
         val checkSessionWorkerFailureLogCount: Long = 0,

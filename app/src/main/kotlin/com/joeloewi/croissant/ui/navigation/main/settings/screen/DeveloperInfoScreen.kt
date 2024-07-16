@@ -39,6 +39,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import coil.compose.AsyncImage
 import com.joeloewi.croissant.R
+import com.joeloewi.croissant.state.LCE
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.navigationIconButton
 import com.joeloewi.croissant.viewmodel.DeveloperInfoViewModel
@@ -60,7 +61,7 @@ fun DeveloperInfoScreen(
             }
 
             is DeveloperInfoViewModel.SideEffect.SpeakText -> {
-                sideEffect.textToSpeech?.speak(
+                sideEffect.textToSpeech.speak(
                     sideEffect.text,
                     TextToSpeech.QUEUE_FLUSH,
                     bundleOf(),
@@ -107,7 +108,8 @@ private fun DeveloperInfoContent(
             contentPadding = WindowInsets.navigationBars.asPaddingValues()
         ) {
             item(
-                key = "baseInfo"
+                key = "baseInfo",
+                contentType = "Content"
             ) {
                 Column(
                     verticalArrangement = Arrangement.Center,
@@ -118,7 +120,7 @@ private fun DeveloperInfoContent(
                             .clip(CircleShape)
                             .size(64.dp)
                             .clickable(
-                                enabled = state.isTTSInitialized
+                                enabled = state.textToSpeech is LCE.Content
                             ) { onSpeakText("안아줘요", "hug_me") },
                         contentScale = ContentScale.Crop,
                         model = R.drawable.hug_me,
@@ -132,7 +134,8 @@ private fun DeveloperInfoContent(
             }
 
             item(
-                key = "websitesHeader"
+                key = "websitesHeader",
+                contentType = "Header"
             ) {
                 ListItem(
                     headlineContent = {
@@ -145,7 +148,8 @@ private fun DeveloperInfoContent(
             }
 
             item(
-                key = "github"
+                key = "github",
+                contentType = "Content"
             ) {
                 ListItem(
                     modifier = Modifier.clickable(
@@ -173,7 +177,8 @@ private fun DeveloperInfoContent(
             }
 
             item(
-                key = "contactsHeader"
+                key = "contactsHeader",
+                contentType = "Header"
             ) {
                 ListItem(
                     headlineContent = {
@@ -186,7 +191,8 @@ private fun DeveloperInfoContent(
             }
 
             item(
-                key = "email"
+                key = "email",
+                contentType = "Content"
             ) {
                 ListItem(
                     modifier = Modifier

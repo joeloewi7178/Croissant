@@ -40,24 +40,22 @@ class DeveloperInfoViewModel @Inject constructor(
             }
         }
 
-        intent {
-            _textToSpeech.collect {
-                if (it is LCE.Content) {
-                    reduce { state.copy(isTTSInitialized = true) }
-                }
-            }
-        }
+        intent { _textToSpeech.collect { reduce { state.copy(textToSpeech = it) } } }
     }
 
     fun onLaunchIntent(intent: Intent) = intent { postSideEffect(SideEffect.LaunchIntent(intent)) }
     fun onSpeakText(text: String, utteranceId: String) = intent {
-        postSideEffect(
-            SideEffect.SpeakText(
-                textToSpeech = _textToSpeech.value.content,
-                text = text,
-                utteranceId = utteranceId
+        val currentTextToSpeech = state.textToSpeech
+
+        if (currentTextToSpeech is LCE.Content) {
+            postSideEffect(
+                SideEffect.SpeakText(
+                    textToSpeech = currentTextToSpeech.content,
+                    text = text,
+                    utteranceId = utteranceId
+                )
             )
-        )
+        }
     }
 
     data class State(
@@ -72,7 +70,7 @@ class DeveloperInfoViewModel @Inject constructor(
             putExtra(Intent.EXTRA_EMAIL, developerEmail)
         },
         val canLaunchEmailIntent: Boolean = true,
-        val isTTSInitialized: Boolean = false
+        val textToSpeech: LCE<TextToSpeech> = LCE.Loading
     )
 
     sealed class SideEffect {
@@ -81,7 +79,7 @@ class DeveloperInfoViewModel @Inject constructor(
         ) : SideEffect()
 
         data class SpeakText(
-            val textToSpeech: TextToSpeech? = null,
+            val textToSpeech: TextToSpeech,
             val text: String,
             val utteranceId: String
         ) : SideEffect()

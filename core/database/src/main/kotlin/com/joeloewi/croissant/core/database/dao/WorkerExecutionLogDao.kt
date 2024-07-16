@@ -22,7 +22,9 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.RewriteQueriesToDropUnusedColumns
 import androidx.room.Transaction
+import com.joeloewi.croissant.core.database.model.LogCountPerTypeAndStateEntity
 import com.joeloewi.croissant.core.database.model.DataLoggableWorker
 import com.joeloewi.croissant.core.database.model.DataWorkerExecutionLogState
 import com.joeloewi.croissant.core.database.model.WorkerExecutionLogEntity
@@ -122,4 +124,23 @@ interface WorkerExecutionLogDao {
         timestamp: Long,
         gameName: DataHoYoLABGame
     ): Long
+
+    @RewriteQueriesToDropUnusedColumns
+    @Query(
+        """
+        SELECT
+            attendanceId,
+            SUM(CASE WHEN loggableWorker = 'ATTEND_CHECK_IN_EVENT' AND state = 'SUCCESS' THEN 1 ELSE 0 END) AS checkInSuccess,
+            SUM(CASE WHEN loggableWorker = 'ATTEND_CHECK_IN_EVENT' AND state = 'FAILURE' THEN 1 ELSE 0 END) AS checkInFailure,
+            SUM(CASE WHEN loggableWorker = 'CHECK_SESSION' AND state = 'SUCCESS' THEN 1 ELSE 0 END) AS checkSessionSuccess,
+            SUM(CASE WHEN loggableWorker = 'CHECK_SESSION' AND state = 'FAILURE' THEN 1 ELSE 0 END) AS checkSessionFailure
+        FROM
+            WorkerExecutionLogEntity
+        WHERE
+            attendanceId = :attendanceId
+        GROUP BY
+            attendanceId
+        """
+    )
+    fun getLogCountPerTypeAndState(attendanceId: Long): Flow<LogCountPerTypeAndStateEntity>
 }

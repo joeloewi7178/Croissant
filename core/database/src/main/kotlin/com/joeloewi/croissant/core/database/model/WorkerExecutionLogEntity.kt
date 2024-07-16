@@ -34,7 +34,7 @@ import java.util.TimeZone
     ],
     indices = [
         Index(
-            value = ["loggableWorker", "state"]
+            value = ["attendanceId", "loggableWorker", "state"]
         )
     ]
 )
