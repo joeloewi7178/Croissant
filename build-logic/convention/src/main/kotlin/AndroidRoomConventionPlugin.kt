@@ -26,8 +26,10 @@ class AndroidRoomConventionPlugin : Plugin<Project> {
 
     override fun apply(target: Project) {
         with(target) {
-            pluginManager.apply(libs.findPlugin("room").get().get().pluginId)
-            pluginManager.apply(libs.findPlugin("ksp").get().get().pluginId)
+            with(pluginManager) {
+                apply(libs.findPlugin("room").get().get().pluginId)
+                apply(libs.findPlugin("ksp").get().get().pluginId)
+            }
 
             extensions.configure<KspExtension> {
                 arg("room.generateKotlin", "true")

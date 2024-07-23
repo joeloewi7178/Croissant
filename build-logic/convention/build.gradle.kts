@@ -34,13 +34,21 @@ gradlePlugin {
             id = "croissant.android.application.firebase"
             implementationClass = "AndroidApplicationFirebaseConventionPlugin"
         }
+        register("androidHilt") {
+            id = "croissant.android.hilt"
+            implementationClass = "AndroidHiltConventionPlugin"
+        }
+        register("androidLibraryCompose") {
+            id = "croissant.android.library.compose"
+            implementationClass = "AndroidLibraryComposeConventionPlugin"
+        }
         register("androidLibrary") {
             id = "croissant.android.library"
             implementationClass = "AndroidLibraryConventionPlugin"
         }
-        register("androidHilt") {
-            id = "croissant.android.hilt"
-            implementationClass = "AndroidHiltConventionPlugin"
+        register("androidFeature") {
+            id = "croissant.android.feature"
+            implementationClass = "AndroidFeatureConventionPlugin"
         }
         register("androidRoom") {
             id = "croissant.android.room"
