@@ -28,7 +28,7 @@ class CoilInitializer : Initializer<Unit> {
     @set:Inject
     internal lateinit var imageLoader: dagger.Lazy<ImageLoader>
 
-    override fun create(context: Context): Unit {
+    override fun create(context: Context) {
         InitializerEntryPoint.resolve(context).inject(this)
 
         Coil.setImageLoader { imageLoader.get() }

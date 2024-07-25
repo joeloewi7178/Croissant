@@ -16,10 +16,12 @@
 
 package com.joeloewi.croissant.viewmodel
 
-import androidx.lifecycle.SavedStateHandle
+import android.app.AlarmManager
 import androidx.lifecycle.ViewModel
 import com.joeloewi.croissant.domain.usecase.SettingsUseCase
+import com.joeloewi.croissant.domain.usecase.SystemUseCase
 import com.joeloewi.croissant.util.CroissantPermission
+import com.joeloewi.croissant.util.canScheduleExactAlarmsCompat
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -32,15 +34,32 @@ import javax.inject.Inject
 @HiltViewModel
 class FirstLaunchViewModel @Inject constructor(
     private val setIsFirstLaunchSettingsUseCase: SettingsUseCase.SetIsFirstLaunch,
-    private val savedStateHandle: SavedStateHandle
+    private val alarmManager: AlarmManager,
+    private val checkPermissions: SystemUseCase.CheckPermissions
 ) : ViewModel(), ContainerHost<FirstLaunchViewModel.State, FirstLaunchViewModel.SideEffect> {
 
-    override val container: Container<State, SideEffect> = container(State())
+    override val container: Container<State, SideEffect> = container(State()) {
+        intent {
+            val grantedPermissions = state.croissantPermissions.filter {
+                when (it) {
+                    CroissantPermission.AccessHoYoLABSession, CroissantPermission.PostNotifications -> checkPermissions(
+                        it.permission
+                    ).all { it.second }
+
+                    CroissantPermission.ScheduleExactAlarms -> alarmManager.canScheduleExactAlarmsCompat()
+                }
+            }.toImmutableList()
+
+            reduce {
+                state.copy(grantedPermissions = grantedPermissions)
+            }
+        }
+    }
 
     fun onPermissionGranted(vararg croissantPermission: CroissantPermission) = intent {
         reduce {
             state.copy(
-                grantedPermissions = state.grantedPermissions.toMutableList().apply {
+                grantedPermissions = state.grantedPermissions.toMutableSet().apply {
                     addAll(croissantPermission)
                 }.toImmutableList()
             )

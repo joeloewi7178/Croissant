@@ -1,9 +1,10 @@
 package com.joeloewi.croissant.viewmodel
 
 import android.os.Build
+import android.util.Log
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
-import androidx.navigation.NavBackStackEntry
+import androidx.lifecycle.viewModelScope
 import com.google.android.play.core.appupdate.AppUpdateManager
 import com.google.android.play.core.ktx.AppUpdateResult
 import com.google.android.play.core.ktx.requestUpdateFlow
@@ -22,6 +23,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
@@ -29,8 +31,8 @@ import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import org.orbitmvi.orbit.Container
 import org.orbitmvi.orbit.ContainerHost
@@ -64,7 +66,11 @@ class MainActivityViewModel @Inject constructor(
                 log("AppUpdateManager")
                 recordException(cause)
             }
-        }.flowOn(Dispatchers.IO)
+        }.flowOn(Dispatchers.IO).stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(),
+            initialValue = AppUpdateResult.NotAvailable
+        )
     private val _darkThemeEnabled = _settings.map {
         it.darkThemeEnabled
     }.catch {}.flowOn(Dispatchers.IO)
@@ -76,7 +82,6 @@ class MainActivityViewModel @Inject constructor(
 
     override val container: Container<State, SideEffect> = container(State()) {
         intent { _hourFormat.collect { reduce { state.copy(hourFormat = it) } } }
-        intent { _appUpdateResultState.collect { reduce { state.copy(appUpdateResult = it) } } }
         intent { _darkThemeEnabled.collect { reduce { state.copy(darkThemeEnabled = it) } } }
         intent { _isDeviceRooted.collect { reduce { state.copy(isDeviceRooted = it) } } }
         intent { _isFirstLaunch.collect { reduce { state.copy(isFirstLaunch = it) } } }
@@ -102,6 +107,24 @@ class MainActivityViewModel @Inject constructor(
                     }
                 }
         }
+
+        intent {
+            _appUpdateResultState.collect {
+                when (it) {
+                    is AppUpdateResult.Available -> {
+                        postSideEffect(SideEffect.StartAppUpdate(it))
+                    }
+
+                    is AppUpdateResult.Downloaded -> {
+                        it.completeUpdate()
+                    }
+
+                    else -> {
+
+                    }
+                }
+            }
+        }
     }
 
     fun onClickConfirmClose() = intent {
@@ -115,7 +138,6 @@ class MainActivityViewModel @Inject constructor(
     @Immutable
     data class State(
         val hourFormat: HourFormat = HourFormat.TwelveHour,
-        val appUpdateResult: AppUpdateResult = AppUpdateResult.NotAvailable,
         val darkThemeEnabled: Boolean = false,
         val isDeviceRooted: Boolean = false,
         val isFirstLaunch: Boolean = false,
@@ -136,6 +158,10 @@ class MainActivityViewModel @Inject constructor(
     @Immutable
     sealed class SideEffect {
         data object FinishActivity : SideEffect()
+        data class StartAppUpdate(
+            val appUpdateResult: AppUpdateResult.Available
+        ) : SideEffect()
+
         data class OnClickNavigationButton(
             val route: String
         ) : SideEffect()

@@ -52,8 +52,6 @@ class AlarmReceiver : BroadcastReceiver() {
     lateinit var coroutineScope: CoroutineScope
 
     override fun onReceive(p0: Context, p1: Intent) {
-        Log.d("123123", p1.action.toString())
-
         when (p1.action) {
             Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED, AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED -> {
                 coroutineScope.launch(_coroutineContext) {

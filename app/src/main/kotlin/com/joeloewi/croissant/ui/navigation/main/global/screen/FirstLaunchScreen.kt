@@ -107,7 +107,7 @@ fun FirstLaunchScreen(
         }
     }
 
-    LaunchedEffect(state.grantedPermissions, state.croissantPermissions) {
+    LaunchedEffect(state.grantedPermissions) {
         if (state.grantedPermissions == state.croissantPermissions) {
             firstLaunchViewModel.onNavigateToAttendances()
         }

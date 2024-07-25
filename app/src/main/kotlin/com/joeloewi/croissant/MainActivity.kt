@@ -1,10 +1,13 @@
 package com.joeloewi.croissant
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.os.Bundle
 import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -90,7 +93,6 @@ import com.joeloewi.croissant.ui.navigation.main.settings.screen.SettingsScreen
 import com.joeloewi.croissant.ui.theme.CroissantTheme
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.LocalHourFormat
-import com.joeloewi.croissant.util.RequireAppUpdate
 import com.joeloewi.croissant.util.useNavRail
 import com.joeloewi.croissant.viewmodel.MainActivityViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -148,6 +150,23 @@ class MainActivity : AppCompatActivity() {
                     val activity = LocalActivity.current
                     val snackbarHostState = remember { SnackbarHostState() }
                     val navController = rememberNavController()
+                    val appUpdateResultLauncher = rememberLauncherForActivityResult(
+                        contract = ActivityResultContracts.StartIntentSenderForResult()
+                    ) { result ->
+                        when (result.resultCode) {
+                            Activity.RESULT_OK -> {
+
+                            }
+
+                            Activity.RESULT_CANCELED -> {
+
+                            }
+
+                            com.google.android.play.core.install.model.ActivityResult.RESULT_IN_APP_UPDATE_FAILED -> {
+
+                            }
+                        }
+                    }
 
                     LaunchedEffect(navController) {
                         withContext(Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
@@ -175,23 +194,25 @@ class MainActivity : AppCompatActivity() {
                                     restoreState = true
                                 }
                             }
+
+                            is MainActivityViewModel.SideEffect.StartAppUpdate -> {
+                                sideEffect.appUpdateResult.startImmediateUpdate(
+                                    appUpdateResultLauncher
+                                )
+                            }
                         }
                     }
 
                     CompositionLocalProvider(
                         LocalHourFormat provides state.hourFormat
                     ) {
-                        RequireAppUpdate(
-                            appUpdateResultState = state.appUpdateResult,
-                        ) {
-                            CroissantApp(
-                                state = state,
-                                navController = navController,
-                                snackbarHostState = snackbarHostState,
-                                onClickNavigationButton = activityViewModel::onClickNavigationButton,
-                                onClickConfirmClose = activityViewModel::onClickConfirmClose
-                            )
-                        }
+                        CroissantApp(
+                            state = state,
+                            navController = navController,
+                            snackbarHostState = snackbarHostState,
+                            onClickNavigationButton = activityViewModel::onClickNavigationButton,
+                            onClickConfirmClose = activityViewModel::onClickConfirmClose
+                        )
                     }
                 }
             }
