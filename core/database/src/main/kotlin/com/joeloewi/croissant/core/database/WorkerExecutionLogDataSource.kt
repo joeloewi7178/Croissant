@@ -19,6 +19,7 @@ package com.joeloewi.croissant.core.database
 import androidx.paging.PagingData
 import com.joeloewi.croissant.core.database.model.DataLoggableWorker
 import com.joeloewi.croissant.core.database.model.DataWorkerExecutionLogState
+import com.joeloewi.croissant.core.database.model.LogCountPerTypeAndStateEntity
 import com.joeloewi.croissant.core.database.model.WorkerExecutionLogEntity
 import com.joeloewi.croissant.core.database.model.relational.WorkerExecutionLogWithStateEntity
 import com.joeloewi.croissant.core.model.DataHoYoLABGame
@@ -49,4 +50,6 @@ interface WorkerExecutionLogDataSource {
         gameName: DataHoYoLABGame,
         timestamp: Long
     ): Boolean
+
+    fun getLogCountPerTypeAndState(attendanceId: Long): Flow<LogCountPerTypeAndStateEntity>
 }

@@ -56,6 +56,17 @@ class FirstLaunchViewModel @Inject constructor(
         }
     }
 
+    init {
+        intent {
+            container.stateFlow.collect { state ->
+                if (state.grantedPermissions.sorted() == state.croissantPermissions.sorted()) {
+                    setIsFirstLaunchSettingsUseCase(false)
+                    postSideEffect(SideEffect.NavigateToAttendances)
+                }
+            }
+        }
+    }
+
     fun onPermissionGranted(vararg croissantPermission: CroissantPermission) = intent {
         reduce {
             state.copy(
@@ -74,9 +85,12 @@ class FirstLaunchViewModel @Inject constructor(
         postSideEffect(SideEffect.LaunchScheduleExactAlarmPermissionRequest)
     }
 
-    fun onNavigateToAttendances() = intent {
-        setIsFirstLaunchSettingsUseCase(false)
-        postSideEffect(SideEffect.NavigateToAttendances)
+    fun onIsLastItemFullyVisibleChange(isLastItemFullyVisible: Boolean) = intent {
+        reduce { state.copy(isLastItemFullyVisible = isLastItemFullyVisible) }
+    }
+
+    fun onScrollToNextItem() = intent {
+        postSideEffect(SideEffect.OnScrollToNextItem)
     }
 
     data class State(
@@ -85,12 +99,14 @@ class FirstLaunchViewModel @Inject constructor(
             CroissantPermission.AccessHoYoLABSession.permission,
             CroissantPermission.PostNotifications.permission
         ),
-        val grantedPermissions: ImmutableList<CroissantPermission> = persistentListOf()
+        val grantedPermissions: ImmutableList<CroissantPermission> = persistentListOf(),
+        val isLastItemFullyVisible: Boolean = false
     )
 
     sealed class SideEffect {
         data object LaunchMultiplePermissionsRequest : SideEffect()
         data object LaunchScheduleExactAlarmPermissionRequest : SideEffect()
         data object NavigateToAttendances : SideEffect()
+        data object OnScrollToNextItem : SideEffect()
     }
 }

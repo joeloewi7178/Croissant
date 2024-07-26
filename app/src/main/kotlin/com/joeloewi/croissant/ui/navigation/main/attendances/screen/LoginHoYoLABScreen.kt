@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.net.Uri
 import android.net.http.SslError
 import android.webkit.SslErrorHandler
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -197,25 +196,20 @@ fun LoginHoYoLABContent(
                     }
                 )
 
-                Crossfade(
-                    targetState = webViewState.loadingState,
-                    label = ""
-                ) { loadingState ->
-                    when (loadingState) {
-                        is LoadingState.Loading -> {
-                            LinearProgressIndicator(
-                                modifier = Modifier.fillMaxWidth(),
-                                progress = { loadingState.progress }
-                            )
-                        }
+                when (val loadingState = webViewState.loadingState) {
+                    is LoadingState.Loading -> {
+                        LinearProgressIndicator(
+                            modifier = Modifier.fillMaxWidth(),
+                            progress = { loadingState.progress }
+                        )
+                    }
 
-                        LoadingState.Finished -> {
+                    LoadingState.Finished -> {
 
-                        }
+                    }
 
-                        LoadingState.Initializing -> {
+                    LoadingState.Initializing -> {
 
-                        }
                     }
                 }
             }

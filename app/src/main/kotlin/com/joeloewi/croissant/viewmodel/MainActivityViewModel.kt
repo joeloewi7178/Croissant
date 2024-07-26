@@ -1,7 +1,6 @@
 package com.joeloewi.croissant.viewmodel
 
 import android.os.Build
-import android.util.Log
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

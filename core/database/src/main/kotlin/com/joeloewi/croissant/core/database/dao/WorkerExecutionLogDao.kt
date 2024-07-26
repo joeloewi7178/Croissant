@@ -24,9 +24,9 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.RewriteQueriesToDropUnusedColumns
 import androidx.room.Transaction
-import com.joeloewi.croissant.core.database.model.LogCountPerTypeAndStateEntity
 import com.joeloewi.croissant.core.database.model.DataLoggableWorker
 import com.joeloewi.croissant.core.database.model.DataWorkerExecutionLogState
+import com.joeloewi.croissant.core.database.model.LogCountPerTypeAndStateEntity
 import com.joeloewi.croissant.core.database.model.WorkerExecutionLogEntity
 import com.joeloewi.croissant.core.database.model.relational.WorkerExecutionLogWithStateEntity
 import com.joeloewi.croissant.core.model.DataHoYoLABGame

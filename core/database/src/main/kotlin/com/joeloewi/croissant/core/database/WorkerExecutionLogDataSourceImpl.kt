@@ -22,6 +22,7 @@ import androidx.paging.PagingData
 import com.joeloewi.croissant.core.database.dao.WorkerExecutionLogDao
 import com.joeloewi.croissant.core.database.model.DataLoggableWorker
 import com.joeloewi.croissant.core.database.model.DataWorkerExecutionLogState
+import com.joeloewi.croissant.core.database.model.LogCountPerTypeAndStateEntity
 import com.joeloewi.croissant.core.database.model.WorkerExecutionLogEntity
 import com.joeloewi.croissant.core.database.model.relational.WorkerExecutionLogWithStateEntity
 import com.joeloewi.croissant.core.model.DataHoYoLABGame
@@ -82,4 +83,7 @@ class WorkerExecutionLogDataSourceImpl @Inject constructor(
     ): Boolean = withContext(Dispatchers.IO) {
         workerExecutionLogDao.getCountByDate(attendanceId, timestamp, gameName) > 0
     }
+
+    override fun getLogCountPerTypeAndState(attendanceId: Long): Flow<LogCountPerTypeAndStateEntity> =
+        workerExecutionLogDao.getLogCountPerTypeAndState(attendanceId).flowOn(Dispatchers.IO)
 }
