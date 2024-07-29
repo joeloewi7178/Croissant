@@ -118,6 +118,7 @@ coil-kt = { group = "io.coil-kt", name = "coil-base" }
 coil-kt-compose = { group = "io.coil-kt", name = "coil-compose" }
 coil-kt-svg = { group = "io.coil-kt", name = "coil-svg" }
 coil-kt-gif = { group = "io.coil-kt", name = "coil-gif" }
+hilt-core = { group = "com.google.dagger", name = "hilt-core", version.ref = "hilt" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-ext-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "hiltExt" }
 hilt-ext-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "hiltExt" }
@@ -203,7 +204,9 @@ room = { id = "androidx.room", version.ref = "room" }
 croissant-android-application-compose = { id = "croissant.android.application.compose", version = "unspecified" }
 croissant-android-application = { id = "croissant.android.application", version = "unspecified" }
 croissant-android-library = { id = "croissant.android.library", version = "unspecified" }
+croissant-android-library-compose = { id = "croissant.android.library.compose", version = "unspecified" }
 croissant-android-hilt = { id = "croissant.android.hilt", version = "unspecified" }
 croissant-android-room = { id = "croissant.android.room", version = "unspecified" }
 croissant-android-application-firebase = { id = "croissant.android.application.firebase", version = "unspecified" }
 croissant-jvm-library = { id = "croissant.jvm.library", version = "unspecified" }
+croissant-android-feature = { id = "croissant.android.feature", version = "unspecified" }

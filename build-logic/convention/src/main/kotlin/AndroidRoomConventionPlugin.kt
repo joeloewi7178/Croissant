@@ -27,8 +27,8 @@ class AndroidRoomConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
             with(pluginManager) {
-                apply(libs.findPlugin("room").get().get().pluginId)
-                apply(libs.findPlugin("ksp").get().get().pluginId)
+                apply("androidx.room")
+                apply("com.google.devtools.ksp")
             }
 
             extensions.configure<KspExtension> {

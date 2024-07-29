@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="core_ui_navigation_label_attendance">Attendance</string>
+    <string name="core_ui_navigation_label_redemption_codes">Redeem code</string>
+    <string name="core_ui_navigation_label_settings">Settings</string>
+</resources>

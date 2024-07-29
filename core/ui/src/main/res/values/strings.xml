@@ -1,0 +1,5 @@
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="core_ui_navigation_label_attendance">Attendance</string>
+    <string name="core_ui_navigation_label_redemption_codes">Redeem code</string>
+    <string name="core_ui_navigation_label_settings">Settings</string>
+</resources>

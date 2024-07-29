@@ -65,6 +65,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.core.data.model.HoYoLABGame
+import com.joeloewi.croissant.feature.redeemcodes.viewmodel.RedemptionCodesViewModel
 import com.joeloewi.croissant.state.LCE
 import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
 import com.joeloewi.croissant.ui.theme.DefaultDp
@@ -73,7 +74,6 @@ import com.joeloewi.croissant.ui.theme.HalfDp
 import com.joeloewi.croissant.ui.theme.IconDp
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.gameNameStringResId
-import com.joeloewi.croissant.viewmodel.RedemptionCodesViewModel
 import io.github.fornewid.placeholder.foundation.PlaceholderHighlight
 import io.github.fornewid.placeholder.foundation.fade
 import io.github.fornewid.placeholder.foundation.placeholder
@@ -85,7 +85,7 @@ import org.orbitmvi.orbit.compose.collectSideEffect
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RedemptionCodesScreen(
-    redemptionCodesViewModel: RedemptionCodesViewModel = hiltViewModel()
+    redemptionCodesViewModel: com.joeloewi.croissant.feature.redeemcodes.viewmodel.RedemptionCodesViewModel = hiltViewModel()
 ) {
     val activity = LocalActivity.current
     val state by redemptionCodesViewModel.collectAsState()
@@ -93,11 +93,11 @@ fun RedemptionCodesScreen(
 
     redemptionCodesViewModel.collectSideEffect { sideEffect ->
         when (sideEffect) {
-            is RedemptionCodesViewModel.SideEffect.LaunchIntent -> {
+            is com.joeloewi.croissant.feature.redeemcodes.viewmodel.RedemptionCodesViewModel.SideEffect.LaunchIntent -> {
                 activity.startActivity(sideEffect.intent)
             }
 
-            RedemptionCodesViewModel.SideEffect.EndRefresh -> {
+            com.joeloewi.croissant.feature.redeemcodes.viewmodel.RedemptionCodesViewModel.SideEffect.EndRefresh -> {
                 pullToRefreshState.endRefresh()
             }
         }
@@ -142,7 +142,7 @@ fun RedemptionCodesScreen(
 )
 @Composable
 private fun RedemptionCodesContent(
-    state: RedemptionCodesViewModel.State,
+    state: com.joeloewi.croissant.feature.redeemcodes.viewmodel.RedemptionCodesViewModel.State,
     pullToRefreshState: PullToRefreshState,
     onRefresh: () -> Unit,
     onClickUrl: (annotatedString: AnnotatedString, offset: Int) -> Unit,

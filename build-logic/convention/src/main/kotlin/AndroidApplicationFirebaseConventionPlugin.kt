@@ -26,8 +26,8 @@ class AndroidApplicationFirebaseConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
             with(pluginManager) {
-                apply(libs.findPlugin("gms-google-services").get().get().pluginId)
-                apply(libs.findPlugin("firebase-crashlytics").get().get().pluginId)
+                apply("com.google.gms.google-services")
+                apply("com.google.firebase.crashlytics")
             }
 
             dependencies {

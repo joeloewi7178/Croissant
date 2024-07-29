@@ -32,9 +32,19 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
             }
 
             dependencies {
+                "implementation"(project(":core:ui"))
+                "implementation"(project(":core:designsystem"))
+
                 "implementation"(libs.findLibrary("androidx.hilt.navigation.compose").get())
                 "implementation"(libs.findLibrary("androidx.lifecycle.runtime.compose").get())
-                "implementation"(libs.findLibrary("androidx.lifecycle.viewModel.compose").get())
+                "implementation"(libs.findLibrary("androidx.lifecycle.viewmodel.compose").get())
+
+                //orbit
+                "implementation"(libs.findLibrary("orbit.viewmodel").get())
+                "implementation"(libs.findLibrary("orbit.compose").get())
+
+                //immutable collection
+                "implementation"(libs.findLibrary("kotlinx.collections.immutable").get())
             }
         }
     }

@@ -1,0 +1,5 @@
+<resources>
+    <string name="core_ui_navigation_label_attendance">출석 작업</string>
+    <string name="core_ui_navigation_label_redemption_codes">리딤 코드</string>
+    <string name="core_ui_navigation_label_settings">설정</string>
+</resources>

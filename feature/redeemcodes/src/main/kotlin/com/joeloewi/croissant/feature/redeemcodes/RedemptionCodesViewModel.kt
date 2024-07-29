@@ -1,4 +1,4 @@
-package com.joeloewi.croissant.viewmodel
+package com.joeloewi.croissant.feature.redeemcodes
 
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -11,10 +11,10 @@ import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.core.text.HtmlCompat
 import androidx.lifecycle.ViewModel
 import com.joeloewi.croissant.core.data.model.HoYoLABGame
+import com.joeloewi.croissant.core.ui.LCE
+import com.joeloewi.croissant.core.ui.foldAsLce
+import com.joeloewi.croissant.core.ui.toAnnotatedString
 import com.joeloewi.croissant.domain.usecase.ArcaLiveAppUseCase
-import com.joeloewi.croissant.state.LCE
-import com.joeloewi.croissant.state.foldAsLce
-import com.joeloewi.croissant.util.toAnnotatedString
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
