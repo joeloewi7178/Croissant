@@ -1,14 +1,14 @@
 package com.joeloewi.croissant.core.network.model.request
 
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-@JsonClass(generateAdapter = true)
+@Serializable
 data class DataSwitchRequest(
-    @Json(name = "switch_id")
+    @SerialName("switch_id")
     val switchId: Int = Int.MIN_VALUE,
-    @Json(name = "is_public")
+    @SerialName("is_public")
     val isPublic: Boolean = false,
-    @Json(name = "game_id")
+    @SerialName("game_id")
     val gameId: Int = Int.MIN_VALUE,
 )

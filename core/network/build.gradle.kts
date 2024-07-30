@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.croissant.android.library)
     alias(libs.plugins.croissant.android.hilt)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -19,12 +20,9 @@ dependencies {
     api(projects.core.model)
     api(projects.core.common)
 
-    implementation(libs.moshi.adapters)
-    ksp(libs.moshi.kotlin.codegen.get())
-
     implementation(platform(libs.retrofit.bom))
     implementation(libs.retrofit)
-    implementation(libs.retrofit.converter.moshi)
+    implementation(libs.retrofit.kotlin.serialization)
     implementation(libs.retrofit.converter.scalars)
     ksp(libs.retrofit.response.type.keeper)
 
@@ -40,6 +38,8 @@ dependencies {
     implementation(libs.jsoup)
 
     implementation(libs.androidx.startup)
+
+    implementation(libs.kotlinx.serialization.json)
 
     androidTestImplementation(libs.androidx.test.ext.junit.ktx)
     testImplementation(libs.junit)

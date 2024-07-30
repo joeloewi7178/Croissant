@@ -46,11 +46,9 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Dp
@@ -65,9 +63,11 @@ import com.joeloewi.croissant.ui.theme.IconDp
 fun RedemptionCodeListItem(
     modifier: Modifier,
     isExpanded: Boolean,
-    item: Pair<HoYoLABGame, AnnotatedString>,
+    iconUrl: String,
+    gameName: String,
+    htmlString: AnnotatedString,
     onClickUrl: (annotatedString: AnnotatedString, offset: Int) -> Unit,
-    onClickExpand: (hoYoLABGame: HoYoLABGame) -> Unit
+    onClickExpand: () -> Unit
 ) {
     val foldedHeight = 216.dp
     val textStyle = LocalTextStyle.current
@@ -80,10 +80,26 @@ fun RedemptionCodeListItem(
         derivedStateOf {
             with(density) {
                 contentTextMeasurer.measure(
-                    text = item.second,
+                    text = htmlString,
                     style = textStyle.copy(color = textColor)
                 ).size.height.toDp()
             } > foldedHeight
+        }
+    }
+    val measureHeight by remember(
+        isContentCanBeFolded,
+        isExpanded
+    ) {
+        derivedStateOf {
+            if (!isContentCanBeFolded) {
+                return@derivedStateOf Dp.Unspecified
+            }
+
+            if (isExpanded) {
+                return@derivedStateOf Dp.Unspecified
+            }
+
+            return@derivedStateOf foldedHeight
         }
     }
 
@@ -109,17 +125,17 @@ fun RedemptionCodeListItem(
                             .padding(12.dp)
                             .size(IconDp)
                             .clip(MaterialTheme.shapes.extraSmall),
-                        model = item.first.gameIconUrl,
+                        model = iconUrl,
                         contentDescription = null
                     )
                 },
                 title = {
-                    Text(text = stringResource(id = item.first.gameNameStringResId()))
+                    Text(text = gameName)
                 },
                 actions = {
                     if (isContentCanBeFolded) {
                         IconButton(
-                            onClick = { onClickExpand(item.first) }
+                            onClick = onClickExpand
                         ) {
                             if (isExpanded) {
                                 Icon(
@@ -140,36 +156,14 @@ fun RedemptionCodeListItem(
 
             Row(
                 modifier = Modifier
-                    .composed {
-                        val measureHeight by remember(
-                            isContentCanBeFolded,
-                            isExpanded,
-                            item.first
-                        ) {
-                            derivedStateOf {
-                                if (!isContentCanBeFolded) {
-                                    return@derivedStateOf Dp.Unspecified
-                                }
-
-                                if (isExpanded) {
-                                    return@derivedStateOf Dp.Unspecified
-                                }
-
-                                return@derivedStateOf foldedHeight
-                            }
-                        }
-
-                        remember(measureHeight) {
-                            height(measureHeight)
-                        }
-                    }
+                    .height(measureHeight)
                     .padding(horizontal = DefaultDp),
             ) {
                 SelectionContainer {
                     ClickableText(
-                        text = item.second,
+                        text = htmlString,
                         style = textStyle.copy(color = textColor),
-                        onClick = { offset -> onClickUrl(item.second, offset) }
+                        onClick = { offset -> onClickUrl(htmlString, offset) }
                     )
                 }
             }

@@ -14,4 +14,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.coil.kt)
     implementation(libs.coil.kt.compose)
+
+    androidTestImplementation(libs.androidx.test.ext.junit.ktx)
+    testImplementation(libs.junit)
 }

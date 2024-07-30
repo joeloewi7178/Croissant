@@ -21,7 +21,7 @@ import com.joeloewi.croissant.core.common.exception.HoYoLABUnsuccessfulResponseE
 import com.joeloewi.croissant.core.network.dao.CheckInService
 import com.joeloewi.croissant.core.network.dao.GenshinImpactCheckInService
 import com.joeloewi.croissant.core.network.dao.ZenlessZoneZeroCheckInService
-import com.joeloewi.croissant.core.network.model.response.AttendanceResponse
+import com.joeloewi.croissant.core.network.model.response.HoYoLABResponse
 import com.skydoves.sandwich.getOrThrow
 import com.skydoves.sandwich.suspendMapSuccess
 import kotlinx.coroutines.Dispatchers
@@ -37,7 +37,7 @@ class CheckInDataSourceImpl @Inject constructor(
     override suspend fun attend(
         actId: String,
         cookie: String
-    ): Result<AttendanceResponse> = withContext(Dispatchers.IO) {
+    ): Result<HoYoLABResponse.AttendanceResponse> = withContext(Dispatchers.IO) {
         runCatching {
             checkInService.get().attendCommon(actId = actId, cookie = cookie).suspendMapSuccess {
                 if (retCode != 0) {
@@ -53,7 +53,7 @@ class CheckInDataSourceImpl @Inject constructor(
 
     override suspend fun attendCheckInGenshinImpact(
         cookie: String
-    ): Result<AttendanceResponse> = withContext(Dispatchers.IO) {
+    ): Result<HoYoLABResponse.AttendanceResponse> = withContext(Dispatchers.IO) {
         runCatching {
             genshinImpactCheckInService.get().attend(cookie = cookie).suspendMapSuccess {
                 if (retCode != 0) {
@@ -69,7 +69,7 @@ class CheckInDataSourceImpl @Inject constructor(
 
     override suspend fun attendCheckInHonkaiImpact3rd(
         cookie: String
-    ): Result<AttendanceResponse> = withContext(Dispatchers.IO) {
+    ): Result<HoYoLABResponse.AttendanceResponse> = withContext(Dispatchers.IO) {
         runCatching {
             checkInService.get().attendCheckInHonkaiImpact3rd(cookie = cookie).suspendMapSuccess {
                 if (retCode != 0) {
@@ -85,7 +85,7 @@ class CheckInDataSourceImpl @Inject constructor(
 
     override suspend fun attendCheckInZenlessZoneZero(
         cookie: String
-    ): Result<AttendanceResponse> = withContext(Dispatchers.IO) {
+    ): Result<HoYoLABResponse.AttendanceResponse> = withContext(Dispatchers.IO) {
         runCatching {
             zenlessZoneZeroCheckInService.get().attend(cookie = cookie).suspendMapSuccess {
                 if (retCode != 0) {

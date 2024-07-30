@@ -19,10 +19,7 @@ package com.joeloewi.croissant.core.network.dao
 import com.joeloewi.croissant.core.network.HeaderInformation
 import com.joeloewi.croissant.core.network.generateDS
 import com.joeloewi.croissant.core.network.model.request.DataSwitchRequest
-import com.joeloewi.croissant.core.network.model.response.ChangeDataSwitchResponse
-import com.joeloewi.croissant.core.network.model.response.GameRecordCardResponse
-import com.joeloewi.croissant.core.network.model.response.GenshinDailyNoteResponse
-import com.joeloewi.croissant.core.network.model.response.UserFullInfoResponse
+import com.joeloewi.croissant.core.network.model.response.HoYoLABResponse
 import com.skydoves.sandwich.ApiResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -35,19 +32,19 @@ interface HoYoLABService {
     @GET("community/painter/wapi/user/full")
     suspend fun getUserFullInfo(
         @Header("Cookie") cookie: String
-    ): ApiResponse<UserFullInfoResponse>
+    ): ApiResponse<HoYoLABResponse.UserFullInfoResponse>
 
     @GET("game_record/card/wapi/getGameRecordCard")
     suspend fun getGameRecordCard(
         @Header("Cookie") cookie: String,
         @Query("uid") uid: Long
-    ): ApiResponse<GameRecordCardResponse>
+    ): ApiResponse<HoYoLABResponse.GameRecordCardResponse>
 
     @POST("game_record/card/wapi/changeDataSwitch")
     suspend fun changeDataSwitch(
         @Header("Cookie") cookie: String,
         @Body dataSwitchRequest: DataSwitchRequest
-    ): ApiResponse<ChangeDataSwitchResponse>
+    ): ApiResponse<HoYoLABResponse.ChangeDataSwitchResponse>
 
     @GET("game_record/genshin/api/dailyNote")
     suspend fun getGenshinDailyNote(
@@ -57,5 +54,5 @@ interface HoYoLABService {
         @Header("x-rpc-client_type") xRpcClientType: String = HeaderInformation.OS.xRpcClientType,
         @Query("role_id") roleId: Long,
         @Query("server") server: String,
-    ): ApiResponse<GenshinDailyNoteResponse>
+    ): ApiResponse<HoYoLABResponse.GenshinDailyNoteResponse>
 }

@@ -21,9 +21,4 @@ enum class DataHoYoLABGame(
     Unknown(
         gameId = -1
     );
-
-    companion object {
-        fun findByGameId(gameId: Int) =
-            entries.find { it.gameId == gameId } ?: Unknown
-    }
 }

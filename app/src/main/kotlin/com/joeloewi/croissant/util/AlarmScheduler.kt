@@ -1,6 +1,6 @@
 package com.joeloewi.croissant.util
 
-import com.joeloewi.croissant.core.data.model.Attendance
+import com.joeloewi.croissant.core.model.Attendance
 
 interface AlarmScheduler {
     fun scheduleCheckInAlarm(

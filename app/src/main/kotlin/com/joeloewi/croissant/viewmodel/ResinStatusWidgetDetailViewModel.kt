@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.WorkManager
 import androidx.work.await
-import com.joeloewi.croissant.domain.usecase.ResinStatusWidgetUseCase
+import com.joeloewi.croissant.domain.ResinStatusWidgetUseCase
 import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration.ResinStatusWidgetConfigurationDestination
 import com.joeloewi.croissant.worker.RefreshResinStatusWorker
 import dagger.hilt.android.lifecycle.HiltViewModel

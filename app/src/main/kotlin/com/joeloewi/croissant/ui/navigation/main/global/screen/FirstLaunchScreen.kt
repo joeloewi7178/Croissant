@@ -65,8 +65,8 @@ import com.joeloewi.croissant.R
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.util.CroissantPermission
-import com.joeloewi.croissant.util.SpecialPermission
-import com.joeloewi.croissant.util.rememberSpecialPermissionState
+import com.joeloewi.croissant.feature.settings.SpecialPermission
+import com.joeloewi.croissant.feature.settings.rememberSpecialPermissionState
 import com.joeloewi.croissant.viewmodel.FirstLaunchViewModel
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
@@ -81,14 +81,15 @@ fun FirstLaunchScreen(
     onNavigateToAttendances: () -> Unit
 ) {
     val state by firstLaunchViewModel.collectAsState()
-    val scheduleExactAlarmPermissionState = rememberSpecialPermissionState(
-        specialPermission = SpecialPermission.ScheduleExactAlarms,
-        onPermissionResult = { isGranted ->
-            if (isGranted) {
-                firstLaunchViewModel.onPermissionGranted(CroissantPermission.ScheduleExactAlarms)
+    val scheduleExactAlarmPermissionState =
+        com.joeloewi.croissant.feature.settings.rememberSpecialPermissionState(
+            specialPermission = com.joeloewi.croissant.feature.settings.SpecialPermission.ScheduleExactAlarms,
+            onPermissionResult = { isGranted ->
+                if (isGranted) {
+                    firstLaunchViewModel.onPermissionGranted(CroissantPermission.ScheduleExactAlarms)
+                }
             }
-        }
-    )
+        )
     val multiplePermissionsState = rememberMultiplePermissionsState(
         permissions = state.normalPermissions,
         onPermissionsResult = { results ->

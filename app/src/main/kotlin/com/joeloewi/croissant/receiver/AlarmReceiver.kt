@@ -10,7 +10,7 @@ import androidx.work.WorkManager
 import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics
 import com.joeloewi.croissant.BuildConfig
-import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
+import com.joeloewi.croissant.domain.AttendanceUseCase
 import com.joeloewi.croissant.util.AlarmScheduler
 import com.joeloewi.croissant.worker.AttendCheckInEventWorker
 import dagger.hilt.android.AndroidEntryPoint

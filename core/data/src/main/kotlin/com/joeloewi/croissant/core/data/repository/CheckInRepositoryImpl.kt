@@ -16,34 +16,34 @@
 
 package com.joeloewi.croissant.core.data.repository
 
-import com.joeloewi.croissant.core.model.BaseResponse
 import com.joeloewi.croissant.core.network.CheckInDataSource
+import com.joeloewi.croissant.core.network.model.response.HoYoLABResponse
 import javax.inject.Inject
 
 class CheckInRepositoryImpl @Inject constructor(
     private val checkInDataSource: CheckInDataSource
 ) : CheckInRepository {
 
-    override suspend fun attend(actId: String, cookie: String): Result<BaseResponse> =
+    override suspend fun attend(actId: String, cookie: String): Result<HoYoLABResponse> =
         checkInDataSource.runCatching {
             attend(actId, cookie).getOrThrow()
         }
 
     override suspend fun attendCheckInGenshinImpact(
         cookie: String
-    ): Result<BaseResponse> = checkInDataSource.runCatching {
+    ): Result<HoYoLABResponse> = checkInDataSource.runCatching {
         attendCheckInGenshinImpact(cookie).getOrThrow()
     }
 
     override suspend fun attendCheckInHonkaiImpact3rd(
         cookie: String
-    ): Result<BaseResponse> = checkInDataSource.runCatching {
+    ): Result<HoYoLABResponse> = checkInDataSource.runCatching {
         attendCheckInHonkaiImpact3rd(cookie).getOrThrow()
     }
 
     override suspend fun attendCheckInZenlessZoneZero(
         cookie: String
-    ): Result<BaseResponse> = checkInDataSource.runCatching {
+    ): Result<HoYoLABResponse> = checkInDataSource.runCatching {
         attendCheckInZenlessZoneZero(cookie).getOrThrow()
     }
 }

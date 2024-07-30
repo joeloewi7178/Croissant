@@ -14,7 +14,7 @@ import com.joeloewi.croissant.core.data.model.HoYoLABGame
 import com.joeloewi.croissant.core.ui.LCE
 import com.joeloewi.croissant.core.ui.foldAsLce
 import com.joeloewi.croissant.core.ui.toAnnotatedString
-import com.joeloewi.croissant.domain.usecase.ArcaLiveAppUseCase
+import com.joeloewi.croissant.domain.ArcaLiveAppUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList

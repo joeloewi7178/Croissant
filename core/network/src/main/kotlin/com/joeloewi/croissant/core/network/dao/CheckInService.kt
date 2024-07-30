@@ -16,7 +16,7 @@
 
 package com.joeloewi.croissant.core.network.dao
 
-import com.joeloewi.croissant.core.network.model.response.AttendanceResponse
+import com.joeloewi.croissant.core.network.model.response.HoYoLABResponse
 import com.skydoves.sandwich.ApiResponse
 import retrofit2.http.Header
 import retrofit2.http.POST
@@ -30,12 +30,12 @@ interface CheckInService {
         @Query("act_id") actId: String,
         @Query("lang") language: String = Locale.getDefault().toLanguageTag().lowercase(),
         @Header("Cookie") cookie: String
-    ): ApiResponse<AttendanceResponse>
+    ): ApiResponse<HoYoLABResponse.AttendanceResponse>
 
     @POST("event/mani/sign")
     suspend fun attendCheckInHonkaiImpact3rd(
         @Query("act_id") actId: String = "e202110291205111",
         @Query("lang") language: String = Locale.getDefault().toLanguageTag().lowercase(),
         @Header("Cookie") cookie: String
-    ): ApiResponse<AttendanceResponse>
+    ): ApiResponse<HoYoLABResponse.AttendanceResponse>
 }

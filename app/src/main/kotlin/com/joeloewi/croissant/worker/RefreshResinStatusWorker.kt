@@ -13,10 +13,10 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics
-import com.joeloewi.croissant.core.data.model.DataSwitch
+import com.joeloewi.croissant.core.model.DataSwitch
 import com.joeloewi.croissant.core.data.model.HoYoLABGame
-import com.joeloewi.croissant.domain.usecase.HoYoLABUseCase
-import com.joeloewi.croissant.domain.usecase.ResinStatusWidgetUseCase
+import com.joeloewi.croissant.domain.HoYoLABUseCase
+import com.joeloewi.croissant.domain.ResinStatusWidgetUseCase
 import com.joeloewi.croissant.util.ResinStatus
 import com.joeloewi.croissant.util.createContentRemoteViews
 import com.joeloewi.croissant.util.createErrorDueToPowerSaveModeRemoteViews

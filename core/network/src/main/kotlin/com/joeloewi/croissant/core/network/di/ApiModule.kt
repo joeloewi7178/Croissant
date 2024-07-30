@@ -16,30 +16,24 @@
 
 package com.joeloewi.croissant.core.network.di
 
+import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.joeloewi.croissant.core.common.di.IoDispatcherExecutor
-import com.joeloewi.croissant.core.model.BaseResponse
 import com.joeloewi.croissant.core.network.BuildConfig
 import com.joeloewi.croissant.core.network.dao.ArcaLiveAppService
 import com.joeloewi.croissant.core.network.dao.CheckInService
 import com.joeloewi.croissant.core.network.dao.GenshinImpactCheckInService
 import com.joeloewi.croissant.core.network.dao.HoYoLABService
 import com.joeloewi.croissant.core.network.dao.ZenlessZoneZeroCheckInService
-import com.joeloewi.croissant.core.network.model.response.AttendanceResponse
-import com.joeloewi.croissant.core.network.model.response.ChangeDataSwitchResponse
-import com.joeloewi.croissant.core.network.model.response.GameRecordCardResponse
-import com.joeloewi.croissant.core.network.model.response.GenshinDailyNoteResponse
-import com.joeloewi.croissant.core.network.model.response.UserFullInfoResponse
 import com.skydoves.sandwich.retrofit.adapters.ApiResponseCallAdapterFactory
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.serialization.json.Json
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.create
 import java.io.IOException
 import java.net.Proxy
@@ -88,33 +82,7 @@ object ApiModule {
         .callFactory { okHttpClient.get().newCall(it) }
         .addCallAdapterFactory(ApiResponseCallAdapterFactory.create())
         .callbackExecutor { executor.execute(it) }
-        .addConverterFactory(
-            MoshiConverterFactory.create(
-                Moshi.Builder()
-                    .add(
-                        PolymorphicJsonAdapterFactory.of(
-                            BaseResponse::class.java,
-                            "type"
-                        ).withSubtype(
-                            UserFullInfoResponse::class.java,
-                            "userFullInfoResponse"
-                        ).withSubtype(
-                            GameRecordCardResponse::class.java,
-                            "gameRecordCardResponse"
-                        ).withSubtype(
-                            AttendanceResponse::class.java,
-                            "attendanceResponse"
-                        ).withSubtype(
-                            GenshinDailyNoteResponse::class.java,
-                            "genshinDailyNoteResponse"
-                        ).withSubtype(
-                            ChangeDataSwitchResponse::class.java,
-                            "changeDataSwitchResponse"
-                        )
-                    )
-                    .build()
-            )
-        )
+        .addConverterFactory(Json.asConverterFactory("application/json".toMediaType()))
         .validateEagerly(true)
 
     @Singleton

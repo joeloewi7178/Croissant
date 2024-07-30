@@ -9,12 +9,12 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.WorkManager
 import androidx.work.await
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.core.data.model.Account
-import com.joeloewi.croissant.core.data.model.ResinStatusWidget
+import com.joeloewi.croissant.core.model.Account
+import com.joeloewi.croissant.core.model.ResinStatusWidget
 import com.joeloewi.croissant.core.data.model.UserInfo
-import com.joeloewi.croissant.domain.usecase.AccountUseCase
-import com.joeloewi.croissant.domain.usecase.HoYoLABUseCase
-import com.joeloewi.croissant.domain.usecase.ResinStatusWidgetUseCase
+import com.joeloewi.croissant.domain.AccountUseCase
+import com.joeloewi.croissant.domain.HoYoLABUseCase
+import com.joeloewi.croissant.domain.ResinStatusWidgetUseCase
 import com.joeloewi.croissant.ui.navigation.widgetconfiguration.resinstatus.resinstatuswidgetconfiguration.ResinStatusWidgetConfigurationDestination
 import com.joeloewi.croissant.worker.RefreshResinStatusWorker
 import dagger.hilt.android.lifecycle.HiltViewModel

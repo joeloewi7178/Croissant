@@ -54,9 +54,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import coil.compose.AsyncImage
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.core.data.model.Game
+import com.joeloewi.croissant.core.model.Game
 import com.joeloewi.croissant.core.data.model.HoYoLABGame
-import com.joeloewi.croissant.core.data.model.LoggableWorker
+import com.joeloewi.croissant.core.model.LoggableWorker
 import com.joeloewi.croissant.state.LCE
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.IconDp

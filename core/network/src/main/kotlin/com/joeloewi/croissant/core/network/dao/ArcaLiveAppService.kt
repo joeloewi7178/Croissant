@@ -16,7 +16,7 @@
 
 package com.joeloewi.croissant.core.network.dao
 
-import com.joeloewi.croissant.data.api.model.response.ArticleResponse
+import com.joeloewi.croissant.core.network.model.response.ArticleResponse
 import com.skydoves.sandwich.ApiResponse
 import retrofit2.http.GET
 import retrofit2.http.Header

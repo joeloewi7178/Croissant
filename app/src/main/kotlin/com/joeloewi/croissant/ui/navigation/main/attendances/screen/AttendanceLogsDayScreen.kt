@@ -36,7 +36,7 @@ import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import coil.compose.AsyncImage
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.core.data.model.WorkerExecutionLogState
+import com.joeloewi.croissant.core.model.WorkerExecutionLogState
 import com.joeloewi.croissant.core.data.model.relational.WorkerExecutionLogWithState
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.HalfDp

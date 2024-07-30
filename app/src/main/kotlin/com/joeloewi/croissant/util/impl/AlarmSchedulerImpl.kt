@@ -5,10 +5,10 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.AlarmManagerCompat
-import com.joeloewi.croissant.core.data.model.Attendance
+import com.joeloewi.croissant.core.model.Attendance
 import com.joeloewi.croissant.receiver.AlarmReceiver
 import com.joeloewi.croissant.util.AlarmScheduler
-import com.joeloewi.croissant.util.canScheduleExactAlarmsCompat
+import com.joeloewi.croissant.feature.settings.canScheduleExactAlarmsCompat
 import com.joeloewi.croissant.util.pendingIntentFlagUpdateCurrent
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.ZoneId

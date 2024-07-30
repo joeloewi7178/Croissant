@@ -16,15 +16,15 @@
 
 package com.joeloewi.croissant.core.data.repository
 
-import com.joeloewi.croissant.core.model.BaseResponse
+import com.joeloewi.croissant.core.network.model.response.HoYoLABResponse
 
 interface CheckInRepository {
 
-    suspend fun attend(actId: String, cookie: String): Result<BaseResponse>
+    suspend fun attend(actId: String, cookie: String): Result<HoYoLABResponse>
 
-    suspend fun attendCheckInGenshinImpact(cookie: String): Result<BaseResponse>
+    suspend fun attendCheckInGenshinImpact(cookie: String): Result<HoYoLABResponse>
 
-    suspend fun attendCheckInHonkaiImpact3rd(cookie: String): Result<BaseResponse>
+    suspend fun attendCheckInHonkaiImpact3rd(cookie: String): Result<HoYoLABResponse>
 
-    suspend fun attendCheckInZenlessZoneZero(cookie: String): Result<BaseResponse>
+    suspend fun attendCheckInZenlessZoneZero(cookie: String): Result<HoYoLABResponse>
 }

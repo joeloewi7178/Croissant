@@ -21,6 +21,8 @@ dependencies {
 
     implementation(libs.coil.kt.compose)
 
+    androidTestImplementation(libs.androidx.test.ext.junit.ktx)
     testImplementation(libs.androidx.compose.ui.test)
     testImplementation(libs.androidx.compose.ui.testManifest)
+    testImplementation(libs.junit)
 }

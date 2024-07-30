@@ -1,0 +1,5 @@
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="feature_redeemcodes_due_to_site_policy">Contents may not be shown due to web site\'s policy even after retrying</string>
+    <string name="feature_redeemcodes_error_occurred">An error occurred. Please try again.</string>
+    <string name="feature_redeemcodes_retry">retry</string>
+</resources>

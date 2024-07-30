@@ -1,6 +1,6 @@
 package com.joeloewi.croissant.core.network.dao
 
-import com.joeloewi.croissant.core.network.model.response.AttendanceResponse
+import com.joeloewi.croissant.core.network.model.response.HoYoLABResponse
 import com.skydoves.sandwich.ApiResponse
 import retrofit2.http.Body
 import retrofit2.http.Header
@@ -31,5 +31,5 @@ interface ZenlessZoneZeroCheckInService {
             "act_id" to "e202406031448091",
             "lang" to Locale.getDefault().toLanguageTag().lowercase()
         )
-    ): ApiResponse<AttendanceResponse>
+    ): ApiResponse<HoYoLABResponse.AttendanceResponse>
 }

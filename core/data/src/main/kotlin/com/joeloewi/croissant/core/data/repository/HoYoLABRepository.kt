@@ -19,7 +19,7 @@ package com.joeloewi.croissant.core.data.repository
 import com.joeloewi.croissant.core.data.model.GameRecord
 import com.joeloewi.croissant.core.data.model.GenshinDailyNoteData
 import com.joeloewi.croissant.core.data.model.UserInfo
-import com.joeloewi.croissant.core.model.BaseResponse
+import com.joeloewi.croissant.core.network.model.response.HoYoLABResponse
 
 interface HoYoLABRepository {
     suspend fun getUserFullInfo(cookie: String): Result<UserInfo>
@@ -41,5 +41,5 @@ interface HoYoLABRepository {
         switchId: Int,
         isPublic: Boolean,
         gameId: Int
-    ): Result<BaseResponse>
+    ): Result<HoYoLABResponse>
 }

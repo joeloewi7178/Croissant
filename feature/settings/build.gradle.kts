@@ -1,23 +1,21 @@
 plugins {
-    alias(libs.plugins.croissant.android.library)
+    alias(libs.plugins.croissant.android.feature)
+    alias(libs.plugins.croissant.android.library.compose)
     alias(libs.plugins.croissant.android.hilt)
 }
 
 android {
     namespace = "com.joeloewi.croissant.feature.settings"
-    compileSdk = 34
-
-    defaultConfig {
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
 }
 
 dependencies {
+    implementation(libs.accompanist.permissions)
+    implementation(projects.core.data)
+    implementation(projects.domain)
 
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.android.material)
+    implementation(libs.gms.play.services.oss.licenses)
+
+    androidTestImplementation(libs.androidx.test.ext.junit.ktx)
     testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.test.espresso.core)
+    testImplementation(libs.hilt.android.testing)
 }

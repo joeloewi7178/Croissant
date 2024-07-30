@@ -18,10 +18,10 @@ package com.joeloewi.croissant.viewmodel
 
 import android.app.AlarmManager
 import androidx.lifecycle.ViewModel
-import com.joeloewi.croissant.domain.usecase.SettingsUseCase
-import com.joeloewi.croissant.domain.usecase.SystemUseCase
+import com.joeloewi.croissant.domain.SettingsUseCase
+import com.joeloewi.croissant.domain.SystemUseCase
 import com.joeloewi.croissant.util.CroissantPermission
-import com.joeloewi.croissant.util.canScheduleExactAlarmsCompat
+import com.joeloewi.croissant.feature.settings.canScheduleExactAlarmsCompat
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf

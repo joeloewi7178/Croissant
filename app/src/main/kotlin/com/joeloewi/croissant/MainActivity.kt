@@ -88,8 +88,8 @@ import com.joeloewi.croissant.ui.navigation.main.global.screen.FirstLaunchScreen
 import com.joeloewi.croissant.ui.navigation.main.redemptioncodes.RedemptionCodesDestination
 import com.joeloewi.croissant.ui.navigation.main.redemptioncodes.screen.RedemptionCodesScreen
 import com.joeloewi.croissant.ui.navigation.main.settings.SettingsDestination
-import com.joeloewi.croissant.ui.navigation.main.settings.screen.DeveloperInfoScreen
-import com.joeloewi.croissant.ui.navigation.main.settings.screen.SettingsScreen
+import com.joeloewi.croissant.feature.settings.DeveloperInfoScreen
+import com.joeloewi.croissant.feature.settings.SettingsScreen
 import com.joeloewi.croissant.ui.theme.CroissantTheme
 import com.joeloewi.croissant.util.LocalActivity
 import com.joeloewi.croissant.util.LocalHourFormat
@@ -519,7 +519,7 @@ fun CroissantNavHost(
             route = CroissantNavigation.Settings.route
         ) {
             composable(route = SettingsDestination.SettingsScreen.route) {
-                SettingsScreen(
+                com.joeloewi.croissant.feature.settings.SettingsScreen(
                     onDeveloperInfoClick = {
                         navController.navigate(SettingsDestination.DeveloperInfoScreen.route)
                     }
@@ -527,7 +527,7 @@ fun CroissantNavHost(
             }
 
             composable(route = SettingsDestination.DeveloperInfoScreen.route) {
-                DeveloperInfoScreen(
+                com.joeloewi.croissant.feature.settings.DeveloperInfoScreen(
                     onNavigateUp = { navController.navigateUp() }
                 )
             }

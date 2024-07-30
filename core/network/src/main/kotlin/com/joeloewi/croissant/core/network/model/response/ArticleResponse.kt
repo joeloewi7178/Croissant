@@ -1,8 +1,8 @@
-package com.joeloewi.croissant.data.api.model.response
+package com.joeloewi.croissant.core.network.model.response
 
-import com.squareup.moshi.JsonClass
+import kotlinx.serialization.Serializable
 
-@JsonClass(generateAdapter = true)
+@Serializable
 data class ArticleResponse(
     /*val isEditable: Boolean = false,
     val isDeletable: Boolean = false,

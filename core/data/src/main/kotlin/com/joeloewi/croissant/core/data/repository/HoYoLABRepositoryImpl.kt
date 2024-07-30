@@ -20,8 +20,8 @@ import com.joeloewi.croissant.core.data.model.GameRecord
 import com.joeloewi.croissant.core.data.model.GenshinDailyNoteData
 import com.joeloewi.croissant.core.data.model.UserInfo
 import com.joeloewi.croissant.core.data.model.asExternalData
-import com.joeloewi.croissant.core.model.BaseResponse
 import com.joeloewi.croissant.core.network.HoYoLABDataSource
+import com.joeloewi.croissant.core.network.model.response.HoYoLABResponse
 import javax.inject.Inject
 
 class HoYoLABRepositoryImpl @Inject constructor(
@@ -54,5 +54,5 @@ class HoYoLABRepositoryImpl @Inject constructor(
         switchId: Int,
         isPublic: Boolean,
         gameId: Int
-    ): Result<BaseResponse> = hoYoLABDataSource.changeDataSwitch(cookie, switchId, isPublic, gameId)
+    ): Result<HoYoLABResponse> = hoYoLABDataSource.changeDataSwitch(cookie, switchId, isPublic, gameId)
 }

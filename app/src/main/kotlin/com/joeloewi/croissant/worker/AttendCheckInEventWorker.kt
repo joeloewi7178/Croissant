@@ -16,18 +16,18 @@ import com.google.firebase.analytics.analytics
 import com.google.firebase.crashlytics.crashlytics
 import com.joeloewi.croissant.R
 import com.joeloewi.croissant.core.common.exception.HoYoLABUnsuccessfulResponseException
-import com.joeloewi.croissant.core.data.model.FailureLog
+import com.joeloewi.croissant.core.model.FailureLog
 import com.joeloewi.croissant.core.data.model.HoYoLABGame
-import com.joeloewi.croissant.core.data.model.HoYoLABRetCode
-import com.joeloewi.croissant.core.data.model.LoggableWorker
-import com.joeloewi.croissant.core.data.model.SuccessLog
-import com.joeloewi.croissant.core.data.model.WorkerExecutionLog
-import com.joeloewi.croissant.core.data.model.WorkerExecutionLogState
-import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
-import com.joeloewi.croissant.domain.usecase.CheckInUseCase
-import com.joeloewi.croissant.domain.usecase.FailureLogUseCase
-import com.joeloewi.croissant.domain.usecase.SuccessLogUseCase
-import com.joeloewi.croissant.domain.usecase.WorkerExecutionLogUseCase
+import com.joeloewi.croissant.core.model.HoYoLABRetCode
+import com.joeloewi.croissant.core.model.LoggableWorker
+import com.joeloewi.croissant.core.model.SuccessLog
+import com.joeloewi.croissant.core.model.WorkerExecutionLog
+import com.joeloewi.croissant.core.model.WorkerExecutionLogState
+import com.joeloewi.croissant.domain.AttendanceUseCase
+import com.joeloewi.croissant.domain.CheckInUseCase
+import com.joeloewi.croissant.domain.FailureLogUseCase
+import com.joeloewi.croissant.domain.SuccessLogUseCase
+import com.joeloewi.croissant.domain.WorkerExecutionLogUseCase
 import com.joeloewi.croissant.util.NotificationGenerator
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -265,9 +265,9 @@ class AttendCheckInEventWorker @AssistedInject constructor(
                                         }
 
                                         if (retCode !in listOf(
-                                                com.joeloewi.croissant.core.data.model.HoYoLABRetCode.AlreadyCheckedIn,
-                                                com.joeloewi.croissant.core.data.model.HoYoLABRetCode.CharacterNotExists,
-                                                com.joeloewi.croissant.core.data.model.HoYoLABRetCode.LoginFailed
+                                                HoYoLABRetCode.AlreadyCheckedIn,
+                                                HoYoLABRetCode.CharacterNotExists,
+                                                HoYoLABRetCode.LoginFailed
                                             )
                                         ) {
                                             //we don't know which error was occurred

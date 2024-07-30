@@ -79,7 +79,7 @@ import coil.compose.AsyncImage
 import com.google.firebase.Firebase
 import com.google.firebase.analytics.analytics
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.core.data.model.Attendance
+import com.joeloewi.croissant.core.model.Attendance
 import com.joeloewi.croissant.core.data.model.relational.AttendanceWithGames
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp

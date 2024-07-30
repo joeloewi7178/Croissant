@@ -9,15 +9,15 @@ import com.google.android.play.core.ktx.AppUpdateResult
 import com.google.android.play.core.ktx.requestUpdateFlow
 import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics
-import com.joeloewi.croissant.domain.usecase.SettingsUseCase
-import com.joeloewi.croissant.domain.usecase.SystemUseCase
+import com.joeloewi.croissant.domain.SettingsUseCase
+import com.joeloewi.croissant.domain.SystemUseCase
 import com.joeloewi.croissant.state.LCE
 import com.joeloewi.croissant.ui.navigation.main.CroissantNavigation
 import com.joeloewi.croissant.ui.navigation.main.attendances.AttendancesDestination
 import com.joeloewi.croissant.ui.navigation.main.global.GlobalDestination
 import com.joeloewi.croissant.util.CroissantPermission
 import com.joeloewi.croissant.util.HourFormat
-import com.joeloewi.croissant.util.isDeviceNexus5X
+import com.joeloewi.croissant.feature.settings.isDeviceNexus5X
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -57,7 +57,7 @@ class MainActivityViewModel @Inject constructor(
         flow {
             emit(Build.MODEL)
         }.filter {
-            !isDeviceNexus5X()
+            !com.joeloewi.croissant.feature.settings.isDeviceNexus5X()
         }.flatMapConcat {
             appUpdateManager.requestUpdateFlow()
         }.catch { cause ->

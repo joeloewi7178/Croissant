@@ -9,7 +9,7 @@ import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.core.data.model.LoggableWorker
+import com.joeloewi.croissant.core.model.LoggableWorker
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 

@@ -1,7 +1,7 @@
 package com.joeloewi.croissant.core.data.model
 
 import androidx.compose.runtime.Immutable
-import com.joeloewi.croissant.core.model.GameRecordEntity
+import com.joeloewi.croissant.core.network.model.GameRecordEntity
 
 @Immutable
 data class GameRecord(

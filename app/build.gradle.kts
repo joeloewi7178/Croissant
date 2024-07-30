@@ -5,15 +5,8 @@ plugins {
     alias(libs.plugins.croissant.android.hilt)
     alias(libs.plugins.croissant.android.application.firebase)
     id("kotlin-parcelize")
-    id(libs.plugins.gms.oss.licenses.plugin.get().pluginId)
     alias(libs.plugins.androidx.baselineprofile)
     id(libs.plugins.kotlinx.atomicfu.get().pluginId)
-}
-
-kotlin {
-    jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
-    }
 }
 
 android {
@@ -108,7 +101,6 @@ dependencies {
 
     //accompanist
     implementation(libs.accompanist.permissions)
-    implementation(libs.accompanist.pager)
     implementation(libs.accompanist.systemuicontroller)
     implementation(libs.accompanist.webview)
     implementation(libs.accompanist.pager.indicators)

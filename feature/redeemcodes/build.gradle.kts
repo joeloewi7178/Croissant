@@ -12,5 +12,7 @@ dependencies {
     implementation(projects.core.data)
     implementation(projects.domain)
 
+    androidTestImplementation(libs.androidx.test.ext.junit.ktx)
+    testImplementation(libs.junit)
     testImplementation(libs.hilt.android.testing)
 }

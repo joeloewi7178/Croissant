@@ -13,7 +13,7 @@ suspend fun requestReview(
     activity: Activity,
     logMessage: String?
 ) {
-    if (!isDeviceNexus5X()) {
+    if (!com.joeloewi.croissant.feature.settings.isDeviceNexus5X()) {
         runCatching {
             ReviewManagerFactory.create(activity.applicationContext)
         }.mapCatching { reviewManager ->

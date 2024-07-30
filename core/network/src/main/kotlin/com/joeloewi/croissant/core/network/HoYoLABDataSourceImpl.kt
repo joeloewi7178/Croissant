@@ -20,10 +20,7 @@ import com.joeloewi.croissant.core.common.GenshinImpactServer
 import com.joeloewi.croissant.core.common.exception.HoYoLABUnsuccessfulResponseException
 import com.joeloewi.croissant.core.network.dao.HoYoLABService
 import com.joeloewi.croissant.core.network.model.request.DataSwitchRequest
-import com.joeloewi.croissant.core.network.model.response.ChangeDataSwitchResponse
-import com.joeloewi.croissant.core.network.model.response.GameRecordCardResponse
-import com.joeloewi.croissant.core.network.model.response.GenshinDailyNoteResponse
-import com.joeloewi.croissant.core.network.model.response.UserFullInfoResponse
+import com.joeloewi.croissant.core.network.model.response.HoYoLABResponse
 import com.skydoves.sandwich.getOrThrow
 import com.skydoves.sandwich.suspendMapSuccess
 import kotlinx.coroutines.Dispatchers
@@ -33,7 +30,7 @@ import javax.inject.Inject
 class HoYoLABDataSourceImpl @Inject constructor(
     private val hoYoLABService: dagger.Lazy<HoYoLABService>,
 ) : HoYoLABDataSource {
-    override suspend fun getUserFullInfo(cookie: String): Result<UserFullInfoResponse> =
+    override suspend fun getUserFullInfo(cookie: String): Result<HoYoLABResponse.UserFullInfoResponse> =
         withContext(Dispatchers.IO) {
             runCatching {
                 hoYoLABService.get().getUserFullInfo(cookie).suspendMapSuccess {
@@ -51,7 +48,7 @@ class HoYoLABDataSourceImpl @Inject constructor(
     override suspend fun getGameRecordCard(
         cookie: String,
         uid: Long
-    ): Result<GameRecordCardResponse> = withContext(Dispatchers.IO) {
+    ): Result<HoYoLABResponse.GameRecordCardResponse> = withContext(Dispatchers.IO) {
         runCatching {
             hoYoLABService.get().getGameRecordCard(cookie, uid).suspendMapSuccess {
                 if (retCode != 0) {
@@ -72,7 +69,7 @@ class HoYoLABDataSourceImpl @Inject constructor(
         xRpcClientType: String,
         roleId: Long,
         server: String
-    ): Result<GenshinDailyNoteResponse> = withContext(Dispatchers.IO) {
+    ): Result<HoYoLABResponse.GenshinDailyNoteResponse> = withContext(Dispatchers.IO) {
         runCatching {
             val headerInformation =
                 when (GenshinImpactServer.findByRegion(server)) {
@@ -113,7 +110,7 @@ class HoYoLABDataSourceImpl @Inject constructor(
         switchId: Int,
         isPublic: Boolean,
         gameId: Int
-    ): Result<ChangeDataSwitchResponse> = withContext(Dispatchers.IO) {
+    ): Result<HoYoLABResponse.ChangeDataSwitchResponse> = withContext(Dispatchers.IO) {
         runCatching {
             hoYoLABService.get().changeDataSwitch(
                 cookie, DataSwitchRequest(switchId, isPublic, gameId)

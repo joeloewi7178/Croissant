@@ -1,12 +1,10 @@
 package com.joeloewi.croissant.core.network
 
-import com.squareup.moshi.Moshi
 import java.security.MessageDigest
 import kotlin.random.Random
 
 fun generateDS(
     headerInformation: HeaderInformation,
-    body: Any? = null,
     query: List<Pair<String, Any>>? = listOf()
 ): String {
     val timePairKey = "t"
@@ -46,7 +44,7 @@ fun generateDS(
 
             val randomStringPair = randomPairKey to "${Random.nextInt(100001, 200000)}"
             val bodyPair =
-                bodyPairKey to (Moshi.Builder().build().adapter(Any::class.java).toJson(body) ?: "")
+                bodyPairKey to ""
             val queryPair = queryPairKey to (query?.map { with(it) { "${first}=${second}" } } ?: "")
 
             val pairs = listOf(

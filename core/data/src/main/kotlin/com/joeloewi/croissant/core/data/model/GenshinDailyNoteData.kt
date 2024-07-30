@@ -1,7 +1,7 @@
 package com.joeloewi.croissant.core.data.model
 
 import androidx.compose.runtime.Immutable
-import com.joeloewi.croissant.core.model.GenshinDailyNoteDataEntity
+import com.joeloewi.croissant.core.network.model.GenshinDailyNoteDataEntity
 
 @Immutable
 data class GenshinDailyNoteData(

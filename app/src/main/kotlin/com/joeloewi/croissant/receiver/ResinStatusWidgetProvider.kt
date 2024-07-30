@@ -8,9 +8,9 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.WorkManager
 import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics
-import com.joeloewi.croissant.domain.usecase.ResinStatusWidgetUseCase
+import com.joeloewi.croissant.domain.ResinStatusWidgetUseCase
 import com.joeloewi.croissant.util.createErrorDueToPowerSaveModeRemoteViews
-import com.joeloewi.croissant.util.isIgnoringBatteryOptimizationsCompat
+import com.joeloewi.croissant.feature.settings.isIgnoringBatteryOptimizationsCompat
 import com.joeloewi.croissant.worker.RefreshResinStatusWorker
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CancellationException

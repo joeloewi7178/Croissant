@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.croissant.android.library)
     alias(libs.plugins.croissant.android.hilt)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -21,6 +22,7 @@ dependencies {
 
     implementation(libs.androidx.paging.common.ktx)
     compileOnly(libs.compose.stable.marker)
+    implementation(libs.kotlinx.serialization.json)
 
     androidTestImplementation(libs.androidx.test.ext.junit.ktx)
     testImplementation(libs.junit)

@@ -134,10 +134,12 @@ private fun RedemptionCodesContent(
                         ) { item ->
                             RedemptionCodeListItem(
                                 modifier = Modifier.animateItemPlacement(),
-                                item = item,
+                                iconUrl = item.first.gameIconUrl,
+                                gameName = item.first.name,
+                                htmlString = item.second,
                                 isExpanded = item.first in state.expandedItems,
                                 onClickUrl = onClickUrl,
-                                onClickExpand = onClickExpand
+                                onClickExpand = { onClickExpand(item.first) }
                             )
                         }
                     }
@@ -149,7 +151,10 @@ private fun RedemptionCodesContent(
                         ) {
                             RedemptionCodesError(
                                 modifier = Modifier.fillParentMaxSize(),
-                                onRefresh = onRefresh
+                                onRefresh = onRefresh,
+                                dueToSitePolicyText = stringResource(id = R.string.feature_redeemcodes_due_to_site_policy),
+                                errorOccurredText = stringResource(id = R.string.feature_redeemcodes_error_occurred),
+                                retryText = stringResource(id = R.string.feature_redeemcodes_retry)
                             )
                         }
                     }

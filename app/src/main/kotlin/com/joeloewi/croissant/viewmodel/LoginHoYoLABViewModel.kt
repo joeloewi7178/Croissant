@@ -12,7 +12,7 @@ import androidx.lifecycle.ViewModel
 import androidx.webkit.CookieManagerCompat
 import androidx.webkit.WebViewFeature
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.domain.usecase.SystemUseCase
+import com.joeloewi.croissant.domain.SystemUseCase
 import com.joeloewi.croissant.state.LCE
 import com.joeloewi.croissant.state.foldAsLce
 import dagger.hilt.android.lifecycle.HiltViewModel

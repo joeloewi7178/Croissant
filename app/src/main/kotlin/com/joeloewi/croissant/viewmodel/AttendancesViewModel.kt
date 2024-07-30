@@ -7,8 +7,8 @@ import androidx.paging.cachedIn
 import androidx.work.WorkManager
 import com.google.firebase.Firebase
 import com.google.firebase.analytics.analytics
-import com.joeloewi.croissant.core.data.model.Attendance
-import com.joeloewi.croissant.domain.usecase.AttendanceUseCase
+import com.joeloewi.croissant.core.model.Attendance
+import com.joeloewi.croissant.domain.AttendanceUseCase
 import com.joeloewi.croissant.util.AlarmScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import org.orbitmvi.orbit.Container

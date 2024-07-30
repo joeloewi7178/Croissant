@@ -56,8 +56,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import com.joeloewi.croissant.R
-import com.joeloewi.croissant.core.data.model.LoggableWorker
-import com.joeloewi.croissant.core.data.model.ResultCount
+import com.joeloewi.croissant.core.model.LoggableWorker
+import com.joeloewi.croissant.core.model.ResultCount
 import com.joeloewi.croissant.ui.theme.DefaultDp
 import com.joeloewi.croissant.ui.theme.DoubleDp
 import com.joeloewi.croissant.ui.theme.HalfDp

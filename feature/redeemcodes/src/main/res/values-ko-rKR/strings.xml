@@ -1,0 +1,5 @@
+<resources>
+    <string name="feature_redeemcodes_due_to_site_policy">원본 웹사이트의 정책으로 인해 크롤링이 차단되어 다시시도 이후에도 내용이 표시되지 않을 수 있습니다.</string>
+    <string name="feature_redeemcodes_error_occurred">오류가 발생했습니다. 다시 시도해주세요.</string>
+    <string name="feature_redeemcodes_retry">다시시도</string>
+</resources>

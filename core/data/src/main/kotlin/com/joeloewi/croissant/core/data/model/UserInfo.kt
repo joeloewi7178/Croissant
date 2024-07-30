@@ -1,7 +1,7 @@
 package com.joeloewi.croissant.core.data.model
 
 import androidx.compose.runtime.Immutable
-import com.joeloewi.croissant.core.model.UserInfoEntity
+import com.joeloewi.croissant.core.network.model.UserInfoEntity
 
 @Immutable
 data class UserInfo(
