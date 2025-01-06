@@ -65,7 +65,7 @@ kotlinxAtomicfu = "0.26.1"
 orbit = "9.0.0"
 junitVersion = "1.2.1"
 composeStableMarker = "1.0.5"
-kotlinxSerializationJson = "1.7.3"
+kotlinxSerializationJson = "1.8.0"
 retrofitKotlinxSerializationJson = "1.0.0"
 
 [libraries]
